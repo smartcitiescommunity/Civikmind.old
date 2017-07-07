@@ -1,0 +1,99 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Financialreports Development Team
+# This file is distributed under the same license as the PACKAGE package.
+# 
+# Translators:
+# Kaya Zeren <kayazeren@gmail.com>, 2013,2015
+msgid ""
+msgstr ""
+"Project-Id-Version: GLPI Project - financialreports plugin\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-09-26 10:12+0200\n"
+"PO-Revision-Date: 2016-09-26 08:12+0000\n"
+"Last-Translator: Xavier CAILLAUD <tsmr@thetsmr.fr>\n"
+"Language-Team: Turkish (Turkey) (http://www.transifex.com/tsmr/GLPI_financialreports/language/tr_TR/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: tr_TR\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: setup.php:61 inc/financialreport.class.php:41 inc/profile.class.php:126
+msgid "Asset situation"
+msgid_plural "Asset situations"
+msgstr[0] "Demirbaş durumu"
+
+#: setup.php:74
+msgid "This plugin requires GLPI >= 9.1"
+msgstr ""
+
+#: front/config.form.php:71
+msgid "Please activate the plugin"
+msgstr "Lütfen uygulama ekini etkinleştirin"
+
+#: front/financialreport.php:158
+msgid "Report date"
+msgstr "Rapor tarihi"
+
+#: inc/config.class.php:73 inc/config.class.php:88
+msgid "Disposal status"
+msgstr "Düşme durumu"
+
+#: inc/financialreport.class.php:321 inc/pdf.class.php:224
+msgid "Asset situation ended on"
+msgstr "Demirbaş durumunun bitiş tarihi"
+
+#: inc/financialreport.class.php:356 inc/financialreport.class.php:358
+#: inc/parameter.class.php:51
+msgid "Notebook"
+msgid_plural "Notebooks"
+msgstr[0] "Notdefteri"
+
+#: inc/financialreport.class.php:366 inc/financialreport.class.php:368
+#: inc/parameter.class.php:55
+msgid "Server"
+msgid_plural "Servers"
+msgstr[0] "Sunucu"
+
+#: inc/financialreport.class.php:453 inc/financialreport.class.php:455
+msgid "Element out"
+msgid_plural "Elements out"
+msgstr[0] "Bileşenler çıkarıldı"
+
+#: inc/financialreport.class.php:477 inc/pdf.class.php:324
+msgid "General Total"
+msgstr "Genel Toplam"
+
+#: inc/financialreport.class.php:478 inc/financialreport.class.php:513
+#: inc/financialreport.class.php:539 inc/financialreport.class.php:563
+msgid "Euro"
+msgid_plural "Euros"
+msgstr[0] "Eur"
+
+#: inc/financialreport.class.php:525
+msgid "Hide"
+msgstr "Gizlensin"
+
+#: inc/financialreport.class.php:527
+msgid "Display"
+msgstr "Görüntülensin"
+
+#: inc/financialreport.class.php:553 inc/pdf.class.php:260
+msgid "User / Group"
+msgstr "Kullanıcı / Grup"
+
+#: inc/financialreport.class.php:563
+msgid "Purchase Price HT in"
+msgstr "Satın Alma Fiyatı HT "
+
+#: inc/financialreport.class.php:594
+msgid "In stock / available"
+msgstr "Stokta / kullanılabilir"
+
+#: inc/parameter.class.php:43
+msgid "Identification parameters of inventory number"
+msgstr "Stok numarasının açılımı"
+
+#: inc/pdf.class.php:267 inc/pdf.class.php:271
+msgid "HT"
+msgstr "HT"

@@ -1,0 +1,70 @@
+language: php
+
+env:
+  - DB=mysql
+
+before_script:
+  - composer self-update
+  - sed -e '/"php":/d' -i composer.json
+  - rm -f composer.lock
+  - composer install --optimize-autoloader
+  - mysql -u root -e 'create database glpitest;'
+  - php tools/cliinstall.php --db=glpitest --user=root --tests
+  - php -S localhost:8088 tests/router.php &>/dev/null &
+
+script:
+  - mysql -u root -e 'select version();'
+  - vendor/bin/phpunit --verbose
+
+matrix:
+  include:
+    - php: 5.4
+      addons:
+        mariadb: 5.5
+    - php: 5.5
+      addons:
+        mariadb: 5.5
+    - php: 5.6
+      addons:
+        mariadb: 5.5
+    - php: 5.6
+      addons:
+        mariadb: 10.0
+    - php: 5.6
+      addons:
+        mariadb: 10.1
+    - php: 7.0
+      addons:
+        mariadb: 10.0
+    - php: 7.0
+      addons:
+        mariadb: 10.1
+    - php: 7.1
+      addons:
+        mariadb: 10.0
+    - php: 7.1
+      addons:
+        mariadb: 10.1
+    - php: nightly
+      addons:
+        mariadb: 10.1
+  allow_failures:
+    - php: nightly
+
+cache:
+  directories:
+    - $HOME/.composer/cache
+
+notifications:
+  irc:
+    channels:
+      - "chat.freenode.org#glpi"
+    on_success: change
+    on_failure: always
+    use_notice: true
+    skip_join: true
+
+#exclude old branches, without tests
+branches:
+  except:
+    - /^0\..*$/

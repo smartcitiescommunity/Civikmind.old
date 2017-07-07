@@ -1,0 +1,79 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# 
+# Translators:
+# Nelly Mahu-Lasson <nini.lasson@orange.fr>, 2016
+msgid ""
+msgstr ""
+"Project-Id-Version: GLPI Project - Plugin Appliance\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-05-31 14:36+0200\n"
+"PO-Revision-Date: 2016-05-31 12:47+0000\n"
+"Last-Translator: Nelly Mahu-Lasson <nini.lasson@orange.fr>\n"
+"Language-Team: French (France) (http://www.transifex.com/yllen/glpi-project-plugin-appliance/language/fr_FR/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: fr_FR\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: hook.php:78 hook.php:266 hook.php:280 hook.php:295
+#: inc/appliance.class.php:48 inc/appliance.class.php:83
+#: inc/appliance_item.class.php:544 inc/menu.class.php:37
+#: inc/profile.class.php:154
+msgid "Appliance"
+msgid_plural "Appliances"
+msgstr[0] "Applicatif"
+msgstr[1] "Applicatifs"
+
+#: hook.php:217 inc/appliancetype.class.php:42
+msgid "Type of appliance"
+msgstr "Type d'applicatif"
+
+#: hook.php:218 inc/appliance.class.php:147 inc/appliance.class.php:263
+#: inc/appliance.class.php:379 inc/environment.class.php:41
+msgid "Environment"
+msgstr "Environnement"
+
+#: hook.php:405
+msgid "Associate to appliance"
+msgstr "Associer à l'applicatif"
+
+#: setup.php:156
+msgid "Appliances"
+msgstr "Applicatifs"
+
+#: inc/appliance.class.php:110 inc/appliance_item.class.php:355
+#: inc/appliance_item.class.php:493
+msgid "Associated items"
+msgstr "Elément(s) associé(s)"
+
+#: inc/appliance.class.php:312 inc/appliance_item.class.php:159
+#: inc/appliance_item.class.php:503 inc/relation.class.php:248
+msgid "Item to link"
+msgstr "Composants à relier"
+
+#: inc/appliance_item.class.php:53 inc/appliance_item.class.php:55
+msgid "Appliance item"
+msgid_plural "Appliances items"
+msgstr[0] "Element applicatif"
+msgstr[1] "Eléments applicatif"
+
+#: inc/appliance_item.class.php:151
+msgid "Associate"
+msgstr "Associer"
+
+#: inc/appliance_item.class.php:161 inc/appliance_item.class.php:503
+#: inc/optvalue.class.php:69 inc/optvalue.class.php:119
+#: inc/optvalue_item.class.php:152
+msgid "User fields"
+msgstr "Champs personnalisables"
+
+#: inc/appliance_item.class.php:287
+msgid "Associated appliances"
+msgstr "Applicatif(s) associé(s)"
+
+#: inc/optvalue.class.php:94
+msgid "Default"
+msgstr "Valeur par défaut"

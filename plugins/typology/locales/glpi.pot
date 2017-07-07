@@ -1,0 +1,188 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Typology Development Team
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: GLPI - Typology plugin 2.3.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2017-04-10 11:07+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: hook.php:230 inc/typology_item.class.php:560
+msgid "Assign a typology to this material"
+msgstr ""
+
+#: hook.php:231
+msgid "Delete the typology of this material"
+msgstr ""
+
+#: hook.php:232 inc/typology.class.php:288
+msgid "Recalculate typology for the elements"
+msgstr ""
+
+#: hook.php:253
+msgid "Typology's name"
+msgstr ""
+
+#: hook.php:267 inc/typology_item.class.php:490
+#: inc/typology_item.class.php:745
+msgid "Responding to typology's criteria"
+msgstr ""
+
+#: setup.php:74 inc/menu.class.php:34 inc/profile.class.php:133
+#: inc/typology.class.php:58
+msgid "Typology"
+msgid_plural "Typologies"
+msgstr[0] ""
+msgstr[1] ""
+
+#: setup.php:86
+msgid "This plugin requires GLPI >= 9.1"
+msgstr ""
+
+#: front/typology.form.php:82
+msgid "Element not match with the rule for assigning the typology:"
+msgstr ""
+
+#: front/typology.form.php:97 inc/typology_item.class.php:1052
+#: inc/typology_item.class.php:1068
+msgid "Element not match with rules for assigning a typology"
+msgstr ""
+
+#: inc/notificationtargettypology.class.php:39
+#: inc/notificationtargettypology.class.php:51 inc/typology.class.php:292
+#: inc/typology.class.php:435
+msgid "Elements not match with the typology"
+msgstr ""
+
+#: inc/notificationtargettypology.class.php:57
+#: inc/notificationtargettypology.class.php:90
+msgid "Link to the typology"
+msgstr ""
+
+#: inc/notificationtargettypology.class.php:58
+#: inc/notificationtargettypology.class.php:91
+msgid "Link to the element"
+msgstr ""
+
+#: inc/ruletypologycollection.class.php:43
+msgid "Rules for assigning a typology to a computer"
+msgstr ""
+
+#: inc/typology.class.php:366
+msgid "Typology of the linked elements is updated."
+msgstr ""
+
+#: inc/typologycriteria.class.php:156
+msgid "Add a criterion"
+msgstr ""
+
+#: inc/typologycriteria.class.php:200
+msgid "Criteria's list"
+msgstr ""
+
+#: inc/typologycriteria.class.php:224 inc/typology_item.class.php:920
+msgid "Detail of the assigned typology"
+msgstr ""
+
+#: inc/typologycriteriadefinition.class.php:44
+msgid "Definition"
+msgid_plural "Definitions"
+msgstr[0] ""
+msgstr[1] ""
+
+#: inc/typologycriteriadefinition.class.php:92
+msgid ""
+"You don't have right to create a definition for this criteria. Thank to "
+"contact a person having this right."
+msgstr ""
+
+#: inc/typologycriteriadefinition.class.php:539
+#: inc/typologycriteriadefinition.class.php:545
+#: inc/typologycriteriadefinition.class.php:780
+msgid "Less than"
+msgstr ""
+
+#: inc/typologycriteriadefinition.class.php:540
+#: inc/typologycriteriadefinition.class.php:546
+#: inc/typologycriteriadefinition.class.php:782
+msgid "More than"
+msgstr ""
+
+#: inc/typology_item.class.php:58
+msgid "Element"
+msgid_plural "Elements"
+msgstr[0] ""
+msgstr[1] ""
+
+#: inc/typology_item.class.php:137
+msgid "Add element to the typology"
+msgstr ""
+
+#: inc/typology_item.class.php:139
+msgid "Update element to the typology"
+msgstr ""
+
+#: inc/typology_item.class.php:141
+msgid "Element out of the typology"
+msgstr ""
+
+#: inc/typology_item.class.php:223
+msgid ""
+"You cannot assign this typology to this material as he has already a "
+"typology : "
+msgstr ""
+
+#: inc/typology_item.class.php:485
+msgid "Typology assigned to this material"
+msgstr ""
+
+#: inc/typology_item.class.php:492
+msgid "Actions"
+msgstr ""
+
+#: inc/typology_item.class.php:524 inc/typology_item.class.php:803
+msgid "for the criteria"
+msgstr ""
+
+#: inc/typology_item.class.php:682 inc/typology_item.class.php:729
+msgid "Linked elements"
+msgstr ""
+
+#: inc/typology_item.class.php:704
+msgid "Select a type"
+msgstr ""
+
+#: inc/typology_item.class.php:727
+msgid "No linked element"
+msgstr ""
+
+#: inc/typology_item.class.php:912
+msgid "Management console"
+msgstr ""
+
+#: inc/typology_item.class.php:919
+msgid "Comparison"
+msgstr ""
+
+#: inc/typology_item.class.php:921
+msgid "Detail of the encountered configuration"
+msgstr ""
+
+#: inc/typology_item.class.php:927
+msgid "Waiting value"
+msgstr ""
+
+#: inc/typology_item.class.php:928
+msgid "Real value"
+msgstr ""

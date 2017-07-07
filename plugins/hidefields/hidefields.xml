@@ -1,0 +1,54 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<root>
+   <name>Hidefields</name>
+   <key>hidefields</key>
+   <state>stable</state>
+   <logo>https://raw.githubusercontent.com/tomolimo/hidefields/master/hidefields.png</logo>
+   <description>
+      <short>
+         <fr><![CDATA[Cache des champs sur le formulaire de creation de ticket en interface simplifiée.]]></fr>
+         <en><![CDATA[Hides fields for ticket creation form when in simplified interface.]]></en>
+      </short>
+      <long>
+         <fr><![CDATA[Actuellement, cache le champ 'Catégorie' du formulaire de création de ticket en interface simplifiée. Ce plugin est uniquement du Javascrit.]]></fr>
+         <en><![CDATA[Currently only hides the 'Category' field on ticket creation form when using the simplified interface. This plugin is only Javascript.]]></en>
+      </long>
+   </description>
+   <homepage>https://github.com/tomolimo/hidefields</homepage>
+   <download>https://github.com/tomolimo/hidefields/releases</download>
+   <issues>https://github.com/tomolimo/hidefields/issues</issues>
+   <readme>https://github.com/tomolimo/hidefields/wiki</readme>
+   <authors>
+      <author>Olivier Moron </author>
+   </authors>
+   <versions>
+		<version>
+          <num>1.0.0</num>
+          <compatibility>0.85</compatibility>
+		</version>
+		<version>
+          <num>1.0.0</num>
+          <compatibility>0.90</compatibility>
+		</version>
+		<version>
+          <num>1.0.0</num>
+          <compatibility>9.1</compatibility>
+		</version>
+   </versions>
+   <langs>
+      <lang>None</lang>
+   </langs>
+   <license><![CDATA[GPL v2+]]></license>
+   <tags>
+         <fr>
+            <tag>Helpdesk</tag>
+			<tag>Création ticket</tag>
+			<tag>Interface simplifiée</tag>
+         </fr>
+         <en>
+            <tag>Helpdesk</tag>
+			<tag>Ticket creation</tag>
+			<tag>Simplified interface</tag>
+         </en>
+   </tags>
+</root>

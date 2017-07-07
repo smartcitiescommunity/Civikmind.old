@@ -1,0 +1,29 @@
+<phpunit
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/3.7/phpunit.xsd"
+  bootstrap="bootstrap.php"
+  processIsolation="false"
+  backupGlobals="false"
+  stopOnFailure="true"
+  strict="false" >
+  <logging>
+    <log type="junit" target="../build/logs/junit_integration.xml" logIncompleteSkipped="true" />
+  </logging>
+  <testsuites>
+    <testsuite name="Integration">
+        <directory suffix="Test.php">../2_Integration/00-Install</directory>
+        <directory suffix="Test.php">../2_Integration/01-Init</directory>
+        <directory suffix="Test.php">../2_Integration/02-NewJobs</directory>
+        <directory suffix="Test.php">../2_Integration/03-GetJobs</directory>
+        <directory suffix="Test.php">../2_Integration/04-RunJobs</directory>
+        <directory suffix="Test.php">../2_Integration/05-Results</directory>
+        <directory suffix="Test.php">../2_Integration/06-AVStatus</directory>
+        <directory suffix="Test.php">../2_Integration/07-Boards</directory>
+        <directory suffix="Test.php">../2_Integration/08-Forms</directory>
+        <directory suffix="Test.php">../2_Integration/09-Menu</directory>
+        <directory suffix="Test.php">../2_Integration/10-Search</directory>
+    </testsuite>
+  </testsuites>
+</phpunit>
+
+

@@ -1,0 +1,14 @@
+Main developers :
+
+Remi Collet
+Jean-Mathieu Doléans
+Julien Dombre
+Bazile Lebeau
+Nelly Mahu-Lasson
+Walid Nouh
+Damien Touraine
+Alexandre Delaunay
+Xavier Caillaud
+
+Contibutors :
+Olivier Andreotti

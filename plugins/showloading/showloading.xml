@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+    <name>Browser Notification</name>
+    <key>showloading</key>
+    <state>stable</state>
+    <logo>https://raw.githubusercontent.com/edgardmessias/showloading/master/plugin.gif</logo>
+    <description>
+        <short>
+            <en><![CDATA[This plugin allow your browser to show notifications for GLPI]]></en>
+        </short>
+        <long>
+            <en><![CDATA[
+# Show Loading (GLPI)
+This plugin add automatic page load progress bar in GLPI using [Pace](http://github.hubspot.com/pace/)
+
+Demo: [Pace docs](http://github.hubspot.com/pace/docs/welcome/)
+
+# Installation (EN)
+ * Uncompress the archive to the `<GLPI_ROOT>/plugins/showloading` directory
+ * Navigate to the Configuration > Plugins page,
+ * Install and activate the plugin.
+ * Go to `Configuration > General > Show Loading` and configure
+]]></en>
+        </long>
+    </description>
+    <homepage>https://github.com/edgardmessias/showloading</homepage>
+    <download>https://github.com/edgardmessias/showloading/releases</download>
+    <issues>https://github.com/edgardmessias/showloading/issues</issues>
+    <readme>https://github.com/edgardmessias/showloading/wiki</readme>
+    <authors>
+        <author>Edgard Lorraine Messias</author>
+    </authors>
+    <versions>
+        <version>
+            <num>1.0.0</num>
+            <compatibility>0.85</compatibility>
+            <compatibility>0.90</compatibility>
+            <compatibility>9.1</compatibility>
+        </version>
+    </versions>
+    <langs>
+        <lang>Any</lang>
+    </langs>
+    <license><![CDATA[GPL v2+]]></license>
+    <tags>
+        <en>
+            <tag>Loading</tag>
+            <tag>Progress Bar</tag>
+            <tag>Ajax</tag>
+        </en>
+    </tags>
+</root>

@@ -1,0 +1,56 @@
+sudo: required
+language: php
+php:
+#  - 5.4
+#  - 5.5
+#  - 5.6
+  - 7.0
+
+env:
+  global:
+   - secure: "6CS/QqMYascIfYN2Gowp+N5ubZiON0/BkH/hfiwNUwLfWo2/zRHQI6TUp+emJTH5CaAurE4RQjto99Hf1FDWBhc7McpYc+00rqS4NT9wr4q84mU+B4HOGQXsENZDGeCny0UoK8fzKl869YV3pYXXS8emytTUZPr4Jx7BeTqVGZJw8pByq3h6CnVLlT9MMShFzCx4bmpMMF/JF1ZY8/PmmI/pY7eSuwcXeQ/0a0InwhwPahk+E4x7VMrijE0C0w99uEnzMiyqU5GKhPC3INjwkNcykEvmc+a85UCtCrfGx+58O5AUg9aRsT8ZkLIocT7cBQezEOi4uMoil9tcwyowJeIvG9OTXpbrROUHrcHGK/4+lMlAIYPd0t9Z02uzX/u9DBOfcMNIArPZjXle4bBCGqtpHzoh2Y5XCV5tu904YTkXnciz8UyB1TbedRnksaRMVeFDN48c2fCQlJ9ypIqnNTgYvm3iJuSm53x/cLprETkipyEf597dTiocYHoLWBdvYlYQ8/SJLiQ83zFLmOSQ7o3IkdLSr/WVSjHWFSvNCs+JlKlnlaQjU3H1Z/V7Tu4N1Z9GdQLYWxXzU+c74WGqV4vz0xcE6VcuyZQwm/P9/frsqIYdZOHUYKAeRt92vW2Vf+ALUoJsuy4j7uNCVbwtQ+PcyUXZovby314tvzAqC5A="
+   - GLPI=master
+
+cache:
+  directories:
+    - $HOME/.composer/cache
+
+addons:
+  apt:
+    sources:
+    - sourceline: 'ppa:webupd8team/java'
+    packages:
+    - ant
+    - python-software-properties
+    - oracle-java8-installer
+  sonarqube:
+    branches :
+    - DEV
+
+before_install:
+ - JAVA_HOME="/usr/lib/jvm/java-8-oracle"
+ - cd ..
+ - git clone git://github.com/glpi-project/glpi.git glpi
+ - cd glpi
+ - if [[ $GLPI != 'master' ]]; then git checkout -b $GLPI origin/$GLPI; fi
+ - if [[ $GLPI == 'master' ]]; then composer install --no-dev; fi
+ - cd ..
+ - mysql -u root -e "SET PASSWORD FOR 'travis'@'localhost' = PASSWORD('travis')"
+ - mysql -u root -e "GRANT ALL PRIVILEGES ON glpi.* TO 'travis'@'localhost';"
+ - mysql -u root -e "FLUSH PRIVILEGES;"
+ - echo '<?php class DB extends DBmysql {var $dbhost = "localhost";var $dbuser = "travis";var $dbpassword= "travis";var $dbdefault = "glpi";}' > glpi/config/config_db.php
+ - mv -f armadito-glpi glpi/plugins/armadito
+
+install:
+ - cd glpi/plugins/armadito
+ - ant -Dclearsavepoint='true' -f ./tests/build.xml composer
+
+before_script:
+  - phpenv version-name | grep ^5.[34] && echo "extension=apc.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini ; true
+  - phpenv version-name | grep ^5.[34] && echo "apc.enable_cli=1" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini ; true
+  - php -S localhost:8088 -t glpi > /dev/null 2>&1 &
+
+script:
+- ant -Dclearsavepoint='true' -f ./tests/build.xml phpunit.all
+- sonar-scanner -X -Dsonar.host.url=https://sonarqube.com -Dsonar.login=$SONAR_TOKEN
+

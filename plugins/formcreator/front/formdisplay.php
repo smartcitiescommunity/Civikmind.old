@@ -1,0 +1,111 @@
+<?php
+include ("../../../inc/includes.php");
+
+// Check if plugin is activated...
+$plugin = new Plugin();
+
+if($plugin->isActivated("formcreator") && isset($_REQUEST['id']) && is_numeric($_REQUEST['id'])) {
+   if(!isset($_SESSION['glpiname'])) {
+      $plugin->load('formcreator', true);
+      $_SESSION["glpi_plugins"][] = 'formcreator';
+      // Add specific CSS
+      $PLUGIN_HOOKS['add_css']['formcreator'][] = "css/styles.css";
+
+      $PLUGIN_HOOKS['add_css']['formcreator'][]        = 'lib/pqselect/pqselect.min.css';
+      $PLUGIN_HOOKS['add_javascript']['formcreator'][] = 'lib/pqselect/pqselect.min.js';
+
+      // Add specific JavaScript
+      $PLUGIN_HOOKS['add_javascript']['formcreator'][] = 'scripts/forms-validation.js.php';
+      $PLUGIN_HOOKS['add_javascript']['formcreator'][] = 'scripts/scripts.js.php';
+
+   }
+   $form = new PluginFormcreatorForm();
+   if($form->getFromDB((int) $_REQUEST['id'])) {
+
+      if($form->fields['access_rights'] != PluginFormcreatorForm::ACCESS_PUBLIC) {
+         Session::checkLoginUser();
+      }
+      if($form->fields['access_rights'] == PluginFormcreatorForm::ACCESS_RESTRICTED) {
+         $table = getTableForItemType('PluginFormcreatorForm_Profile');
+         $query = "SELECT *
+                   FROM $table
+                   WHERE profiles_id = {$_SESSION['glpiactiveprofile']['id']}
+                   AND plugin_formcreator_forms_id = {$form->fields['id']}";
+         $result = $DB->query($query);
+
+         if($DB->numrows($result) == 0) {
+            Html::displayRightError();
+            exit();
+         }
+      }
+      if(($form->fields['access_rights'] == PluginFormcreatorForm::ACCESS_PUBLIC) && (!isset($_SESSION['glpiID']))) {
+         // If user is not authenticated, create temporary user
+         if(!isset($_SESSION['glpiname'])) {
+            $_SESSION['formcreator_forms_id'] = $form->fields['id'];
+            $_SESSION['glpiname'] = 'formcreator_temp_user';
+            $_SESSION['valid_id'] = session_id();
+            $_SESSION['glpiactiveentities'] = $form->fields['entities_id'];
+            $subentities = getSonsOf('glpi_entities', $form->fields['entities_id']);
+            $_SESSION['glpiactiveentities_string'] = (!empty($subentities))
+                                                   ? "'" . implode("', '", $subentities) . "'"
+                                                   : "'" . $form->fields['entities_id'] . "'";
+         }
+      }
+
+      if (isset($_SESSION['glpiactiveprofile']['interface'])
+            && ($_SESSION['glpiactiveprofile']['interface'] == 'helpdesk')) {
+         if (plugin_formcreator_replaceHelpdesk()) {
+            PluginFormcreatorWizard::header(__('Service catalog', 'formcreator'));
+         } else {
+            Html::helpHeader(
+               __('Form list', 'formcreator'),
+               $_SERVER['PHP_SELF']
+            );
+         }
+
+         $form->displayUserForm($form);
+
+         if (plugin_formcreator_replaceHelpdesk()) {
+            PluginFormcreatorWizard::footer();
+         } else {
+            Html::helpFooter();
+         }
+
+      } elseif(!empty($_SESSION['glpiactiveprofile'])) {
+         Html::header(
+            __('Form Creator', 'formcreator'),
+            $_SERVER['PHP_SELF'],
+            'helpdesk',
+            'PluginFormcreatorFormlist'
+         );
+
+         $form->displayUserForm($form);
+
+         Html::footer();
+
+      } else {
+         Html::nullHeader(
+            __('Form Creator', 'formcreator'),
+            $_SERVER['PHP_SELF']
+         );
+
+         Html::displayMessageAfterRedirect();
+
+         $form->displayUserForm($form);
+
+         Html::nullFooter();
+      }
+
+   } else {
+      Html::displayNotFoundError();
+   }
+
+   // If user was not authenticated, remove temporary user
+   if($_SESSION['glpiname'] == 'formcreator_temp_user') {
+      unset($_SESSION['glpiname']);
+   }
+
+// Or display a "Not found" error
+} else {
+   Html::displayNotFoundError();
+}

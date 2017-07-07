@@ -1,0 +1,5 @@
+/*.frames table, td { border-color: #999999; border-style: solid; font-family: Arial; font-size: 12px; margin: auto; }*/
+.frames table { border-color: #999999; border-style: solid; font-family: Arial; font-size: 12px; margin: auto;  border-width: 1px 1px 1px 1px; border-spacing: 0; border-collapse: collapse; }
+.frames td { border-color: #999999; border-style: solid; font-family: Arial; font-size: 12px; margin: auto;  padding: 7px; border-width: 1px 1px 1px 1px; text-align: center; height: 21px; width: 75px; }
+.frames tr:hover { background-color: #EEEEEE; }
+.frames th { background-color: #EEEEEE; padding: 10px; font-size: 15px; font-weight: bold; text-align: center; }

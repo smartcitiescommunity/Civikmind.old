@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+   <name>ARSurveys</name>
+   <key>arsurveys</key>
+   <state>stable</state>
+    <logo>https://raw.githubusercontent.com/tomolimo/arsurveys/master/plugin.png</logo>
+   <description>
+      <short>
+         <en><![CDATA[This plugin can be used to send notifications when satisfaction survey result is negative or positive]]></en>
+      </short>
+      <long>
+         <en><![CDATA[This plugin can be used to inform technicians, managers of technicians or whoever about ticket resolution satisfaction. It has two thresholds: one for negative survey notification trigger, and one for positive survey notification trigger. These two thresholds have default values (can be changed in plugin configuration, and ARSurvey Notifications inherit from these default values), that can be also changed on a per Notification basis. The plugin provides a Notification Template with a default translation. It also provides two default Notifications (one for Negative Satisfaction Results, and one for Positive Satisfaction Results), and these are activated by default, and defined target for those are the 'managers of the group assigned to ticket'.]]></en>
+      </long>
+   </description>
+   <homepage>https://github.com/tomolimo/arsurveys</homepage>
+   <download>https://github.com/tomolimo/arsurveys/releases</download>
+   <issues>https://github.com/tomolimo/arsurveys/issues</issues>
+   <readme>https://github.com/tomolimo/arsurveys/wiki</readme>
+   <authors>
+      <author>Olivier Moron</author>
+   </authors>
+   <versions>
+   <version>
+          <num>1.4.1</num>
+          <compatibility>0.83</compatibility>
+      </version>
+   <version>
+          <num>1.4.1</num>
+          <compatibility>0.84</compatibility>
+      </version>
+   <version>
+          <num>1.4.1</num>
+          <compatibility>0.85</compatibility>
+      </version>
+     <version>
+       <num>1.4.1</num>
+       <compatibility>0.90</compatibility>
+     </version>
+     <version>
+       <num>1.4.1</num>
+       <compatibility>0.91</compatibility>
+     </version>
+     <version>
+       <num>1.4.1</num>
+       <compatibility>9.1</compatibility>
+     </version>
+   </versions>
+   <langs>
+      <lang>en_GB</lang>
+   </langs>
+   <license><![CDATA[GPL v2+]]></license>
+   <tags>
+         <en>
+            <tag>Survey</tag>
+            <tag>Notification</tag>
+            <tag>Satisfaction</tag>
+         </en>
+   </tags>
+</root>

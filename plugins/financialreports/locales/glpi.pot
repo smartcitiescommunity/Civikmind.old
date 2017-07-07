@@ -1,0 +1,104 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Financialreports Development Team
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: GLPI - Financialreports plugin 2.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-09-26 10:12+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: setup.php:61 inc/financialreport.class.php:41 inc/profile.class.php:126
+msgid "Asset situation"
+msgid_plural "Asset situations"
+msgstr[0] ""
+msgstr[1] ""
+
+#: setup.php:74
+msgid "This plugin requires GLPI >= 9.1"
+msgstr ""
+
+#: front/config.form.php:71
+msgid "Please activate the plugin"
+msgstr ""
+
+#: front/financialreport.php:158
+msgid "Report date"
+msgstr ""
+
+#: inc/config.class.php:73 inc/config.class.php:88
+msgid "Disposal status"
+msgstr ""
+
+#: inc/financialreport.class.php:321 inc/pdf.class.php:224
+msgid "Asset situation ended on"
+msgstr ""
+
+#: inc/financialreport.class.php:356 inc/financialreport.class.php:358
+#: inc/parameter.class.php:51
+msgid "Notebook"
+msgid_plural "Notebooks"
+msgstr[0] ""
+msgstr[1] ""
+
+#: inc/financialreport.class.php:366 inc/financialreport.class.php:368
+#: inc/parameter.class.php:55
+msgid "Server"
+msgid_plural "Servers"
+msgstr[0] ""
+msgstr[1] ""
+
+#: inc/financialreport.class.php:453 inc/financialreport.class.php:455
+msgid "Element out"
+msgid_plural "Elements out"
+msgstr[0] ""
+msgstr[1] ""
+
+#: inc/financialreport.class.php:477 inc/pdf.class.php:324
+msgid "General Total"
+msgstr ""
+
+#: inc/financialreport.class.php:478 inc/financialreport.class.php:513
+#: inc/financialreport.class.php:539 inc/financialreport.class.php:563
+msgid "Euro"
+msgid_plural "Euros"
+msgstr[0] ""
+msgstr[1] ""
+
+#: inc/financialreport.class.php:525
+msgid "Hide"
+msgstr ""
+
+#: inc/financialreport.class.php:527
+msgid "Display"
+msgstr ""
+
+#: inc/financialreport.class.php:553 inc/pdf.class.php:260
+msgid "User / Group"
+msgstr ""
+
+#: inc/financialreport.class.php:563
+msgid "Purchase Price HT in"
+msgstr ""
+
+#: inc/financialreport.class.php:594
+msgid "In stock / available"
+msgstr ""
+
+#: inc/parameter.class.php:43
+msgid "Identification parameters of inventory number"
+msgstr ""
+
+#: inc/pdf.class.php:267 inc/pdf.class.php:271
+msgid "HT"
+msgstr ""

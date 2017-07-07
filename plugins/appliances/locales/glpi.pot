@@ -1,0 +1,78 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-05-31 14:36+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: hook.php:78 hook.php:266 hook.php:280 hook.php:295
+#: inc/appliance.class.php:48 inc/appliance.class.php:83
+#: inc/appliance_item.class.php:544 inc/menu.class.php:37
+#: inc/profile.class.php:154
+msgid "Appliance"
+msgid_plural "Appliances"
+msgstr[0] ""
+msgstr[1] ""
+
+#: hook.php:217 inc/appliancetype.class.php:42
+msgid "Type of appliance"
+msgstr ""
+
+#: hook.php:218 inc/appliance.class.php:147 inc/appliance.class.php:263
+#: inc/appliance.class.php:379 inc/environment.class.php:41
+msgid "Environment"
+msgstr ""
+
+#: hook.php:405
+msgid "Associate to appliance"
+msgstr ""
+
+#: setup.php:156
+msgid "Appliances"
+msgstr ""
+
+#: inc/appliance.class.php:110 inc/appliance_item.class.php:355
+#: inc/appliance_item.class.php:493
+msgid "Associated items"
+msgstr ""
+
+#: inc/appliance.class.php:312 inc/appliance_item.class.php:159
+#: inc/appliance_item.class.php:503 inc/relation.class.php:248
+msgid "Item to link"
+msgstr ""
+
+#: inc/appliance_item.class.php:53 inc/appliance_item.class.php:55
+msgid "Appliance item"
+msgid_plural "Appliances items"
+msgstr[0] ""
+msgstr[1] ""
+
+#: inc/appliance_item.class.php:151
+msgid "Associate"
+msgstr ""
+
+#: inc/appliance_item.class.php:161 inc/appliance_item.class.php:503
+#: inc/optvalue.class.php:69 inc/optvalue.class.php:119
+#: inc/optvalue_item.class.php:152
+msgid "User fields"
+msgstr ""
+
+#: inc/appliance_item.class.php:287
+msgid "Associated appliances"
+msgstr ""
+
+#: inc/optvalue.class.php:94
+msgid "Default"
+msgstr ""

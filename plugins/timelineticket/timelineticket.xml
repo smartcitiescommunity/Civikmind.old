@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+   <name>Timelineticket</name>
+   <key>timelineticket</key>
+   <state>stable</state>
+   <logo></logo>
+   <description>
+      <short>
+         <fr><![CDATA[Ce plugin vous permet d'ajouter un onglet Chronologie sur les tickets]]></fr>
+         <en><![CDATA[This plugin allows you to add a Timeline tab on tickets]]></en>
+      </short>
+      <long>
+         <fr><![CDATA[Ce plugin vous permet d'ajouter un onglet Chronologie sur les tickets
+         > * Historisation et statistiques sur les différents statuts du tickets
+> * Historisation et statistiques sur les différents techniciens du tickets
+> * Historisation et statistiques sur les différents groupes de techniciens du tickets
+> * Rapport sur les temps passés sur les tickets clos]]></fr>
+         <en><![CDATA[This plugin allows you to add a Timeline tab on tickets
+         > * History and statistics for differents status of the tickets
+> * History and statistics for differents technicians of the tickets
+> * History and statistics for differents technicians groups of the tickets
+> * Report time spent on closed tickets ]]></en>
+      </long>
+   </description>
+   <homepage>https://github.com/pluginsGLPI/timelineticket</homepage>
+   <download>https://github.com/pluginsGLPI/timelineticket/releases</download>
+   <issues>https://github.com/pluginsGLPI/timelineticket/issues</issues>
+   <readme>https://raw.githubusercontent.com/pluginsGLPI/timelineticket/master/README.md</readme>
+   <authors>
+      <author>David DURIEUX</author>
+      <author>Xavier CAILLAUD</author>
+   </authors>
+   <versions>
+      <version>
+          <num>0.90+1.0</num>
+          <compatibility>0.90</compatibility>
+      </version>
+      <version>
+          <num>0.85+1.0</num>
+          <compatibility>0.85</compatibility>
+      </version>
+      <version>
+          <num>0.84+1.2</num>
+          <compatibility>0.84</compatibility>
+      </version>
+      <version>
+          <num>0.84+1.1</num>
+          <compatibility>0.84</compatibility>
+      </version>
+      <version>
+          <num>0.84+1.0</num>
+          <compatibility>0.84</compatibility>
+      </version>
+      <version>
+          <num>0.83+1.1</num>
+          <compatibility>0.83</compatibility>
+      </version>
+      <version>
+          <num>0.83+1.0</num>
+          <compatibility>0.83</compatibility>
+      </version>
+   </versions>
+   <langs>
+      <lang>fr_FR</lang>
+      <lang>en_GB</lang>
+   </langs>
+   <license><![CDATA[AGPL v3]]></license>
+   <tags>
+         <fr>
+            <tag>Ticket</tag>
+            <tag>Chronologie</tag>
+            <tag>Statistiques</tag>
+         </fr>
+         <en>
+            <tag>Ticket</tag>
+            <tag>Timeline</tag>
+            <tag>Statistics</tag>
+         </en>
+   </tags>
+   <screenshots>
+      <screenshot></screenshot>
+   </screenshots>
+</root>

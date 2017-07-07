@@ -1,0 +1,210 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: form validation\n"
+"POT-Creation-Date: 2016-05-26 10:51+0200\n"
+"PO-Revision-Date: 2016-05-26 10:52+0200\n"
+"Last-Translator: Olivier Moron <olivier.moron@araymond.com>\n"
+"Language-Team: \n"
+"Language: en_GB\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.8.7\n"
+"X-Poedit-Basepath: ..\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Poedit-KeywordsList: __\n"
+"X-Poedit-SearchPath-0: .\n"
+"X-Poedit-SearchPathExcluded-0: js\n"
+
+#: front/field.form.php:78
+msgid "Form Validation - Field"
+msgstr "Form Validation - Field"
+
+#: front/field.php:5 front/form.php:5 front/page.php:5 inc/menu.class.php:6
+msgid "Form Validations"
+msgstr "Form Validations"
+
+#: front/form.form.php:68
+msgid "Form Validation - Form"
+msgstr "Form Validation - Form"
+
+#: front/page.form.php:72
+msgid "Form Validation - Page"
+msgstr "Form Validation - Page"
+
+#: inc/field.class.php:23
+msgid "Fields"
+msgstr "Fields"
+
+#: inc/field.class.php:25 inc/field.class.php:37
+msgid "Field"
+msgstr "Field"
+
+#: inc/field.class.php:41 inc/field.class.php:323 inc/form.class.php:32
+#: inc/form.class.php:361 inc/page.class.php:113
+msgid "Name"
+msgstr "Name"
+
+#: inc/field.class.php:49 inc/field.class.php:229 inc/field.class.php:330
+#: inc/form.class.php:40 inc/form.class.php:274 inc/form.class.php:368
+#: inc/page.class.php:45 inc/page.class.php:123
+msgid "Active"
+msgstr "Active"
+
+#: inc/field.class.php:55 inc/field.class.php:325 inc/form.class.php:46
+#: inc/form.class.php:363 inc/page.class.php:51 inc/page.class.php:118
+msgid "Comments"
+msgstr "Comments"
+
+#: inc/field.class.php:61 inc/form.class.php:52 inc/page.class.php:57
+msgid "Last update"
+msgstr "Last update"
+
+#: inc/field.class.php:75 inc/form.class.php:28 inc/form.class.php:74
+msgid "Form"
+msgstr "Form"
+
+#: inc/field.class.php:81 inc/field.class.php:340
+msgid "Value CSS selector"
+msgstr "Value CSS selector"
+
+#: inc/field.class.php:215 inc/form.class.php:244
+#, php-format
+msgid "%1$s = %2$s"
+msgstr "%1$s = %2$s"
+
+#: inc/field.class.php:227 inc/form.class.php:268
+msgid "ID"
+msgstr "ID"
+
+#: inc/field.class.php:228
+msgid " / CSS selector"
+msgstr " / CSS selector"
+
+#: inc/field.class.php:230 inc/field.class.php:360
+msgid "Validation formula"
+msgstr "Validation formula"
+
+#: inc/field.class.php:231
+msgid "Force mand. sign"
+msgstr "Force mand. sign"
+
+#: inc/field.class.php:232 inc/field.class.php:372
+msgid "Mandatory sign formula"
+msgstr "Mandatory sign formula"
+
+#: inc/field.class.php:279
+msgid "Formula guidelines"
+msgstr "Formula guidelines"
+
+#: inc/field.class.php:287 inc/form.class.php:329
+msgid "No item found"
+msgstr "No item found"
+
+#: inc/field.class.php:345
+msgid "Alternative value CSS selector"
+msgstr "Alternative value CSS selector"
+
+#: inc/field.class.php:350
+msgid "Error sign CSS selector"
+msgstr "Error sign CSS selector"
+
+#: inc/field.class.php:355
+msgid "Mandatory sign CSS selector"
+msgstr "Mandatory sign CSS selector"
+
+#: inc/field.class.php:365
+msgid "Force mandatory sign"
+msgstr "Force mandatory sign"
+
+#: inc/form.class.php:59 inc/page.class.php:28 inc/page.class.php:82
+msgid "Page"
+msgstr "Page"
+
+#: inc/form.class.php:72
+msgid "Forms"
+msgstr "Forms"
+
+#: inc/form.class.php:273 inc/form.class.php:384
+msgid "CSS selector"
+msgstr "CSS selector"
+
+#: inc/form.class.php:275
+msgid "Item creation"
+msgstr "Item creation"
+
+#: inc/form.class.php:376
+msgid "For item creation"
+msgstr "For item creation"
+
+#: inc/form.class.php:389
+msgid "Formula (left empty to default to <b><i>true</i></b>)"
+msgstr "Formula (left empty to default to <b><i>true</i></b>)"
+
+#: inc/page.class.php:32
+msgid "Title"
+msgstr "Title"
+
+#: inc/page.class.php:40 inc/page.class.php:137
+msgid "Associated item type"
+msgstr "Associated item type"
+
+#: inc/page.class.php:63
+msgid "Entity"
+msgstr "Entity"
+
+#: inc/page.class.php:69 inc/page.class.php:130
+msgid "Child entities"
+msgstr "Child entities"
+
+#: inc/page.class.php:80
+msgid "Pages"
+msgstr "Pages"
+
+#: inc/page.class.php:160
+msgid "Assets"
+msgstr "Assets"
+
+#: inc/page.class.php:170
+msgid "Assistance"
+msgstr "Assistance"
+
+#: inc/page.class.php:173
+msgid "Recurrent tickets"
+msgstr "Recurrent tickets"
+
+#: inc/page.class.php:174
+msgid "Management"
+msgstr "Management"
+
+#: inc/page.class.php:180
+msgid "Tools"
+msgstr "Tools"
+
+#: inc/page.class.php:181
+msgid "Notes"
+msgstr "Notes"
+
+#: inc/page.class.php:182
+msgid "RSS feed"
+msgstr "RSS feed"
+
+#: inc/page.class.php:183
+msgid "Administration"
+msgstr "Administration"
+
+#: inc/user.class.php:43
+msgid "Form Validation"
+msgstr "Form Validation"
+
+#: inc/user.class.php:69
+msgid "Edit mode"
+msgstr "Edit mode"
+
+#: inc/user.class.php:72
+msgid "Edit mode (valid for current session only, will be reset at next login)"
+msgstr "Edit mode (valid for current session only, will be reset at next login)"
+
+#: inc/user.class.php:80
+msgid "Save"
+msgstr "Save"

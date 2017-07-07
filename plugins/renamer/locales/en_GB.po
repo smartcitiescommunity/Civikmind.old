@@ -1,0 +1,216 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-08-01 11:14+0200\n"
+"PO-Revision-Date: 2015-04-28 17:44+0100\n"
+"Last-Translator: Emmanuel Haguet <ehaguet@teclib.com>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.5.4\n"
+
+#: hook.php:54 ajax/ajax.php:131 ajax/ajax.php:335 ajax/ajax.php:347
+#: ajax/ajax.php:393
+msgid "Please give write permission to the 'locales' folder of Glpi"
+msgstr ""
+
+#: hook.php:59
+msgid "Please give write permission to the plugin Renamer"
+msgstr ""
+
+#: hook.php:65 hook.php:141
+msgid "Error while cleaning backup folder"
+msgstr ""
+
+#: hook.php:70
+msgid "Error while backup glpi locale files"
+msgstr ""
+
+#: hook.php:131 ajax/ajax.php:353
+msgid "Error while cleaning glpi locale files"
+msgstr ""
+
+#: hook.php:136 ajax/ajax.php:359
+msgid "Error while restore glpi locale files"
+msgstr ""
+
+#: setup.php:75
+msgid "Renamer"
+msgstr ""
+
+#: ajax/ajax.php:113 ajax/ajax.php:320
+#, php-format
+msgid "'%1$s' replaced by '%2$s'"
+msgstr ""
+
+#: ajax/ajax.php:121 ajax/ajax.php:256
+#, php-format
+msgid "Can't access to file '%1$s'"
+msgstr ""
+
+#: ajax/ajax.php:126 ajax/ajax.php:260 ajax/ajax.php:330
+#: inc/renamer.class.php:295
+#, php-format
+msgid "Can't save file  '%1$s' in tmp folder"
+msgstr ""
+
+#: ajax/ajax.php:193
+msgid "This Word is already overload "
+msgstr ""
+
+#: ajax/ajax.php:325
+msgid "Can't access to file "
+msgstr ""
+
+#: ajax/ajax.php:365
+msgid "Restoration Complete"
+msgstr ""
+
+#: ajax/ajax.php:499
+msgid "No"
+msgstr ""
+
+#: ajax/ajax.php:510 inc/renamer.class.php:103 inc/renamer.class.php:145
+msgid "Overload"
+msgstr ""
+
+#: front/renamer.form.php:68
+msgid "Setup - Renamer"
+msgstr ""
+
+#: front/renamer.form.php:79
+msgid "Thank you to activate plugin"
+msgstr ""
+
+#: inc/install.class.php:71
+#, php-format
+msgid "Error when saving files  '%1$s' "
+msgstr ""
+
+#: inc/install.class.php:100
+#, php-format
+msgid "Error while deleting backup file  '%1$s' "
+msgstr ""
+
+#: inc/install.class.php:129
+#, php-format
+msgid "Error while cleaning local glpi file  '%1$s' "
+msgstr ""
+
+#: inc/install.class.php:160
+#, php-format
+msgid "Error during the restoration of local file '%1$s' "
+msgstr ""
+
+#: inc/renamer.class.php:81
+msgid "Overload Language"
+msgstr ""
+
+#: inc/renamer.class.php:84 inc/renamer.class.php:143
+msgid "Language"
+msgstr ""
+
+#: inc/renamer.class.php:89
+msgid "Search Word"
+msgstr ""
+
+#: inc/renamer.class.php:100 inc/renamer.class.php:140
+msgid "ID"
+msgstr ""
+
+#: inc/renamer.class.php:101
+msgid "plural"
+msgstr ""
+
+#: inc/renamer.class.php:102
+msgid "String"
+msgstr ""
+
+#: inc/renamer.class.php:137 inc/renamer.class.php:186
+msgid "History of overload"
+msgstr ""
+
+#: inc/renamer.class.php:141
+msgid "msgid"
+msgstr ""
+
+#: inc/renamer.class.php:142
+msgid "Date"
+msgstr ""
+
+#: inc/renamer.class.php:144
+msgid "Original"
+msgstr ""
+
+#: inc/renamer.class.php:148
+msgid "Update"
+msgstr ""
+
+#: inc/renamer.class.php:169
+msgid "Delete overload"
+msgstr ""
+
+#: inc/renamer.class.php:173
+msgid "Update overload"
+msgstr ""
+
+#: inc/renamer.class.php:191
+msgid "No history to show for the moment"
+msgstr ""
+
+#: inc/renamer.class.php:213
+msgid "Restore Language"
+msgstr ""
+
+#: inc/renamer.class.php:312
+#, php-format
+msgid "Can't remove file  '%1$s' in tmp folder"
+msgstr ""
+
+#: inc/renamer.class.php:332
+#, php-format
+msgid "Can't restore file  '%1$s' in locale folder of Glpi"
+msgstr ""
+
+#: inc/renamer.class.php:353
+#, php-format
+msgid "Can't remove file  '%1$s' in locale folder of Glpi"
+msgstr ""
+
+#: lib/PoParser.php:576
+#, php-format
+msgid "Impossible d'accéder au fichier  '%1$s' "
+msgstr "Can't access to file '%1$s' "
+
+#: scripts/renamer.js.php:45
+msgid "Thank you to inform the field"
+msgstr ""
+
+msgid "Restore a language "
+msgstr ""
+
+msgid "Restore all languages"
+msgstr ""
+
+#: inc/renamer.class.php:101
+msgid "List of words found"
+msgstr ""
+
+msgid "Choose languages to display"
+msgstr ""
+
+msgid "No selected"
+msgstr ""
+
+msgid "Selected"
+msgstr ""
+
+msgid "Thank you to select a language"
+msgstr ""

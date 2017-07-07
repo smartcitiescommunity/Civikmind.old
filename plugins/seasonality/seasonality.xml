@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+   <name>Seasonality</name>
+   <key>seasonality</key>
+   <state>stable</state>
+   <logo>https://raw.githubusercontent.com/InfotelGLPI/seasonality/master/seasonality.png</logo>
+   <description>
+      <short>
+         <fr><![CDATA[Ce plugin permet de créer des saisonnalités pour des catégories spécifiques et ainsi augmenter l'urgence et donc la priorité du ticket.]]></fr>
+         <en><![CDATA[This plugin allows you to create seasonality for specific categories and thus increase the urgency and therefore the priority of the ticket.]]></en>
+      </short>
+      <long>
+         <fr><![CDATA[Ce plugin permet de créer des saisonnalités pour des catégories spécifiques et ainsi augmenter l'urgence et donc la priorité du ticket.]]></fr>
+         <en><![CDATA[This plugin allows you to create seasonality for specific categories and thus increase the urgency and therefore the priority of the ticket.]]></en>
+      </long>
+   </description>
+   <homepage>https://github.com/InfotelGLPI/seasonality</homepage>
+   <download>https://github.com/InfotelGLPI/seasonality/releases</download>
+   <issues>https://github.com/InfotelGLPI/seasonality/issues</issues>
+   <readme>https://raw.githubusercontent.com/InfotelGLPI/seasonality/master/README.md</readme>
+   <authors>
+      <author>Ludovic Dupont</author>
+      <author>Infotel</author>
+   </authors>
+   <versions>
+      <version>
+          <num>1.2.0</num>
+          <compatibility>9.1</compatibility>
+      </version>
+      <version>
+          <num>1.1.0</num>
+          <compatibility>0.90</compatibility>
+      </version>
+   </versions>
+   <langs>
+      <lang>fr_FR</lang>
+      <lang>en_GB</lang>
+   </langs>
+   <license><![CDATA[GPL v2+]]></license>
+   <tags>
+         <fr>
+            <tag>ticket</tag>
+            <tag>categorie</tag>
+         </fr>
+         <en>
+            <tag>ticket</tag>
+            <tag>category</tag>
+         </en>
+   </tags>
+    <screenshots>
+      <screenshot>https://raw.githubusercontent.com/InfotelGLPI/seasonality/master/screenshots/seasonality.png</screenshot>
+      <screenshot>https://raw.githubusercontent.com/InfotelGLPI/seasonality/master/screenshots/seasonality_ticket.png</screenshot>
+    </screenshots>
+</root>

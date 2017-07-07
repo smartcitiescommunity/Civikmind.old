@@ -1,0 +1,47 @@
+<root>
+    <name>GLpi to Ansible</name>
+    <key>glpi_ansible</key>
+    <state>beta</state>
+    <logo></logo>
+    <description>
+        <short>
+            <en>Import inventory from GLPI to Ansible hosts file</en>
+            <fr>Importer l'inventaire GLPI dans Ansible</fr>
+        </short>
+        <long>
+            <en>Import inventory from GLPI to Ansible hosts file</en>
+            <fr>Importer l'inventaire GLPI dans Ansible</fr>
+        </long>
+    </description>
+    <homepage>https://github.com/Webelys/glpi_ansible</homepage>
+    <download>https://github.com/Webelys/glpi_ansible/archive/master.zip</download>
+    <issues>https://github.com/Webelys/glpi_ansible/issues</issues>
+    <readme>https://github.com/Webelys/glpi_ansible</readme>
+    <authors>
+        <author>Camille Lafitte (Webelys)</author>
+    </authors>
+    <versions>
+        <version>
+            <num>0.2</num>
+            <compatibility>0.80</compatibility>
+        </version>
+        <version>
+            <num>0.2</num>
+            <compatibility>0.90</compatibility>
+        </version>
+    </versions>
+    <langs>
+        <lang>fr_FR</lang>
+        <lang>en_US</lang>
+    </langs>
+    <license>GPL v3</license>
+    <tags>
+        <en>
+            <tag>inventory</tag>
+        </en>
+        <fr>
+            <tag>inventaire</tag>
+        </fr>
+    </tags>
+    <screenshots></screenshots>
+</root>

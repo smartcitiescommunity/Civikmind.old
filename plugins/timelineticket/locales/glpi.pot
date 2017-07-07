@@ -1,0 +1,92 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Timelineticket Development Team
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: GLPI - Timelineticket plugin 0.84+1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-09-11 12:56+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: setup.php:44 inc/display.class.php:48
+msgid "Timeline of ticket"
+msgid_plural "Timeline of tickets"
+msgstr[0] ""
+msgstr[1] ""
+
+#: inc/assigngroup.class.php:121 inc/toolbox.class.php:328
+msgid "Groups in charge of the ticket"
+msgstr ""
+
+#: inc/assignuser.class.php:119 inc/toolbox.class.php:330
+msgid "Technicians in charge of the ticket"
+msgstr ""
+
+#: inc/config.class.php:55
+msgid "(Can take many time if you have many tickets)"
+msgstr ""
+
+#: inc/config.class.php:62
+msgctxt "button"
+msgid "Reconstruct states timeline for all tickets"
+msgstr ""
+
+#: inc/config.class.php:63
+msgctxt "button"
+msgid "Reconstruct groups timeline for all tickets"
+msgstr ""
+
+#: inc/config.class.php:64
+msgid ""
+"Warning : it may be that the reconstruction of groups does not reflect "
+"reality because it concern only groups which have the Requester flag to No "
+"and Assigned flag to Yes"
+msgstr ""
+
+#: inc/config.class.php:83
+msgid "Input time on groups / users when ticket is waiting"
+msgstr ""
+
+#: inc/display.class.php:57 inc/display.class.php:221
+msgid "Timeline"
+msgstr ""
+
+#: inc/display.class.php:164 inc/display.class.php:194 inc/state.class.php:110
+msgid "Delay"
+msgstr ""
+
+#: inc/grouplevel.class.php:48
+msgid "Service level"
+msgid_plural "Service levels"
+msgstr[0] ""
+msgstr[1] ""
+
+#: inc/grouplevel.class.php:58 inc/grouplevel.class.php:110
+msgid "List of associated groups"
+msgstr ""
+
+#: inc/profile.class.php:93
+msgid "General"
+msgstr ""
+
+#: report/statSpentTimeByGroup/statSpentTimeByGroup.php:47
+msgid "statSpentTimeByGroup_report_title"
+msgstr ""
+
+#: report/statSpentTimeByGroup/statSpentTimeByGroup.php:222
+msgid "Duration by"
+msgstr ""
+
+#: report/statSpentTimeByGroup/statSpentTimeByGroup.php:225
+msgid "Total duration of ticket"
+msgstr ""

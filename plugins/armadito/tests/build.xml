@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:if="ant:if" xmlns:unless="ant:unless" name="plugin-armadito" default="build">
+   <target name="build" depends="prepare" />
+   <target name="prepare" depends="clean" description="Prepare for build">
+      <mkdir dir="build/coverage" />
+      <mkdir dir="build/logs" />
+   </target>
+
+   <target name="clean" description="Cleanup build artifacts">
+      <delete dir="build/coverage" />
+      <delete dir="build/logs" />
+   </target>
+
+   <target name="composer" description="Ensure composer is installed">
+      <exec failonerror="true" executable="composer">
+         <arg value="update" />
+         <arg value="--prefer-source" />
+      </exec>
+   </target>
+
+   <condition property="clear.savepoint" value="true" else="false">
+      <and>
+         <isset property="clearsavepoint" />
+         <istrue value="${clearsavepoint}" />
+      </and>
+   </condition>
+
+   <macrodef name="phpunit.run">
+      <attribute name="configuration" />
+      <attribute name="type" />
+      <element name="testfile" optional="true" />
+
+      <sequential>
+         <exec executable="./vendor/bin/phpunit" failonerror="false" resultproperty="phpunit.returncode.@{type}">
+            <arg value="--verbose" />
+            <arg value="--debug" />
+            <arg line="--coverage-clover build/logs/clover-@{type}.xml" />
+            <arg line="--configuration @{configuration}" />
+            <testfile />
+         </exec>
+      </sequential>
+   </macrodef>
+
+   <target name="phpunit.all" depends="prepare" description="Run every unit tests with PHPUnit">
+      <sequential>
+         <phpunit.run type="integration" configuration="./conf/testsuites_integration.xml" />
+         <fail>
+            <condition>
+               <or>
+                  <isfailure code="${phpunit.returncode.integration}" />
+               </or>
+            </condition>
+         </fail>
+      </sequential>
+   </target>
+</project>

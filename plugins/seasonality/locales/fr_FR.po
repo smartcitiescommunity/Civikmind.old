@@ -1,0 +1,79 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-09-26 12:12+0200\n"
+"PO-Revision-Date: 2016-09-26 12:12+0200\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: fr_FR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.8.9\n"
+"X-Poedit-Basepath: .\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: setup.php:78 inc/item.class.php:706 inc/profile.class.php:44
+#: inc/profile.class.php:133 inc/seasonality.class.php:43
+msgid "Seasonality"
+msgid_plural "Seasonalities"
+msgstr[0] "Saisonnalité"
+msgstr[1] "Saisonnalités"
+
+#: setup.php:90
+msgid "This plugin requires GLPI >= 0.90"
+msgstr "Ce plugin nécessite GLPI >= 0.90"
+
+#: inc/item.class.php:43
+msgid "Seasonality item"
+msgid_plural "Seasonality items"
+msgstr[0] "Elément de saisonnalité"
+msgstr[1] "Eléments de saisonnalité"
+
+#: inc/item.class.php:171
+msgid "Add a category"
+msgstr "Ajouter une catégorie"
+
+#: inc/item.class.php:593
+msgid "Add seasonality"
+msgstr "Ajouter une saisonnalité"
+
+#: inc/item.class.php:594
+msgid "Delete seasonality"
+msgstr "Supprimer une saisonnalité"
+
+#: inc/item.class.php:739
+msgid "Cannot add two seasonalities with same date interval"
+msgstr "Ajout impossible, une saisonnalité existe déja sur cet intervalle de date"
+
+#: inc/seasonality.class.php:72
+msgid "Date range"
+msgstr "Intervalle de dates"
+
+#: inc/seasonality.class.php:81
+msgid "Clear"
+msgstr "Effacer"
+
+#: inc/seasonality.class.php:83
+msgid "Select date range..."
+msgstr "Sélectionner un intervalle de dates"
+
+#: inc/seasonality.class.php:89
+msgid "Today"
+msgstr "Ajourd'hui"
+
+#: inc/seasonality.class.php:93
+msgid "Tomorrow"
+msgstr "Demain"
+
+#: inc/seasonality.class.php:97
+msgid "Next 7 Days"
+msgstr "Les 7 prochains jours"
+
+#: inc/seasonality.class.php:101
+msgid "Next Week"
+msgstr "La semaine suivante"
+
+#~ msgid "This plugin requires GLPI >= 0.85"
+#~ msgstr "Ce plugin requiert GLPI >= 0.85"

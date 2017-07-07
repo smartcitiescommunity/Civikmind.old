@@ -1,0 +1,137 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2017-02-13 22:46-0200\n"
+"PO-Revision-Date: 2017-02-13 22:50-0200\n"
+"Last-Translator: Edgard Lorraine Messias <edgardmessias@gmail.com>\n"
+"Language-Team: \n"
+"Language: pt_BR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.8.11\n"
+"X-Poedit-Basepath: .\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Poedit-KeywordsList: __sl\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Poedit-SearchPath-0: ..\n"
+
+#: ../inc/config.class.php:8 ../setup.php:73
+msgid "Show Loading"
+msgstr "Mostrar Carregamento"
+
+#: ../inc/config.class.php:55
+msgid "Color"
+msgstr "Cor"
+
+#: ../inc/config.class.php:58
+msgid "Black"
+msgstr "Preto"
+
+#: ../inc/config.class.php:59
+msgid "Blue"
+msgstr "Azul"
+
+#: ../inc/config.class.php:60
+msgid "Green"
+msgstr "Verde"
+
+#: ../inc/config.class.php:61
+msgid "Orange"
+msgstr "Laranja"
+
+#: ../inc/config.class.php:62
+msgid "Pink"
+msgstr "Rosa"
+
+#: ../inc/config.class.php:63
+msgid "Purple"
+msgstr "Roxo"
+
+#: ../inc/config.class.php:64
+msgid "Red"
+msgstr "Vermelho"
+
+#: ../inc/config.class.php:65
+msgid "Silver"
+msgstr "Prata"
+
+#: ../inc/config.class.php:66
+msgid "White"
+msgstr "Branco"
+
+#: ../inc/config.class.php:67
+msgid "Yellow"
+msgstr "Amarelo"
+
+#: ../inc/config.class.php:73
+msgid "Auto"
+msgstr "Auto"
+
+#: ../inc/config.class.php:76
+msgid "Theme"
+msgstr "Tema"
+
+#: ../inc/config.class.php:80
+msgid "Barber Shop"
+msgstr "Barbearia"
+
+#: ../inc/config.class.php:81
+msgid "Big Counter"
+msgstr "Contador Grande"
+
+#: ../inc/config.class.php:82
+msgid "Bounce"
+msgstr "Pulo"
+
+#: ../inc/config.class.php:83
+msgid "Center Atom"
+msgstr "Átomo Central"
+
+#: ../inc/config.class.php:84
+msgid "Center Circle"
+msgstr "Círculo Central"
+
+#: ../inc/config.class.php:85
+msgid "Center Radar"
+msgstr "Radar Central"
+
+#: ../inc/config.class.php:86
+msgid "Center Simple"
+msgstr "Centro Simples"
+
+#: ../inc/config.class.php:87
+msgid "Corner Indicator"
+msgstr "Indicador de canto"
+
+#: ../inc/config.class.php:88
+msgid "Fill Left"
+msgstr "Preencher Esquerda"
+
+#: ../inc/config.class.php:89
+msgid "Flash"
+msgstr "Flash"
+
+#: ../inc/config.class.php:90
+msgid "Flat Top"
+msgstr "Topo Plano"
+
+#: ../inc/config.class.php:91
+msgid "Loading Bar"
+msgstr "Barra de Progresso"
+
+#: ../inc/config.class.php:92
+msgid "Mac OSX"
+msgstr "Mac OSX"
+
+#: ../inc/config.class.php:93
+msgid "Material"
+msgstr "Material"
+
+#: ../inc/config.class.php:94
+msgid "Minimal"
+msgstr "Mínimo"
+
+#: ../setup.php:84
+msgid "This plugin requires GLPI >= 0.85"
+msgstr "Este plugin requer GLPI >= 0.85"

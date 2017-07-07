@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+    <name>Auto Login</name>
+    <key>autologin</key>
+    <state>stable</state>
+    <logo>https://raw.githubusercontent.com/edgardmessias/autologin/master/plugin.png</logo>
+    <description>
+        <short>
+            <en><![CDATA[This plugin add support to "Remember me" function in GLPI and skip the login page if you are already authenticated]]></en>
+        </short>
+        <long>
+            <en><![CDATA[
+# Auto Login (GLPI)
+This plugin add support to "Remember me" function in GLPI and skip the login page if you are already authenticated
+
+Go to `Configuration > General > Auto Login` to configure remember time and default checkbox state
+
+# Installation (EN)
+ * Uncompress the archive to the `<GLPI_ROOT>/plugins/autologin` directory
+ * Navigate to the Configuration > Plugins page,
+ * Install and activate the plugin.
+]]></en>
+        </long>
+    </description>
+    <homepage>https://github.com/edgardmessias/autologin</homepage>
+    <download>https://github.com/edgardmessias/autologin/releases</download>
+    <issues>https://github.com/edgardmessias/autologin/issues</issues>
+    <readme>https://github.com/edgardmessias/autologin/wiki</readme>
+    <authors>
+        <author>Edgard Lorraine Messias</author>
+    </authors>
+    <versions>
+        <version>
+            <num>1.0.0</num>
+            <compatibility>0.85</compatibility>
+            <compatibility>0.90</compatibility>
+            <compatibility>9.1</compatibility>
+        </version>
+        <version>
+            <num>1.1.0</num>
+            <compatibility>0.85</compatibility>
+            <compatibility>0.90</compatibility>
+            <compatibility>9.1</compatibility>
+        </version>
+        <version>
+            <num>2.0.0</num>
+            <compatibility>0.85</compatibility>
+            <compatibility>0.90</compatibility>
+            <compatibility>9.1</compatibility>
+        </version>
+        <version>
+            <num>2.0.1</num>
+            <compatibility>0.85</compatibility>
+            <compatibility>0.90</compatibility>
+            <compatibility>9.1</compatibility>
+        </version>
+        <version>
+            <num>2.0.2</num>
+            <compatibility>0.85</compatibility>
+            <compatibility>0.90</compatibility>
+            <compatibility>9.1</compatibility>
+        </version>
+        <version>
+            <num>2.1.0</num>
+            <compatibility>0.85</compatibility>
+            <compatibility>0.90</compatibility>
+            <compatibility>9.1</compatibility>
+        </version>
+        <version>
+            <num>2.1.1</num>
+            <compatibility>0.85</compatibility>
+            <compatibility>0.90</compatibility>
+            <compatibility>9.1</compatibility>
+        </version>
+    </versions>
+    <langs>
+        <lang>en_US</lang>
+        <lang>pt_BR</lang>
+        <lang>ru_RU</lang>
+    </langs>
+    <license><![CDATA[GPL v2+]]></license>
+    <tags>
+        <en>
+            <tag>Authentication</tag>
+            <tag>AutoLogin</tag>
+            <tag>Login</tag>
+            <tag>Remember me</tag>
+            <tag>Remember</tag>
+        </en>
+    </tags>
+</root>

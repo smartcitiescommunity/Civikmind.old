@@ -1,0 +1,120 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR SurveyTicket Development Team
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: GLPI - SurveyTicket plugin 1.1\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2017-01-26 14:33+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: setup.php:86 inc/menu.class.php:55 inc/menu.class.php:71
+#: inc/profile.class.php:169 inc/survey.class.php:61
+msgid "Survey"
+msgid_plural "Surveys"
+msgstr[0] ""
+msgstr[1] ""
+
+#: setup.php:101
+msgid "Your GLPI version not compatible, require 0.90"
+msgstr ""
+
+#: inc/answer.class.php:62 inc/answer.class.php:176 inc/answer.class.php:286
+#: inc/surveyquestion.class.php:312 inc/ticket.class.php:649
+#: inc/ticket.class.php:671 inc/ticket.class.php:676 inc/ticket.class.php:678
+msgid "Answer"
+msgid_plural "Answers"
+msgstr[0] ""
+msgstr[1] ""
+
+#: inc/answer.class.php:210 inc/answer.class.php:318
+msgid "+ field"
+msgstr ""
+
+#: inc/answer.class.php:213 inc/answer.class.php:358
+msgid "Go to question"
+msgstr ""
+
+#: inc/answer.class.php:302 inc/question.class.php:193
+msgid "Short text"
+msgstr ""
+
+#: inc/answer.class.php:305 inc/question.class.php:194
+msgid "Long text"
+msgstr ""
+
+#: inc/answer.class.php:347
+msgid "Linked to question"
+msgstr ""
+
+#: inc/answer.class.php:366 inc/surveyquestion.class.php:149
+#: inc/surveyquestion.class.php:213 inc/surveyquestion.class.php:383
+msgid "Mandatory"
+msgstr ""
+
+#: inc/answer.class.php:467
+msgid "The question is present in the survey"
+msgstr ""
+
+#: inc/answer.class.php:467
+msgid "Please delete the questionnaire if you want to add it."
+msgstr ""
+
+#: inc/menu.class.php:64
+msgid "Menu"
+msgstr ""
+
+#: inc/menu.class.php:78 inc/menu.class.php:98 inc/question.class.php:70
+#: inc/surveyquestion.class.php:60 inc/surveyquestion.class.php:73
+#: inc/surveyquestion.class.php:137 inc/surveyquestion.class.php:204
+#: inc/ticket.class.php:644 inc/ticket.class.php:667
+msgid "Question"
+msgid_plural "Questions"
+msgstr[0] ""
+msgstr[1] ""
+
+#: inc/profile.class.php:175
+msgid "Use the questionnaire when creating a ticket"
+msgstr ""
+
+#: inc/question.class.php:189
+msgid "dropdown"
+msgstr ""
+
+#: inc/question.class.php:190
+msgid "checkbox"
+msgstr ""
+
+#: inc/question.class.php:191
+msgid "radio"
+msgstr ""
+
+#: inc/surveyquestion.class.php:169
+msgid "Create a question"
+msgstr ""
+
+#: inc/surveyquestion.class.php:350
+#, php-format
+msgid ""
+"The question can not be added because it has links to other questions : %s. "
+"Please delete the questionnaire if you want to add it."
+msgstr ""
+
+#: inc/ticket.class.php:571
+#, php-format
+msgid "Mandatory questions are not filled. Please correct: %s"
+msgstr ""
+
+#: inc/ticket.class.php:653 inc/ticket.class.php:684 inc/ticket.class.php:689
+msgid "Text"
+msgstr ""

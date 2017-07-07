@@ -1,0 +1,57 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE ESCALADE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the ESCALADE package.
+# Alexandre DELAUNAY <adelaunay@teclib.com>, 2013.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ESCALADE 2.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-07-30 09:41+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: Alexandre DELAUNAY <adelaunay@teclib.com>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: hook.php:219
+msgid "Clone Ticket"
+msgstr "Clone Ticket"
+
+#: inc/ticket.class.php:622 inc/ticket.class.php:663 inc/ticket.class.php:668
+msgid "This ticket has been cloned from the ticket num"
+msgstr "This ticket has been cloned from the ticket num"
+
+msgid "Before you enable Clone plugin make sure your file <b>inc/ticket.class.php</b> is owned by apache user, usually www-data or wwwrun"
+msgstr "Before you enable Clone plugin make sure your file <b>inc/ticket.class.php</b> is owned by apache user, usually www-data or wwwrun"
+
+#: inc/ticket.class.php:583
+msgid "Error : get old ticket"
+msgstr "Error : get old ticket"
+
+#: inc/ticket.class.php:601
+msgid "Error : adding new ticket"
+msgstr "Error : adding new ticket"
+
+#: inc/ticket.class.php:613
+msgid "Error : adding link between the two tickets"
+msgstr "Error : adding link between the two tickets"
+
+#: inc/ticket.class.php:627
+msgid "Error : adding followups"
+msgstr "Error : adding followups"
+
+#: inc/ticket.class.php:638
+msgid "Error : adding actors (user)"
+msgstr "Error : adding actors (user)"
+
+#: inc/ticket.class.php:647
+msgid "Error : adding actors (group)"
+msgstr "Error : adding actors (group)"
+
+#: inc/ticket.class.php:657
+msgid "Error : adding documents"
+msgstr "Error : adding documents"
+

@@ -1,0 +1,46 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# zorm <zorm@probesys.com> ,2016.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: father\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-12-28 09:02+0100\n"
+"PO-Revision-Date: 2016-12-24 12:00+1\n"
+"Last-Translator: zorm <zorm@probesys.com>\n"
+"Language-Team: French <zorm@probesys.com>\n"
+"Language: fr_FR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: hook.php:57 ajax/father.php:10
+msgid "Father type"
+msgstr "Father type"
+
+#: setup.php:35
+msgid "Father&Sons"
+msgstr "Father&Sons"
+
+#: front/config.form.php:33
+msgid "Please activate the plugin"
+msgstr "Please activate the plugin"
+
+#: inc/config.class.php:92
+msgid "Plugin configuration"
+msgstr "Plugin configuration"
+
+#: inc/config.class.php:100
+msgid "item impacted"
+msgstr "Items impacted"
+
+#: inc/config.class.php:115
+msgid "Status impacted"
+msgstr "Status impacted"
+
+#: inc/config.class.php:128
+msgid "Copy solution on all ticket's son"
+msgstr "Copy solution on all ticket's son"
