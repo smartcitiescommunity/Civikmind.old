@@ -2,69 +2,81 @@
 
 ![GLPi Logo](https://raw.githubusercontent.com/glpi-project/glpi/master/pics/logos/logo-GLPI-250-black.png)
 
-GLPi stands for **Gestionnaire Libre de Parc Informatique** is a Free Asset and IT Management Software package, that provides ITIL Service Desk features, licenses tracking and software auditing.
+CivikMind es un sistema de gestión de información y activos basado en la aplicación GLPI
+Dentro de sus Caracteristicas encontramos que hace uso de caracteristicas de forma parcial o gran porcentaje pero de manera fundamental en las normas iso 9001 14001 20000 21500 27001 31000 y adaptable a muchas otras. Tambien hace uso de mejores practicas integradas a nivel de nucleo como lo es ITIL, Agilismo, Auditoria y Gobierno de TI.
+Estas caracteristicas permiten que este sistema controle de manera eficiente y eficaz con una fuerte orientación al logro.
 
-GLPi features:
-* Multilingual support: 45 translations available
-* Inventory of computers, peripherals, network printers and any associated components through an interface, with inventory tools such as: OCS Inventory or FusionInventory
-* Assignment of equipment by geographical area to users and groups
-* Item lifecycle management
-* Asset reservation
-* Licenses management (ITIL compliant)
-* Management of warranty and financial information (purchase order, warranty and extension, damping)
-* Management of contracts, contacts, documents related to inventory items
-* Incidents, requests, problems and changes management
-* Ticket creation through emails, end-user or technician interface
-* Ticket lifecycle (assignment, tickets scheduling, solutions, etc.)
-* Knowledge base and Frequently-Asked Questions (FAQ)
-* Report generator: hardware, network or interventions (support)
+Otras caracteristicas:
+* Soporte Multilenguaje: 45 Traducciones disponible
+* Inventario de dispositivos que posean una interfaz de red con un sistema operativo que les permite usar el protocolo SNMP y/o permitan la instalación de clientes que se conecten a otras aplicaciones integrables al GLPI como son:
+- OCS Inventory
+- FusionInventory
+- Zabbix
+* Asignación o reserva de activos ya sea por niveles o categorias como por ejemplo Nivel de permisos, Usuario, grupos o Area geografica
+* Gestión del Tiempo
+* Gestión del Ciclo de Vida
+* Gestión de Licencias (ITIL y Gobierno de TI)
+* Gestión de información Financiera como por ejemplo:
+- Ordenes de Compra
+- Garantias
+- Gestión de Costos
+* Gestión de Información Corporativa como por ejemplo:
+- Contratos
+- Contactos
+- Documentos
+- Radicados.
+* Gestión del Servicio como por ejemplo:
+- Incidentes
+- Solicitudes
+- Problemas
+- Cambios
+- Creación de tickets
+- Gestión de Tareas
+* Gestión de Proyectos
+* Base de datos de Conocimiento y Preguntas de uso frecuente con diferentes niveles de acceso
+* Generador de Reportes de Activos o Información
+* Panel de Visualización de Estadisticas
 
-Moreover, GLPi supports many [plugins](http://plugins.glpi-project.org) that provide additional features.
+Ademas la plataforma viene precargada con [plugins](http://plugins.glpi-project.org) que abre un panorama enorme a diferentes clases de soluciones..
 
 
-## License
+## Licencia
 
-It is distributed under the GNU GENERAL PUBLIC LICENSE Version 2 - please consult the file called [COPYING](https://raw.githubusercontent.com/glpi-project/glpi/master/COPYING.txt) for more details.
+La distribución de este software se hace bajo la licencia GNU GENERAL PUBLIC LICENSE Version 2 - favor revisar [COPYING](https://raw.githubusercontent.com/glpi-project/glpi/master/COPYING.txt) para más detalles.
 
 
-## Prerequisites
-
-* A web server (Apache, Nginx, IIS, etc.)
-* MariaDB (or MySQL < 5.7)
-* PHP 5.4 or higher
-* Mandatory PHP extensions:
+## Prerequisitos
+* Sistema Operativo Linux (Suse, Red Hat, Ubuntu, Etc)
+* Servidor web (Apache, Nginx, etc.)
+* Let's Encrypt para conexiones cifradas
+* MariaDB ó MySQL < 5.7
+* PHP 5.4 o superior
+* PHP extensiones Obligatorias:
     - json
     - mbstring
     - mysqli
     - session
-    - gd (picture generation)
-    - curl (CAS authentication)
-
-* Recommended PHP extensions (to enable optional features)
-    - domxml (CAS authentication)
-    - imap (mail collector and users authentication)
-    - ldap (users authentication)
-    - openssl (encrypted communication)
+    - gd
+    - curl
+    - domxml
+    - imap
+    - ldap
+    - openssl
 
 
 ## Download
 
-See :
-* [releases](https://github.com/glpi-project/glpi/releases) for tarball packages.
-* [Remi's RPM repository](http://rpms.remirepo.net/) for RPM packages (Fedora, RHEL, CentOS)
+Ver :
+* [releases](https://github.com/smartcitiescommunity/Civikmind/releases) for tarball packages.
 
 
-## Documentation
 
-Here is a [pdf version](https://forge.glpi-project.org/attachments/download/1901/glpidoc-0.85-en-partial.pdf).
-We are working on a [markdown version](https://github.com/glpi-project/doc)
+## Documentación
 
+* [pdf](https://forge.glpi-project.org/attachments/download/1901/glpidoc-0.85-en-partial.pdf).
+* [markdown](https://github.com/glpi-project/doc)
 * [Installation](http://glpi-project.org/spip.php?article61)
 * [Update](http://glpi-project.org/spip.php?article172)
-
-
-## Additional resources
-
 * [Official website](http://glpi-project.org)
 * [Demo](http://demo.glpi-project.org/)
 * [Translations on transifex service](https://www.transifex.com/glpi/public/)
