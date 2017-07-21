@@ -153,7 +153,8 @@ class ProjectTask extends CommonDBChild {
     **/
    function getRights($interface='central') {
 
-      $values = array();
+      $values = parent::getRights();
+      unset($values[READ], $values[CREATE], $values[UPDATE], $values[DELETE], $values[PURGE]);
 
       $values[self::READMY]   = __('See (actor)');
       $values[self::UPDATEMY] = __('Update (actor)');
@@ -1299,11 +1300,22 @@ class ProjectTask extends CommonDBChild {
                      AND ";
       }
 
+      $DONE_EVENTS = '';
+      if (!isset($options['display_done_events']) || !$options['display_done_events']) {
+         $DONE_EVENTS = "`glpi_projecttasks`.`percent_done` < 100
+                         AND (glpi_projectstates.is_finished = 0
+                              OR glpi_projectstates.is_finished IS NULL)
+                         AND ";
+      }
+
       $query = "SELECT `glpi_projecttasks`.*
                 FROM `glpi_projecttaskteams`
                 INNER JOIN `glpi_projecttasks`
                   ON (`glpi_projecttasks`.`id` = `glpi_projecttaskteams`.`projecttasks_id`)
+                LEFT JOIN `glpi_projectstates`
+                  ON (`glpi_projecttasks`.`projectstates_id` = `glpi_projectstates`.`id`)
                 WHERE $ASSIGN
+                      $DONE_EVENTS
                       '$begin' < `glpi_projecttasks`.`plan_end_date`
                       AND '$end' > `glpi_projecttasks`.`plan_start_date`
                 ORDER BY `glpi_projecttasks`.`plan_start_date`";

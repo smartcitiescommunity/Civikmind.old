@@ -331,7 +331,7 @@ class Computer_SoftwareVersion extends CommonDBRelation {
                           'groupe,compname'   => __('Group'),
                           'username,compname' => __('User'),
                           'lname'             => _n('License', 'Licenses', Session::getPluralNumber()),
-                          'date_instal'       => __('Installation date'));
+                          'date_install'      => __('Installation date'));
       if ($crit != "softwares_id") {
          unset($refcolumns['vername']);
       }
@@ -683,7 +683,7 @@ class Computer_SoftwareVersion extends CommonDBRelation {
 
       $where        = '';
       if ($crit > -1) {
-         $where = " AND `glpi_softwares`.`softwarecategories_id` = $crit";
+         $where = " AND `glpi_softwares`.`softwarecategories_id` = ". (int) $crit;
       }
 
       $add_dynamic  = '';

@@ -571,7 +571,7 @@ class Toolbox {
       $err .= self::backtrace(false, $hide, $skip);
 
       // Save error
-      self::logInFile("php-errors", $err);
+      static::logInFile("php-errors", $err);
 
       return $errortype[$errno];
    }
@@ -993,7 +993,7 @@ class Toolbox {
             if (!function_exists($params['function'])) {
                 $success = false;
             }
-         } else if (isset($param['class'])) {
+         } else if (isset($params['class'])) {
             if (!class_exists($params['class'])) {
                $success = false;
             }
@@ -1060,9 +1060,9 @@ class Toolbox {
 
       if (!isset($_REQUEST['skipCheckWriteAccessToDirs'])) {
          $suberr = Config::checkWriteAccessToDirs();
-      }
-      if ($suberr > $error) {
-         $error = $suberr;
+         if ($suberr > $error) {
+            $error = $suberr;
+         }
       }
 
       $suberr = self::checkSELinux();
@@ -2550,5 +2550,20 @@ class Toolbox {
       }
 
       return $json;
+   }
+
+   /**
+    * Checks if a string starts with anotehr one
+    *
+    * @since 9.1.5
+    *
+    * @param string $haystack String to check
+    * @param string $needle   String to find
+    *
+    * @return boolean
+    */
+   static public function startsWith($haystack, $needle) {
+      $length = strlen($needle);
+      return (substr($haystack, 0, $length) === $needle);
    }
 }
