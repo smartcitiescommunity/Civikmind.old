@@ -1,5 +1,8 @@
-[![Build Status](https://secure.travis-ci.org/glpi-project/glpi.svg?branch=master)](https://secure.travis-ci.org/glpi-project/glpi)
+## Download
 
+Ver :
+* [releases](https://github.com/smartcitiescommunity/Civikmind/releases) for tarball packages.
+[![Build Status](https://secure.travis-ci.org/glpi-project/glpi.svg?branch=master)](https://secure.travis-ci.org/glpi-project/glpi)
 <img align="left" src="pics/scc.jpg?raw=true"/>
 
 CivikMind es un sistema de gestión de información y activos basado en la aplicación GLPI
