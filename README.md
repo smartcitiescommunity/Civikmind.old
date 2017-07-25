@@ -1,7 +1,6 @@
 [![Build Status](https://secure.travis-ci.org/glpi-project/glpi.svg?branch=master)](https://secure.travis-ci.org/glpi-project/glpi)
 
 <img align="left" src="pics/scc.jpg?raw=true"/>
-![GLPi Logo](https://raw.githubusercontent.com/glpi-project/glpi/master/pics/logos/logo-GLPI-250-black.png)
 
 CivikMind es un sistema de gestión de información y activos basado en la aplicación GLPI
 Dentro de sus Caracteristicas encontramos que hace uso de caracteristicas de forma parcial o gran porcentaje pero de manera fundamental en las normas iso 9001 14001 20000 21500 27001 31000 y adaptable a muchas otras. Tambien hace uso de mejores practicas integradas a nivel de nucleo como lo es ITIL, Agilismo, Auditoria y Gobierno de TI.
