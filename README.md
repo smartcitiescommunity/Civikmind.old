@@ -1,5 +1,6 @@
 [![Build Status](https://secure.travis-ci.org/glpi-project/glpi.svg?branch=master)](https://secure.travis-ci.org/glpi-project/glpi)
 
+<img align="left" src="pics/scc.jpg?raw=true"/>
 ![GLPi Logo](https://raw.githubusercontent.com/glpi-project/glpi/master/pics/logos/logo-GLPI-250-black.png)
 
 CivikMind es un sistema de gestión de información y activos basado en la aplicación GLPI
