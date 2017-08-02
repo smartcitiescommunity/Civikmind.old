@@ -1,8 +1,8 @@
 <img align="left" src="pics/scc.jpg?raw=true"/>
 
-| **`SLES`** <img src="https://cdn.rawgit.com/smartcitiescommunity/Civikmind/e1070b30/pics/linux.svg"> | **`RHEL`** <img src="https://cdn.rawgit.com/smartcitiescommunity/Civikmind/e1070b30/pics/linux.svg"> | **`UBUNTU`** <img src="https://cdn.rawgit.com/smartcitiescommunity/Civikmind/e1070b30/pics/linux.svg"> | **`Windows`** <img src="https://cdn.rawgit.com/smartcitiescommunity/Civikmind/e1070b30/pics/windows.svg"> | **`MacOS`** <img src="https://cdn.rawgit.com/smartcitiescommunity/Civikmind/84d8b4da/pics/mac.svg"> | **`Estado`** |
-|-----------------|---------------------|------------------|-------------------|---------------|---------------|
-| OK | OK | OK| Fail | OK | [![Estado](https://secure.travis-ci.org/glpi-project/glpi.svg?branch=master)](https://secure.travis-ci.org/glpi-project/glpi) |
+| **`SLES`** <img src="https://cdn.rawgit.com/smartcitiescommunity/Civikmind/e1070b30/pics/linux.svg"> | **`RHEL`** <img src="https://cdn.rawgit.com/smartcitiescommunity/Civikmind/e1070b30/pics/linux.svg"> | **`UBUNTU`** <img src="https://cdn.rawgit.com/smartcitiescommunity/Civikmind/e1070b30/pics/linux.svg"> | **`Windows`** <img src="https://cdn.rawgit.com/smartcitiescommunity/Civikmind/e1070b30/pics/windows.svg"> | **`MacOS`** <img src="https://cdn.rawgit.com/smartcitiescommunity/Civikmind/84d8b4da/pics/mac.svg"> | **`Estado`** | **`Appliance`** |
+|-----------------|---------------------|------------------|-------------------|---------------|---------------|---------------|
+| OK | OK | OK| Fail | OK | [![Estado](https://secure.travis-ci.org/glpi-project/glpi.svg?branch=master)](https://secure.travis-ci.org/glpi-project/glpi) |[![Appliance](https://en.opensuse.org/images/d/d0/Icon-distribution.png)](https://j.mp/Smart-Cities-Community-Os-One) |
 
 **CivikMind** es un sistema de gestión de información y activos basado en la aplicación GLPI
 Dentro de sus Caracteristicas encontramos que hace uso de caracteristicas de forma parcial o gran porcentaje pero de manera fundamental en las normas iso 9001 14001 20000 21500 27001 31000 y adaptable a muchas otras. Tambien hace uso de mejores practicas integradas a nivel de nucleo como lo es ITIL, Agilismo, Auditoria y Gobierno de TI.
