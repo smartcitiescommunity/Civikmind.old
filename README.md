@@ -4,9 +4,10 @@
 |-----------------|---------------------|------------------|-------------------|---------------|---------------|---------------|
 | OK | OK | OK| Fail | OK | [![Estado](https://secure.travis-ci.org/glpi-project/glpi.svg?branch=master)](https://secure.travis-ci.org/glpi-project/glpi) |[![Appliance](https://maxcdn.icons8.com/wp-content/uploads/2013/12/suse-128.png)](https://j.mp/Smart-Cities-Community-Os-One) |
 
-**CivikMind** es un sistema de gestión de información y activos basado en la aplicación GLPI
-Dentro de sus Caracteristicas encontramos que hace uso de caracteristicas de forma parcial o gran porcentaje pero de manera fundamental en las normas iso 9001 14001 20000 21500 27001 31000 y adaptable a muchas otras. Tambien hace uso de mejores practicas integradas a nivel de nucleo como lo es ITIL, Agilismo, Auditoria y Gobierno de TI.
-Estas caracteristicas permiten que este sistema controle de manera eficiente y eficaz con una fuerte orientación al logro.
+**CivikMind** es un sistema de gestión de información y activos basado en la aplicación GLPI. 
+En de sus Caracteristicas encontramos que hace uso de manera integrada ya sea de forma completa o parcial de las normas o estandares: iso 9001, 14001, 20000, 21500, 27001, 31000 y adaptable a muchas otras.
+Tambien hace uso de mejores practicas integradas a nivel integrado como lo es ITIL, Agilismo, Auditoria y Gobierno de TI.
+Estas caracteristicas permiten que este sistema controle de manera eficiente y eficaz con una fuerte orientación al logro y al resultado, Caracteristicas esenciales para la correcta gestión de una Ciudad Inteligente o Smart City
 
 Otras caracteristicas:
 * Soporte Multilenguaje: 45 Traducciones disponible
