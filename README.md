@@ -1,8 +1,7 @@
 <img align="left" src="pics/scc.jpg?raw=true"/>
 -----------------
 
-| **`SLES`** ![Alt text](https://cdn.rawgit.com/smartcitiescommunity/Civikmind/84d8b4da/pics/mac.svg)
-<img src="https://cdn.rawgit.com/smartcitiescommunity/Civikmind/84d8b4da/pics/mac.svg"> | **`RHEL`** <img align="left" src="pics/linux.svg?raw=true"/> | **`UBUNTU`** <img align="left" src="pics/linux.svg?raw=true"/> | **`Windows`** <img align="left" src="pics/windows.svg?raw=true"/> | **`MacOS`** <img align="left" src="pics/mac.svg?raw=true"/> |
+| **`SLES`** <img src="https://cdn.rawgit.com/smartcitiescommunity/Civikmind/e1070b30/pics/linux.svg"> | **`RHEL`** <img src="https://cdn.rawgit.com/smartcitiescommunity/Civikmind/e1070b30/pics/linux.svg"> | **`UBUNTU`** <img src="https://cdn.rawgit.com/smartcitiescommunity/Civikmind/e1070b30/pics/linux.svg"> | **`Windows`** <img src="https://cdn.rawgit.com/smartcitiescommunity/Civikmind/e1070b30/pics/windows.svg"> | **`MacOS`** <img src="https://cdn.rawgit.com/smartcitiescommunity/Civikmind/84d8b4da/pics/mac.svg"> |
 |-----------------|---------------------|------------------|-------------------|---------------|
 | OK | OK | OK| Fail | OK |
 ## Descarga
