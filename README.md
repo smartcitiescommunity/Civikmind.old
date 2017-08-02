@@ -20,22 +20,26 @@ Otras caracteristicas:
 * Gestión del Tiempo
 * Gestión del Ciclo de Vida
 * Gestión de Licencias (ITIL y Gobierno de TI)
-* Gestión de información Financiera como por ejemplo:
+
+*** Gestión de información Financiera como por ejemplo:
 - Ordenes de Compra
 - Garantias
 - Gestión de Costos
-* Gestión de Información Corporativa como por ejemplo:
+
+*** Gestión de Información Corporativa como por ejemplo:
 - Contratos
 - Contactos
 - Documentos
 - Radicados.
-* Gestión del Servicio como por ejemplo:
+
+*** Gestión del Servicio como por ejemplo:
 - Incidentes
 - Solicitudes
 - Problemas
 - Cambios
 - Creación de tickets
 - Gestión de Tareas
+
 * Gestión de Proyectos
 * Base de datos de Conocimiento y Preguntas de uso frecuente con diferentes niveles de acceso
 * Generador de Reportes de Activos o Información
