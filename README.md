@@ -11,7 +11,8 @@ Estas caracteristicas permiten que este sistema controle de manera eficiente y e
 
 Otras caracteristicas:
 * Soporte Multilenguaje: 45 Traducciones disponible
-* Inventario de dispositivos que posean una interfaz de red con un sistema operativo que les permite usar el protocolo SNMP y/o permitan la instalación de clientes que se conecten a otras aplicaciones integrables al GLPI como son:
+* [API REST](https://fossies.org/dox/glpi-9.1.6/md_apirest.html), permitiendo asi ampliar en gran medida las potencialidades de la aplicación
+* Inventario de dispositivos que posean una interfaz de red con un sistema operativo que les permite usar el protocolo SNMP y/o permitan la instalación de clientes que se conecten a otras aplicaciones integrables al GLPI, habilitando la aplicación como sistema de gestión de IOT como son:
 - OCS Inventory
 - FusionInventory
 - Zabbix
