@@ -2,7 +2,7 @@
 
 | **`SLES`** <img src="https://cdn.rawgit.com/smartcitiescommunity/Civikmind/e1070b30/pics/linux.svg"> | **`RHEL`** <img src="https://cdn.rawgit.com/smartcitiescommunity/Civikmind/e1070b30/pics/linux.svg"> | **`UBUNTU`** <img src="https://cdn.rawgit.com/smartcitiescommunity/Civikmind/e1070b30/pics/linux.svg"> | **`Windows`** <img src="https://cdn.rawgit.com/smartcitiescommunity/Civikmind/e1070b30/pics/windows.svg"> | **`MacOS`** <img src="https://cdn.rawgit.com/smartcitiescommunity/Civikmind/84d8b4da/pics/mac.svg"> | **`Estado`** | **`Appliance`** |
 |-----------------|---------------------|------------------|-------------------|---------------|---------------|---------------|
-| OK | OK | OK| Fail | OK | [![Estado](https://secure.travis-ci.org/glpi-project/glpi.svg?branch=master)](https://secure.travis-ci.org/glpi-project/glpi) |[![Appliance](https://maxcdn.icons8.com/wp-content/uploads/2013/12/suse-128.png)](https://j.mp/Smart-Cities-Community-Os-One) |
+| OK :white_check_mark: | OK :white_check_mark: | OK :white_check_mark: | Fail | OK :white_check_mark: | [![Estado](https://secure.travis-ci.org/glpi-project/glpi.svg?branch=master)](https://secure.travis-ci.org/glpi-project/glpi) |[![Appliance](https://maxcdn.icons8.com/wp-content/uploads/2013/12/suse-128.png)](https://j.mp/Smart-Cities-Community-Os-One) |
 
 **CivikMind** es un sistema de gestión de información y activos basado en la aplicación GLPI. 
 En de sus Caracteristicas encontramos que hace uso de manera integrada ya sea de forma completa o parcial de las normas o estandares: iso 9001, 14001, 20000, 21500, 27001, 31000 y adaptable a muchas otras.
