@@ -1,7 +1,7 @@
 <img align="left" src="pics/scc.jpg?raw=true"/>
 -----------------
 
-| **`SLES`** | **`RHEL`** | **`UBUNTU`** | **`Windows`** | **`MacOS`** |
+| **`SLES`** <img align="left" src="pics/linux.svg?raw=true"/> | **`RHEL`** <img align="left" src="pics/linux.svg?raw=true"/> | **`UBUNTU`** <img align="left" src="pics/linux.svg?raw=true"/> | **`Windows`** <img align="left" src="pics/windows.svg?raw=true"/> | **`MacOS`** <img align="left" src="pics/mac.svg?raw=true"/> |
 |-----------------|---------------------|------------------|-------------------|---------------|
 | OK | OK | OK| Fail | OK |
 ## Descarga
