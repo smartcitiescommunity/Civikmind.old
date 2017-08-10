@@ -14,6 +14,7 @@ Estas caracteristicas permiten que este sistema controle de manera eficiente y e
 A su vez Civikmind puede ser usado por organizaciones Sociales, Comunitarias, Politicas, Activistas, Defensores de derechos humanos, Veeduria ciudadana, Transparencia y Anticorrupción, Lideres sociales como tambien Lideres politicos y afines.
 
 Otras caracteristicas:
+
 *** Soporte Multilenguaje: 45 Traducciones disponible
 
 *** [API REST](https://fossies.org/dox/glpi-9.1.6/md_apirest.html), permitiendo asi ampliar en gran medida las potencialidades de la aplicación
