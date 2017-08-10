@@ -19,8 +19,6 @@ Otras caracteristicas:
 *** [API REST](https://fossies.org/dox/glpi-9.1.6/md_apirest.html), permitiendo asi ampliar en gran medida las potencialidades de la aplicación
 
 *** Asignación o reserva de activos ya sea por niveles o categorias como por ejemplo Nivel de permisos, Usuario, grupos o Area geografica
-* Gestión del Tiempo
-* Gestión del Ciclo de Vida
 
 *** Gestión de información Financiera como por ejemplo:
 - Ordenes de Compra
@@ -48,6 +46,10 @@ Otras caracteristicas:
 *** Generador de Reportes de Activos o Información
 
 *** Panel de Visualización de Estadisticas
+
+*** Gestión del Tiempo
+
+*** Gestión del Ciclo de Vida
 
 *** Inventario de dispositivos que posean una interfaz de red con un sistema operativo que les permite usar el protocolo SNMP y/o permitan la instalación de clientes que se conecten a otras aplicaciones integrables al GLPI, habilitando la aplicación como sistema de gestión de IOT como son:
 - OCS Inventory
