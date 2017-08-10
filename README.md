@@ -14,16 +14,13 @@ Estas caracteristicas permiten que este sistema controle de manera eficiente y e
 A su vez Civikmind puede ser usado por organizaciones Sociales, Comunitarias, Politicas, Activistas, Defensores de derechos humanos, Veeduria ciudadana, Transparencia y Anticorrupción, Lideres sociales como tambien Lideres politicos y afines.
 
 Otras caracteristicas:
-* Soporte Multilenguaje: 45 Traducciones disponible
-* [API REST](https://fossies.org/dox/glpi-9.1.6/md_apirest.html), permitiendo asi ampliar en gran medida las potencialidades de la aplicación
-* Inventario de dispositivos que posean una interfaz de red con un sistema operativo que les permite usar el protocolo SNMP y/o permitan la instalación de clientes que se conecten a otras aplicaciones integrables al GLPI, habilitando la aplicación como sistema de gestión de IOT como son:
-- OCS Inventory
-- FusionInventory
-- Zabbix
-* Asignación o reserva de activos ya sea por niveles o categorias como por ejemplo Nivel de permisos, Usuario, grupos o Area geografica
+*** Soporte Multilenguaje: 45 Traducciones disponible
+
+*** [API REST](https://fossies.org/dox/glpi-9.1.6/md_apirest.html), permitiendo asi ampliar en gran medida las potencialidades de la aplicación
+
+*** Asignación o reserva de activos ya sea por niveles o categorias como por ejemplo Nivel de permisos, Usuario, grupos o Area geografica
 * Gestión del Tiempo
 * Gestión del Ciclo de Vida
-* Gestión de Licencias (ITIL y Gobierno de TI)
 
 *** Gestión de información Financiera como por ejemplo:
 - Ordenes de Compra
@@ -44,10 +41,18 @@ Otras caracteristicas:
 - Creación de tickets
 - Gestión de Tareas
 
-* Gestión de Proyectos
-* Base de datos de Conocimiento y Preguntas de uso frecuente con diferentes niveles de acceso
-* Generador de Reportes de Activos o Información
-* Panel de Visualización de Estadisticas
+*** Gestión de Proyectos
+
+*** Base de datos de Conocimiento y Preguntas de uso frecuente con diferentes niveles de acceso
+
+*** Generador de Reportes de Activos o Información
+
+*** Panel de Visualización de Estadisticas
+
+*** Inventario de dispositivos que posean una interfaz de red con un sistema operativo que les permite usar el protocolo SNMP y/o permitan la instalación de clientes que se conecten a otras aplicaciones integrables al GLPI, habilitando la aplicación como sistema de gestión de IOT como son:
+- OCS Inventory
+- FusionInventory
+- Zabbix
 
 Ademas la plataforma viene precargada con [plugins](http://plugins.glpi-project.org) que abre un panorama enorme a diferentes clases de soluciones..
 
