@@ -59,6 +59,21 @@ Otras caracteristicas:
 
 Ademas la plataforma viene precargada con [plugins](http://plugins.glpi-project.org) que abre un panorama enorme a diferentes clases de soluciones..
 
+Visitanos en:
+
+ | Youtube - http://bit.ly/Smart-Cities-Community-Youtube
+
+ | Facebook - http://bit.ly/Smart-Cities-Community-Facebook
+
+ | Linkedin - http://bit.ly/Smart-Cities-Community-Linkedin
+
+ | Twitter - http://bit.ly/Smart-Cities-Community-Twitter
+
+ | Meet Up - http://j.mp/Smart-Cities-Community-Meetup
+
+ | User Echo - http://j.mp/Smart-Cities-Community-Foro
+
+ | Suse Linux OS - http://bit.ly/Smart-Cities-Community-Linux-OS
 
 ## Licencia
 
