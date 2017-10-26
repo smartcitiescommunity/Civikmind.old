@@ -11,6 +11,8 @@ Entre sus potencialidades encontramos que hace uso de manera integrada ya sea de
 Tambien hace uso de mejores practicas integradas a nivel integrado como lo es ITIL, Agilismo, Auditoria y Gobierno de TI.
 Estas caracteristicas permiten que este sistema controle de manera eficiente y eficaz con una fuerte orientación al logro y al resultado, Caracteristicas esenciales para la correcta gestión de una Ciudad Inteligente o Smart City.
 
+Para el tema de campañas electorales permite el control de proyectos, tareas, actividades, presupuestos, interacción con el ciudadano de manera directa con respuestas objetivas como tambien gestión segmentada de lideres, equipos de trabajo y sectores bajo segmentación geografica.
+
 A su vez Civikmind puede ser usado por organizaciones Sociales, Comunitarias, Politicas, Activistas, Defensores de derechos humanos, Veeduria ciudadana, Transparencia y Anticorrupción, Lideres sociales como tambien Lideres politicos y afines.
 
 Otras caracteristicas:
