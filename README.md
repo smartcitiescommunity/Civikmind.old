@@ -26,6 +26,14 @@ Otras caracteristicas:
 - Garantias
 - Gestión de Costos
 
+*** Gestión de información Financiera como por ejemplo:
+- Eventos de campaña
+- Actividades con los simpatizantes
+- Proyectos con los simpatizantes
+- Hub de noticias para toma de decisiones
+- Autogestión con solicitudes ciudadanas
+- Control de las actividades de campañas con Analisis de datos
+
 *** Gestión de Información Corporativa como por ejemplo:
 - Contratos
 - Contactos
