@@ -92,3 +92,5 @@ Visitanos en:
 ## Licencia
 
 La distribución de este software se hace bajo la licencia GNU GENERAL PUBLIC LICENSE Version 2 - favor revisar [COPYING](https://raw.githubusercontent.com/glpi-project/glpi/master/COPYING.txt) para más detalles.
+
+:house: :house_with_garden: :house: :house_with_garden: :house: :house_with_garden: :house: :house_with_garden: :house: :house_with_garden: :house: :house_with_garden: :house: :house_with_garden: :house: :house_with_garden: :house:
