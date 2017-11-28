@@ -21,23 +21,23 @@ A su vez Civikmind puede ser usado por organizaciones Sociales, Comunitarias, Po
 
 Otras caracteristicas:
 
-:eight_pointed_black_star:**Soporte Multilenguaje: 45 Traducciones disponible
+:eight_pointed_black_star: Soporte Multilenguaje: 45 Traducciones disponible
 
-:eight_pointed_black_star:**[API REST](https://fossies.org/dox/glpi-9.1.6/md_apirest.html)
+:eight_pointed_black_star: [API REST](https://fossies.org/dox/glpi-9.1.6/md_apirest.html)
 
 permitiendo asi ampliar en gran medida las potencialidades de la aplicación
 
-:eight_pointed_black_star:**Asignación o reserva de activos ya sea por niveles o categorias
+:eight_pointed_black_star: Asignación o reserva de activos ya sea por niveles o categorias
 
 como por ejemplo Nivel de permisos, Usuario, grupos o Area geografica
 
-:eight_pointed_black_star:**Gestión de información Financiera como por ejemplo:
+:eight_pointed_black_star: Gestión de información Financiera como por ejemplo:
 
 - Ordenes de Compra
 - Garantias
 - Gestión de Costos
 
-:eight_pointed_black_star:**Gestión de información Financiera como por ejemplo:
+:eight_pointed_black_star: Gestión de información Financiera como por ejemplo:
 
 - Eventos de campaña
 - Actividades con los simpatizantes
@@ -46,14 +46,14 @@ como por ejemplo Nivel de permisos, Usuario, grupos o Area geografica
 - Autogestión con solicitudes ciudadanas
 - Control de las actividades de campañas con Analisis de datos
 
-:eight_pointed_black_star:**Gestión de Información Corporativa como por ejemplo:
+:eight_pointed_black_star: Gestión de Información Corporativa como por ejemplo:
 
 - Contratos
 - Contactos
 - Documentos
 - Radicados.
 
-:eight_pointed_black_star:**Gestión del Servicio como por ejemplo:
+:eight_pointed_black_star: Gestión del Servicio como por ejemplo:
 
 - Incidentes
 - Solicitudes
@@ -62,19 +62,19 @@ como por ejemplo Nivel de permisos, Usuario, grupos o Area geografica
 - Creación de tickets
 - Gestión de Tareas
 
-:eight_pointed_black_star:**Gestión de Proyectos
+:eight_pointed_black_star: Gestión de Proyectos
 
-:eight_pointed_black_star:**Base de datos de Conocimiento y Preguntas de uso frecuente con diferentes niveles de acceso
+:eight_pointed_black_star: Base de datos de Conocimiento y Preguntas de uso frecuente con diferentes niveles de acceso
 
-:eight_pointed_black_star:**Generador de Reportes de Activos o Información
+:eight_pointed_black_star: Generador de Reportes de Activos o Información
 
-:eight_pointed_black_star:**Panel de Visualización de Estadisticas
+:eight_pointed_black_star: Panel de Visualización de Estadisticas
 
-:eight_pointed_black_star:**Gestión del Tiempo
+:eight_pointed_black_star: Gestión del Tiempo
 
-:eight_pointed_black_star:**Gestión del Ciclo de Vida
+:eight_pointed_black_star: Gestión del Ciclo de Vida
 
-:eight_pointed_black_star:**Inventario de dispositivos
+:eight_pointed_black_star: Inventario de dispositivos
 
 Los dispositivos que posean una interfaz de red con un sistema operativo que les permite usar el protocolo SNMP y/o permitan la instalación de clientes que se conecten a otras aplicaciones integrables al GLPI, habilitando la aplicación como sistema de gestión de IOT como son:
 - OCS Inventory
