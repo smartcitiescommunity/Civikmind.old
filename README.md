@@ -21,7 +21,13 @@ A su vez Civikmind puede ser usado por organizaciones Sociales, Comunitarias, Po
 
 Otras caracteristicas:
 
-:eight_pointed_black_star: Soporte Multilenguaje: 45 Traducciones disponible
+:eight_pointed_black_star: Soporte Multilenguaje 45 Traducciones disponible y variaciones del español en versiones:
+
+- Colombia
+- Argentina
+- Mexico
+- España
+- Venezuela
 
 :eight_pointed_black_star: [API REST](https://fossies.org/dox/glpi-9.1.6/md_apirest.html)
 
@@ -29,7 +35,10 @@ permitiendo asi ampliar en gran medida las potencialidades de la aplicación
 
 :eight_pointed_black_star: Asignación o reserva de activos ya sea por niveles o categorias
 
-como por ejemplo Nivel de permisos, Usuario, grupos o Area geografica
+- Nivel de permisos 
+- Usuario 
+- Grupos 
+- Area geografica
 
 :eight_pointed_black_star: Gestión de información Financiera como por ejemplo:
 
