@@ -14,9 +14,7 @@ Estas caracteristicas permiten que este sistema controle de manera eficiente y e
 Para el tema de campañas electorales permite el control de proyectos, tareas, actividades, presupuestos, interacción con el ciudadano de manera directa con respuestas objetivas como tambien gestión segmentada de lideres, equipos de trabajo y sectores bajo segmentación geografica.
 
 A su vez Civikmind puede ser usado por organizaciones Sociales, Comunitarias, Politicas, Activistas, Defensores de derechos humanos, Veeduria ciudadana, Transparencia y Anticorrupción, Lideres sociales como tambien Lideres politicos y afines.
-
-<img align="right" src="pics/img/Bigonefull.png?raw=true" width="50%"/>
-
+<img align="right" src="pics/img/smart cities2.png?raw=true" width="100%"/>
 
 
 
@@ -74,7 +72,7 @@ Otras caracteristicas:
 - Zabbix
 
 Ademas la plataforma viene precargada con [plugins](http://plugins.glpi-project.org) que abre un panorama enorme a diferentes clases de soluciones..
-
+<img align="right" src="pics/img/Bigonefull.png?raw=true" width="50%"/>
 Visitanos en:
 
  | Youtube - http://bit.ly/Smart-Cities-Community-Youtube
