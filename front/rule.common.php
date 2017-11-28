@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
- 
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -49,14 +48,14 @@ $rulecollection->checkGlobal(READ);
 
 if (isset($_POST["action"])) {
    $rulecollection->checkGlobal(UPDATE);
-   $rulecollection->changeRuleOrder($_POST["id"],$_POST["action"], $_POST['condition']);
+   $rulecollection->changeRuleOrder($_POST["id"], $_POST["action"], $_POST['condition']);
    Html::back();
-// POST and GET needed to manage reload
+   // POST and GET needed to manage reload
 } else if (isset($_POST["replay_rule"]) || isset($_GET["replay_rule"])) {
    $rulecollection->checkGlobal(UPDATE);
 
    // Current time
-   $start = explode(" ",microtime());
+   $start = explode(" ", microtime());
    $start = $start[0]+$start[1];
 
    // Limit computed from current time
@@ -83,12 +82,12 @@ if (isset($_POST["action"])) {
 
    if (!isset($_GET['offset'])) {
       // First run
-      $offset       = $rulecollection->replayRulesOnExistingDB(0, $max, array(), $_POST);
+      $offset       = $rulecollection->replayRulesOnExistingDB(0, $max, [], $_POST);
       $manufacturer = (isset($_POST["manufacturer"]) ? $_POST["manufacturer"] : 0);
 
    } else {
       // Next run
-      $offset       = $rulecollection->replayRulesOnExistingDB($_GET['offset'], $max, array(),
+      $offset       = $rulecollection->replayRulesOnExistingDB($_GET['offset'], $max, [],
                                                                $_GET);
       $manufacturer = $_GET["manufacturer"];
 
@@ -98,7 +97,7 @@ if (isset($_POST["action"])) {
 
    if ($offset < 0) {
       // Work ended
-      $end   = explode(" ",microtime());
+      $end   = explode(" ", microtime());
       $duree = round($end[0]+$end[1]-$start);
       Html::changeProgressBarMessage(sprintf(__('Task completed in %s'),
                                              Html::timestampToString($duree)));
@@ -119,4 +118,3 @@ Html::header(Rule::getTypeName(Session::getPluralNumber()), $_SERVER['PHP_SELF']
 
 $rulecollection->display();
 Html::footer();
-?>

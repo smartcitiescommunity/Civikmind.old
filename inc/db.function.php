@@ -1,33 +1,33 @@
 <?php
-/*
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
-
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -44,13 +44,12 @@ if (!defined('GLPI_ROOT')) {
  * @param $table string table name
  *
  * @return string field name used for a foreign key to the parameter table
+ *
+ * @deprecated 9.2 see DbUtils::getForeignKeyFieldForTable()
 **/
 function getForeignKeyFieldForTable($table) {
-
-   if (strpos($table,'glpi_') === false) {
-      return "";
-   }
-   return str_replace("glpi_","",$table)."_id";
+   $dbu = new DbUtils();
+   return $dbu->getForeignKeyFieldForTable($table);
 }
 
 
@@ -62,15 +61,12 @@ function getForeignKeyFieldForTable($table) {
  * @param $field string field name
  *
  * @return string field name used for a foreign key to the parameter table
+ *
+ * @deprecated 9.2 see DbUtils::isForeignKeyField()
 **/
 function isForeignKeyField($field) {
-
-   // No _id drop
-   if (strpos($field,'_id') === false) {
-      return false;
-   }
-
-   return preg_match("/._id$/", $field) || preg_match("/._id_/", $field);
+   $dbu = new DbUtils();
+   return $dbu->isForeignKeyField($field);
 }
 
 
@@ -92,18 +88,12 @@ function getForeignKeyFieldForItemType($itemtype) {
  * @param $fkname   string   foreign key name
  *
  * @return string table name corresponding to a foreign key name
+ *
+ * @deprecated 9.2 see DbUtils::getTableNameForForeignKeyField()
 **/
 function getTableNameForForeignKeyField($fkname) {
-
-   if (strpos($fkname,'_id') === false) {
-      return "";
-   }
-   // If $fkname begin with _ strip it
-   if ($fkname[0] == '_') {
-      $fkname = substr($fkname, 1);
-   }
-
-   return "glpi_".preg_replace("/_id.*/", "", $fkname);
+   $dbu = new DbUtils();
+   return $dbu->getTableNameForForeignKeyField($fkname);
 }
 
 
@@ -113,48 +103,27 @@ function getTableNameForForeignKeyField($fkname) {
  * @param $table string table name
  *
  * @return string itemtype corresponding to a table name parameter
+ *
+ * @deprecated 9.2 see DbUtils::getItemTypeForTable()
 **/
 function getItemTypeForTable($table) {
-   global $CFG_GLPI;
-
-   if (isset($CFG_GLPI['glpiitemtypetables'][$table])) {
-      return $CFG_GLPI['glpiitemtypetables'][$table];
-
-   } else {
-      $inittable = $table;
-      $table     = str_replace("glpi_", "", $table);
-      $prefix    = "";
-      $pref2     = "Glpi\\";
-
-      if (preg_match('/^plugin_([a-z0-9]+)_/', $table, $matches)) {
-         $table  = preg_replace('/^plugin_[a-z0-9]+_/', '', $table);
-         $prefix = "Plugin".Toolbox::ucfirst($matches[1]);
-      }
-
-      if (strstr($table,'_')) {
-         $split = explode('_', $table);
-
-         foreach ($split as $key => $part) {
-            $split[$key] = Toolbox::ucfirst(getSingular($part));
-         }
-         $table = implode('_', $split);
-
-      } else {
-         $table = Toolbox::ucfirst(getSingular($table));
-      }
-
-      $itemtype = $prefix.$table;
-      // Get real existence of itemtype
-      if (($item = getItemForItemtype($itemtype))) {
-         $itemtype                                   = get_class($item);
-         $CFG_GLPI['glpiitemtypetables'][$inittable] = $itemtype;
-         $CFG_GLPI['glpitablesitemtype'][$itemtype]  = $inittable;
-         return $itemtype;
-      }
-      return "UNKNOWN";
-   }
+   $dbu = new DbUtils();
+   return $dbu->getItemTypeForTable($table);
 }
 
+/**
+ * Return ItemType for a foreign key
+ *
+ * @param string $fkname
+ *
+ * @return string ItemType name for the fkname parameter
+ *
+ * @deprecated 9.2 see DbUtils::getItemtypeForForeignKeyField()
+ */
+function getItemtypeForForeignKeyField($fkname) {
+   $dbu = new DbUtils();
+   return $dbu->getItemtypeForForeignKeyField($fkname);
+}
 
 /**
  * Return ItemType  for a table
@@ -162,44 +131,12 @@ function getItemTypeForTable($table) {
  * @param $itemtype   string   itemtype
  *
  * @return string table name corresponding to the itemtype  parameter
+ *
+ * @deprecated 9.2 see DbUtils::getTableForItemType()
 **/
 function getTableForItemType($itemtype) {
-   global $CFG_GLPI;
-
-   // Force singular for itemtype : States case
-   $itemtype = getSingular($itemtype);
-
-   if (isset($CFG_GLPI['glpitablesitemtype'][$itemtype])) {
-      return $CFG_GLPI['glpitablesitemtype'][$itemtype];
-
-   } else {
-      $prefix = "glpi_";
-
-      if ($plug = isPluginItemType($itemtype)) {
-         /* PluginFooBar => glpi_plugin_foor_bars */
-         $prefix .= "plugin_".strtolower($plug['plugin'])."_";
-         $table   = strtolower($plug['class']);
-
-      } else {
-         $table = strtolower($itemtype);
-      }
-
-      if (strstr($table,'_')) {
-         $split = explode('_',$table);
-
-         foreach ($split as $key => $part) {
-            $split[$key] = getPlural($part);
-         }
-         $table = implode('_',$split);
-
-      } else {
-         $table = getPlural($table);
-      }
-
-      $CFG_GLPI['glpitablesitemtype'][$itemtype]      = $prefix.$table;
-      $CFG_GLPI['glpiitemtypetables'][$prefix.$table] = $itemtype;
-      return $prefix.$table;
-   }
+   $dbu = new DbUtils();
+   return $dbu->getTableForItemType($itemtype);
 }
 
 
@@ -211,13 +148,12 @@ function getTableForItemType($itemtype) {
  * @param $itemtype   string   itemtype
  *
  * @return itemtype object or false if class does not exists
+ *
+ * @deprecated 9.2 see DbUtils::getItemForItemtype()
 **/
 function getItemForItemtype($itemtype) {
-
-   if (class_exists($itemtype)) {
-      return new $itemtype();
-   }
-   return false;
+   $dbu = new DbUtils();
+   return $dbu->getItemForItemtype($itemtype);
 }
 
 
@@ -227,35 +163,12 @@ function getItemForItemtype($itemtype) {
  * @param $string   string   input string
  *
  * @return string plural of the parameter string
+ *
+ * @deprecated 9.2 see DbUtils::getPlural()
 **/
 function getPlural($string) {
-
-   $rules = array(//'singular' => 'plural'
-                  'criterias$'         =>'criterias',// Special case (criterias) when getPLural is called on already plural form
-                  'ch$'                =>'ches',
-                  'ches$'              =>'ches',
-                  'sh$'                =>'shes',
-                  'shes$'              =>'shes',
-                  'sses$'              => 'sses', // Case like addresses
-                  'ss$'                => 'sses', // Special case (addresses) when getSingular is called on already singular form
-                  'uses$'              => 'uses', // Case like statuses
-                  'us$'                => 'uses', // Case like status
-                  '([^aeiou])y$'       => '\1ies', // special case : category (but not key)
-                  '([^aeiou])ies$'     => '\1ies', // special case : category (but not key)
-                  '([aeiou]{2})ses$'   => '\1ses', // Case like aliases
-                  '([aeiou]{2})s$'     => '\1ses', // Case like aliases
-                  'x$'                 =>'xes',
-//                   's$'           =>'ses',
-                  '([^s])$'            => '\1s',   // Add at the end if not exists
-                  );
-
-   foreach ($rules as $singular => $plural) {
-      $string = preg_replace("/$singular/", "$plural", $string, -1, $count);
-      if ($count > 0) {
-         break;
-      }
-   }
-   return $string;
+   $dbu = new DbUtils();
+   return $dbu->getPlural($string);
 }
 
 
@@ -265,60 +178,28 @@ function getPlural($string) {
  * @param $string   string   input string
  *
  * @return string singular of the parameter string
+ *
+ * @deprecated 9.2 see DbUtils::getSingular()
 **/
 function getSingular($string) {
-
-   $rules = array(//'plural' => 'singular'
-                  'ches$'             => 'ch',
-                  'ch$'               => 'ch',
-                  'shes$'             => 'sh',
-                  'sh$'               => 'sh',
-                  'sses$'             => 'ss', // Case like addresses
-                  'ss$'               => 'ss', // Special case (addresses) when getSingular is called on already singular form
-                  'uses$'             => 'us', // Case like statuses
-                  'us$'               => 'us', // Case like status
-                  '([aeiou]{2})ses$'  => '\1s', // Case like aliases
-                  'lias$'             => 'lias', // Special case (aliases) when getSingular is called on already singular form
-                  '([^aeiou])ies$'    => '\1y', // special case : category
-                  '([^aeiou])y$'      => '\1y', // special case : category
-                  'xes$'              =>'x',
-                  's$'                => ''); // Add at the end if not exists
-
-   foreach ($rules as  $plural => $singular) {
-      $string = preg_replace("/$plural/", "$singular", $string, -1, $count);
-      if ($count > 0) {
-         break;
-      }
-   }
-   return $string;
+   $dbu = new DbUtils();
+   return $dbu->getSingular($string);
 }
 
 
 /**
  * Count the number of elements in a table.
  *
- * @param $table        string/array   table names
- * @param $condition    string         condition to use (default '')
+ * @param string|array $table     table name(s)
+ * @param string|array $condition condition to use (default '') or array of criteria
  *
  * @return int nb of elements in table
+ *
+ * @deprecated 9.2 see DbUtils::countElementsInTable()
 **/
-function countElementsInTable($table, $condition="") {
-   global $DB;
-
-   if (is_array($table)) {
-      $table = implode('`,`',$table);
-   }
-
-   $query = "SELECT COUNT(*) AS cpt
-             FROM `$table`";
-
-   if (!empty($condition)) {
-      $query .= " WHERE $condition ";
-   }
-
-   $result = $DB->query($query);
-   $ligne  = $DB->fetch_assoc($result);
-   return $ligne['cpt'];
+function countElementsInTable($table, $condition = "") {
+   $dbu = new DbUtils();
+   return $dbu->countElementsInTable($table, $condition);
 }
 
 /**
@@ -329,72 +210,45 @@ function countElementsInTable($table, $condition="") {
  * @param $condition    string         condition to use (default '')
  *
  * @return int nb of elements in table
+ *
+ * @deprecated 9.2 see DbUtils::countDistinctElementsInTable()
 **/
-function countDistinctElementsInTable($table, $field, $condition="") {
-   global $DB;
-
-   if (is_array($table)) {
-      $table = implode('`,`',$table);
-   }
-
-   $query = "SELECT COUNT(DISTINCT `$field`) AS cpt
-             FROM `$table`";
-
-   if (!empty($condition)) {
-      $query .= " WHERE $condition ";
-   }
-
-   $result = $DB->query($query);
-   $ligne  = $DB->fetch_assoc($result);
-   return $ligne['cpt'];
+function countDistinctElementsInTable($table, $field, $condition = "") {
+   $dbu = new DbUtils();
+   return $dbu->countDistinctElementsInTable($table, $field, $condition);
 }
-
-
 
 /**
  * Count the number of elements in a table for a specific entity
  *
- * @param $table        string   table name
- * @param $condition    string   additional condition (default '')
+ * @param $table        string         table name
+ * @param $condition    string/array   additional condition (default '') or criteria
  *
  * @return int nb of elements in table
+ *
+ * @deprecated 9.2 see DbUtils::countElementsInTableForMyEntities()
 **/
-function countElementsInTableForMyEntities($table, $condition='') {
-
-   /// TODO clean it / maybe include when review of SQL requests
-   $itemtype = getItemTypeForTable($table);
-   $item     = new $itemtype();
-
-   if (!empty($condition)) {
-      $condition .= " AND ";
-   }
-
-   $condition .= getEntitiesRestrictRequest("", $table, '', '', $item->maybeRecursive());
-   return countElementsInTable($table, $condition);
+function countElementsInTableForMyEntities($table, $condition = '') {
+   $dbu = new DbUtils();
+   return $dbu->countElementsInTableForMyEntities($table, $condition);
 }
 
 
 /**
  * Count the number of elements in a table for a specific entity
  *
- * @param $table        string   table name
- * @param $entity       integer  the entity ID
- * @param $condition    string   additional condition (default '')
+ * @param string  $table     table name
+ * @param integer $entity    the entity ID
+ * @param string  $condition additional condition (default '')
+ * @param boolean $recursive Whether to recurse or not. If true, will be conditionned on item recursivity
  *
  * @return int nb of elements in table
+ *
+ * @deprecated 9.2 see DbUtils::countElementsInTableForEntity()
 **/
-function countElementsInTableForEntity($table, $entity, $condition='') {
-
-   /// TODO clean it / maybe include when review of SQL requests
-   $itemtype = getItemTypeForTable($table);
-   $item     = new $itemtype();
-
-   if (!empty($condition)) {
-      $condition .= " AND ";
-   }
-
-   $condition .= getEntitiesRestrictRequest("", $table, '', $entity,$item->maybeRecursive());
-   return countElementsInTable($table, $condition);
+function countElementsInTableForEntity($table, $entity, $condition = '', $recursive = true) {
+   $dbu = new DbUtils();
+   return $dbu->countElementsInTableForEntity($table, $entity, $condition, $recursive);
 }
 
 
@@ -408,39 +262,13 @@ function countElementsInTableForEntity($table, $entity, $condition='') {
  * @param $order        string   result order (default '')
  *
  * @return array containing all the datas
+ *
+ * @deprecated 9.2 see DbUtils::getAllDataFromTable()
 **/
-function getAllDatasFromTable($table, $condition='', $usecache=false, $order='') {
-   global $DB;
-
-   static $cache = array();
-
-   if (empty($condition) && empty($order) && $usecache && isset($cache[$table])) {
-      return $cache[$table];
-   }
-
-   $datas = array();
-   $query = "SELECT *
-             FROM `$table` ";
-
-   if (!empty($condition)) {
-      $query .= " WHERE $condition ";
-   }
-   if (!empty($order)) {
-      $query .= " ORDER BY $order ";
-   }
-
-   if ($result = $DB->query($query)) {
-      while ($data = $DB->fetch_assoc($result)) {
-         $datas[$data['id']] = $data;
-      }
-   }
-
-   if (empty($condition) && empty($order) && $usecache) {
-      $cache[$table] = $datas;
-   }
-   return $datas;
+function getAllDatasFromTable($table, $condition = '', $usecache = false, $order = '') {
+   $dbu = new DbUtils();
+   return $dbu->getAllDataFromTable($table, $condition, $usecache, $order);
 }
-
 
 /**
  * Get the Name of the element of a Dropdown Tree table
@@ -453,66 +281,12 @@ function getAllDatasFromTable($table, $condition='', $usecache=false, $order='')
  * @return string : name of the element
  *
  * @see getTreeValueCompleteName
+ *
+ * @deprecated 9.2 see DbUtils::getTreeLeafValueName()
 **/
-function getTreeLeafValueName($table, $ID, $withcomment=false, $translate=true) {
-   global $DB;
-
-   $name    = "";
-   $comment = "";
-
-   $SELECTNAME    = "`$table`.`name`, '' AS transname";
-   $SELECTCOMMENT = "`$table`.`comment`, '' AS transcomment";
-   $JOIN          = '';
-   if  ($translate) {
-      if (Session::haveTranslations(getItemTypeForTable($table), 'name')) {
-         $SELECTNAME  = "`$table`.`name`, `namet`.`value` AS transname";
-         $JOIN       .= " LEFT JOIN `glpi_dropdowntranslations` AS namet
-                           ON (`namet`.`itemtype` = '".getItemTypeForTable($table)."'
-                               AND `namet`.`items_id` = `$table`.`id`
-                               AND `namet`.`language` = '".$_SESSION['glpilanguage']."'
-                               AND `namet`.`field` = 'name')";
-      }
-      if (Session::haveTranslations(getItemTypeForTable($table), 'comment')) {
-         $SELECTCOMMENT  = "`$table`.`comment`, `namec`.`value` AS transcomment";
-         $JOIN          .= " LEFT JOIN `glpi_dropdowntranslations` AS namet
-                           ON (`namec`.`itemtype` = '".getItemTypeForTable($table)."'
-                               AND `namec`.`items_id` = `$table`.`id`
-                               AND `namec`.`language` = '".$_SESSION['glpilanguage']."'
-                               AND `namec`.`field` = 'comment')";
-      }
-
-   }
-
-   $query = "SELECT $SELECTNAME, $SELECTCOMMENT
-             FROM `$table`
-             $JOIN
-             WHERE `$table`.`id` = '$ID'";
-
-   if ($result = $DB->query($query)) {
-      if ($DB->numrows($result) == 1) {
-         $transname = $DB->result($result,0,"transname");
-         if ($translate && !empty($transname)) {
-            $name = $transname;
-         } else {
-            $name = $DB->result($result,0,"name");
-         }
-
-         $comment      = $name." :<br>";
-         $transcomment = $DB->result($result,0,"transcomment");
-
-         if ($translate && !empty($transcomment)) {
-            $comment .= nl2br($transcomment);
-         } else {
-            $comment .= nl2br($DB->result($result,0,"comment"));
-         }
-      }
-   }
-
-   if ($withcomment) {
-      return array("name"    => $name,
-                   "comment" => $comment);
-   }
-   return $name;
+function getTreeLeafValueName($table, $ID, $withcomment = false, $translate = true) {
+   $dbu = new DbUtils();
+   return $dbu->getTreeLeafValueName($table, $ID, $withcomment, $translate);
 }
 
 
@@ -528,73 +302,12 @@ function getTreeLeafValueName($table, $ID, $withcomment=false, $translate=true) 
  * @return string : completename of the element
  *
  * @see getTreeLeafValueName
+ *
+ * @deprecated 9.2 see DbUtils::getTreeValueCompleteName()
 **/
-function getTreeValueCompleteName($table, $ID, $withcomment=false, $translate=true, $tooltip=true) {
-   global $DB;
-
-   $name    = "";
-   $comment = "";
-
-   $SELECTNAME    = "`$table`.`completename`, '' AS transname";
-   $SELECTCOMMENT = "`$table`.`comment`, '' AS transcomment";
-   $JOIN          = '';
-   if  ($translate) {
-      if (Session::haveTranslations(getItemTypeForTable($table), 'completename')) {
-         $SELECTNAME  = "`$table`.`completename`, `namet`.`value` AS transname";
-         $JOIN       .= " LEFT JOIN `glpi_dropdowntranslations` AS namet
-                           ON (`namet`.`itemtype` = '".getItemTypeForTable($table)."'
-                               AND `namet`.`items_id` = `$table`.`id`
-                               AND `namet`.`language` = '".$_SESSION['glpilanguage']."'
-                               AND `namet`.`field` = 'completename')";
-      }
-      if (Session::haveTranslations(getItemTypeForTable($table), 'comment')) {
-         $SELECTCOMMENT  = "`$table`.`comment`, `namec`.`value` AS transcomment";
-         $JOIN          .= " LEFT JOIN `glpi_dropdowntranslations` AS namec
-                              ON (`namec`.`itemtype` = '".getItemTypeForTable($table)."'
-                                  AND `namec`.`items_id` = `$table`.`id`
-                                  AND `namec`.`language` = '".$_SESSION['glpilanguage']."'
-                                  AND `namec`.`field` = 'comment')";
-      }
-
-   }
-
-   $query = "SELECT $SELECTNAME, $SELECTCOMMENT
-             FROM `$table`
-             $JOIN
-             WHERE `$table`.`id` = '$ID'";
-
-   if ($result = $DB->query($query)) {
-      if ($DB->numrows($result) == 1) {
-         $transname = $DB->result($result,0,"transname");
-         if ($translate && !empty($transname)) {
-            $name = $transname;
-         } else {
-            $name = $DB->result($result,0,"completename");
-         }
-         if( $tooltip ) {
-            $comment  = sprintf(__('%1$s: %2$s')."<br>",
-                                "<span class='b'>".__('Complete name')."</span>",
-                                $name);
-            $comment .= "<span class='b'>&nbsp;".__('Comments')."&nbsp;</span>";
-         }
-         $transcomment = $DB->result($result,0,"transcomment");
-         if ($translate && !empty($transcomment)) {
-            $comment .= nl2br($transcomment);
-         } else {
-            $comment .= nl2br($DB->result($result,0,"comment"));
-         }
-      }
-   }
-
-   if (empty($name)) {
-      $name = "&nbsp;";
-   }
-
-   if ($withcomment) {
-      return array("name"    => $name,
-                   "comment" => $comment);
-   }
-   return $name;
+function getTreeValueCompleteName($table, $ID, $withcomment = false, $translate = true, $tooltip = true) {
+   $dbu = new DbUtils();
+   return $dbu->getTreeValueCompleteName($table, $ID, $withcomment, $translate, $tooltip);
 }
 
 
@@ -608,117 +321,28 @@ function getTreeValueCompleteName($table, $ID, $withcomment=false, $translate=tr
  * @param $level        integer  current level of recursion (default 0)
  *
  * @return string name
+ *
+ * @deprecated 9.2 see DbUtils::getTreeValueName()
 **/
-function getTreeValueName($table, $ID, $wholename="", $level=0) {
-   global $DB;
-
-   $parentIDfield = getForeignKeyFieldForTable($table);
-
-   $query = "SELECT `name`, `$parentIDfield`
-             FROM `$table`
-             WHERE `id` = '$ID'";
-   $name = "";
-
-   if ($result = $DB->query($query)) {
-      if ($DB->numrows($result)>0) {
-         $row      = $DB->fetch_assoc($result);
-         $parentID = $row[$parentIDfield];
-
-
-         if ($wholename == "") {
-            $name = $row["name"];
-         } else {
-            $name = $row["name"] . " > ";
-         }
-
-         $level++;
-         list($tmpname, $level)  = getTreeValueName($table, $parentID, $name, $level);
-         $name                   = $tmpname. $name;
-      }
-   }
-   return array($name, $level);
+function getTreeValueName($table, $ID, $wholename = "", $level = 0) {
+   $dbu = new DbUtils();
+   return $dbu->getTreeValueName($table, $ID, $wholename, $level);
 }
 
 
 /**
  * Get the ancestors of an item in a tree dropdown
  *
- * @param $table     string   table name
- * @param $items_id  integer  The ID of the item
+ * @param string       $table    Table name
+ * @param array|string $items_id The IDs of the items
  *
  * @return array of IDs of the ancestors
+ *
+ * @deprecated 9.2 see DbUtils::getAncestorsOf()
 **/
 function getAncestorsOf($table, $items_id) {
-   global $DB;
-
-   // IDs to be present in the final array
-   $id_found      = array();
-   $parentIDfield = getForeignKeyFieldForTable($table);
-   $use_cache     = FieldExists($table, "ancestors_cache");
-
-   if ($use_cache
-       && ($items_id > 0)) {
-
-      $query = "SELECT `ancestors_cache`, `$parentIDfield`
-                FROM `$table`
-                WHERE `id` = '$items_id'";
-
-      if (($result = $DB->query($query))
-          && ($DB->numrows($result) > 0)) {
-         $ancestors = trim($DB->result($result, 0, 0));
-         $parent    = $DB->result($result, 0, 1);
-
-         // Return datas from cache in DB
-         if (!empty($ancestors)) {
-            return importArrayFromDB($ancestors, true);
-         }
-
-         // Recursive solution for table with-cache
-         if ($parent > 0) {
-            $id_found = getAncestorsOf($table, $parent);
-         }
-
-         // ID=0 only exists for Entities
-         if (($parent > 0)
-             || ($table == 'glpi_entities')) {
-            $id_found[$parent] = $parent;
-         }
-
-         // Store cache datas in DB
-         $query = "UPDATE `$table`
-                   SET `ancestors_cache` = '".exportArrayToDB($id_found)."'
-                   WHERE `id` = '$items_id'";
-         $DB->query($query);
-      }
-
-      return $id_found;
-   }
-
-   // Get the leafs of previous founded item
-   // iterative solution for table without cache
-   $IDf = $items_id;
-   while ($IDf > 0) {
-      // Get next elements
-      $query = "SELECT `$parentIDfield`
-                FROM `$table`
-                WHERE `id` = '$IDf'";
-
-      $result = $DB->query($query);
-      if ($DB->numrows($result)>0) {
-         $IDf = $DB->result($result,0,0);
-      } else {
-         $IDf = 0;
-      }
-
-      if (!isset($id_found[$IDf])
-          && (($IDf > 0) || ($table == 'glpi_entities'))) {
-         $id_found[$IDf] = $IDf;
-      } else {
-         $IDf = 0;
-      }
-   }
-
-   return $id_found;
+   $dbu = new DbUtils();
+   return $dbu->getAncestorsOf($table, $items_id);
 }
 
 
@@ -729,81 +353,12 @@ function getAncestorsOf($table, $items_id) {
  * @param $IDf    integer  The ID of the father
  *
  * @return array of IDs of the sons
+ *
+ * @deprecated 9.2 see DbUtils::getSonsOf()
 **/
 function getSonsOf($table, $IDf) {
-   global $DB;
-
-   $parentIDfield = getForeignKeyFieldForTable($table);
-   $use_cache     = FieldExists($table, "sons_cache");
-
-   if ($use_cache
-       && ($IDf > 0)) {
-
-      $query = "SELECT `sons_cache`
-                FROM `$table`
-                WHERE `id` = '$IDf'";
-
-      if (($result = $DB->query($query))
-          && ($DB->numrows($result) > 0)) {
-         $sons = trim($DB->result($result, 0, 0));
-         if (!empty($sons)) {
-            return importArrayFromDB($sons, true);
-         }
-      }
-   }
-
-   // IDs to be present in the final array
-   $id_found[$IDf] = $IDf;
-   // current ID found to be added
-   $found = array();
-   // First request init the  varriables
-   $query = "SELECT `id`
-             FROM `$table`
-             WHERE `$parentIDfield` = '$IDf'
-             ORDER BY `name`";
-
-   if (($result = $DB->query($query))
-       && ($DB->numrows($result) > 0)) {
-      while ($row = $DB->fetch_assoc($result)) {
-         $id_found[$row['id']] = $row['id'];
-         $found[$row['id']]    = $row['id'];
-      }
-   }
-
-   // Get the leafs of previous founded item
-   while (count($found) > 0) {
-      $first = true;
-      // Get next elements
-      $query = "SELECT `id`
-                FROM `$table`
-                WHERE `$parentIDfield` IN ('" . implode("','",$found) . "')";
-
-      // CLear the found array
-      unset($found);
-      $found = array();
-
-      $result = $DB->query($query);
-      if ($DB->numrows($result) > 0) {
-         while ($row = $DB->fetch_assoc($result)) {
-            if (!isset($id_found[$row['id']])) {
-               $id_found[$row['id']] = $row['id'];
-               $found[$row['id']]    = $row['id'];
-            }
-         }
-      }
-   }
-
-   // Store cache datas in DB
-   if ($use_cache
-       && ($IDf > 0)) {
-
-      $query = "UPDATE `$table`
-                SET `sons_cache`='".exportArrayToDB($id_found)."'
-                WHERE `id` = '$IDf';";
-      $DB->query($query);
-   }
-
-   return $id_found;
+   $dbu = new DbUtils();
+   return $dbu->getSonsOf($table, $IDf);
 }
 
 
@@ -816,9 +371,12 @@ function getSonsOf($table, $IDf) {
  * @param $IDf    integer  The ID of the father
  *
  * @return array of IDs of the sons and the ancestors
+ *
+ * @deprecated 9.2 see DbUtils::getSonsAndAncestorsOf()
 **/
 function getSonsAndAncestorsOf($table, $IDf) {
-   return getAncestorsOf($table, $IDf) + getSonsOf($table, $IDf);
+   $dbu = new DbUtils();
+   return $dbu->getSonsAndAncestorsOf($table, $IDf);
 }
 
 
@@ -829,60 +387,12 @@ function getSonsAndAncestorsOf($table, $IDf) {
  * @param $IDf    integer  The ID of the father
  *
  * @return array of IDs of the sons
+ *
+ * @deprecated 9.2 see DbUtils::getTreeForItem()
 **/
 function getTreeForItem($table, $IDf) {
-   global $DB;
-
-   $parentIDfield = getForeignKeyFieldForTable($table);
-
-   // IDs to be present in the final array
-   $id_found = array();
-   // current ID found to be added
-   $found = array();
-
-   // First request init the  varriables
-   $query = "SELECT *
-             FROM `$table`
-             WHERE `$parentIDfield` = '$IDf'
-             ORDER BY `name`";
-
-   if (($result = $DB->query($query))
-       && ($DB->numrows($result) > 0)) {
-
-      while ($row = $DB->fetch_assoc($result)) {
-         $id_found[$row['id']]['parent'] = $IDf;
-         $id_found[$row['id']]['name']   = $row['name'];
-         $found[$row['id']]              = $row['id'];
-      }
-   }
-
-   // Get the leafs of previous founded item
-   while (count($found) > 0) {
-      $first = true;
-      // Get next elements
-      $query = "SELECT *
-                FROM `$table`
-                WHERE `$parentIDfield` IN ('" . implode("','",$found)."')
-                ORDER BY `name`";
-      // CLear the found array
-      unset($found);
-      $found = array();
-
-      $result = $DB->query($query);
-      if ($DB->numrows($result) > 0) {
-         while ($row = $DB->fetch_assoc($result)) {
-            if (!isset($id_found[$row['id']])) {
-               $id_found[$row['id']]['parent'] = $row[$parentIDfield];
-               $id_found[$row['id']]['name']   = $row['name'];
-               $found[$row['id']]              = $row['id'];
-            }
-         }
-      }
-
-   }
-   $tree[$IDf]['name'] = Dropdown::getDropdownName($table, $IDf);
-   $tree[$IDf]['tree'] = contructTreeFromList($id_found, $IDf);
-   return $tree;
+   $dbu = new DbUtils();
+   return $dbu->getTreeForItem($table, $IDf);
 }
 
 
@@ -893,18 +403,12 @@ function getTreeForItem($table, $IDf) {
  * @param $root   integer  root of the tree
  *
  * @return list of items in the tree
+ *
+ * @deprecated 9.2 see DbUtils::constructTreeFromList()
 **/
 function contructTreeFromList($list, $root) {
-
-   $tree = array();
-   foreach ($list as $ID => $data) {
-      if ($data['parent'] == $root) {
-         unset($list[$ID]);
-         $tree[$ID]['name'] = $data['name'];
-         $tree[$ID]['tree'] = contructTreeFromList($list, $ID);
-      }
-   }
-   return $tree;
+   $dbu = new DbUtils();
+   return $dbu->constructTreeFromList($list, $root);
 }
 
 
@@ -915,25 +419,12 @@ function contructTreeFromList($list, $root) {
  * @param $parent integer  root of the tree (default =0)
  *
  * @return list of items in the tree
+ *
+ * @deprecated 9.2 see DbUtils::constructListFromTree()
 **/
-function contructListFromTree($tree, $parent=0) {
-
-   $list = array();
-   foreach ($tree as $root => $data) {
-      $list[$root] = $parent;
-
-      if (is_array($data['tree']) && count($data['tree'])) {
-         foreach ($data['tree'] as $ID => $underdata) {
-            $list[$ID] = $root;
-
-            if (is_array($underdata['tree']) && count($underdata['tree'])) {
-               $list += contructListFromTree($underdata['tree'], $ID);
-            }
-
-         }
-      }
-   }
-   return $list;
+function contructListFromTree($tree, $parent = 0) {
+   $dbu = new DbUtils();
+   return $dbu->constructListFromTree($tree, $parent);
 }
 
 
@@ -945,22 +436,12 @@ function contructListFromTree($tree, $parent=0) {
  * @param $reallink  string   real field to link ($table.id if not set) (default ='')
  *
  * @return string the query
+ *
+ * @deprecated 9.2 see DbUtils::getRealQueryForTreeItem()
 **/
-function getRealQueryForTreeItem($table, $IDf, $reallink="") {
-   global $DB;
-
-   if (empty($IDf)) {
-      return "";
-   }
-
-   if (empty($reallink)) {
-      $reallink = "`".$table."`.`id`";
-   }
-
-   $id_found = getSonsOf($table, $IDf);
-
-   // Construct the final request
-   return $reallink." IN ('".implode("','", $id_found)."')";
+function getRealQueryForTreeItem($table, $IDf, $reallink = "") {
+   $dbu = new DbUtils();
+   return $dbu->getRealQueryForTreeItem($table, $IDf, $reallink);
 }
 
 
@@ -970,24 +451,12 @@ function getRealQueryForTreeItem($table, $IDf, $reallink="") {
  * @param $table : dropdown tree table to compute
  *
  * @return nothing
+ *
+ * @deprecated 9.2 see DbUtils::regenerateTreeCompleteName()
 **/
 function regenerateTreeCompleteName($table) {
-   global $DB;
-
-   $query = "SELECT `id`
-             FROM `$table`";
-
-   $result = $DB->query($query);
-   if ($DB->numrows($result) > 0) {
-      while ($data=$DB->fetch_assoc($result)) {
-         list($name, $level) = getTreeValueName($table, $data['id']);
-         $query = "UPDATE `$table`
-                   SET `completename` = '".addslashes($name)."',
-                       `level` = '$level'
-                   WHERE `id` = '".$data['id']."'";
-         $DB->query($query);
-      }
-   }
+   $dbu = new DbUtils();
+   return $dbu->regenerateTreeCompleteName($table);
 }
 
 
@@ -1000,83 +469,12 @@ function regenerateTreeCompleteName($table) {
  * @param $nextprev_item   field used to sort (default ='name')
  *
  * @return the next ID, -1 if not exist
+ *
+ * @deprecated 9.2 see DbUtils::getNextItem()
 **/
-function getNextItem($table, $ID, $condition="", $nextprev_item="name") {
-   global $DB, $CFG_GLPI;
-
-   if (empty($nextprev_item)) {
-      return false;
-   }
-
-   $itemtype = getItemTypeForTable($table);
-   $item     = new $itemtype();
-   $search   = $ID;
-
-   if ($nextprev_item != "id") {
-      $query = "SELECT `$nextprev_item`
-                FROM `$table`
-                WHERE `id` = '$ID'";
-
-      if ($result = $DB->query($query)) {
-         if ($DB->numrows($result) > 0) {
-            $search = addslashes($DB->result($result, 0, 0));
-         } else {
-            $nextprev_item = "id";
-         }
-      }
-   }
-
-   $LEFTJOIN = '';
-   if ($table == "glpi_users") {
-      $LEFTJOIN = " LEFT JOIN `glpi_profiles_users`
-                           ON (`glpi_users`.`id` = `glpi_profiles_users`.`users_id`)";
-   }
-
-   $query = "SELECT `$table`.`id`
-             FROM `$table`
-             $LEFTJOIN
-             WHERE (`$table`.`$nextprev_item` > '$search' ";
-
-   // Same name case
-   if ($nextprev_item != "id") {
-      $query .= " OR (`$table`.`".$nextprev_item."` = '$search'
-                      AND `$table`.`id` > '$ID') ";
-   }
-   $query .= ") ";
-
-   if (!empty($condition)) {
-      $query .= " AND $condition ";
-   }
-
-   if ($item->maybeDeleted()) {
-      $query .= " AND `$table`.`is_deleted` = '0' ";
-   }
-
-   if ($item->maybeTemplate()) {
-      $query .= " AND `$table`.`is_template` = '0' ";
-   }
-
-   // Restrict to active entities
-   if ($table == "glpi_entities") {
-      $query .= getEntitiesRestrictRequest("AND", $table, '', '', true);
-
-   } else if ($item->isEntityAssign()) {
-      $query .= getEntitiesRestrictRequest("AND", $table, '', '', $item->maybeRecursive());
-
-   } else if ($table == "glpi_users") {
-      $query .= getEntitiesRestrictRequest("AND", "glpi_profiles_users");
-   }
-
-   $query .= " ORDER BY `$table`.`$nextprev_item` ASC,
-                        `$table`.`id` ASC";
-
-   $result = $DB->query($query);
-   if ($result
-       && ($DB->numrows($result) > 0)) {
-      return $DB->result($result, 0, "id");
-   }
-
-   return -1;
+function getNextItem($table, $ID, $condition = "", $nextprev_item = "name") {
+   $dbu = new DbUtils();
+   return $dbu->getNextItem($table, $ID, $condition, $nextprev_item);
 }
 
 
@@ -1089,82 +487,12 @@ function getNextItem($table, $ID, $condition="", $nextprev_item="name") {
  * @param $nextprev_item   field used to sort (default ='name')
  *
  * @return the previous ID, -1 if not exist
+ *
+ * @deprecated 9.2 see DbUtils::getPreviousItem()
 **/
-function getPreviousItem($table, $ID, $condition="", $nextprev_item="name") {
-   global $DB, $CFG_GLPI;
-
-   if (empty($nextprev_item)) {
-      return false;
-   }
-
-   $itemtype = getItemTypeForTable($table);
-   $item     = new $itemtype();
-   $search   = $ID;
-
-   if ($nextprev_item != "id") {
-      $query = "SELECT `$nextprev_item`
-                FROM `$table`
-                WHERE `id` = '$ID'";
-
-      $result = $DB->query($query);
-      if ($DB->numrows($result) > 0) {
-         $search = addslashes($DB->result($result, 0, 0));
-      } else {
-         $nextprev_item = "id";
-      }
-   }
-
-   $LEFTJOIN = '';
-   if ($table == "glpi_users") {
-      $LEFTJOIN = " LEFT JOIN `glpi_profiles_users`
-                           ON (`glpi_users`.`id` = `glpi_profiles_users`.`users_id`)";
-   }
-
-   $query = "SELECT `$table`.`id`
-             FROM `$table`
-             $LEFTJOIN
-             WHERE (`$table`.`$nextprev_item` < '$search' ";
-
-   // Same name case
-   if ($nextprev_item != "id") {
-      $query .= " OR (`$table`.`$nextprev_item` = '$search'
-                      AND `$table`.`id` < '$ID') ";
-   }
-   $query .= ") ";
-
-   if (!empty($condition)) {
-      $query .= " AND $condition ";
-   }
-
-   if ($item->maybeDeleted()) {
-      $query .= "AND `$table`.`is_deleted` = '0'";
-   }
-
-   if ($item->maybeTemplate()) {
-      $query .= "AND `$table`.`is_template` = '0'";
-   }
-
-   // Restrict to active entities
-   if ($table == "glpi_entities") {
-      $query .= getEntitiesRestrictRequest("AND", $table, '', '', true);
-
-   } else if ($item->isEntityAssign()) {
-      $query .= getEntitiesRestrictRequest("AND", $table, '', '', $item->maybeRecursive());
-
-   } else if ($table == "glpi_users") {
-      $query .= getEntitiesRestrictRequest("AND", "glpi_profiles_users");
-   }
-
-   $query .= " ORDER BY `$table`.`$nextprev_item` DESC,
-                        `$table`.`id` DESC";
-
-   $result = $DB->query($query);
-   if ($result
-       && ($DB->numrows($result) > 0)) {
-      return $DB->result($result, 0, "id");
-   }
-
-   return -1;
+function getPreviousItem($table, $ID, $condition = "", $nextprev_item = "name") {
+   $dbu = new DbUtils();
+   return $dbu->getPreviousItem($table, $ID, $condition, $nextprev_item);
 }
 
 
@@ -1180,57 +508,12 @@ function getPreviousItem($table, $ID, $condition="", $nextprev_item="name") {
  *@param $force_config   boolean force order and id_visible to use common config (false by default)
  *
  *@return string : formatted username
+ *
+ * @deprecated 9.2 see DbUtils::formatUserName()
 **/
-function formatUserName($ID, $login, $realname, $firstname, $link=0, $cut=0, $force_config=false) {
-   global $CFG_GLPI;
-
-   $before = "";
-   $after  = "";
-
-   $order = $CFG_GLPI["names_format"];
-   if (isset($_SESSION["glpinames_format"]) && !$force_config) {
-      $order = $_SESSION["glpinames_format"];
-   }
-
-   $id_visible = $CFG_GLPI["is_ids_visible"];
-   if (isset($_SESSION["glpiis_ids_visible"]) && !$force_config) {
-      $id_visible = $_SESSION["glpiis_ids_visible"];
-   }
-
-
-   if (strlen($realname) > 0) {
-      $temp = $realname;
-
-      if (strlen($firstname) > 0) {
-         if ($order == User::FIRSTNAME_BEFORE) {
-            $temp = $firstname." ".$temp;
-         } else {
-            $temp .= " ".$firstname;
-         }
-      }
-
-      if (($cut > 0)
-          && (Toolbox::strlen($temp) > $cut)) {
-         $temp = Toolbox::substr($temp, 0, $cut)." ...";
-      }
-
-   } else {
-      $temp = $login;
-   }
-
-   if ($ID > 0
-       && ((strlen($temp) == 0) || $id_visible)) {
-      $temp = sprintf(__('%1$s (%2$s)'), $temp, $ID);
-   }
-
-   if (($link == 1)
-       && ($ID > 0)) {
-      $before = "<a title=\"".$temp."\" href='".$CFG_GLPI["root_doc"]."/front/user.form.php?id=".$ID."'>";
-      $after  = "</a>";
-   }
-
-   $username = $before.$temp.$after;
-   return $username;
+function formatUserName($ID, $login, $realname, $firstname, $link = 0, $cut = 0, $force_config = false) {
+   $dbu = new DbUtils();
+   return $dbu->formatUserName($ID, $login, $realname, $firstname, $link, $cut, $force_config);
 }
 
 
@@ -1242,129 +525,29 @@ function formatUserName($ID, $login, $realname, $firstname, $link=0, $cut=0, $fo
  *                      (default =0)
  *
  *@return string : username string (realname if not empty and name if realname is empty).
+ *
+ * @deprecated 9.2 see DbUtils::getUserName()
 **/
-function getUserName($ID, $link=0) {
-   global $DB, $CFG_GLPI;
-
-   $user = "";
-   if ($link == 2) {
-      $user = array("name"    => "",
-                    "link"    => "",
-                    "comment" => "");
-   }
-
-   if ($ID) {
-      $query  = "SELECT *
-                 FROM `glpi_users`
-                 WHERE `id` = '$ID'";
-      $result = $DB->query($query);
-
-      if ($link == 2) {
-         $user = array("name"    => "",
-                       "comment" => "",
-                       "link"    => "");
-      }
-
-      if ($DB->numrows($result) == 1) {
-         $data     = $DB->fetch_assoc($result);
-         $username = formatUserName($data["id"], $data["name"], $data["realname"],
-                                    $data["firstname"], $link);
-
-         if ($link == 2) {
-            $user["name"]    = $username;
-            $user["link"]    = $CFG_GLPI["root_doc"]."/front/user.form.php?id=".$ID;
-            $user['comment'] = '';
-
-            $comments        = array();
-            $comments[]      = array('name'  => __('Name'),
-                                     'value' => $username);
-            // Ident only if you have right to read user
-            if (session::haveRight('user', READ)) {
-               $comments[]      = array('name'  => __('Login'),
-                                        'value' => $data["name"]);
-            }
-
-            $email           = UserEmail::getDefaultForUser($ID);
-            if (!empty($email)) {
-               $comments[] = array('name'  => __('Email'),
-                                   'value' => $email);
-            }
-
-            if (!empty($data["phone"])) {
-               $comments[] = array('name'  => __('Phone'),
-                                   'value' => $data["phone"]);
-            }
-
-            if (!empty($data["mobile"])) {
-               $comments[] = array('name'  => __('Mobile phone'),
-                                   'value' => $data["mobile"]);
-            }
-
-            if ($data["locations_id"] > 0) {
-               $comments[] = array('name'  => __('Location'),
-                                   'value' => Dropdown::getDropdownName("glpi_locations",
-                                                                        $data["locations_id"]));
-            }
-
-            if ($data["usertitles_id"] > 0) {
-               $comments[] = array('name'  => _x('person','Title'),
-                                   'value' => Dropdown::getDropdownName("glpi_usertitles",
-                                                                        $data["usertitles_id"]));
-            }
-
-            if ($data["usercategories_id"] > 0) {
-               $comments[] = array('name'  => __('Category'),
-                                   'value' => Dropdown::getDropdownName("glpi_usercategories",
-                                                                        $data["usercategories_id"]));
-            }
-            if (count($comments)) {
-               $user['comment'] = $user['comment'];
-               foreach ($comments as $datas) {
-                  // Do not use SPAN here
-                  $user['comment'] .= sprintf(__('%1$s: %2$s')."<br>",
-                                              "<strong>".$datas['name']."</strong>",
-                                              $datas['value']);
-               }
-            }
-
-            if (!empty($data['picture'])) {
-               $user['comment'] = "<div class='tooltip_picture_border'>".
-                                  "<img  class='tooltip_picture' src='".
-                                     User::getThumbnailURLForPicture($data['picture'])."' /></div>".
-                                  "<div class='tooltip_text'>".$user['comment']."</div>";
-            }
-         } else {
-            $user = $username;
-         }
-      }
-   }
-   return $user;
+function getUserName($ID, $link = 0) {
+   $dbu = new DbUtils();
+   return $dbu->getUserName($ID, $link);
 }
 
 
 /**
  * Verify if a DB table exists
  *
- *@param $tablename string : Name of the table we want to verify.
+ * @param $tablename string : Name of the table we want to verify.
  *
- *@return bool : true if exists, false elseway.
+ * @return bool : true if exists, false elseway.
+ *
+ * @deprecated 9.2 Use DB::tableExists()
 **/
 function TableExists($tablename) {
    global $DB;
 
-   // Get a list of tables contained within the database.
-   $result = $DB->list_tables("%".$tablename."%");
-
-   if ($rcount = $DB->numrows($result)) {
-      while ($data = $DB->fetch_row($result)) {
-         if ($data[0] === $tablename) {
-            return true;
-         }
-      }
-   }
-
-   $DB->free_result($result);
-   return false;
+   Toolbox::deprecated('TableExists() function is deprecated');
+   return $DB->tableExists($tablename);
 }
 
 
@@ -1375,18 +558,15 @@ function TableExists($tablename) {
  * @param $field     String   Name of the field we want to verify.
  * @param $usecache  Boolean  if use field list cache (default true)
  *
- *@return bool : true if exists, false elseway.
+ * @return bool : true if exists, false elseway.
+ *
+ * @deprecated 9.2 Use DB::fieldExists()
 **/
-function FieldExists($table, $field, $usecache=true) {
+function FieldExists($table, $field, $usecache = true) {
    global $DB;
 
-   if ($fields = $DB->list_fields($table, $usecache)) {
-      if (isset($fields[$field])) {
-         return true;
-      }
-      return false;
-   }
-   return false;
+   Toolbox::deprecated('FieldExists() function is deprecated');
+   return $DB->fieldExists($table, $field, $usecache);
 }
 
 
@@ -1397,20 +577,12 @@ function FieldExists($table, $field, $usecache=true) {
  * @param $field  string  name of the index
  *
  * @return boolean : index exists ?
+ *
+ * @deprecated 9.2 Use DbUtils::isIndex()
 **/
 function isIndex($table, $field) {
-   global $DB;
-
-   $result = $DB->query("SHOW INDEX FROM `$table`");
-
-   if ($result && $DB->numrows($result)) {
-      while ($data = $DB->fetch_assoc($result)) {
-         if ($data["Key_name"] == $field) {
-            return true;
-         }
-      }
-   }
-   return false;
+   $dbu = new DbUtils();
+   return $dbu->isIndex($table, $field);
 }
 
 
@@ -1424,103 +596,12 @@ function isIndex($table, $field) {
  * @param $entities_id     limit generation to an entity (default -1)
  *
  * @return new auto string
+ *
+ * @deprecated 9.2 Use DbUtils::autoName()
 **/
-function autoName($objectName, $field, $isTemplate, $itemtype, $entities_id=-1) {
-   global $DB, $CFG_GLPI;
-
-   $len = Toolbox::strlen($objectName);
-
-   if ($isTemplate
-       && ($len > 8)
-       && (Toolbox::substr($objectName,0,4) === '&lt;')
-       && (Toolbox::substr($objectName,$len - 4,4) === '&gt;')) {
-
-      $autoNum = Toolbox::substr($objectName, 4, $len - 8);
-      $mask    = '';
-
-      if (preg_match( "/\\#{1,10}/", $autoNum, $mask)) {
-         $global  = ((strpos($autoNum, '\\g') !== false) && ($itemtype != 'Infocom')) ? 1 : 0;
-         $autoNum = str_replace(array('\\y',
-                                      '\\Y',
-                                      '\\m',
-                                      '\\d',
-                                      '_','%',
-                                      '\\g'),
-                                array(date('y'),
-                                      date('Y'),
-                                      date('m'),
-                                      date('d'),
-                                      '\\_',
-                                      '\\%',
-                                      ''),
-                                $autoNum);
-         $mask = $mask[0];
-         $pos  = strpos($autoNum, $mask) + 1;
-         $len  = Toolbox::strlen($mask);
-         $like = str_replace('#', '_', $autoNum);
-
-         if ($global == 1) {
-            $query = "";
-            $first = 1;
-            $types = array('Computer', 'Monitor', 'NetworkEquipment', 'Peripheral', 'Phone',
-                           'Printer');
-
-            foreach ($types as $t) {
-               $table = getTableForItemType($t);
-               $query .= ($first ? "SELECT " : " UNION SELECT  ")." $field AS code
-                         FROM `$table`
-                         WHERE `$field` LIKE '$like'
-                               AND `is_deleted` = '0'
-                               AND `is_template` = '0'";
-
-               if ($CFG_GLPI["use_autoname_by_entity"]
-                   && ($entities_id >= 0)) {
-                  $query .=" AND `entities_id` = '$entities_id' ";
-               }
-
-               $first = 0;
-            }
-
-            $query = "SELECT CAST(SUBSTRING(code, $pos, $len) AS unsigned) AS no
-                      FROM ($query) AS codes";
-
-         } else {
-            $table = getTableForItemType($itemtype);
-            $query = "SELECT CAST(SUBSTRING($field, $pos, $len) AS unsigned) AS no
-                      FROM `$table`
-                      WHERE `$field` LIKE '$like' ";
-
-            if ($itemtype != 'Infocom') {
-               $query .= " AND `is_deleted` = '0'
-                           AND `is_template` = '0'";
-
-               if ($CFG_GLPI["use_autoname_by_entity"]
-                   && ($entities_id >= 0)) {
-                  $query .= " AND `entities_id` = '$entities_id' ";
-               }
-            }
-         }
-
-         $query = "SELECT MAX(Num.no) AS lastNo
-                   FROM (".$query.") AS Num";
-         $resultNo = $DB->query($query);
-
-         if ($DB->numrows($resultNo) > 0) {
-            $data  = $DB->fetch_assoc($resultNo);
-            $newNo = $data['lastNo'] + 1;
-         } else {
-            $newNo = 0;
-         }
-         $objectName = str_replace(array($mask,
-                                         '\\_',
-                                         '\\%'),
-                                   array(Toolbox::str_pad($newNo, $len, '0', STR_PAD_LEFT),
-                                         '_',
-                                         '%'),
-                                   $autoNum);
-      }
-   }
-   return $objectName;
+function autoName($objectName, $field, $isTemplate, $itemtype, $entities_id = -1) {
+   $dbu = new DbUtils();
+   return $dbu->autoName($objectName, $field, $isTemplate, $itemtype, $entities_id);
 }
 
 
@@ -1528,30 +609,27 @@ function autoName($objectName, $field, $isTemplate, $itemtype, $entities_id=-1) 
  * Close active DB connections
  *
  *@return nothing
+ *
+ * @deprecated 9.2 Use DbUtils::autoName()
 **/
 function closeDBConnections() {
-   global $DB;
-
-   // Case of not init $DB object
-   if (method_exists($DB,"close")) {
-      $DB->close();
-   }
+   $dbu = new DbUtils();
+   return $dbu->closeDBConnections();
 }
 
 
 /**
  * Format a web link adding http:// if missing
  *
- *@param $link link to format
+ * @param $link link to format
  *
- *@return formatted link.
+ * @return formatted link.
+ *
+ * @deprecated 9.2 Use Toolbox::formatOutputWebLink()
 **/
 function formatOutputWebLink($link) {
-
-   if (!preg_match("/^https?/",$link)) {
-      return "http://".$link;
-   }
-   return $link;
+   Toolbox::deprecated('formatOutputWebLink() function is deprecated');
+   return Toolbox::formatOutputWebLink($link);
 }
 
 
@@ -1563,21 +641,12 @@ function formatOutputWebLink($link) {
  * @param $end    date  end date
  *
  * @return sql
+ *
+ * @deprecated 9.2 Use DbUtils::getDateRequest()
 **/
 function getDateRequest($field, $begin, $end) {
-
-   $sql = '';
-   if (!empty($begin)) {
-      $sql .= " $field >= '$begin' ";
-   }
-
-   if (!empty($end)) {
-      if (!empty($sql)) {
-         $sql .= " AND ";
-      }
-      $sql .= " $field <= ADDDATE('$end' , INTERVAL 1 DAY) ";
-   }
-   return " (".$sql.") ";
+   $dbu = new DbUtils();
+   return $dbu->getDateRequest($field, $begin, $end);
 }
 
 
@@ -1587,9 +656,12 @@ function getDateRequest($field, $begin, $end) {
  * @param $TAB Array to export / encode (one level depth)
  *
  * @return string containing encoded array
+ *
+ * @deprecated 9.2 Use DbUtils::exportArrayToDB()
 **/
 function exportArrayToDB($TAB) {
-   return json_encode($TAB);
+   $dbu = new DbUtils();
+   return $dbu->exportArrayToDB($TAB);
 }
 
 
@@ -1599,25 +671,12 @@ function exportArrayToDB($TAB) {
  * @param $DATA data readed in DB to import
  *
  * @return array containing datas
+ *
+ * @deprecated 9.2 Use DbUtils::importArrayFromDB()
 **/
 function importArrayFromDB($DATA) {
-
-   $TAB = json_decode($DATA,true);
-
-   // Use old scheme to decode
-   if (!is_array($TAB)) {
-      $TAB = array();
-
-      foreach (explode(" ", $DATA) as $ITEM) {
-         $A = explode("=>", $ITEM);
-
-         if ((strlen($A[0]) > 0)
-             && isset($A[1])) {
-            $TAB[urldecode($A[0])] = urldecode($A[1]);
-         }
-      }
-   }
-   return $TAB;
+   $dbu = new DbUtils();
+   return $dbu->importArrayFromDB($DATA);
 }
 
 
@@ -1627,13 +686,12 @@ function importArrayFromDB($DATA) {
  * @param $time datetime: time
  *
  * @return  array
+ *
+ * @deprecated 9.2 Use DbUtils::getHourFromSql()
 **/
 function get_hour_from_sql($time) {
-
-   $t = explode(" ", $time);
-   $p = explode(":", $t[1]);
-
-   return $p[0].":".$p[1];
+   $dbu = new DbUtils();
+   return $dbu->getHourFromSql($time);
 }
 
 
@@ -1641,18 +699,12 @@ function get_hour_from_sql($time) {
  * Get the $RELATION array. It's defined all relations between tables in the DB.
  *
  * @return the $RELATION array
+ *
+ * @deprecated 9.2 Use DbUtils::getDbRelations()
 **/
 function getDbRelations() {
-   global $CFG_GLPI;
-
-   include (GLPI_ROOT . "/inc/relation.constant.php");
-
-   // Add plugins relations
-   $plug_rel = Plugin::getDatabaseRelations();
-   if (count($plug_rel) > 0) {
-      $RELATION = array_merge_recursive($RELATION,$plug_rel);
-   }
-   return $RELATION;
+   $dbu = new DbUtils();
+   return $dbu->getDbRelations();
 }
 
 
@@ -1663,7 +715,7 @@ function getDbRelations() {
  * @param $table              table where apply the limit (if needed, multiple tables queries)
  *                            (default '')
  * @param $field              field where apply the limit (id != entities_id) (default '')
- * @param $value              entity to restrict (if not set use $_SESSION['glpiactiveentities']).
+ * @param $value              entity to restrict (if not set use $_SESSION['glpiactiveentities_string']).
  *                            single item or array (default '')
  * @param $is_recursive       need to use recursive process to find item
  *                            (field need to be named recursive) (false by default)
@@ -1672,77 +724,50 @@ function getDbRelations() {
  *                            (false by default)
  *
  * @return String : the WHERE clause to restrict
+ *
+ * @deprecated 9.2 see DbUtils::getEntitiesRestrictRequest()
 **/
-function getEntitiesRestrictRequest($separator="AND", $table="", $field="",$value='',
-                                    $is_recursive=false, $complete_request=false) {
+function getEntitiesRestrictRequest($separator = "AND", $table = "", $field = "", $value = '',
+                                    $is_recursive = false, $complete_request = false) {
+   $dbu = new DbUtils();
+   return $dbu->getEntitiesRestrictRequest(
+      $separator,
+      $table,
+      $field,
+      $value,
+      $is_recursive,
+      $complete_request
+   );
+}
 
-   $query = $separator ." ( ";
-
-   // !='0' needed because consider as empty
-   if (!$complete_request
-       && ($value != '0')
-       && empty($value)
-       && isset($_SESSION['glpishowallentities'])
-       && $_SESSION['glpishowallentities']) {
-
-      // Not ADD "AND 1" if not needed
-      if (trim($separator) == "AND") {
-         return "";
-      }
-      return $query." 1 ) ";
-   }
-
-   if (empty($field)) {
-      if ($table == 'glpi_entities') {
-         $field = "id";
-      } else {
-         $field = "entities_id";
-      }
-   }
-   if (empty($table)) {
-      $field = "`$field`";
-   } else {
-      $field = "`$table`.`$field`";
-   }
-
-   $query .= "$field";
-
-   if (is_array($value)) {
-      $query .= " IN ('" . implode("','",$value) . "') ";
-   } else {
-      if (strlen($value) == 0) {
-         $query .= " IN (".$_SESSION['glpiactiveentities_string'].") ";
-      } else {
-         $query .= " = '$value' ";
-      }
-   }
-
-   if ($is_recursive) {
-      $ancestors = array();
-      if (is_array($value)) {
-         foreach ($value as $val) {
-            $ancestors = array_unique(array_merge(getAncestorsOf("glpi_entities", $val),
-                                                  $ancestors));
-         }
-         $ancestors = array_diff($ancestors, $value);
-
-      } else if (strlen($value) == 0) {
-         $ancestors = $_SESSION['glpiparententities'];
-
-      } else {
-         $ancestors = getAncestorsOf("glpi_entities", $value);
-      }
-
-      if (count($ancestors)) {
-         if ($table == 'glpi_entities') {
-            $query .= " OR $field IN ('" . implode("','",$ancestors) . "')";
-         } else {
-            $recur = (empty($table) ? '`is_recursive`' : "`$table`.`is_recursive`");
-            $query .= " OR ($recur='1' AND $field IN ('" . implode("','",$ancestors) . "'))";
-         }
-      }
-   }
-   $query .= " ) ";
-
-   return $query;
+/**
+ * Get criteria to restrict to current entities of the user
+ *
+ * @since 9.2
+ *
+ * @param $table              table where apply the limit (if needed, multiple tables queries)
+ *                            (default '')
+ * @param $field              field where apply the limit (id != entities_id) (default '')
+ * @param $value              entity to restrict (if not set use $_SESSION['glpiactiveentities']).
+ *                            single item or array (default '')
+ * @param $is_recursive       need to use recursive process to find item
+ *                            (field need to be named recursive) (false by default, set to auto to automatic detection)
+ * @param $complete_request   need to use a complete request and not a simple one
+ *                            when have acces to all entities (used for reminders)
+ *                            (false by default)
+ *
+ * @return array of criteria
+ *
+ * @deprecated 9.2 see DbUtils::getEntitiesRestrictCriteria()
+ **/
+function getEntitiesRestrictCriteria($table = '', $field = '', $value = '',
+                                     $is_recursive = false, $complete_request = false) {
+   $dbu = new DbUtils();
+   return $dbu->getEntitiesRestrictCriteria(
+      $table,
+      $field,
+      $value,
+      $is_recursive,
+      $complete_request
+   );
 }

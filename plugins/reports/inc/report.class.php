@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: report.class.php 336 2017-01-20 16:59:36Z yllen $
+ * @version $Id: report.class.php 345 2017-10-23 17:33:07Z yllen $
  -------------------------------------------------------------------------
    LICENSE
 
@@ -55,6 +55,6 @@ class PluginReportsReport extends CommonDBTM {
     * @return array of rights to display
    **/
    function getRights($interface='central') {
-      return array(READ => __('Read'));
+      return [READ => __('Read')];
    }
 }

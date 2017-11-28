@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
-
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -60,7 +59,7 @@ class NetworkPort extends CommonDBChild {
 
    static public $checkParentRights    = CommonDBConnexity::HAVE_SAME_RIGHT_ON_ITEM;
 
-   static protected $forward_entity_to = array('NetworkName');
+   static protected $forward_entity_to = ['NetworkName'];
 
    static $rightname                   = 'networking';
 
@@ -104,15 +103,15 @@ class NetworkPort extends CommonDBChild {
    static function getNetworkPortInstantiationsWithNames() {
 
       $types = self::getNetworkPortInstantiations();
-      $tab   = array();
+      $tab   = [];
       foreach ($types as $itemtype) {
-         $tab[$itemtype] = call_user_func(array($itemtype, 'getTypeName'));
+         $tab[$itemtype] = call_user_func([$itemtype, 'getTypeName']);
       }
       return $tab;
    }
 
 
-   static function getTypeName($nb=0) {
+   static function getTypeName($nb = 0) {
       return _n('Network port', 'Network ports', $nb);
    }
 
@@ -158,7 +157,7 @@ class NetworkPort extends CommonDBChild {
    **/
    function switchInstantiationType($new_instantiation_type) {
 
-     // First, check if the new instantiation is a valid one ...
+      // First, check if the new instantiation is a valid one ...
       if (!in_array($new_instantiation_type, self::getNetworkPortInstantiations())) {
          return false;
       }
@@ -204,7 +203,7 @@ class NetworkPort extends CommonDBChild {
    /**
     * @see CommonDBTM::post_updateItem
     */
-   function post_updateItem($history=1) {
+   function post_updateItem($history = 1) {
       global $DB;
 
       if (count($this->updates)) {
@@ -215,14 +214,14 @@ class NetworkPort extends CommonDBChild {
             $ip = new IPAddress();
             // Update IPAddress
             foreach ($DB->request('glpi_networknames',
-                                  array('itemtype' => 'NetworkPort',
-                                         'items_id' => $this->getID())) as $dataname) {
+                                  ['itemtype' => 'NetworkPort',
+                                         'items_id' => $this->getID()]) as $dataname) {
                foreach ($DB->request('glpi_ipaddresses',
-                                     array('itemtype' => 'NetworkName',
-                                           'items_id' => $dataname['id'])) as $data) {
-                  $ip->update(array('id'           => $data['id'],
+                                     ['itemtype' => 'NetworkName',
+                                           'items_id' => $dataname['id']]) as $data) {
+                  $ip->update(['id'           => $data['id'],
                                     'mainitemtype' => $this->fields['itemtype'],
-                                    'mainitems_id' => $this->fields['items_id']));
+                                    'mainitems_id' => $this->fields['items_id']]);
                }
             }
          }
@@ -265,9 +264,9 @@ class NetworkPort extends CommonDBChild {
          return;
       }
 
-      $this->input_for_instantiation      = array();
-      $this->input_for_NetworkName        = array();
-      $this->input_for_NetworkPortConnect = array();
+      $this->input_for_instantiation      = [];
+      $this->input_for_NetworkName        = [];
+      $this->input_for_NetworkPortConnect = [];
 
       $clone = clone $this;
       $clone->getEmpty();
@@ -276,11 +275,11 @@ class NetworkPort extends CommonDBChild {
          if (array_key_exists($field, $clone->fields) || $field[0] == '_') {
             continue;
          }
-         if (preg_match('/^NetworkName_/',$field)) {
-            $networkName_field = preg_replace('/^NetworkName_/','',$field);
+         if (preg_match('/^NetworkName_/', $field)) {
+            $networkName_field = preg_replace('/^NetworkName_/', '', $field);
             $this->input_for_NetworkName[$networkName_field] = $value;
-         } else if (preg_match('/^NetworkPortConnect_/',$field)) {
-            $networkName_field = preg_replace('/^NetworkPortConnect_/','',$field);
+         } else if (preg_match('/^NetworkPortConnect_/', $field)) {
+            $networkName_field = preg_replace('/^NetworkPortConnect_/', '', $field);
             $this->input_for_NetworkPortConnect[$networkName_field] = $value;
          } else {
             $this->input_for_instantiation[$field] = $value;
@@ -306,7 +305,7 @@ class NetworkPort extends CommonDBChild {
     *
     * @see splitInputForElements() for preparing the input
    **/
-   function updateDependencies($history=true) {
+   function updateDependencies($history = true) {
 
       $instantiation = $this->getInstantiation();
       if ($instantiation !== false
@@ -418,7 +417,7 @@ class NetworkPort extends CommonDBChild {
 
       $names = new NetworkName();
       $names->cleanDBonItemDelete ($this->getType(), $this->getID());
-  }
+   }
 
 
    /**
@@ -438,9 +437,9 @@ class NetworkPort extends CommonDBChild {
    }
 
 
-   function defineTabs($options=array()) {
+   function defineTabs($options = []) {
 
-      $ong = array();
+      $ong = [];
       $this->addDefaultFormTab($ong);
       $this->addStandardTab('NetworkName', $ong, $options);
       $this->addStandardTab('NetworkPort_Vlan', $ong, $options);
@@ -473,23 +472,23 @@ class NetworkPort extends CommonDBChild {
    static function getAvailableDisplayOptions() {
 
       $options[__('Global displays')]
-         =  array('characteristics' => array('name'    => __('Characteristics'),
-                                             'default' => true),
-                  'internet'        => array('name'    => __('Internet information'),
-                                             'default' => true),
-                  'dynamic_import'  => array('name'    => __('Automatic inventory'),
-                                             'default' => false));
+         =  ['characteristics' => ['name'    => __('Characteristics'),
+                                             'default' => true],
+                  'internet'        => ['name'    => __('Internet information'),
+                                             'default' => true],
+                  'dynamic_import'  => ['name'    => __('Automatic inventory'),
+                                             'default' => false]];
       $options[__('Common options')]
          = NetworkPortInstantiation::getGlobalInstantiationNetworkPortDisplayOptions();
       $options[__('Internet information')]
-         = array('names'       => array('name'    => NetworkName::getTypeName(Session::getPluralNumber()),
-                                        'default' => false),
-                 'aliases'     => array('name'    => NetworkAlias::getTypeName(Session::getPluralNumber()),
-                                        'default' => false),
-                 'ipaddresses' => array('name'    => IPAddress::getTypeName(Session::getPluralNumber()),
-                                        'default' => true),
-                 'ipnetworks'  => array('name'    => IPNetwork::getTypeName(Session::getPluralNumber()),
-                                        'default' => true));
+         = ['names'       => ['name'    => NetworkName::getTypeName(Session::getPluralNumber()),
+                                        'default' => false],
+                 'aliases'     => ['name'    => NetworkAlias::getTypeName(Session::getPluralNumber()),
+                                        'default' => false],
+                 'ipaddresses' => ['name'    => IPAddress::getTypeName(Session::getPluralNumber()),
+                                        'default' => true],
+                 'ipnetworks'  => ['name'    => IPNetwork::getTypeName(Session::getPluralNumber()),
+                                        'default' => true]];
 
       foreach (self::getNetworkPortInstantiations() as $portType) {
          $portTypeName           = $portType::getTypeName(0);
@@ -503,9 +502,9 @@ class NetworkPort extends CommonDBChild {
     * Show ports for an item
     *
     * @param $item                     CommonDBTM object
-    * @param $withtemplate   integer   withtemplate param (default '')
+    * @param $withtemplate   integer   withtemplate param (default 0)
    **/
-   static function showForItem(CommonDBTM $item, $withtemplate='') {
+   static function showForItem(CommonDBTM $item, $withtemplate = 0) {
       global $DB, $CFG_GLPI;
 
       $rand     = mt_rand();
@@ -541,24 +540,24 @@ class NetworkPort extends CommonDBChild {
          echo "<input type='hidden' name='itemtype' value='".$item->getType()."'>\n";
          echo "<div class='firstbloc'><table class='tab_cadre_fixe'>\n";
          echo "<tr class='tab_bg_2'><td class='center'>\n";
-         _e('Network port type to be added');
+         echo __('Network port type to be added');
          echo "&nbsp;";
 
-         $instantiations = array();
+         $instantiations = [];
          foreach (self::getNetworkPortInstantiations() as $inst_type) {
-            if (call_user_func(array($inst_type, 'canCreate'))) {
-               $instantiations[$inst_type] = call_user_func(array($inst_type, 'getTypeName'));
+            if (call_user_func([$inst_type, 'canCreate'])) {
+               $instantiations[$inst_type] = call_user_func([$inst_type, 'getTypeName']);
             }
          }
          Dropdown::showFromArray('instantiation_type', $instantiations,
-                                 array('value' => 'NetworkPortEthernet'));
+                                 ['value' => 'NetworkPortEthernet']);
 
          echo "</td>\n";
          echo "<td class='tab_bg_2 center' width='50%'>";
-         _e('Add several ports');
+         echo __('Add several ports');
          echo "&nbsp;<input type='checkbox' name='several' value='1'></td>\n";
          echo "<td>\n";
-         echo "<input type='submit' name='create' value=\""._sx('button','Add')."\" class='submit'>\n";
+         echo "<input type='submit' name='create' value=\""._sx('button', 'Add')."\" class='submit'>\n";
          echo "</td></tr></table></div>\n";
          Html::closeForm();
       }
@@ -579,7 +578,7 @@ class NetworkPort extends CommonDBChild {
                                              $item->getTypeName(1), $item->getName()));
 
       if ($itemtype == 'NetworkPort') {
-         $porttypes = array('NetworkPortAlias', 'NetworkPortAggregate');
+         $porttypes = ['NetworkPortAlias', 'NetworkPortAggregate'];
       } else {
          $porttypes = self::getNetworkPortInstantiations();
          // Manage NetworkportMigration
@@ -588,8 +587,8 @@ class NetworkPort extends CommonDBChild {
       $display_options = self::getDisplayOptions($itemtype);
       $table           = new HTMLTableMain();
       $number_port     = self::countForItem($item);
-      $table_options   = array('canedit'         => $canedit,
-                               'display_options' => &$display_options);
+      $table_options   = ['canedit'         => $canedit,
+                               'display_options' => &$display_options];
 
       // Make table name and add the correct show/hide parameters
       $table_name  = sprintf(__('%1$s: %2$d'), self::getTypeName($number_port), $number_port);
@@ -616,12 +615,12 @@ class NetworkPort extends CommonDBChild {
 
       if ($display_options['internet']) {
 
-         $options = array('names'       => 'NetworkName',
+         $options = ['names'       => 'NetworkName',
                           'aliases'     => 'NetworkAlias',
                           'ipaddresses' => 'IPAddress',
-                          'ipnetworks'  => 'IPNetwork');
+                          'ipnetworks'  => 'IPNetwork'];
 
-         $table_options['dont_display'] = array();
+         $table_options['dont_display'] = [];
          foreach ($options as $option => $itemtype_for_option) {
             if (!$display_options[$option]) {
                $table_options['dont_display'][$itemtype_for_option] = true;
@@ -632,7 +631,7 @@ class NetworkPort extends CommonDBChild {
          $c_network->setHTMLClass('center');
 
       } else {
-         $c_network = NULL;
+         $c_network = null;
       }
 
       foreach ($porttypes as $portType) {
@@ -653,7 +652,7 @@ class NetworkPort extends CommonDBChild {
                                               Html::getCheckAllAsCheckbox('mass'.__CLASS__.$rand,
                                                                           '__RAND__'), $c_main);
          } else {
-            $c_checkbox = NULL;
+            $c_checkbox = null;
          }
 
          $c_number  = $t_group->addHeader('NetworkPort', "#", $c_main);
@@ -666,23 +665,22 @@ class NetworkPort extends CommonDBChild {
             $c_dynamic->setHTMLClass('center');
          }
 
-
          if ($display_options['characteristics']) {
             if (empty($portType)) {
                NetworkPortMigration::getMigrationInstantiationHTMLTableHeaders($t_group, $c_instant,
-                                                                               $c_network, NULL,
+                                                                               $c_network, null,
                                                                                $table_options);
             } else {
                $instantiation = new $portType();
                $instantiation->getInstantiationHTMLTableHeaders($t_group, $c_instant, $c_network,
-                                                                NULL, $table_options);
+                                                                null, $table_options);
                unset ($instantiation);
             }
          }
 
          if ($display_options['internet']
              && !$display_options['characteristics']) {
-            NetworkName::getHTMLTableHeader(__CLASS__, $t_group, $c_network, NULL, $table_options);
+            NetworkName::getHTMLTableHeader(__CLASS__, $t_group, $c_network, null, $table_options);
          }
 
          if ($itemtype == 'NetworkPort') {
@@ -712,7 +710,6 @@ class NetworkPort extends CommonDBChild {
                                `logical_number`";
          }
 
-
          if ($result = $DB->query($query)) {
             echo "<div class='spaced'>";
 
@@ -725,7 +722,7 @@ class NetworkPort extends CommonDBChild {
 
                if (!empty($portType)) {
                   $name = sprintf(__('%1$s (%2$s)'), self::getTypeName($number_port),
-                                  call_user_func(array($portType, 'getTypeName')));
+                                  call_user_func([$portType, 'getTypeName']));
                   $name = sprintf(__('%1$s: %2$s'), $name, $number_port);
                } else {
                   $name    = __('Network ports waiting for manual migration');
@@ -744,7 +741,7 @@ class NetworkPort extends CommonDBChild {
                      $ce_checkbox =  $t_row->addCell($c_checkbox,
                                                      Html::getMassiveActionCheckBox(__CLASS__, $netport->fields["id"]));
                   } else {
-                     $ce_checkbox = NULL;
+                     $ce_checkbox = null;
                   }
                   $content = "<span class='b'>";
                   // Display link based on default rights
@@ -768,50 +765,50 @@ class NetworkPort extends CommonDBChild {
                   }
                   $content .= "</span>";
                   $content .= Html::showToolTip($netport->fields['comment'],
-                                                array('display' => false));
+                                                ['display' => false]);
 
                   $t_row->addCell($c_number, $content);
 
                   $value = $netport->fields["name"];
-                  $t_row->addCell($c_name, $value, NULL, $netport);
+                  $t_row->addCell($c_name, $value, null, $netport);
 
                   if ($table_options['display_isDynamic']) {
                      $t_row->addCell($c_dynamic,
                                      Dropdown::getYesNo($netport->fields['is_dynamic']));
                   }
 
-                  $instant_cell = NULL;
+                  $instant_cell = null;
                   if ($display_options['characteristics']) {
                      $instantiation = $netport->getInstantiation();
                      if ($instantiation !== false) {
-                        $instantiation->getInstantiationHTMLTable($netport, $t_row, NULL,
+                        $instantiation->getInstantiationHTMLTable($netport, $t_row, null,
                                                                   $table_options);
                         unset($instantiation);
                      }
                   } else if ($display_options['internet']) {
-                     NetworkName::getHTMLTableCellsForItem($t_row, $netport, NULL, $table_options);
+                     NetworkName::getHTMLTableCellsForItem($t_row, $netport, null, $table_options);
                   }
 
                }
 
-              $canedit = $save_canedit;
+               $canedit = $save_canedit;
             }
             echo "</div>";
          }
       }
       if ($is_active_network_port
           && $showmassiveactions) {
-         $massiveactionparams = array('num_displayed'  => min($_SESSION['glpilist_limit'], $number_port),
+         $massiveactionparams = ['num_displayed'  => min($_SESSION['glpilist_limit'], $number_port),
                                       'check_itemtype' => $itemtype,
                                       'container'      => 'mass'.__CLASS__.$rand,
-                                      'check_items_id' => $items_id);
+                                      'check_items_id' => $items_id];
 
          Html::showMassiveActions($massiveactionparams);
       }
 
-      $table->display(array('display_thead'                         => false,
+      $table->display(['display_thead'                         => false,
                             'display_tfoot'                         => false,
-                            'display_header_on_foot_for_each_group' => true));
+                            'display_header_on_foot_for_each_group' => true]);
       unset($table);
 
       if (!$is_active_network_port) {
@@ -831,7 +828,7 @@ class NetworkPort extends CommonDBChild {
    }
 
 
-   function showForm($ID, $options=array()) {
+   function showForm($ID, $options = []) {
       global $CFG_GLPI;
 
       if (!isset($options['several'])) {
@@ -882,7 +879,7 @@ class NetworkPort extends CommonDBChild {
       if (!$options['several']) {
          echo "<tr class='tab_bg_1'><td>". _n('Port number', 'Ports number', 1) ."</td>\n";
          echo "<td>";
-         Html::autocompletionTextField($this,"logical_number", array('size' => 5));
+         Html::autocompletionTextField($this, "logical_number", ['size' => 5]);
          echo "</td></tr>\n";
 
       } else {
@@ -891,9 +888,9 @@ class NetworkPort extends CommonDBChild {
          echo "<input type='hidden' name='several' value='yes'>";
          echo "<input type='hidden' name='logical_number' value=''>\n";
          echo __('from') . "&nbsp;";
-         Dropdown::showNumber('from_logical_number', array('value' => 0));
+         Dropdown::showNumber('from_logical_number', ['value' => 0]);
          echo "&nbsp;".__('to') . "&nbsp;";
-         Dropdown::showNumber('to_logical_number', array('value' => 0));
+         Dropdown::showNumber('to_logical_number', ['value' => 0]);
          echo "</td></tr>\n";
       }
 
@@ -920,57 +917,67 @@ class NetworkPort extends CommonDBChild {
    /**
     * @param $itemtype
    **/
-   static function getSearchOptionsToAdd($itemtype) {
+   static function getSearchOptionsToAddNew($itemtype = null) {
+      $tab = [];
 
-      $tab                       = array();
+      $tab[] = [
+         'id'                 => 'network',
+         'name'               => __('Networking')
+      ];
 
-      $tab['network']            = __('Networking');
+      $joinparams = ['jointype' => 'itemtype_item'];
 
-      $joinparams                = array('jointype' => 'itemtype_item');
+      $tab[] = [
+         'id'                 => '21',
+         'table'              => 'glpi_networkports',
+         'field'              => 'mac',
+         'name'               => __('MAC address'),
+         'datatype'           => 'mac',
+         'forcegroupby'       => true,
+         'massiveaction'      => false,
+         'joinparams'         => $joinparams
+      ];
 
-      $tab[21]['table']         = 'glpi_networkports';
-      $tab[21]['field']         = 'mac';
-      $tab[21]['name']          = __('MAC address');
-      $tab[21]['datatype']      = 'mac';
-      $tab[21]['forcegroupby']  = true;
-      $tab[21]['massiveaction'] = false;
-      $tab[21]['joinparams']    = $joinparams;
+      $tab[] = [
+         'id'                 => '87',
+         'table'              => 'glpi_networkports',
+         'field'              => 'instantiation_type',
+         'name'               => __('Network port type'),
+         'datatype'           => 'itemtypename',
+         'itemtype_list'      => 'networkport_instantiations',
+         'massiveaction'      => false,
+         'joinparams'         => $joinparams
+      ];
 
-      $tab[87]['table']         = 'glpi_networkports';
-      $tab[87]['field']         = 'instantiation_type';
-      $tab[87]['name']          = __('Network port type');
-      $tab[87]['datatype']      = 'itemtypename';
-      $tab[87]['itemtype_list'] = 'networkport_instantiations';
-      $tab[87]['massiveaction'] = false;
-      $tab[87]['joinparams']    = $joinparams;
-
-      $networkNameJoin = array('jointype'          => 'itemtype_item',
+      $networkNameJoin = ['jointype'          => 'itemtype_item',
                                'specific_itemtype' => 'NetworkPort',
                                'condition'         => 'AND NEWTABLE.`is_deleted` = 0',
-                               'beforejoin'        => array('table'      => 'glpi_networkports',
-                                                            'joinparams' => $joinparams));
-      NetworkName::getSearchOptionsToAdd($tab, $networkNameJoin, $itemtype);
+                               'beforejoin'        => ['table'      => 'glpi_networkports',
+                                                            'joinparams' => $joinparams]];
+      NetworkName::getSearchOptionsToAddNew($tab, $networkNameJoin, $itemtype);
 
-      $instantjoin = array('jointype'   => 'child',
-                           'beforejoin' => array('table'      => 'glpi_networkports',
-                                                 'joinparams' => $joinparams));
+      $instantjoin = ['jointype'   => 'child',
+                           'beforejoin' => ['table'      => 'glpi_networkports',
+                                                 'joinparams' => $joinparams]];
       foreach (self::getNetworkPortInstantiations() as $instantiationType) {
-         $instantiationType::getSearchOptionsToAddForInstantiation($tab, $instantjoin, $itemtype);
+         $instantiationType::getSearchOptionsToAddForInstantiation($tab, $instantjoin);
       }
 
-      $netportjoin = array(array('table'      => 'glpi_networkports',
-                                 'joinparams' => array('jointype' => 'itemtype_item')),
-                           array('table'      => 'glpi_networkports_vlans',
-                                 'joinparams' => array('jointype' => 'child')));
+      $netportjoin = [['table'      => 'glpi_networkports',
+                                 'joinparams' => ['jointype' => 'itemtype_item']],
+                           ['table'      => 'glpi_networkports_vlans',
+                                 'joinparams' => ['jointype' => 'child']]];
 
-      $tab[88]['table']         = 'glpi_vlans';
-      $tab[88]['field']         = 'name';
-      $tab[88]['name']          = __('VLAN');
-      $tab[88]['datatype']      = 'dropdown';
-      $tab[88]['forcegroupby']  = true;
-      $tab[88]['massiveaction'] = false;
-      $tab[88]['joinparams']    = array('beforejoin' => $netportjoin);
-
+      $tab[] = [
+         'id'                 => '88',
+         'table'              => 'glpi_vlans',
+         'field'              => 'name',
+         'name'               => __('VLAN'),
+         'datatype'           => 'dropdown',
+         'forcegroupby'       => true,
+         'massiveaction'      => false,
+         'joinparams'         => ['beforejoin' => $netportjoin]
+      ];
 
       return $tab;
    }
@@ -979,7 +986,7 @@ class NetworkPort extends CommonDBChild {
    /**
     * @see CommonDBTM::getSpecificMassiveActions()
    **/
-   function getSpecificMassiveActions($checkitem=NULL) {
+   function getSpecificMassiveActions($checkitem = null) {
 
       $isadmin = $checkitem->canUpdate();
       $actions = parent::getSpecificMassiveActions($checkitem);
@@ -992,62 +999,92 @@ class NetworkPort extends CommonDBChild {
    }
 
 
-   function getSearchOptions() {
+   function getSearchOptionsNew() {
+      $tab = [];
 
-      $tab                      = array();
-      $tab['common']            = __('Characteristics');
+      $tab[] = [
+         'id'                 => 'common',
+         'name'               => __('Characteristics')
+      ];
 
-      $tab[1]['table']          = $this->getTable();
-      $tab[1]['field']          = 'name';
-      $tab[1]['name']           = __('Name');
-      $tab[1]['type']           = 'text';
-      $tab[1]['massiveaction']  = false;
-      $tab[1]['datatype']       = 'itemlink';
+      $tab[] = [
+         'id'                 => '1',
+         'table'              => $this->getTable(),
+         'field'              => 'name',
+         'name'               => __('Name'),
+         'type'               => 'text',
+         'massiveaction'      => false,
+         'datatype'           => 'itemlink'
+      ];
 
-      $tab[2]['table']          = $this->getTable();
-      $tab[2]['field']          = 'id';
-      $tab[2]['name']           = __('ID');
-      $tab[2]['massiveaction']  = false;
-      $tab[2]['datatype']       = 'number';
+      $tab[] = [
+         'id'                 => '2',
+         'table'              => $this->getTable(),
+         'field'              => 'id',
+         'name'               => __('ID'),
+         'massiveaction'      => false,
+         'datatype'           => 'number'
+      ];
 
-      $tab[3]['table']          = $this->getTable();
-      $tab[3]['field']          = 'logical_number';
-      $tab[3]['name']           = __('Port number');
-      $tab[3]['datatype']       = 'integer';
+      $tab[] = [
+         'id'                 => '3',
+         'table'              => $this->getTable(),
+         'field'              => 'logical_number',
+         'name'               => __('Port number'),
+         'datatype'           => 'integer'
+      ];
 
-      $tab[4]['table']          = $this->getTable();
-      $tab[4]['field']          = 'mac';
-      $tab[4]['name']           = __('MAC address');
-      $tab[4]['datatype']       = 'mac';
+      $tab[] = [
+         'id'                 => '4',
+         'table'              => $this->getTable(),
+         'field'              => 'mac',
+         'name'               => __('MAC address'),
+         'datatype'           => 'mac'
+      ];
 
-      $tab[5]['table']          = $this->getTable();
-      $tab[5]['field']          = 'instantiation_type';
-      $tab[5]['name']           = __('Network port type');
-      $tab[5]['datatype']       = 'itemtypename';
-      $tab[5]['itemtype_list']  = 'networkport_instantiations';
-      $tab[5]['massiveaction']  = false;
+      $tab[] = [
+         'id'                 => '5',
+         'table'              => $this->getTable(),
+         'field'              => 'instantiation_type',
+         'name'               => __('Network port type'),
+         'datatype'           => 'itemtypename',
+         'itemtype_list'      => 'networkport_instantiations',
+         'massiveaction'      => false
+      ];
 
-      $tab[9]['table']          = 'glpi_netpoints';
-      $tab[9]['field']          = 'name';
-      $tab[9]['name']           = _n('Network outlet', 'Network outlets', 1);
-      $tab[9]['datatype']       = 'dropdown';
+      $tab[] = [
+         'id'                 => '9',
+         'table'              => 'glpi_netpoints',
+         'field'              => 'name',
+         'name'               => _n('Network outlet', 'Network outlets', 1),
+         'datatype'           => 'dropdown'
+      ];
 
-      $tab[16]['table']         = $this->getTable();
-      $tab[16]['field']         = 'comment';
-      $tab[16]['name']          = __('Comments');
-      $tab[16]['datatype']      = 'text';
+      $tab[] = [
+         'id'                 => '16',
+         'table'              => $this->getTable(),
+         'field'              => 'comment',
+         'name'               => __('Comments'),
+         'datatype'           => 'text'
+      ];
 
-      $tab[20]['table']         = $this->getTable();
-      $tab[20]['field']         = 'itemtype';
-      $tab[20]['name']          = __('Type');
-      $tab[20]['datatype']      = 'itemtype';
-      $tab[20]['massiveaction'] = false;
+      $tab[] = [
+         'id'                 => '20',
+         'table'              => $this->getTable(),
+         'field'              => 'itemtype',
+         'name'               => __('Type'),
+         'datatype'           => 'itemtype',
+         'massiveaction'      => false
+      ];
 
-      $tab[21]['table']         = $this->getTable();
-      $tab[21]['field']         = 'items_id';
-      $tab[21]['name']          = __('ID');
-      $tab[21]['datatype']      = 'integer';
-      $tab[21]['massiveaction'] = false;
+      $tab[] = [
+         'id'                 => '21',
+         'table'              => $this->getTable(),
+         'field'              => 'items_id',
+         'name'               => __('ID'),
+         'datatype'           => 'integer',
+         'massiveaction'      => false
+      ];
 
       return $tab;
    }
@@ -1068,9 +1105,9 @@ class NetworkPort extends CommonDBChild {
       $np = new self();
       // ADD Ports
       foreach ($DB->request('glpi_networkports',
-                            array('FIELDS' => 'id',
+                            ['FIELDS' => 'id',
                                   'WHERE'  => "`items_id` = '$old_items_id'
-                                                AND `itemtype` = '$itemtype'")) as $data) {
+                                                AND `itemtype` = '$itemtype'"]) as $data) {
          $np->getFromDB($data["id"]);
          $instantiation = $np->getInstantiation();
          unset($np->fields["id"]);
@@ -1078,25 +1115,25 @@ class NetworkPort extends CommonDBChild {
          $portid                 = $np->addToDB();
 
          if ($instantiation !== false) {
-             $input = array();
-             $input["networkports_id"] = $portid;
-             unset($instantiation->fields["id"]);
-             unset($instantiation->fields["networkports_id"]);
-             foreach ($instantiation->fields as $key => $val) {
-                 if (!empty($val)) {
-                     $input[$key] = $val;
-                 }
-             }
-             $instantiation->add($input);
+            $input = [];
+            $input["networkports_id"] = $portid;
+            unset($instantiation->fields["id"]);
+            unset($instantiation->fields["networkports_id"]);
+            foreach ($instantiation->fields as $key => $val) {
+               if (!empty($val)) {
+                  $input[$key] = $val;
+               }
+            }
+            $instantiation->add($input);
             unset($instantiation);
          }
 
          $npv = new NetworkPort_Vlan();
          foreach ($DB->request($npv->getTable(),
-                               array($npv::$items_id_1 => $data["id"])) as $vlan) {
+                               [$npv::$items_id_1 => $data["id"]]) as $vlan) {
 
-            $input = array($npv::$items_id_1 => $portid,
-                           $npv::$items_id_2 => $vlan['vlans_id']);
+            $input = [$npv::$items_id_1 => $portid,
+                           $npv::$items_id_2 => $vlan['vlans_id']];
             if (isset($vlan['tagged'])) {
                $input['tagged'] = $vlan['tagged'];
             }
@@ -1106,7 +1143,7 @@ class NetworkPort extends CommonDBChild {
    }
 
 
-   function getTabNameForItem(CommonGLPI $item, $withtemplate=0) {
+   function getTabNameForItem(CommonGLPI $item, $withtemplate = 0) {
       global $CFG_GLPI;
 
       // Can exists on template
@@ -1122,7 +1159,7 @@ class NetworkPort extends CommonDBChild {
 
       if ($item->getType() == 'NetworkPort') {
          $nbAlias = countElementsInTable('glpi_networkportaliases',
-                                         "`networkports_id_alias` = '".$item->getField('id')."'");
+                                         ['networkports_id_alias' => $item->getField('id')]);
          if ($nbAlias > 0) {
             $aliases = self::createTabEntry(NetworkPortAlias::getTypeName(Session::getPluralNumber()), $nbAlias);
          } else {
@@ -1142,7 +1179,7 @@ class NetworkPort extends CommonDBChild {
          }
          return $aliases.$aggregates;
       }
-     return '';
+      return '';
    }
 
 
@@ -1152,13 +1189,13 @@ class NetworkPort extends CommonDBChild {
    static function countForItem(CommonDBTM $item) {
 
       return countElementsInTable('glpi_networkports',
-                                  "`itemtype` = '".$item->getType()."'
-                                      AND `items_id` ='".$item->getField('id')."'
-                                      AND `is_deleted` = '0'");
+                                  ['itemtype'   => $item->getType(),
+                                   'items_id'   => $item->getField('id'),
+                                   'is_deleted' => 0 ]);
    }
 
 
-   static function displayTabContentForItem(CommonGLPI $item, $tabnum=1, $withtemplate=0) {
+   static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0) {
       global $CFG_GLPI;
 
       if (in_array($item->getType(), $CFG_GLPI["networkport_types"])
@@ -1179,13 +1216,12 @@ class NetworkPort extends CommonDBChild {
       $specificities                           = parent::getConnexityMassiveActionsSpecificities();
 
       $specificities['reaffect']               = true;
-      $specificities['itemtypes']              = array('Computer', 'NetworkEquipment');
+      $specificities['itemtypes']              = ['Computer', 'NetworkEquipment'];
 
-      $specificities['normalized']['unaffect'] = array();
+      $specificities['normalized']['unaffect'] = [];
       $specificities['action_name']['affect']  = _x('button', 'Move');
 
       return $specificities;
    }
 
 }
-?>

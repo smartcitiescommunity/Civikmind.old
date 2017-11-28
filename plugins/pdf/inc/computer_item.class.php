@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: computer_item.class.php 476 2017-01-09 15:53:05Z yllen $
+ * @version $Id: computer_item.class.php 498 2017-11-03 13:33:40Z yllen $
  -------------------------------------------------------------------------
  LICENSE
 
@@ -44,12 +44,14 @@ class PluginPdfComputer_Item extends PluginPdfCommon {
    static function pdfForComputer(PluginPdfSimplePDF $pdf, Computer $comp) {
       global $DB;
 
-      $ID = $comp->getField('id');
+      $dbu = new DbUtils();
 
-      $items = array('Printer'    => _n('Printer', 'Printers', 2),
-                     'Monitor'    => _n('Monitor', 'Monitors', 2),
-                     'Peripheral' => _n('Device', 'Devices', 2),
-                     'Phone'      => _n('Phone', 'Phones', 2));
+      $ID  = $comp->getField('id');
+
+      $items = ['Printer'    => _n('Printer', 'Printers', 2),
+                'Monitor'    => _n('Monitor', 'Monitors', 2),
+                'Peripheral' => _n('Device', 'Devices', 2),
+                'Phone'      => _n('Phone', 'Phones', 2)];
 
       $info = new InfoCom();
 
@@ -57,7 +59,7 @@ class PluginPdfComputer_Item extends PluginPdfCommon {
       $pdf->displayTitle('<b>'.__('Direct connections').'</b>');
 
       foreach ($items as $type => $title) {
-         if (!($item = getItemForItemtype($type))) {
+         if (!($item = $dbu->getItemForItemtype($type))) {
             continue;
          }
          if (!$item->canView()) {
@@ -68,24 +70,25 @@ class PluginPdfComputer_Item extends PluginPdfCommon {
                       `glpi_computers_items`.`itemtype`,
                       `glpi_computers_items`.`items_id`,
                       `glpi_computers_items`.`is_dynamic` AS assoc_is_dynamic,
-                      ".getTableForItemType($type).".*
+                      ".$dbu->getTableForItemType($type).".*
                       FROM `glpi_computers_items`
-                      LEFT JOIN `".getTableForItemType($type)."`
-                        ON (`".getTableForItemType($type)."`.`id`
+                      LEFT JOIN `".$dbu->getTableForItemType($type)."`
+                        ON (`".$dbu->getTableForItemType($type)."`.`id`
                               = `glpi_computers_items`.`items_id`)
                       WHERE `computers_id` = '$ID'
                             AND `itemtype` = '".$type."'
                             AND `glpi_computers_items`.`is_deleted` = '0'";
          if ($item->maybetemplate()) {
-            $query.= " AND NOT `".getTableForItemType($type)."`.`is_template` ";
+            $query.= " AND NOT `".$dbu->getTableForItemType($type)."`.`is_template` ";
          }
 
-         if ($result = $DB->query($query)) {
-            $resultnum = $DB->numrows($result);
+         if ($result = $DB->request($query)) {
+            $resultnum = count($result);
             if ($resultnum > 0) {
                for ($j=0 ; $j < $resultnum ; $j++) {
-                  $tID    = $DB->result($result, $j, "items_id");
-                  $connID = $DB->result($result, $j, "id");
+                  $row = $result->next();
+                  $tID    = $row['items_id'];
+                  $connID = $row['id'];
                   $item->getFromDB($tID);
                   $info->getFromDBforDevice($type,$tID) || $info->getEmpty();
 
@@ -154,31 +157,36 @@ class PluginPdfComputer_Item extends PluginPdfCommon {
       $comp = new Computer();
 
       $pdf->setColumnsSize(100);
-      $pdf->displayTitle('<b>'.__('Direct connections').'</b>');
+      $title = '<b>'.__('Direct connections').'</b>';
 
-      $query = "SELECT *
-                FROM `glpi_computers_items`
-                WHERE `items_id` = '".$ID."'
-                      AND `itemtype` = '".$type."'";
+      if ($result = $DB->request(['FROM'  => 'glpi_computers_items',
+                                  'WHERE' => ['items_id' => $ID,
+                                              'itemtype' => $type]])) {
+         $resultnum = count($result);
 
-      if ($result = $DB->query($query)) {
-         $resultnum = $DB->numrows($result);
-         if ($resultnum > 0) {
+         if (!$resultnum) {
+            $pdf->displayTitle(sprintf(__('%1$s: %2$s'), $title, __('No item to display')));
+         } else {
+            $pdf->displayTitle($title);
+
             for ($j=0 ; $j < $resultnum ; $j++) {
-               $tID    = $DB->result($result, $j, "computers_id");
-               $connID = $DB->result($result, $j, "id");
+               $row = $result->next();
+               $tID    = $row["computers_id"];
+               $connID = $row["id"];
                $comp->getFromDB($tID);
                $info->getFromDBforDevice('Computer',$tID) || $info->getEmpty();
 
                $line1 = ($comp->fields['name']?$comp->fields['name']:"(".$comp->fields['id'].")");
+               $line1 = sprintf(__('%1$s - %2$s'), $line1,
+                                sprintf(__('%1$s: %2$s'), __('Status'),
+                                        Html::clean(Dropdown::getDropdownName("glpi_states",
+                                                                              $comp->fields['states_id']))));
                if ($comp->fields['serial']) {
                   $line1 = sprintf(__('%1$s - %2$s'), $line1,
                                    sprintf(__('%1$s: %2$s'), __('Serial number'),
                                            $comp->fields['serial']));
                }
-               $line1 = sprintf(__('%1$s - %2$s'), $line1,
-                                Html::clean(Dropdown::getDropdownName("glpi_states",
-                                                                      $comp->fields['states_id'])));
+
 
                $line2 = "";
                if ($comp->fields['otherserial']) {
@@ -198,9 +206,6 @@ class PluginPdfComputer_Item extends PluginPdfCommon {
                                                   $line1, 1);
                }
             }// each device   of current type
-
-         } else { // No row
-            $pdf->displayLine(__('Not connected.'));
          } // No row
       } // Result
       $pdf->displaySpace();

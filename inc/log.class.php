@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
-
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -78,19 +77,19 @@ class Log extends CommonDBTM {
 
 
 
-   static function getTypeName($nb=0) {
+   static function getTypeName($nb = 0) {
       return __('Historical');
    }
 
 
-   function getTabNameForItem(CommonGLPI $item, $withtemplate=0) {
+   function getTabNameForItem(CommonGLPI $item, $withtemplate = 0) {
 
       if (!$withtemplate) {
          $nb = 0;
          if ($_SESSION['glpishow_count_on_tabs']) {
             $nb = countElementsInTable('glpi_logs',
-                                       "itemtype = '".$item->getType()."'
-                                          AND items_id = '".$item->getID()."'");
+                                       ['itemtype' => $item->getType(),
+                                        'items_id' => $item->getID()]);
          }
          return self::createTabEntry(self::getTypeName(1), $nb);
       }
@@ -98,7 +97,7 @@ class Log extends CommonDBTM {
    }
 
 
-   static function displayTabContentForItem(CommonGLPI $item, $tabnum=1, $withtemplate=0) {
+   static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0) {
 
       self::showForItem($item);
       return true;
@@ -127,14 +126,14 @@ class Log extends CommonDBTM {
       }
       $result = 0;
       // type for which getValueToDisplay() could be used (fully tested)
-      $oktype = array('Entity');
+      $oktype = ['Entity'];
 
       foreach ($oldvalues as $key => $oldval) {
-         $changes = array();
+         $changes = [];
 
          // Parsing $SEARCHOPTION to find changed field
          foreach ($searchopt as $key2 => $val2) {
-            if (!is_array($val2)) {
+            if (!isset($val2['table'])) {
                // skip sub-title
                continue;
             }
@@ -145,21 +144,21 @@ class Log extends CommonDBTM {
                    && ($val2['rightname'] == $item->fields['name'])) {
 
                   $id_search_option = $key2;
-                  $changes          =  array($id_search_option, addslashes($oldval), $values[$key]);
+                  $changes          =  [$id_search_option, addslashes($oldval), $values[$key]];
                }
 
-            // Linkfield or standard field not massive action enable
             } else if (($val2['linkfield'] == $key)
                 || (($key == $val2['field'])
                     && ($val2['table'] == $item->getTable()))) {
+               // Linkfield or standard field not massive action enable
                $id_search_option = $key2; // Give ID of the $SEARCHOPTION
 
                if ($val2['table'] == $item->getTable()) {
-                  $changes = array($id_search_option, addslashes($oldval), $values[$key]);
+                  $changes = [$id_search_option, addslashes($oldval), $values[$key]];
                } else {
-                  // other cases ; link field -> get data from dropdown
+                  // other cases; link field -> get data from dropdown
                   if ($val2["table"] != 'glpi_auth_tables') {
-                     $changes = array($id_search_option,
+                     $changes = [$id_search_option,
                                       addslashes(sprintf(__('%1$s (%2$s)'),
                                                          Dropdown::getDropdownName($val2["table"],
                                                                                    $oldval),
@@ -167,7 +166,7 @@ class Log extends CommonDBTM {
                                       addslashes(sprintf(__('%1$s (%2$s)'),
                                                          Dropdown::getDropdownName($val2["table"],
                                                                                    $values[$key]),
-                                                         $values[$key])));
+                                                         $values[$key]))];
                   }
                }
                break;
@@ -194,7 +193,7 @@ class Log extends CommonDBTM {
     *
     * @return boolean success
    **/
-   static function history ($items_id, $itemtype, $changes, $itemtype_link='', $linked_action='0') {
+   static function history ($items_id, $itemtype, $changes, $itemtype_link = '', $linked_action = '0') {
       global $DB;
 
       $date_mod = $_SESSION["glpi_currenttime"];
@@ -223,10 +222,10 @@ class Log extends CommonDBTM {
 
       // Security to be sure that values do not pass over the max length
       if (Toolbox::strlen($old_value) > 255) {
-         $old_value = Toolbox::substr($old_value,0,250);
+         $old_value = Toolbox::substr($old_value, 0, 250);
       }
       if (Toolbox::strlen($new_value) > 255) {
-         $new_value = Toolbox::substr($new_value,0,250);
+         $new_value = Toolbox::substr($new_value, 0, 250);
       }
 
       // Build query
@@ -248,10 +247,10 @@ class Log extends CommonDBTM {
     * Show History of an item
     *
     * @param $item                     CommonDBTM object
-    * @param $withtemplate    integer  withtemplate param (default '')
+    * @param $withtemplate    integer  withtemplate param (default 0)
 
    **/
-   static function showForItem(CommonDBTM $item, $withtemplate='') {
+   static function showForItem(CommonDBTM $item, $withtemplate = 0) {
       global $DB;
 
       $itemtype = $item->getType();
@@ -265,8 +264,7 @@ class Log extends CommonDBTM {
       }
 
       // Total Number of events
-      $number = countElementsInTable("glpi_logs",
-                                     "`items_id`='$items_id' AND `itemtype`='$itemtype'");
+      $number = countElementsInTable("glpi_logs", ['items_id' => $items_id, 'itemtype' => $itemtype ]);
 
       // No Events in database
       if ($number < 1) {
@@ -292,7 +290,7 @@ class Log extends CommonDBTM {
       $header .= "<th>"._x('name', 'Update')."</th></tr>";
       echo $header;
 
-      foreach (self::getHistoryData($item,$start, $_SESSION['glpilist_limit']) as $data) {
+      foreach (self::getHistoryData($item, $start, $_SESSION['glpilist_limit']) as $data) {
          if ($data['display_history']) {
             // show line
             echo "<tr class='tab_bg_2'>";
@@ -313,14 +311,14 @@ class Log extends CommonDBTM {
    /**
     * Retrieve last history Data for an item
     *
-    * @param $item                     CommonDBTM object
-    * @param $start        integer     first line to retrieve (default 0)
-    * @param $limit        integer     max number of line to retrive (0 for all) (default 0)
-    * @param $sqlfilter    string      to add an SQL filter (default '')
+    * @param CommonDBTM $item      Object instance
+    * @param integer    $start     first line to retrieve (default 0)
+    * @param integer    $limit     max number of line to retrive (0 for all) (default 0)
+    * @param array      $sqlfilter to add an SQL filter (default '')
     *
     * @return array of localized log entry (TEXT only, no HTML)
    **/
-   static function getHistoryData(CommonDBTM $item, $start=0, $limit=0, $sqlfilter='') {
+   static function getHistoryData(CommonDBTM $item, $start = 0, $limit = 0, array $sqlfilter = []) {
       global $DB;
 
       $itemtype  = $item->getType();
@@ -329,22 +327,25 @@ class Log extends CommonDBTM {
 
       $SEARCHOPTION = Search::getOptions($itemtype);
 
-      $query = "SELECT *
-                FROM `glpi_logs`
-                WHERE `items_id` = '$items_id'
-                      AND `itemtype` = '$itemtype' ";
-      if ($sqlfilter) {
-         $query .= "AND ($sqlfilter) ";
-      }
-      $query .= "ORDER BY `id` DESC";
+      $query = [
+         'FROM'   => self::getTable(),
+         'WHERE'  => [
+            'items_id'  => $items_id,
+            'itemtype'  => $itemtype
+         ] + $sqlfilter,
+         'ORDER'  => 'id DESC'
+      ];
 
       if ($limit) {
-         $query .= " LIMIT ".intval($start)."," . intval($limit);
+         $query['START'] = (int)$start;
+         $query['LIMIT'] = (int)$limit;
       }
 
-      $changes = array();
-      foreach ($DB->request($query) as $data) {
-         $tmp = array();
+      $iterator = $DB->request($query);
+
+      $changes = [];
+      while ($data = $iterator->next()) {
+         $tmp = [];
          $tmp['display_history'] = true;
          $tmp['id']              = $data["id"];
          $tmp['date_mod']        = Html::convDateTime($data["date_mod"]);
@@ -483,7 +484,7 @@ class Log extends CommonDBTM {
                   }
                   $tmp['change'] = sprintf(__('%1$s: %2$s'), __('Add a link with an item'),
                                            $data["new_value"]);
-              
+
                   if ($data['itemtype'] == 'Ticket') {
                      switch ($data['itemtype_link']) {
                         case 'Group':
@@ -502,16 +503,16 @@ class Log extends CommonDBTM {
                            $itemtick = false;
                            break;
                      }
-                   
+
                      if ($itemtick !== false) {
                         $table   = $itemtick->getTable();
                         $key     = getForeignKeyFieldForItemType($data['itemtype']);
                         $itemkey = getForeignKeyFieldForItemType($data['itemtype_link']);
                         $iditem  = trim(substr($data['new_value'], strrpos($data['new_value'], '(')+1,
-                                        strrpos($data['new_value'], ')')),')');
+                                       strrpos($data['new_value'], ')')), ')');
 
-                        foreach($DB->request($table, array($key => $data['items_id'],
-                                                           $itemkey => $iditem)) as $datalink) {
+                        foreach ($DB->request($table, [$key => $data['items_id'],
+                                                         $itemkey => $iditem]) as $datalink) {
                            if ($datalink['type'] == CommonITILActor::REQUESTER) {
                               $as = __('Requester');
                            } else if ($datalink['type'] == CommonITILActor::ASSIGN) {
@@ -520,7 +521,7 @@ class Log extends CommonDBTM {
                               $as = __('Watcher');
                            }
                            $tmp['change'] = sprintf(__('%1$s: %2$s'), __('Add a link with an item'),
-                                                    sprintf(__('%1$s (%2$s)'), $data["new_value"],
+                                                   sprintf(__('%1$s (%2$s)'), $data["new_value"],
                                                             $as));
                         }
                      }
@@ -533,8 +534,8 @@ class Log extends CommonDBTM {
                      $linktype     = $linktype_field[0];
                      $tmp['field'] = $linktype::getTypeName();
                   }
-                  $tmp['change'] = sprintf(__('%1$s: %2$s'), __('Update a link with an item'), 
-                                       sprintf(__('%1$s (%2$s)'), $data["old_value"], 
+                  $tmp['change'] = sprintf(__('%1$s: %2$s'), __('Update a link with an item'),
+                                       sprintf(__('%1$s (%2$s)'), $data["old_value"],
                                           $data["new_value"]));
                   break;
 
@@ -617,7 +618,7 @@ class Log extends CommonDBTM {
                   break;
 
                default :
-                  $fct = array($data['itemtype_link'], 'getHistoryEntry');
+                  $fct = [$data['itemtype_link'], 'getHistoryEntry'];
                   if (($data['linked_action'] >= self::HISTORY_PLUGIN)
                       && $data['itemtype_link']
                       && is_callable($fct)) {
@@ -629,7 +630,7 @@ class Log extends CommonDBTM {
 
          } else {
             $fieldname = "";
-            $searchopt = array();
+            $searchopt = [];
             $tablename = '';
             // It's not an internal device
             foreach ($SEARCHOPTION as $key2 => $val2) {
@@ -715,11 +716,11 @@ class Log extends CommonDBTM {
     *
     * @see commonDBTM::getRights()
    **/
-   function getRights($interface='central') {
+   function getRights($interface = 'central') {
 
-      $values = array( READ => __('Read'));
+      $values = [ READ => __('Read')];
       return $values;
    }
 
 }
-?>
+

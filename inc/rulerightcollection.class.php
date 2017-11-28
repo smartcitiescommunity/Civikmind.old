@@ -1,33 +1,33 @@
 <?php
-/*
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
-
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -49,11 +49,11 @@ class RuleRightCollection extends RuleCollection {
 
    // Specific ones
    /// Array containing results : entity + right
-   public $rules_entity_rights = array();
+   public $rules_entity_rights = [];
    /// Array containing results : only entity
-   public $rules_entity        = array();
+   public $rules_entity        = [];
    /// Array containing results : only right
-   public $rules_rights        = array();
+   public $rules_rights        = [];
 
 
    function getTitle() {
@@ -120,7 +120,7 @@ class RuleRightCollection extends RuleCollection {
                $this->displayActionByName("profile", $val[1]);
             }
             if (isset($val[2])) {
-               $this->displayActionByName("is_recursive",$val[2]);
+               $this->displayActionByName("is_recursive", $val[2]);
             }
          }
       }
@@ -182,7 +182,7 @@ class RuleRightCollection extends RuleCollection {
    function getFieldsToLookFor() {
       global $DB;
 
-      $params = array();
+      $params = [];
       $sql = "SELECT DISTINCT `value`
               FROM `glpi_rules`,
                    `glpi_rulecriterias`,
@@ -214,7 +214,7 @@ class RuleRightCollection extends RuleCollection {
    **/
    function prepareInputDataForProcess($input, $params) {
 
-      $rule_parameters = array();
+      $rule_parameters = [];
       //LDAP type method
       if ($params["type"] == "LDAP") {
          //Get all the field to retrieve to be able to process rule matching
@@ -229,13 +229,13 @@ class RuleRightCollection extends RuleCollection {
             if (isset($input)) {
                $groups = $input;
             } else {
-               $groups = array();
+               $groups = [];
             }
             $rule_input = $rule_input[0];
             //Get all the ldap fields
             $fields = $this->getFieldsForQuery();
             foreach ($fields as $field) {
-               switch(Toolbox::strtoupper($field)) {
+               switch (Toolbox::strtoupper($field)) {
                   case "LOGIN" :
                      $rule_parameters["LOGIN"] = $params["login"];
                      break;
@@ -294,7 +294,7 @@ class RuleRightCollection extends RuleCollection {
       $rule      = new RuleRight();
       $criterias = $rule->getCriterias();
 
-      $fields = array();
+      $fields = [];
       foreach ($criterias as $criteria) {
          if (!is_array($criteria)) {
             continue;

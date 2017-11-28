@@ -57,11 +57,11 @@ class KnowbaseItem_Item extends CommonDBRelation {
    // From CommonDBTM
    public $dohistory          = true;
 
-   static function getTypeName($nb=0) {
+   static function getTypeName($nb = 0) {
       return _n('Knowledge base item', 'Knowledge base items', $nb);
    }
 
-   function getTabNameForItem(CommonGLPI $item, $withtemplate=0) {
+   function getTabNameForItem(CommonGLPI $item, $withtemplate = 0) {
       $nb = 0;
       if ($_SESSION['glpishow_count_on_tabs']) {
          if ($item->getType() == KnowbaseItem::getType()) {
@@ -90,7 +90,7 @@ class KnowbaseItem_Item extends CommonDBRelation {
       return self::createTabEntry($type_name, $nb);
    }
 
-   static function displayTabContentForItem(CommonGLPI $item, $tabnum=1, $withtemplate=0) {
+   static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0) {
       self::showForItem($item, $withtemplate);
       return true;
    }
@@ -99,10 +99,10 @@ class KnowbaseItem_Item extends CommonDBRelation {
     * Show linked items of a knowbase item
     *
     * @param $item                     CommonDBTM object
-    * @param $withtemplate    integer  withtemplate param (default '')
+    * @param $withtemplate    integer  withtemplate param (default 0)
 
    **/
-   static function showForItem(CommonDBTM $item, $withtemplate='') {
+   static function showForItem(CommonDBTM $item, $withtemplate = 0) {
       global $DB;
 
       $item_id = $item->getID();
@@ -193,10 +193,10 @@ class KnowbaseItem_Item extends CommonDBRelation {
       if ($canedit) {
          Html::openMassiveActionsForm('mass'.__CLASS__.$rand);
          $massiveactionparams
-            = array('num_displayed'
+            = ['num_displayed'
                         => min($_SESSION['glpilist_limit'], $number),
                     'container'
-                        => 'mass'.__CLASS__.$rand);
+                        => 'mass'.__CLASS__.$rand];
          Html::showMassiveActions($massiveactionparams);
       }
       echo "<table class='tab_cadre_fixehov'>";
@@ -249,8 +249,8 @@ class KnowbaseItem_Item extends CommonDBRelation {
 
          echo "<td>" . $type . "</td>" .
                  "<td><a href=\"" . $link . "\">" . $name . "</a></td>".
-                 "<td class='tab_date'>".$linked_item->fields[$createdate]."</td>".
-                 "<td class='tab_date'>".$linked_item->fields['date_mod']."</td>";
+                 "<td class='tab_date'>".Html::convDateTime($linked_item->fields[$createdate])."</td>".
+                 "<td class='tab_date'>".Html::convDateTime($linked_item->fields['date_mod'])."</td>";
          echo "</tr>";
       }
       echo $header;
@@ -278,15 +278,13 @@ class KnowbaseItem_Item extends CommonDBRelation {
       $entity_restrict = -1;
       $checkright = true;
 
-      $rand = Dropdown::showAllItems(
-         $name,                 //select/@name
-         0,
-         0,
-         $entity_restrict,      //entity restriction
-         $CFG_GLPI['kb_types'], //types list
-         $onlyglobal,
-         $checkright            //checkright
-      );
+      $rand = Dropdown::showSelectItemFromItemtypes([
+         'items_id_name'   => $name,
+         'entity_restrict' => $entity_restrict,
+         'itemtypes'       => $CFG_GLPI['kb_types'],
+         'onlyglobal'      => $onlyglobal,
+         'checkright'      => $checkright
+      ]);
 
       return $rand;
    }
@@ -301,29 +299,35 @@ class KnowbaseItem_Item extends CommonDBRelation {
     *
     * @return array of linked items
    **/
-   static function getItems(CommonDBTM $item, $start=0, $limit=0, $used = false) {
+   static function getItems(CommonDBTM $item, $start = 0, $limit = 0, $used = false) {
       global $DB;
 
       $options = [
-         'FROM'   => ['glpi_knowbaseitems_items', 'glpi_knowbaseitems'],
-         'FIELDS' => ['glpi_knowbaseitems_items' => '*'],
-         'FKEY'   => [
+         'FROM'      => ['glpi_knowbaseitems_items', 'glpi_knowbaseitems'],
+         'FIELDS'    => ['glpi_knowbaseitems_items' => '*'],
+         'FKEY'      => [
             'glpi_knowbaseitems_items' => 'knowbaseitems_id',
             'glpi_knowbaseitems'       => 'id'
          ],
-         'ORDER'  => ['itemtype', 'items_id DESC'],
+         'ORDER'     => ['itemtype', 'items_id DESC'],
+         'GROUPBY'   => [
+            'glpi_knowbaseitems_items.id',
+            'glpi_knowbaseitems_items.knowbaseitems_id',
+             'glpi_knowbaseitems_items.itemtype',
+             'glpi_knowbaseitems_items.items_id',
+             'glpi_knowbaseitems_items.date_creation',
+             'glpi_knowbaseitems_items.date_mod'
+         ]
       ];
       $where = [];
 
-      $itemtype  = $item->getType();
-      $items_id  = $item->getField('id');
-      $itemtable = $item->getTable();
+      $items_id  = (int)$item->getField('id');
 
       if ($item::getType() == KnowbaseItem::getType()) {
          $id_field = 'glpi_knowbaseitems_items.knowbaseitems_id';
          $visibility = KnowbaseItem::getVisibilityCriteria();
-         if (count($visibility['JOIN'])) {
-            $options['JOIN'] = $visibility['JOIN'];
+         if (count($visibility['LEFT JOIN'])) {
+            $options['LEFT JOIN'] = $visibility['LEFT JOIN'];
             if (isset($visibility['WHERE'])) {
                $where = $visibility['WHERE'];
             }
@@ -339,7 +343,7 @@ class KnowbaseItem_Item extends CommonDBRelation {
       }
 
       if (count($where)) {
-         $options['AND'] = [$id_field => $items_id, 'AND' =>$where];
+         $options['AND'] = [$id_field => $items_id, 'AND' => $where];
       } else {
          $options['AND'] = [$id_field => $items_id];
       }
@@ -349,9 +353,9 @@ class KnowbaseItem_Item extends CommonDBRelation {
          $options['LIMIT'] = intval($limit);
       }
 
-      $linked_items = array();
+      $linked_items = [];
       $results = $DB->request($options);
-      foreach ($results as $data) {
+      while ($data = $results->next()) {
          if ($used === false) {
             $linked_items[] = $data;
          } else {
@@ -372,7 +376,7 @@ class KnowbaseItem_Item extends CommonDBRelation {
     * @param $newid        ID of the item cloned
     * @param $newitemtype  itemtype of the new item (= $itemtype if empty) (default '')
    **/
-   static function cloneItem($itemtype, $oldid, $newid, $newitemtype='') {
+   static function cloneItem($itemtype, $oldid, $newid, $newitemtype = '') {
       global $DB;
 
       if (empty($newitemtype)) {
@@ -380,13 +384,13 @@ class KnowbaseItem_Item extends CommonDBRelation {
       }
 
       foreach ($DB->request('glpi_knowbaseitems_items',
-                            array('FIELDS' => 'knowbaseitems_id',
+                            ['FIELDS' => 'knowbaseitems_id',
                                   'WHERE'  => "`items_id` = '$oldid'
-                                                AND `itemtype` = '$itemtype'")) as $data) {
+                                                AND `itemtype` = '$itemtype'"]) as $data) {
          $kb_link = new self();
-         $kb_link->add(array('knowbaseitems_id' => $data['knowbaseitems_id'],
+         $kb_link->add(['knowbaseitems_id' => $data['knowbaseitems_id'],
                                   'itemtype'    => $newitemtype,
-                                  'items_id'    => $newid));
+                                  'items_id'    => $newid]);
       }
    }
 

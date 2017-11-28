@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
-
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -48,7 +47,7 @@ class TicketTask  extends CommonITILTask {
    /**
     * @since version 0.84
    **/
-   static function getTypeName($nb=0) {
+   static function getTypeName($nb = 0) {
       return _n('Ticket task', 'Ticket tasks', $nb);
    }
 
@@ -62,7 +61,7 @@ class TicketTask  extends CommonITILTask {
 
    static function canView() {
 
-      return (Session::haveRightsOr(self::$rightname, array(parent::SEEPUBLIC, parent::SEEPRIVATE))
+      return (Session::haveRightsOr(self::$rightname, [parent::SEEPUBLIC, parent::SEEPRIVATE])
               || Session::haveRight('ticket', Ticket::OWN));
    }
 
@@ -95,7 +94,7 @@ class TicketTask  extends CommonITILTask {
          return false;
       }
 
-      if (Session::haveRightsOr(self::$rightname, array(parent::SEEPRIVATE, parent::SEEPUBLIC))) {
+      if (Session::haveRightsOr(self::$rightname, [parent::SEEPRIVATE, parent::SEEPUBLIC])) {
          return true;
       }
 
@@ -135,7 +134,7 @@ class TicketTask  extends CommonITILTask {
 
       if ($ticket->getFromDB($this->fields['tickets_id'])
           // No validation for closed tickets
-          && !in_array($ticket->fields['status'],$ticket->getClosedStatusArray())) {
+          && !in_array($ticket->fields['status'], $ticket->getClosedStatusArray())) {
          return (Session::haveRight(self::$rightname, parent::ADDALLITEM)
                  || $ticket->isUser(CommonITILActor::ASSIGN, Session::getLoginUserID())
                  || (isset($_SESSION["glpigroups"])
@@ -198,8 +197,8 @@ class TicketTask  extends CommonITILTask {
     *
     * @return array of planning item
    **/
-   static function populatePlanning($options=array()) {
-      return parent::genericPopulatePlanning(__CLASS__,$options);
+   static function populatePlanning($options = []) {
+      return parent::genericPopulatePlanning(__CLASS__, $options);
    }
 
 
@@ -211,7 +210,7 @@ class TicketTask  extends CommonITILTask {
     * @return Already planned information
    **/
    static function getAlreadyPlannedInformation($val) {
-      return parent::genericGetAlreadyPlannedInformation(__CLASS__,$val);
+      return parent::genericGetAlreadyPlannedInformation(__CLASS__, $val);
    }
 
 
@@ -226,8 +225,8 @@ class TicketTask  extends CommonITILTask {
     *
     * @return Nothing (display function)
    **/
-   static function displayPlanningItem(array $val, $who, $type="", $complete=0) {
-      return parent::genericDisplayPlanningItem(__CLASS__,$val, $who, $type, $complete);
+   static function displayPlanningItem(array $val, $who, $type = "", $complete = 0) {
+      return parent::genericDisplayPlanningItem(__CLASS__, $val, $who, $type, $complete);
    }
 
 
@@ -236,7 +235,7 @@ class TicketTask  extends CommonITILTask {
     *
     * @see commonDBTM::getRights()
     **/
-   function getRights($interface='central') {
+   function getRights($interface = 'central') {
 
       $values = parent::getRights();
       unset($values[UPDATE], $values[CREATE], $values[READ]);
@@ -262,7 +261,7 @@ class TicketTask  extends CommonITILTask {
     *
     * @see CommonDBTM::showFormButtons()
    **/
-   function showFormButtons($options=array()) {
+   function showFormButtons($options = []) {
       global $CFG_GLPI;
 
       // for single object like config
@@ -308,9 +307,9 @@ class TicketTask  extends CommonITILTask {
          if ($params['candel']) {
             echo "<td class='right' colspan='".($params['colspan']*2)."' >\n";
             if ($this->can($ID, PURGE)) {
-               echo Html::submit(_x('button','Delete permanently'),
-                                 array('name'    => 'purge',
-                                       'confirm' => __('Confirm the final deletion?')));
+               echo Html::submit(_x('button', 'Delete permanently'),
+                                 ['name'    => 'purge',
+                                       'confirm' => __('Confirm the final deletion?')]);
             }
          }
 

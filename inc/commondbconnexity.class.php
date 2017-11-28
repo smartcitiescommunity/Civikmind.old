@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
-
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -121,8 +120,8 @@ abstract class CommonDBConnexity extends CommonDBTM {
 
       $query = static::getSQLRequestToSearchForItem($itemtype, $items_id);
       if (!empty($query)) {
-         $input = array('_no_history'     => true,
-                        '_no_notif'       => true);
+         $input = ['_no_history'     => true,
+                        '_no_notif'       => true];
 
          foreach ($DB->request($query) as $data) {
             $input[$this->getIndexName()] = $data[$this->getIndexName()];
@@ -145,8 +144,8 @@ abstract class CommonDBConnexity extends CommonDBTM {
     *
     * @return the item or false if we cannot load the item
    **/
-   function getConnexityItem($itemtype, $items_id, $getFromDB=true, $getEmpty=true,
-                             $getFromDBOrEmpty=false) {
+   function getConnexityItem($itemtype, $items_id, $getFromDB = true, $getEmpty = true,
+                             $getFromDBOrEmpty = false) {
 
       return static::getItemFromArray($itemtype, $items_id, $this->fields, $getFromDB,
                                       $getEmpty, $getFromDBOrEmpty);
@@ -165,8 +164,8 @@ abstract class CommonDBConnexity extends CommonDBTM {
     *
     * @return the item or false if we cannot load the item
    **/
-   static function getItemFromArray($itemtype, $items_id, array $array, $getFromDB=true,
-                                    $getEmpty=true, $getFromDBOrEmpty=false) {
+   static function getItemFromArray($itemtype, $items_id, array $array, $getFromDB = true,
+                                    $getEmpty = true, $getFromDBOrEmpty = false) {
 
       if (preg_match('/^itemtype/', $itemtype)) {
          if (isset($array[$itemtype])) {
@@ -247,11 +246,11 @@ abstract class CommonDBConnexity extends CommonDBTM {
          }
 
          // Solution 2 : simple check ! Can we update the item with new values ?
-//       if (!$new_item->can($input['id'], 'w')) {
-//          Session::addMessageAfterRedirect(__('Cannot update item: not enough right on the parent(s) item(s)'),
-//                                           INFO, true);
-//          return false;
-//       }
+         // if (!$new_item->can($input['id'], 'w')) {
+         //    Session::addMessageAfterRedirect(__('Cannot update item: not enough right on the parent(s) item(s)'),
+         //                                     INFO, true);
+         //    return false;
+         // }
       }
 
       return true;
@@ -317,10 +316,10 @@ abstract class CommonDBConnexity extends CommonDBTM {
     * @return true if we have absolute right to create the current connexity
    **/
    function canConnexityItem($methodItem, $methodNotItem, $item_right, $itemtype, $items_id,
-                             &$item=NULL) {
+                             &$item = null) {
 
       // Do not get it twice
-      if ($item == NULL) {
+      if ($item == null) {
          $item = $this->getConnexityItem($itemtype, $items_id);
       }
       if ($item_right != self::DONT_CHECK_ITEM_RIGHTS) {
@@ -358,7 +357,7 @@ abstract class CommonDBConnexity extends CommonDBTM {
    **/
    function getHistoryChangeWhenUpdateField($field) {
 
-      return array('0', addslashes($this->oldvalues[$field]), addslashes($this->fields[$field]));
+      return ['0', addslashes($this->oldvalues[$field]), addslashes($this->fields[$field])];
    }
 
 
@@ -390,7 +389,7 @@ abstract class CommonDBConnexity extends CommonDBTM {
          }
       }
 
-      $result = array('new' => self::getItemFromArray($itemtype, $items_id, $newItemArray));
+      $result = ['new' => self::getItemFromArray($itemtype, $items_id, $newItemArray)];
       if ($previousItemArray !== $newItemArray) {
          $result['previous'] = self::getItemFromArray($itemtype, $items_id, $previousItemArray);
       }
@@ -411,12 +410,12 @@ abstract class CommonDBConnexity extends CommonDBTM {
    **/
    static function getConnexityMassiveActionsSpecificities() {
 
-      return array('reaffect'      => false,
-                   'itemtypes'     => array(),
-                   'normalized'    => array('affect'   => array('affect'),
-                                            'unaffect' => array('unaffect')),
-                   'action_name'   => array('affect'   => _x('button', 'Associate'),
-                                            'unaffect' => _x('button', 'Dissociate')));
+      return ['reaffect'      => false,
+                   'itemtypes'     => [],
+                   'normalized'    => ['affect'   => ['affect'],
+                                            'unaffect' => ['unaffect']],
+                   'action_name'   => ['affect'   => _x('button', 'Associate'),
+                                            'unaffect' => _x('button', 'Dissociate')]];
    }
 
 
@@ -425,8 +424,8 @@ abstract class CommonDBConnexity extends CommonDBTM {
     *
     * @see CommonDBTM::getMassiveActionsForItemtype()
    **/
-   static function getMassiveActionsForItemtype(array &$actions, $itemtype, $is_deleted=0,
-                                                CommonDBTM $checkitem=NULL) {
+   static function getMassiveActionsForItemtype(array &$actions, $itemtype, $is_deleted = 0,
+                                                CommonDBTM $checkitem = null) {
 
       $unaffect = false;
       $affect   = false;
@@ -474,8 +473,8 @@ abstract class CommonDBConnexity extends CommonDBTM {
       $action = $ma->getAction();
       $items  = $ma->getItems();
 
-      $itemtypes_affect   = array();
-      $itemtypes_unaffect = array();
+      $itemtypes_affect   = [];
+      $itemtypes_unaffect = [];
       foreach (array_keys($items) as $itemtype) {
          if (!Toolbox::is_a($itemtype, __CLASS__)) {
             continue;
@@ -508,7 +507,7 @@ abstract class CommonDBConnexity extends CommonDBTM {
                   $peer_field = "peer[$itemtype]";
                   if ((!$itemtype::$mustBeAttached_1) && (!$itemtype::$mustBeAttached_2)) {
                      // Should never occur ... But we must care !
-                     $values = array();
+                     $values = [];
                      if ((empty($itemtype::$itemtype_1))
                       || (preg_match('/^itemtype/', $itemtype::$itemtype_1))) {
                         $values[0] = __('First Item');
@@ -533,11 +532,11 @@ abstract class CommonDBConnexity extends CommonDBTM {
                   }
                }
             }
-            echo "<br><br>".Html::submit(_x('button', 'Dissociate'), array('name' => 'massiveaction'));
+            echo "<br><br>".Html::submit(_x('button', 'Dissociate'), ['name' => 'massiveaction']);
             return true;
 
          case 'affect' :
-            $peertypes = array();
+            $peertypes = [];
             foreach ($itemtypes as $itemtype => $specificities) {
                if (!$specificities['reaffect']) {
                   continue;
@@ -562,12 +561,12 @@ abstract class CommonDBConnexity extends CommonDBTM {
                echo __('Unable to reaffect given elements !');
                exit();
             }
-            $options = array();
+            $options = [];
             if (count($peertypes) == 1) {
                $options['name']   = 'peers_id';
                $type_for_dropdown = $peertypes[0];
                if (preg_match('/^itemtype/', $peertype)) {
-                  echo Html::hidden('peertype', array('value' => $type_for_dropdown));
+                  echo Html::hidden('peertype', ['value' => $type_for_dropdown]);
                }
                $type_for_dropdown::dropdown($options);
             } else {
@@ -577,7 +576,7 @@ abstract class CommonDBConnexity extends CommonDBTM {
                Dropdown::showSelectItemFromItemtypes($options);
             }
 
-            echo "<br><br>".Html::submit(_x('button', 'Associate'), array('name' => 'massiveaction'));
+            echo "<br><br>".Html::submit(_x('button', 'Associate'), ['name' => 'massiveaction']);
             return true;
       }
 
@@ -600,7 +599,7 @@ abstract class CommonDBConnexity extends CommonDBTM {
    **/
    static function getConnexityInputForProcessingOfMassiveActions($action, CommonDBTM $item,
                                                                   array $ids, array $input) {
-      return array();
+      return [];
    }
 
 
@@ -740,4 +739,3 @@ abstract class CommonDBConnexity extends CommonDBTM {
    }
 
 }
-?>

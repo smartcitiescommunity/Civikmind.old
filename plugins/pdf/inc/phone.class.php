@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: phone.class.php 476 2017-01-09 15:53:05Z yllen $
+ * @version $Id: phone.class.php 498 2017-11-03 13:33:40Z yllen $
  -------------------------------------------------------------------------
  LICENSE
 
@@ -42,10 +42,11 @@ class PluginPdfPhone extends PluginPdfCommon {
    }
 
 
-   function defineAllTabs($options=array()) {
+   function defineAllTabs($options=[]) {
 
       $onglets = parent::defineAllTabs($options);
       unset($onglets['Item_Devices$1']); // TODO add method to print linked Devices
+      unset($onglets['KnowbaseItem_Item$1']);
       return $onglets;
    }
 
@@ -78,8 +79,8 @@ class PluginPdfPhone extends PluginPdfCommon {
          '<b><i>'.sprintf(__('%1$s: %2$s'), _n('Firmware', 'Firmwares', 1).'</i></b>',
                           $item->fields['firmware']));
 
-      $opts = array('have_headset' => __('Headset'),
-                    'have_hp'      => __('Speaker'));
+      $opts = ['have_headset' => __('Headset'),
+               'have_hp'      => __('Speaker')];
       foreach ($opts as $key => $val) {
          if (!$item->fields[$key]) {
             unset($opts[$key]);

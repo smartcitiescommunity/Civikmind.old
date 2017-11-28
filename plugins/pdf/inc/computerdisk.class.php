@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: computerdisk.class.php 476 2017-01-09 15:53:05Z yllen $
+ * @version $Id: computerdisk.class.php 498 2017-11-03 13:33:40Z yllen $
  -------------------------------------------------------------------------
  LICENSE
 
@@ -46,18 +46,22 @@ class PluginPdfComputerDisk extends PluginPdfCommon {
 
       $ID = $item->getField('id');
 
-      $query = "SELECT `glpi_filesystems`.`name` AS fsname, `glpi_computerdisks`.*
-                FROM `glpi_computerdisks`
-                LEFT JOIN `glpi_filesystems`
-                  ON (`glpi_computerdisks`.`filesystems_id` = `glpi_filesystems`.`id`)
-                WHERE (`computers_id` = '".$ID."'
-                       AND `is_deleted` = '0')";
-
-      $result = $DB->query($query);
+      $result = $DB->request(['SELECT'    => ['glpi_filesystems.name', 'glpi_computerdisks.*'],
+                              'FROM'      => 'glpi_computerdisks',
+                              'LEFT JOIN' => ['glpi_filesystems'
+                                              => ['FKEY' => ['glpi_computerdisks' => 'filesystems_id',
+                                                             'glpi_filesystems'   => 'id']]],
+                              'WHERE'     => ['computers_id' => $ID,
+                                              'is_deleted'   =>0]]);
 
       $pdf->setColumnsSize(100);
-      if ($DB->numrows($result) > 0) {
-         $pdf->displayTitle("<b>"._n('Volume', 'Volumes', $DB->numrows($result))."</b>");
+      $title = "<b>"._n('Volume', 'Volumes', count($result))."</b>";
+
+      if (!count($result)) {
+         $pdf->displayTitle(sprintf(__('%1$s: %2$s'), $title, __('No item to display')));
+      } else {
+         $title = sprintf(__('%1$s: %2$s'), $title, count($result));
+         $pdf->displayTitle($title);
 
          $pdf->setColumnsSize(21,21,20,9,9,9,11);
          $pdf->displayTitle('<b>'.__('Name'), __('Partition'), __('Mount point'), __('File system'),
@@ -65,7 +69,7 @@ class PluginPdfComputerDisk extends PluginPdfCommon {
 
          $pdf->setColumnsAlign('left','left','left','left','center','right','right');
 
-         while ($data = $DB->fetch_assoc($result)) {
+         while ($data = $result->next()) {
             $percent = 0;
             if ($data['totalsize'] > 0) {
                $percent = round(100*$data['freesize']/$data['totalsize']);
@@ -73,15 +77,13 @@ class PluginPdfComputerDisk extends PluginPdfCommon {
             $pdf->displayLine('<b>'.$data['name'].'</b>',
                               $data['device'],
                               $data['mountpoint'],
-                              $data['fsname'],
+                              $data['name'],
                               sprintf(__('%s Mio'),
                                       Html::clean(Html::formatNumber($data['totalsize'], false, 0))),
                               sprintf(__('%s Mio'),
                                       Html::clean(Html::formatNumber($data['freesize'], false, 0))),
                               sprintf(__('%s %s'),Html::clean(Html::formatNumber($percent, false, 0)), '%'));
          }
-      } else {
-         $pdf->displayTitle("<b>".__('No associated volume', 'pdf')."</b>");
       }
       $pdf->displaySpace();
    }

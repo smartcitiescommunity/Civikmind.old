@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
-
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -63,18 +62,6 @@ class IPNetwork_Vlan extends CommonDBRelation {
 
 
    /**
-    * Get search function for the class
-    *
-    * @return array of search option
-   **/
-   function getSearchOptions() {
-
-      $tab = parent::getSearchOptions();
-      return $tab;
-   }
-
-
-  /**
     * @param $portID
     * @param $vlanID
    **/
@@ -93,8 +80,8 @@ class IPNetwork_Vlan extends CommonDBRelation {
    **/
    function assignVlan($port, $vlan) {
 
-      $input = array('ipnetworks_id' => $port,
-                     'vlans_id'      => $vlan);
+      $input = ['ipnetworks_id' => $port,
+                     'vlans_id'      => $vlan];
 
       return $this->add($input);
    }
@@ -122,8 +109,8 @@ class IPNetwork_Vlan extends CommonDBRelation {
                 WHERE `ipnetworks_id` = '$ID'";
 
       $result = $DB->query($query);
-      $vlans  = array();
-      $used   = array();
+      $vlans  = [];
+      $used   = [];
       if ($number = $DB->numrows($result)) {
          while ($line = $DB->fetch_assoc($result)) {
             $used[$line["id"]]       = $line["id"];
@@ -139,8 +126,8 @@ class IPNetwork_Vlan extends CommonDBRelation {
 
          echo "<tr class='tab_bg_1'><td class='center'>";
          echo "<input type='hidden' name='ipnetworks_id' value='$ID'>";
-         Vlan::dropdown(array('used' => $used));
-         echo "&nbsp;<input type='submit' name='add' value='"._sx('button','Associate').
+         Vlan::dropdown(['used' => $used]);
+         echo "&nbsp;<input type='submit' name='add' value='"._sx('button', 'Associate').
                       "' class='submit'>";
          echo "</td></tr>\n";
 
@@ -152,8 +139,8 @@ class IPNetwork_Vlan extends CommonDBRelation {
       echo "<div class='spaced'>";
       if ($canedit && $number) {
          Html::openMassiveActionsForm('mass'.__CLASS__.$rand);
-         $massiveactionparams = array('num_displayed' => min($_SESSION['glpilist_limit'], $number),
-                                      'container'     => 'mass'.__CLASS__.$rand);
+         $massiveactionparams = ['num_displayed' => min($_SESSION['glpilist_limit'], $number),
+                                      'container'     => 'mass'.__CLASS__.$rand];
          Html::showMassiveActions($massiveactionparams);
       }
       echo "<table class='tab_cadre_fixehov'>";
@@ -174,7 +161,7 @@ class IPNetwork_Vlan extends CommonDBRelation {
       $header_end .= "</tr>";
       echo $header_begin.$header_top.$header_end;
 
-      $used = array();
+      $used = [];
       foreach ($vlans as $data) {
          echo "<tr class='tab_bg_1'>";
          if ($canedit) {
@@ -214,7 +201,7 @@ class IPNetwork_Vlan extends CommonDBRelation {
    static function getVlansForIPNetwork($portID) {
       global $DB;
 
-      $vlans = array();
+      $vlans = [];
       $query = "SELECT `vlans_id`
                 FROM `".self::getTable()."`
                 WHERE `ipnetworks_id` = '$portID'";
@@ -226,7 +213,7 @@ class IPNetwork_Vlan extends CommonDBRelation {
    }
 
 
-   function getTabNameForItem(CommonGLPI $item, $withtemplate=0) {
+   function getTabNameForItem(CommonGLPI $item, $withtemplate = 0) {
 
       if (!$withtemplate) {
          $nb = 0;
@@ -234,7 +221,7 @@ class IPNetwork_Vlan extends CommonDBRelation {
             case 'IPNetwork' :
                if ($_SESSION['glpishow_count_on_tabs']) {
                   $nb =  countElementsInTable($this->getTable(),
-                                              "ipnetworks_id = '".$item->getID()."'");
+                                              ['ipnetworks_id' => $item->getID()]);
                }
                return self::createTabEntry(Vlan::getTypeName(), $nb);
          }
@@ -243,7 +230,7 @@ class IPNetwork_Vlan extends CommonDBRelation {
    }
 
 
-   static function displayTabContentForItem(CommonGLPI $item, $tabnum=1, $withtemplate=0) {
+   static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0) {
 
       if ($item->getType()=='IPNetwork') {
          self::showForIPNetwork($item);
@@ -252,4 +239,3 @@ class IPNetwork_Vlan extends CommonDBRelation {
    }
 
 }
-?>

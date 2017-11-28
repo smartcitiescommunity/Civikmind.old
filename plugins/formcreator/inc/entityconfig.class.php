@@ -21,7 +21,7 @@ class PluginFormcreatorEntityconfig extends CommonDBTM {
 
    public function getTabNameForItem(CommonGLPI $item, $withtemplate=0) {
 
-      $tabNames = array();
+      $tabNames = [];
       if (!$withtemplate) {
          if ($item->getType() == 'Entity') {
             $tabNames[1] = _n('Form', 'Forms', 2, 'formcreator');
@@ -39,8 +39,6 @@ class PluginFormcreatorEntityconfig extends CommonDBTM {
    }
 
    public function showFormForEntity(Entity $entity) {
-      global $DB;
-
       $ID = $entity->getField('id');
       if (!$entity->can($ID, READ)
             || !Notification::canView()) {
@@ -60,16 +58,15 @@ class PluginFormcreatorEntityconfig extends CommonDBTM {
          echo "<form method='post' name=form action='".Toolbox::getItemTypeFormURL(__CLASS__)."'>";
       }
 
-
       echo "<table class='tab_cadre_fixe'>";
       echo "<tr><th colspan='2'>".__('Helpdesk', 'formcreator')."</th></tr>";
 
       if ($ID != 0) {
-         $elements = array(
-               self::CONFIG_PARENT => __('Inheritance of the parent entity')
-         );
+         $elements = [
+            self::CONFIG_PARENT => __('Inheritance of the parent entity')
+         ];
       } else {
-         $elements = array();
+         $elements = [];
       }
       $elements[0] = __('GLPi\'s helpdesk', 'formcreator');
       $elements[1] = __('Service catalog simplified', 'formcreator');
@@ -78,20 +75,20 @@ class PluginFormcreatorEntityconfig extends CommonDBTM {
       echo "<tr class='tab_bg_1'>";
       echo "<td>".__('Helpdesk mode', 'formcreator')."</td>";
       echo "<td>";
-      Dropdown::showFromArray('replace_helpdesk', $elements, array('value' => $this->fields['replace_helpdesk']));
+      Dropdown::showFromArray('replace_helpdesk', $elements, ['value' => $this->fields['replace_helpdesk']]);
       if ($this->fields['replace_helpdesk'] == self::CONFIG_PARENT) {
          $tid = self::getUsedConfig('replace_helpdesk', $ID);
-         echo "<font class='green'><br>";
+         echo '<div class="green">';
          echo $elements[$tid];
-         echo "</font>";
-         echo "</td></tr>";
+         echo '</div>';
       }
+      echo '</td></tr>';
 
       if ($canedit) {
          echo "<tr>";
          echo "<td class='tab_bg_2 center' colspan='4'>";
          echo "<input type='hidden' name='id' value='".$entity->fields["id"]."'>";
-         echo "<input type='submit' name='update' value=\""._sx('button','Save')."\" class='submit'>";
+         echo "<input type='submit' name='update' value=\""._sx('button', 'Save')."\" class='submit'>";
          echo "</td></tr>";
          echo "</table>";
          Html::closeForm();
@@ -111,7 +108,7 @@ class PluginFormcreatorEntityconfig extends CommonDBTM {
     * @param $fieldref        string   name of the referent field to know if we look at parent entity
     * @param $entities_id
     * @param $fieldval        string   name of the field that we want value (default '')
-    * @param $default_value            value to return (default -2)
+    * @param $default_value   integer  value to return (default -2)
     **/
    static function getUsedConfig($fieldref, $entities_id, $fieldval='', $default_value=-2) {
 
@@ -156,67 +153,4 @@ class PluginFormcreatorEntityconfig extends CommonDBTM {
        */
       return $default_value;
    }
-
-   /**
-    * Database table installation for the item type
-    *
-    * @param Migration $migration
-    * @return boolean True on success
-    */
-   public static function install(Migration $migration)
-   {
-      global $DB;
-
-      $table = self::getTable();
-
-      if (!TableExists($table)) {
-         $migration->displayMessage("Installing $table");
-
-         // Create Forms table
-         $query = "CREATE TABLE IF NOT EXISTS `$table` (
-                     `id` int(11) NOT NULL,
-                     `replace_helpdesk` int(11) NOT NULL DEFAULT '0',
-                     PRIMARY KEY (`id`)
-                  )
-                  ENGINE = MyISAM
-                  DEFAULT CHARACTER SET = utf8
-                  COLLATE = utf8_unicode_ci;";
-         $DB->query($query) or plugin_formcrerator_upgrade_error($migration);
-      } else {
-
-      }
-
-      $migration->displayMessage("Configuration of existing entities");
-      $query = "SELECT `id` FROM `glpi_entities`
-            WHERE `id` NOT IN (
-               SELECT `id` FROM `$table`
-            )";
-      $result = $DB->query($query) or plugin_formcrerator_upgrade_error($migration);
-      while ($row = $DB->fetch_assoc($result)) {
-         $entityConfig = new self();
-         $entityConfig->add([
-               'id'                 => $row['id'],
-               'replace_helpdesk'   => ($row['id'] == 0) ? 0 : self::CONFIG_PARENT
-         ]);
-      }
-   }
-
-   /**
-    * Database table uninstallation for the item type
-    *
-    * @return boolean True on success
-    */
-   public static function uninstall()
-   {
-      global $DB;
-
-      $table = self::getTable();
-      $DB->query("DROP TABLE IF EXISTS `$table`");
-
-      // Delete logs of the plugin
-      $DB->query("DELETE FROM `glpi_logs` WHERE itemtype = '".__CLASS__."'");
-
-      return true;
-   }
-
 }

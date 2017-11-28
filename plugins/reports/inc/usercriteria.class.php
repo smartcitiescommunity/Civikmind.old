@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: usercriteria.class.php 336 2017-01-20 16:59:36Z yllen $
+ * @version $Id: usercriteria.class.php 345 2017-10-23 17:33:07Z yllen $
  -------------------------------------------------------------------------
   LICENSE
 
@@ -49,11 +49,11 @@ class PluginReportsUserCriteria extends PluginReportsDropdownCriteria {
 
    public function displayDropdownCriteria() {
 
-      User::dropdown(array('name'     => $this->getName(),
-                           'value'    => $this->getParameterValue(),
-                           'right'    => 'all',
-                           'comments' => $this->getDisplayComments(),
-                           'entity'   => $this->getEntityRestrict()));
+      User::dropdown(['name'     => $this->getName(),
+                      'value'    => $this->getParameterValue(),
+                      'right'    => 'all',
+                      'comments' => $this->getDisplayComments(),
+                      'entity'   => $this->getEntityRestrict()]);
    }
 
 }

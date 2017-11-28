@@ -1,40 +1,41 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
- 
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
 * @brief
 * @since version 0.84
 */
+
+use Glpi\Event;
 
 include ('../inc/includes.php');
 
@@ -45,7 +46,7 @@ $rssfeed = new RSSFeed();
 Session::checkLoginUser();
 
 if (isset($_POST["add"])) {
-   $rssfeed->check(-1, CREATE,$_POST);
+   $rssfeed->check(-1, CREATE, $_POST);
 
    $newID = $rssfeed->add($_POST);
    Event::log($newID, "rssfeed", 4, "tools",
@@ -54,7 +55,7 @@ if (isset($_POST["add"])) {
    Html::redirect($CFG_GLPI["root_doc"]."/front/rssfeed.form.php?id=".$newID);
 
 } else if (isset($_POST["purge"])) {
-   $rssfeed->check($_POST["id"],PURGE);
+   $rssfeed->check($_POST["id"], PURGE);
    $rssfeed->delete($_POST, 1);
    Event::log($_POST["id"], "rssfeed", 4, "tools",
               //TRANS: %s is the user login
@@ -70,10 +71,10 @@ if (isset($_POST["add"])) {
               sprintf(__('%s updates an item'), $_SESSION["glpiname"]));
    Html::back();
 
-}  else if (isset($_POST["addvisibility"])) {
+} else if (isset($_POST["addvisibility"])) {
    if (isset($_POST["_type"]) && !empty($_POST["_type"])
        && isset($_POST["rssfeeds_id"]) && $_POST["rssfeeds_id"]) {
-      $item = NULL;
+      $item = null;
       switch ($_POST["_type"]) {
          case 'User' :
             if (isset($_POST['users_id']) && $_POST['users_id']) {
@@ -106,14 +107,14 @@ if (isset($_POST["add"])) {
    }
    Html::back();
 
-}  else {
+} else {
    if ($_SESSION["glpiactiveprofile"]["interface"] == "helpdesk") {
-      Html::helpHeader(RSSFeed::getTypeName(Session::getPluralNumber()),'',$_SESSION["glpiname"]);
+      Html::helpHeader(RSSFeed::getTypeName(Session::getPluralNumber()), '', $_SESSION["glpiname"]);
    } else {
-      Html::header(RSSFeed::getTypeName(Session::getPluralNumber()),'',"tools","rssfeed");
+      Html::header(RSSFeed::getTypeName(Session::getPluralNumber()), '', "tools", "rssfeed");
    }
 
-   $rssfeed->display(array('id' => $_GET["id"]));
+   $rssfeed->display(['id' => $_GET["id"]]);
 
    if ($_SESSION["glpiactiveprofile"]["interface"] == "helpdesk") {
       Html::helpFooter();
@@ -121,4 +122,3 @@ if (isset($_POST["add"])) {
       Html::footer();
    }
 }
-?>

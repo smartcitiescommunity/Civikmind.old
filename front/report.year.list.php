@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
- 
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -45,19 +44,19 @@ Report::title();
 
 $items = $CFG_GLPI["contract_types"];
 
-# Titre
+// Titre
 echo "<div class='center b spaced'><big>".__('Device list')."</big></div>";
 
-# Request All
+// Request All
 if ((isset($_POST["item_type"][0]) && ($_POST["item_type"][0] == '0'))
     || !isset($_POST["item_type"])) {
    $_POST["item_type"] = $items;
 }
 
 if (isset($_POST["item_type"]) && is_array($_POST["item_type"])) {
-   $query = array();
+   $query = [];
    foreach ($_POST["item_type"] as $key => $val) {
-      if (in_array($val,$items)) {
+      if (in_array($val, $items)) {
          $itemtable = getTableForItemType($val);
 
          $deleted_field       = "`$itemtable`.`is_deleted`";
@@ -103,7 +102,7 @@ if (isset($_POST["item_type"]) && is_array($_POST["item_type"])) {
                          LEFT JOIN `glpi_entities`
                                ON (`$itemtable`.`entities_id` = `glpi_entities`.`id`)
                          WHERE $template_condition ".
-                               getEntitiesRestrictRequest("AND",$itemtable);
+                               getEntitiesRestrictRequest("AND", $itemtable);
 
          if (isset($_POST["year"][0]) && ($_POST["year"][0] != 0)) {
             $query[$val] .= " AND ( ";
@@ -204,4 +203,3 @@ if (isset($query) && count($query)) {
 }
 
 Html::footer();
-?>

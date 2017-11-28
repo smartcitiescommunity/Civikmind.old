@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
-
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -41,10 +40,8 @@ define('GLPI_ROOT', realpath('..'));
 // Do not include config.php so set root_doc
 $CFG_GLPI['root_doc'] = '..';
 
-include_once (GLPI_ROOT . "/config/define.php");
 include_once (GLPI_ROOT . "/inc/autoload.function.php");
 include_once (GLPI_ROOT . "/inc/db.function.php");
-include_once (GLPI_ROOT . "/config/based_config.php");
 include_once (GLPI_CONFIG_DIR . "/config_db.php");
 
 Session::setPath();
@@ -85,7 +82,7 @@ function current_time() {
    list ($usec, $sec) = explode(" ", microtime());
    $TPSFIN = $sec;
 
-   if (round($TPSFIN-$TPSDEB,1)>=$TPSCOUR+1) {//une seconde de plus
+   if (round($TPSFIN-$TPSDEB, 1)>=$TPSCOUR+1) {//une seconde de plus
       $TPSCOUR = round($TPSFIN-$TPSDEB, 1);
    }
 }
@@ -126,7 +123,7 @@ function get_update_content($DB, $table, $from, $limit, $conv_utf8) {
                }
             }
 
-            $insert  = preg_replace("/,$/","",$insert);
+            $insert  = preg_replace("/,$/", "", $insert);
             $insert .=" WHERE `id` = '".$row["id"]."' ";
             $insert .= ";\n";
             $content .= $insert;
@@ -153,7 +150,7 @@ function UpdateContent($DB, $duree, $rowlimit, $conv_utf8, $complete_utf8) {
       $numtab++;
    }
 
-   for ( ; $offsettable<$numtab ; $offsettable++) {
+   for (; $offsettable<$numtab; $offsettable++) {
       // Dump de la structyre table
       if ($offsetrow==-1) {
          if ($complete_utf8) {
@@ -200,7 +197,7 @@ function UpdateContent($DB, $duree, $rowlimit, $conv_utf8, $complete_utf8) {
 
       current_time();
       if ($duree>0 && $TPSCOUR>=$duree) {//on atteint la fin du temps imparti
-         return TRUE;
+         return true;
       }
 
       $fin = 0;
@@ -222,7 +219,7 @@ function UpdateContent($DB, $duree, $rowlimit, $conv_utf8, $complete_utf8) {
             current_time();
 
             if ($duree>0 && $TPSCOUR>=$duree) {//on atteint la fin du temps imparti
-               return TRUE;
+               return true;
             }
 
          } else {
@@ -238,19 +235,19 @@ function UpdateContent($DB, $duree, $rowlimit, $conv_utf8, $complete_utf8) {
       current_time();
 
       if ($duree>0 && $TPSCOUR>=$duree) {//on atteint la fin du temps imparti
-         return TRUE;
+         return true;
       }
 
    }
 
    if ($DB->error()) {
       echo "<hr>";
-      printf(__("SQL error starting from %s"),"[$formattedQuery]");
+      printf(__("SQL error starting from %s"), "[$formattedQuery]");
       echo "<br>".$DB->error()."<hr>";
    }
 
    $offsettable = -1;
-   return TRUE;
+   return true;
 }
 
 //########################### Script start ################################
@@ -260,16 +257,12 @@ Session::loadLanguage();
 // Send UTF8 Headers
 header("Content-Type: text/html; charset=UTF-8");
 
-echo "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01 Transitional//EN'
-       'http://www.w3.org/TR/html4/loose.dtd'>";
-echo "<html>";
+echo "<!DOCTYPE html>";
+echo "<html lang='fr'>";
 echo "<head>";
-echo "<meta http-equiv='Content-Type' content='text/html; charset=utf-8'>";
+echo "<meta charset='utf-8'>";
 echo "<meta http-equiv='Content-Script-Type' content='text/javascript'>";
 echo "<meta http-equiv='Content-Style-Type' content='text/css'>";
-echo "<meta http-equiv='Content-Language' content='fr'>";
-echo "<meta name='generator' content=''>";
-echo "<meta name='DC.Language' content='fr' scheme='RFC1766'>";
 echo "<title>Setup GLPI</title>";
 // CSS
 echo "<link rel='stylesheet' href='../css/style_install.css' type='text/css' media='screen' >";
@@ -322,7 +315,7 @@ $tot = $DB->numrows($tab);
 
 if (isset($offsettable)) {
    if ($offsettable>=0) {
-      $percent = min(100,round(100*$offsettable/$tot,0));
+      $percent = min(100, round(100*$offsettable/$tot, 0));
    } else {
       $percent = 100;
    }
@@ -334,11 +327,11 @@ if (isset($offsettable)) {
 $conv_utf8     = false;
 $complete_utf8 = true;
 $config_table  = "glpi_config";
-if (TableExists("glpi_configs")) {
+if ($DB->tableExists("glpi_configs")) {
    $config_table = "glpi_configs";
 }
 
-if (!FieldExists($config_table,"utf8_conv", false)) {
+if (!$DB->fieldExists($config_table, "utf8_conv", false)) {
    $conv_utf8 = true;
 } else {
    $query = "SELECT `utf8_conv`
@@ -360,7 +353,7 @@ if ($offsettable>=0 && $complete_utf8) {
       Html::glpi_flush();
    }
 
-   if (UpdateContent($DB,$duree,$rowlimit,$conv_utf8,$complete_utf8)) {
+   if (UpdateContent($DB, $duree, $rowlimit, $conv_utf8, $complete_utf8)) {
       echo "<br><a href='update_content.php?dump=1&amp;duree=$duree&amp;rowlimit=".
                  "$rowlimit&amp;offsetrow=$offsetrow&amp;offsettable=$offsettable&amp;cpt=$cpt'>".
                  __('Automatic redirection, else click')."</a>";
@@ -390,4 +383,3 @@ if ($complete_utf8) {
                SET `utf8_conv` = '1'
                WHERE `id` = '1'");
 }
-?>

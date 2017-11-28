@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: config.form.php 204 2017-03-02 18:31:42Z yllen $
+ * @version $Id: config.form.php 217 2017-09-29 07:37:36Z orthagh $
  -------------------------------------------------------------------------
 
  LICENSE
@@ -46,4 +46,4 @@ if (isset($_POST["update"])) {
    Html::back();
 }
 Html::redirect($CFG_GLPI["root_doc"]."/front/config.form.php?forcetab=".
-             urlencode('PluginBehaviorsConfig$1'));
+               urlencode('PluginBehaviorsConfig$1'));

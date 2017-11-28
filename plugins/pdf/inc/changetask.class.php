@@ -45,21 +45,25 @@ class PluginPdfChangeTask extends PluginPdfCommon {
    static function pdfForChange(PluginPdfSimplePDF $pdf, Change $job) {
       global $CFG_GLPI, $DB;
 
+      $dbu = new DbUtils();
+
       $ID = $job->getField('id');
 
-      $query = "SELECT *
-                FROM `glpi_changetasks`
-                WHERE `changes_id` = '$ID'
-                ORDER BY `date` DESC";
-      $result = $DB->query($query);
+      $result = $DB->request(['FROM'   => 'glpi_changetasks',
+                              'WHERE'  => ['changes_id' => $ID],
+                              'ORDER'  => 'date DESC']);
 
-      if (!$DB->numrows($result)) {
-         $pdf->displayLine(__('No task found.'));
+      $number = count($result);
+
+      $pdf->setColumnsSize(100);
+      $title = "<b>".ChangeTask::getTypeName(2)."</b>";
+      if (!number) {
+         $pdf->displayTitle(sprintf(__('%1$s: %2$s'), $title, __('No item to display')));
       } else {
-         $pdf->setColumnsSize(100);
-         $pdf->displayTitle("<b>".ChangeTask::getTypeName($DB->numrows($result))."</b>");
+         $title = sprintf(__('%1$s: %2$s'), $title, $number);
+         $pdf->displayTitle($title);
 
-         while ($data=$DB->fetch_array($result)) {
+         while ($data = $result->next()) {
             $pdf->setColumnsSize(20,20,20,20,20);
             $pdf->displayTitle("<i>".__('Type'), __('Date'), __('Duration'), __('Writer'),
                                      __('Planning')."</i>");
@@ -80,7 +84,7 @@ class PluginPdfChangeTask extends PluginPdfCommon {
                $planification .= "<br>".sprintf(__('%1$s: %2$s'), __('End'),
                                                 Html::convDateTime($data["end"]));
                $planification .= "<br>".sprintf(__('%1$s: %2$s'), __('By'),
-                                                getUserName($data["users_id_tech"]));
+                                                $dbu->getUserName($data["users_id_tech"]));
                            }
 
             if ($data['taskcategories_id']) {
@@ -92,7 +96,7 @@ class PluginPdfChangeTask extends PluginPdfCommon {
             $pdf->displayLine("</b>".Html::clean($lib),
                               Html::convDateTime($data["date"]),
                               Html::timestampToString($data["actiontime"], 0),
-                              Html::clean(getUserName($data["users_id"])),
+                              Html::clean($dbu->getUserName($data["users_id"])),
                               Html::clean($planification),1);
             $pdf->displayText("<b><i>".sprintf(__('%1$s: %2$s')."</i></b>", __('Description'), ''),
                                                Html::clean($data["content"]), 1);

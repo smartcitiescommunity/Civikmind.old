@@ -1,40 +1,39 @@
 <?php
 
 
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
- 
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
-* @brief 
+* @brief
 */
 
 /// Update from 0.72.2 to 0.72.3
@@ -47,15 +46,15 @@ function update0722to0723() {
    displayMigrationMessage("0723"); // Start
 
    //// Correct search.constant numbers : problem in previous update
-   $updates = array();
+   $updates = [];
    // serial / otherserial
-   $updates[] = array('type'  => STATE_TYPE,
+   $updates[] = ['type'  => STATE_TYPE,
                       'from'  => 9,
-                      'to'    => 6);
+                      'to'    => 6];
 
-   $updates[] = array('type'  => STATE_TYPE,
+   $updates[] = ['type'  => STATE_TYPE,
                       'from'  => 8,
-                      'to'    => 5);
+                      'to'    => 5];
 
    foreach ($updates as $data) {
       $query = "UPDATE `glpi_display`
@@ -65,7 +64,7 @@ function update0722to0723() {
       $DB->queryOrDie($query, "0.72.3 reorder search.constant");
    }
 
-   $LINK_ID_TABLE = array(1  => "glpi_computers",
+   $LINK_ID_TABLE = [1  => "glpi_computers",
                           2  => "glpi_networking",
                           3  => "glpi_printers",
                           4  => "glpi_monitors",
@@ -100,8 +99,7 @@ function update0722to0723() {
                           39 => "glpi_softwareversions",
                           41 => "glpi_computerdisks",
                           42 => "glpi_networking_ports",
-                          43 => "glpi_followups");
-
+                          43 => "glpi_followups"];
 
    $query = "SELECT DISTINCT `device_type`
              FROM `glpi_doc_device`";
@@ -122,8 +120,7 @@ function update0722to0723() {
       }
    }
 
-
-   if (FieldExists("glpi_auth_ldap", "ldap_group_condition", false)) {
+   if ($DB->fieldExists("glpi_auth_ldap", "ldap_group_condition", false)) {
       $query = "ALTER TABLE `glpi_auth_ldap`
                 CHANGE `ldap_group_condition` `ldap_group_condition` TEXT NULL DEFAULT NULL";
       $DB->queryOrDie($query, "0.72.3 alter ldap_group_condition in glpi_auth_ldap");
@@ -132,4 +129,3 @@ function update0722to0723() {
    // Display "Work ended." message - Keep this as the last action.
    displayMigrationMessage("0723"); // End
 } // fin 0.72.3
-?>

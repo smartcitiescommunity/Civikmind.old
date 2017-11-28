@@ -1,7 +1,7 @@
 <?php
 
 include ("../../../../inc/includes.php");
-include ("../../../../config/config.php");
+include ("../../../../inc/config.php");
 include "../inc/functions.php";
 
 Session::checkLoginUser();
@@ -111,7 +111,7 @@ function conta1($asset,$sel_ent) {
 	
 	else {
 		return "0";
-	    }	
+	}	
 }	
 
 //all assets - global
@@ -243,7 +243,7 @@ foreach($arr_assets as $asset) {
 	      			background-size: 70px 70px; background-position: center; background-color: ffffff; cursor:pointer;' onclick=showDiv('cart')></div> </td>
 	      			
 	      			<td style='width:100px; text-align:center;'><div id='asset_img' style='background: url(../img/consumables.jpg) repeat-x; 
-	      			background-size: 70px 70px; background-position: center; background-color: ffffff;'></div> </td>
+	      			background-size: 70px 70px; background-position: center; background-color: ffffff; cursor:pointer;' onclick=showDiv('consum')></div> </td>
 	              
 	              <td style='width:100px; text-align:center;'><div id='asset_img' style='background: url(../img/global.jpg) repeat-x; 
 	      			background-size: 70px 70px; background-position: center; background-color: ffffff; cursor:pointer;' onclick=showDiv('global')></div> </td>              
@@ -274,10 +274,10 @@ foreach($arr_assets as $asset) {
 	            	'._n('Software','Softwares',2).'<br>'. conta(softwares,$sel_ent) .'</a></td>
 	            	
 	            	<td> <a href="assets.php#" onclick=showDiv(\'cart\') style="color: #fff;">
-	            	'._n('Cartridge','Cartridges',2).'<br>'. conta1(cartridges,$sel_ent) .'</a></td>
+	            	'._n('Cartridge','Cartridges',2).'<br>'. conta1(cartridgeitems,$sel_ent) .'</a></td>
 	            	
 	            	<td> <a href="assets.php#" onclick=showDiv(\'consum\') style="color: #fff;">
-	            	'._n('Consumable','Consumables',2).'<br>'. conta1(consumables,$sel_ent) .' </td>
+	            	'._n('Consumable','Consumables',2).'<br>'. conta1(consumableitems,$sel_ent) .' </td>
 	            	
 	            	<td> <a href="assets.php#" onclick=showDiv(\'global\') style="color: #fff;">
 	            	'.__('Global').'<br>'. $global .' </a></td> ';

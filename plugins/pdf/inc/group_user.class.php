@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: group_user.class.php 476 2017-01-09 15:53:05Z yllen $
+ * @version $Id: group_user.class.php 498 2017-11-03 13:33:40Z yllen $
  -------------------------------------------------------------------------
  LICENSE
 
@@ -45,55 +45,60 @@ class PluginPdfGroup_User extends PluginPdfCommon {
    static function pdfForGroup(PluginPdfSimplePDF $pdf, Group $group, $tree) {
       global $DB,$CFG_GLPI;
 
-      $used        = array();
-      $ids         = array();
+      $dbu  = new DbUtils();
+      $used = [];
+      $ids  = [];
 
       // Retrieve member list
       $entityrestrict = Group_User::getDataForGroup($group, $used, $ids, '', $tree);
 
-      $title  = "<b>".sprintf(__('%1$s (%2$s)'), _n('User', 'Users', 2)."</b>",
-                              __('D=Dynamic'));
       $number = count($used);
-      if ($number > $_SESSION['glpilist_limit']) {
-         $title = sprintf(__('%1$s (%2$s)'), $title, $_SESSION['glpilist_limit']."/".$number);
-      } else {
-         $title = sprintf(__('%1$s (%2$s)'), $title, $number);
-      }
-      $pdf->setColumnsSize(100);
-      $pdf->displayTitle($title);
 
-      if ($number) {
+      $pdf->setColumnsSize(100);
+      $title = '<b>'._n('User', 'Users', 2).'</b>';
+
+      if (!$number) {
+         $pdf->displayTitle(sprintf(__('%1$s: %2$s'), $title, __('No item to display')));
+      } else {
+         if ($number > $_SESSION['glpilist_limit']) {
+            $title = sprintf(__('%1$s (%2$s)'), $title, $_SESSION['glpilist_limit']."/".$number);
+         } else {
+            $title = sprintf(__('%1$s: %2$s'), $title, $number);
+         }
+         $pdf->displayTitle($title);
+
          $user  = new User();
          $group = new Group();
 
          if ($tree) {
-            $pdf->setColumnsSize(35,45,10,10);
-            $pdf->displayTitle(User::getTypeName(1), Group::getTypeName(1), __('Manager'),
-                               __('Delegatee'));
+            $pdf->setColumnsSize(35,25,10,10,10,10);
+            $pdf->displayTitle(User::getTypeName(1), Group::getTypeName(1), __('Dynamic'),
+                               __('Manager'), __('Delegatee'), __('Active'));
          } else {
-            $pdf->setColumnsSize(60,20,20);
-            $pdf->displayTitle(User::getTypeName(1), __('Manager'), __('Delegatee'));
+            $pdf->setColumnsSize(40,15,15,15,15);
+            $pdf->displayTitle(User::getTypeName(1), __('Dynamic'),__('Manager'), __('Delegatee'),
+                                __('Active'));
          }
 
+         $user = new User();
          for ($i=0 ; $i<$number && $i<$_SESSION['glpilist_limit'] ; $i++) {
             $data = $used[$i];
-            $name = Html::clean(getUserName($data["id"]));
-            if ($data["is_dynamic"]) {
-               $name = sprintf(__('%1$s (%2$s)'), $name, '<b>'.__('D').'</b>');
-            }
+            $user->getFromDB($data["id"]);
+            $name = Html::clean($dbu->getUserName($data["id"]));
 
             if ($tree) {
                $group->getFromDB($data["groups_id"]);
-               $pdf->displayLine($name, $group->getName(), Dropdown::getYesNo($data['is_manager']),
-                                 Dropdown::getYesNo($data['is_userdelegate']));
+               $pdf->displayLine($name, $group->getName(), Dropdown::getYesNo($data['is_dynamic']),
+                                 Dropdown::getYesNo($data['is_manager']),
+                                 Dropdown::getYesNo($data['is_userdelegate']),
+                                 Dropdown::getYesNo($user->fields['is_active']));
             } else {
-                $pdf->displayLine($name, Dropdown::getYesNo($data['is_manager']),
-                                  Dropdown::getYesNo($data['is_userdelegate']));
+               $pdf->displayLine($name, Dropdown::getYesNo($data['is_dynamic']),
+                                 Dropdown::getYesNo($data['is_manager']),
+                                 Dropdown::getYesNo($data['is_userdelegate']),
+                                 Dropdown::getYesNo($user->fields['is_active']));
             }
          }
-      } else {
-         $pdf->setColumnsAlign('center');
-         $pdf->displayLine(__('No item found'));
       }
       $pdf->displaySpace();
   }

@@ -29,7 +29,7 @@
 
 include('../../../inc/includes.php');
 
-Session::checkRight("plugin_ocsinventoryng", UPDATE);
+Session::checkRight("plugin_ocsinventoryng_sync", READ);
 
 Html::header('OCS Inventory NG', '', "tools", "pluginocsinventoryngmenu", "sync");
 
@@ -62,7 +62,7 @@ if (isset($_SESSION["ocs_update"]['computers'])) {
          PluginOcsinventoryngOcsServer::showStatistics($_SESSION["ocs_update"]['statistics'], true);
       } else {
          echo "<div class='center b red'>";
-         _e('No synchronization: the plugin will not synchronize these elements', 'ocsinventoryng');
+         echo __('No synchronization: the plugin will not synchronize these elements', 'ocsinventoryng');
          echo "</div>";
       }
 

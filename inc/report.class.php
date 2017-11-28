@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
- 
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -59,7 +58,7 @@ class Report extends CommonGLPI{
    }
 
 
-   static function getTypeName($nb=0) {
+   static function getTypeName($nb = 0) {
       return _n('Report', 'Reports', $nb);
    }
 
@@ -122,27 +121,26 @@ class Report extends CommonGLPI{
 
       $count    = count($report_list);
       $selected = -1;
-      $values   = array($CFG_GLPI["root_doc"].'/front/report.php' => Dropdown::EMPTY_VALUE);
+      $values   = [$CFG_GLPI["root_doc"].'/front/report.php' => Dropdown::EMPTY_VALUE];
 
-      while ($data = each($report_list)) {
-         $val           = $data[0];
-         $name          = $report_list["$val"]["name"];
-         $file          = $report_list["$val"]["file"];
+      foreach ($report_list as $val => $data) {
+         $name          = $data['name'];
+         $file          = $data['file'];
          $key           = $CFG_GLPI["root_doc"]."/front/".$file;
          $values[$key]  = $name;
-         if (stripos($_SERVER['REQUEST_URI'],$key) !== false) {
+         if (stripos($_SERVER['REQUEST_URI'], $key) !== false) {
             $selected = $key;
          }
       }
 
-      $names    = array();
-      $optgroup = array();
+      $names    = [];
+      $optgroup = [];
       if (isset($PLUGIN_HOOKS["reports"]) && is_array($PLUGIN_HOOKS["reports"])) {
          foreach ($PLUGIN_HOOKS["reports"] as $plug => $pages) {
             if (is_array($pages) && count($pages)) {
                foreach ($pages as $page => $name) {
-                  $names[$plug.'/'.$page] = array("name" => $name,
-                                                  "plug" => $plug);
+                  $names[$plug.'/'.$page] = ["name" => $name,
+                                                  "plug" => $plug];
                   $optgroup[$plug] = Plugin::getInfo($plug, 'name');
                }
             }
@@ -153,19 +151,19 @@ class Report extends CommonGLPI{
       foreach ($optgroup as $opt => $title) {
          $group = $title;
          foreach ($names as $key => $val) {
-             if ($opt == $val["plug"]) {
+            if ($opt == $val["plug"]) {
                $file                  = $CFG_GLPI["root_doc"]."/plugins/".$key;
                $values[$group][$file] = $val["name"];
-               if (stripos($_SERVER['REQUEST_URI'],$file) !== false) {
+               if (stripos($_SERVER['REQUEST_URI'], $file) !== false) {
                   $selected = $file;
                }
-             }
+            }
          }
       }
 
       Dropdown::showFromArray('statmenu', $values,
-                              array('on_change' => "window.location.href=this.options[this.selectedIndex].value",
-                                    'value'     => $selected));
+                              ['on_change' => "window.location.href=this.options[this.selectedIndex].value",
+                                    'value'     => $selected]);
       echo "</td>";
       echo "</tr>";
       echo "</table>";
@@ -180,14 +178,14 @@ class Report extends CommonGLPI{
    static function showDefaultReport() {
       global $DB;
 
-      # Title
+      // Title
       echo "<span class='big b'>GLPI ".Report::getTypeName(Session::getPluralNumber())."</span><br><br>";
 
-      # 1. Get counts of itemtype
-      $items     = array('Computer', 'Monitor', 'NetworkEquipment', 'Peripheral', 'Phone',
-                         'Printer', 'Software');
+      // 1. Get counts of itemtype
+      $items     = ['Computer', 'Monitor', 'NetworkEquipment', 'Peripheral', 'Phone',
+                         'Printer', 'Software'];
 
-      $linkitems = array('Monitor', 'Peripheral', 'Phone', 'Printer');
+      $linkitems = ['Monitor', 'Peripheral', 'Phone', 'Printer'];
 
       echo "<table class='tab_cadrehov'>";
 
@@ -207,9 +205,9 @@ class Report extends CommonGLPI{
                    FROM `".$table_item."`
                    $join
                    $where ".
-                         getEntitiesRestrictRequest("AND",$table_item);
+                         getEntitiesRestrictRequest("AND", $table_item);
          $result = $DB->query($query);
-         $number = $DB->result($result,0,0);
+         $number = $DB->result($result, 0, 0);
 
          echo "<tr class='tab_bg_2'><td>".$itemtype::getTypeName(Session::getPluralNumber())."</td>";
          echo "<td class='numeric'>$number</td></tr>";
@@ -217,18 +215,15 @@ class Report extends CommonGLPI{
 
       echo "<tr class='tab_bg_1'><td colspan='2' class='b'>".__('Operating system')."</td></tr>";
 
+      // 2. Get some more number data (operating systems per computer)
 
-      # 2. Get some more number data (operating systems per computer)
-
-      $where = "WHERE `is_deleted` = '0'
-                      AND `is_template` = '0' ";
+      $where = "WHERE `is_deleted` = '0' ";
 
       $query = "SELECT COUNT(*) AS count, `glpi_operatingsystems`.`name` AS name
-                FROM `glpi_computers`
+                FROM `glpi_items_operatingsystems`
                 LEFT JOIN `glpi_operatingsystems`
-                   ON (`glpi_computers`.`operatingsystems_id` = `glpi_operatingsystems`.`id`)
-                $where ".
-                        getEntitiesRestrictRequest("AND","glpi_computers")."
+                   ON (`glpi_items_operatingsystems`.`operatingsystems_id` = `glpi_operatingsystems`.`id`)
+                $where
                 GROUP BY `glpi_operatingsystems`.`name`";
       $result = $DB->query($query);
 
@@ -240,7 +235,7 @@ class Report extends CommonGLPI{
          echo "<td class='numeric'>".$data['count']."</td></tr>";
       }
 
-      # Get counts of types
+      // Get counts of types
 
       $val   = array_flip($items);
       unset($val["Software"]);
@@ -271,7 +266,7 @@ class Report extends CommonGLPI{
                          ON (`".$table_item."`.`".$typefield."` = `".$type_table."`.`id`)
                    $join
                    $where ".
-                          getEntitiesRestrictRequest("AND",$table_item)."
+                          getEntitiesRestrictRequest("AND", $table_item)."
                    GROUP BY `".$type_table."`.`name`";
          $result = $DB->query($query);
 
@@ -298,7 +293,7 @@ class Report extends CommonGLPI{
     * @param $extra                 (default '')
    **/
    static function reportForNetworkInformations($networkport_prefix, $networkport_crit,
-                                                $where_crit, $order='', $field='', $extra='') {
+                                                $where_crit, $order = '', $field = '', $extra = '') {
       global $DB;
 
       // This SQL request matches the NetworkPort, then its NetworkName and IPAddreses. It also
@@ -385,10 +380,10 @@ class Report extends CommonGLPI{
 
             // To ensure that the NetworkEquipment remain the first item, we test its type
             if ($line['itemtype_2'] == 'NetworkEquipment') {
-              $idx = 2;
-           } else {
-              $idx = 1;
-           }
+               $idx = 2;
+            } else {
+               $idx = 1;
+            }
 
             if (!empty($extra)) {
                echo "<td>".(empty($line['extra']) ? NOT_AVAILABLE : $line['extra'])."</td>";
@@ -449,11 +444,10 @@ class Report extends CommonGLPI{
     *
     * @see commonDBTM::getRights()
    **/
-   function getRights($interface='central') {
+   function getRights($interface = 'central') {
 
-      $values = array( READ => __('Read'));
+      $values = [ READ => __('Read')];
       return $values;
    }
 
 }
-?>

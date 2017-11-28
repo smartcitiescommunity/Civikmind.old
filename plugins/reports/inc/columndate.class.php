@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: columndate.class.php 336 2017-01-20 16:59:36Z yllen $
+ * @version $Id: columndate.class.php 345 2017-10-23 17:33:07Z yllen $
  -------------------------------------------------------------------------
    LICENSE
 
@@ -35,7 +35,7 @@
  */
 class PluginReportsColumnDate extends PluginReportsColumn {
 
-   function __construct($name, $title, $options=array()) {
+   function __construct($name, $title, $options=[]) {
 
       if (!isset($options['extrafine'])) {
          $options['extrafine'] =  "class='center'";

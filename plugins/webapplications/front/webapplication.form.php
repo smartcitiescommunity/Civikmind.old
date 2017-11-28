@@ -27,7 +27,7 @@
  --------------------------------------------------------------------------
  */
 
-include ('../../../inc/includes.php');
+include('../../../inc/includes.php');
 
 if (!isset($_GET["id"])) {
    $_GET["id"] = "";
@@ -40,37 +40,37 @@ $web      = new PluginWebapplicationsWebapplication();
 $web_item = new PluginWebapplicationsWebapplication_Item();
 
 if (isset($_POST["add"])) {
-   $web->check(-1,CREATE,$_POST);
-   $newID= $web->add($_POST);
+   $web->check(-1, CREATE, $_POST);
+   $newID = $web->add($_POST);
    if ($_SESSION['glpibackcreated']) {
-      Html::redirect($web->getFormURL()."?id=".$newID);
+      Html::redirect($web->getFormURL() . "?id=" . $newID);
    }
    Html::back();
 
 } else if (isset($_POST["delete"])) {
-   $web->check($_POST['id'],DELETE);
+   $web->check($_POST['id'], DELETE);
    $web->delete($_POST);
    $web->redirectToList();
 
 } else if (isset($_POST["restore"])) {
-   $web->check($_POST['id'],PURGE);
+   $web->check($_POST['id'], PURGE);
    $web->restore($_POST);
    $web->redirectToList();
 
 } else if (isset($_POST["purge"])) {
-   $web->check($_POST['id'],PURGE);
-   $web->delete($_POST,1);
+   $web->check($_POST['id'], PURGE);
+   $web->delete($_POST, 1);
    $web->redirectToList();
 
 } else if (isset($_POST["update"])) {
-   $web->check($_POST['id'],UPDATE);
+   $web->check($_POST['id'], UPDATE);
    $web->update($_POST);
    Html::back();
 
 } else if (isset($_POST["additem"])) {
-   
-   if (!empty($_POST['itemtype'])&&$_POST['items_id']>0) {
-       $web_item->check(-1,UPDATE,$_POST);
+
+   if (!empty($_POST['itemtype']) && $_POST['items_id'] > 0) {
+      $web_item->check(-1, UPDATE, $_POST);
       $web_item->addItem($_POST);
    }
    Html::back();
@@ -85,7 +85,7 @@ if (isset($_POST["add"])) {
    }
    Html::back();
 
-//unlink webapplications to items of glpi from the items form
+   //unlink webapplications to items of glpi from the items form
 } else if (isset($_POST["deletewebapplications"])) {
    $input = array('id' => $_POST["id"]);
    $web_item->check($_POST["id"], UPDATE);
@@ -99,14 +99,12 @@ if (isset($_POST["add"])) {
    $plugin = new Plugin();
    if ($plugin->isActivated("environment")) {
       Html::header(PluginWebapplicationsWebapplication::getTypeName(2),
-                     '',"assets","pluginenvironmentdisplay","webapplications");
+                   '', "assets", "pluginenvironmentdisplay", "webapplications");
    } else {
-      Html::header(PluginWebapplicationsWebapplication::getTypeName(2), '', "assets","pluginwebapplicationsmenu");
+      Html::header(PluginWebapplicationsWebapplication::getTypeName(2), '', "assets", "pluginwebapplicationsmenu");
    }
    //load webapplications form
    $web->display($_GET);
 
    Html::footer();
 }
-
-?>

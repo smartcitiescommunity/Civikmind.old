@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: printer.class.php 204 2017-03-02 18:31:42Z yllen $
+ * @version $Id: printer.class.php 234 2017-10-18 12:40:59Z yllen $
  -------------------------------------------------------------------------
 
  LICENSE
@@ -38,7 +38,6 @@ class PluginBehaviorsPrinter extends PluginBehaviorsCommon {
    static function afterAdd(Printer $printer) {
       // Toolbox::logDebug("PluginBehaviorsPrinter::afterAdd(), Printer=", $printer);
    }
-
 
    static function afterUpdate(Printer $printer) {
       // Toolbox::logDebug("PluginBehaviorsPrinter::afterUpdate(), Printer=", $printer);

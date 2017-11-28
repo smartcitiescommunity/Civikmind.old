@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: dateintervalcriteria.class.php 336 2017-01-20 16:59:36Z yllen $
+ * @version $Id: dateintervalcriteria.class.php 345 2017-10-23 17:33:07Z yllen $
  -------------------------------------------------------------------------
   LICENSE
 
@@ -92,7 +92,8 @@ class PluginReportsDateIntervalCriteria extends PluginReportsAutoCriteria {
       $this->getReport()->endColumn();
 
       $this->getReport()->startColumn();
-      Html::showDateFormItem($this->getName()."_1", $this->getStartDate(), false);
+      Html::showDateField($this->getName()."_1", ['value'      => $this->getStartDate(),
+                                                  'maybeempty' => false]);
       $this->getReport()->endColumn();
 
       $this->getReport()->startColumn();
@@ -103,7 +104,8 @@ class PluginReportsDateIntervalCriteria extends PluginReportsAutoCriteria {
       $this->getReport()->endColumn();
 
       $this->getReport()->startColumn();
-      Html::showDateFormItem($this->getName()."_2", $this->getEndDate(), false);
+      Html::showDateField($this->getName()."_2", ['value'      => $this->getEndDate(),
+                                                  'maybeempty' => false]);
       $this->getReport()->endColumn();
    }
 

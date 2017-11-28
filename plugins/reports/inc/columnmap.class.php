@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: columnmap.class.php 336 2017-01-20 16:59:36Z yllen $
+ * @version $Id: columnmap.class.php 345 2017-10-23 17:33:07Z yllen $
  -------------------------------------------------------------------------
   LICENSE
 
@@ -38,7 +38,7 @@ class PluginReportsColumnMap extends PluginReportsColumn {
    private $map;
 
 
-   function __construct($name, $title, $map=array(), $options=array()) {
+   function __construct($name, $title, $map=[], $options=[]) {
 
       parent::__construct($name, $title, $options);
 
@@ -63,7 +63,7 @@ class PluginReportsColumnMap extends PluginReportsColumn {
                break;
 
             default:
-               $this->map = array();
+               $this->map = [];
          }
       }
    }

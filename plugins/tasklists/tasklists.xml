@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+   <name>Tasks List</name>
+   <key>tasklists</key>
+   <state>stable</state>
+   <logo>https://raw.githubusercontent.com/InfotelGLPI/tasklists/master/tasklists.png</logo>
+   <description>
+      <short>
+         <fr><![CDATA[Ajout d'une gestion de tâches simples. Ce plugin permet d'ajouter dans GLPI, une interface pour saisir des tâches simples.]]></fr>
+         <en><![CDATA[Adding a management of simple tasks. This plugin adds in GLPI, an interface to input simple tasks.]]></en>
+      </short>
+      <long>
+         <fr><![CDATA[Ce plugin permet d'ajouter dans GLPI, une interface pour saisir des tâches simples.<br />- Ajout de notes possibles sur les tâches.<br />- Peut être utilisé avec le collecteur de mail pour créer des tâches.<br />- Peut être utilisé avec le plugin mydashboard d'Infotel.]]></fr>
+         <en><![CDATA[This plugin adds in GLPI, an interface to input simple tasks.<br />- Can add notes on tasks.<br />- Can be used with mail collector to create tasks.<br />- Can be used with mydashboard plugin of Infotel]]></en>
+      </long>
+   </description>
+   <homepage>https://github.com/InfotelGLPI/tasklists</homepage>
+   <download>https://github.com/InfotelGLPI/tasklists/releases</download>
+   <issues>https://github.com/InfotelGLPI/tasklists/issues</issues>
+   <readme>https://raw.githubusercontent.com/InfotelGLPI/tasklists/master/README.md</readme>
+   <authors>
+      <author>Xavier Caillaud</author>
+      <author>Infotel</author>
+   </authors>
+   <versions>
+      <version>
+         <num>1.2.0</num>
+         <compatibility>9.2</compatibility>
+      </version>
+      <version>
+          <num>1.1.0</num>
+          <compatibility>9.1</compatibility>
+      </version>
+      <version>
+          <num>1.0.0</num>
+          <compatibility>0.90</compatibility>
+      </version>
+   </versions>
+   <langs>
+      <lang>fr_FR</lang>
+      <lang>en_GB</lang>
+   </langs>
+   <license><![CDATA[GPL v2+]]></license>
+   <tags>
+         <fr>
+            <tag>Taches</tag>
+         </fr>
+         <en>
+            <tag>Tasks</tag>
+         </en>
+   </tags>
+   <screenshots>
+      <screenshot>https://raw.githubusercontent.com/InfotelGLPI/tasklists/master/screenshots/addTask.png</screenshot>
+      <screenshot>https://raw.githubusercontent.com/InfotelGLPI/tasklists/master/screenshots/Tasks%20list%20from%20Dashboard.png</screenshot>
+   </screenshots>
+</root>

@@ -1,3 +1,33 @@
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
+ */
 .ui-dialog { z-index: 1000 !important ;}
 .ui-widget-overlay.glpi_modal { z-index: 2000 !important ;}
 .glpi_modal { z-index: 5000 !important ;}
@@ -96,14 +126,20 @@ html .ui-autocomplete {
    height: 100px;
 }
 
-.loadingindicator {
+.ui-widget-content .error {
    -moz-border-radius: 10px;
    -webkit-border-radius: 10px;
    -o-border-radius: 10px;
-   border: 1px solid  #CC9900;
-   background: url("../pics/fd_hoverlink.png") 0 0 repeat;
+   border-radius: 10px;
    max-width: 350px;
    margin : auto;
+   border-width: 1px;
+   border-style: solid;
+   padding: .2em;
+}
+
+.ui-widget-content .error {
+   border-color: red;
 }
 
 /* SELECT2 */
@@ -153,21 +189,6 @@ html .ui-autocomplete {
    margin:auto;
 }
 
-#BackToTop {
-   display:none;
-   padding: 5px;
-   width: 17px;
-   height: 17px;
-   border-radius: 50%;
-   text-align: center;
-   font: bold 18px Arial, Helvetica;
-   position:fixed;
-   bottom:35px;
-   right:10px;
-   z-index:9000;
-   cursor: pointer;
-}
-
 input.submit {
    font-size : 12px;
 }
@@ -188,4 +209,13 @@ input.submit {
 
 .fn-gantt .ganttMilestone {
     background-color: #000000;
+}
+
+/** select2 disabled **/
+.select2-container.select2-container-disabled .select2-choice,
+.select2-container.select2-container-disabled .select2-choice .select2-arrow {
+   background-color: #f4f4f4 !important;
+}
+.select2-container.select2-container-disabled .select2-choice {
+   border: 1px solid #ddd !important;
 }

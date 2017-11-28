@@ -1,15 +1,14 @@
 <?php
 /*
- * @version $Id$
  -------------------------------------------------------------------------
  GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
+ Copyright (C) 2015-2017 Teclib'.
 
  http://glpi-project.org
 
  based on GLPI - Gestionnaire Libre de Parc Informatique
  Copyright (C) 2003-2014 by the INDEPNET Development Team.
- 
+
  -------------------------------------------------------------------------
 
  LICENSE
@@ -31,21 +30,13 @@
  --------------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 include ('../inc/includes.php');
 
-Session::checkRightsOr('device', array(CREATE, UPDATE, PURGE));
+if (!isset($_GET['itemtype']) || !class_exists($_GET['itemtype'])) {
+   throw new \RuntimeException(
+      'Missing or incorrect device type called!'
+   );
+}
 
-Html::header(_n('Component', 'Components', 2), $_SERVER['PHP_SELF'], "config", "commondevice");
-echo "<div class='center'>";
-
-$optgroup = Dropdown::getDeviceItemTypes();
-Dropdown::showItemTypeMenu(_n('Component', 'Components', 2), $optgroup);
-Dropdown::showItemTypeList($optgroup);
-
-echo "</div>";
-Html::footer();
-?>
+$dropdown = new $_GET['itemtype'];
+include (GLPI_ROOT . "/front/dropdown.common.php");

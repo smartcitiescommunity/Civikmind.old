@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: document.class.php 476 2017-01-09 15:53:05Z yllen $
+ * @version $Id: document.class.php 498 2017-11-03 13:33:40Z yllen $
  -------------------------------------------------------------------------
  LICENSE
 
@@ -47,51 +47,53 @@ class PluginPdfDocument extends PluginPdfCommon {
       $ID   = $item->getField('id');
       $type = get_class($item);
 
-      $query = "SELECT `glpi_documents_items`.`id` AS assocID,
-                       `glpi_documents_items`.`date_mod` AS assocdate,
-                       `glpi_documents`.*,
-                       `glpi_entities`.`id` AS entityID,
-                       `glpi_entities`.`completename` AS entity
-                FROM `glpi_documents_items`
-                LEFT JOIN `glpi_documents`
-                     ON (`glpi_documents_items`.`documents_id` = `glpi_documents`.`id`)
-                LEFT JOIN `glpi_entities` ON (`glpi_documents`.`entities_id`=`glpi_entities`.`id`)
-                WHERE `glpi_documents_items`.`items_id` = '".$ID."'
-                      AND `glpi_documents_items`.`itemtype` = '".$type."'";
+      $result = $DB->request(['SELECT'    => ['glpi_documents_items.id',
+                                              'glpi_documents_items.date_mod',
+                                              'glpi_documents.*', 'glpi_entities.id',
+                                              'completename'],
+                              'FROM'      => 'glpi_documents_items',
+                              'LEFT JOIN' => ['glpi_documents'
+                                                => ['FKEY' => ['glpi_documents_items' => 'documents_id',
+                                                               'glpi_documents'       => 'id']],
+                                              'glpi_entities'
+                                                => ['FKEY' => ['glpi_documents' => 'entities_id',
+                                                               'glpi_entities'  => 'id']]],
+                              'WHERE'     => ['items_id' => $ID,
+                                              'itemtype' => $type]], true);
 
-      $result = $DB->query($query);
-      $number = $DB->numrows($result);
+       $number = count($result);
 
       $pdf->setColumnsSize(100);
+      $title = '<b>'.__('Associated documents', 'pdf').'</b>';
       if (!$number) {
-         $pdf->displayTitle('<b>'.__('No associated documents', 'pdf').'</b>');
+         $pdf->displayTitle(sprintf(__('%1$s: %2$s'), $title, __('No item to display')));
       } else {
-         $pdf->displayTitle('<b>'.__('Associated documents', 'pdf').'</b>');
+         $title = sprintf(__('%1$s: %2$s'), $title, $number);
+         $pdf->displayTitle($title);
 
          if ($CFG_GLPI['use_rich_text']) {
-            $pdf->setColumnsSize(31,15,12,11,8,8,6,9);
+            $pdf->setColumnsSize(20,15,10,10,10,8,20,7);
             $pdf->displayTitle('<b>'.__('Name'), __('Entity'), __('File'), __('Web link'), __('Heading'),
-                  __('MIME type'), __('Tag'), __('Date').'</b>');
-            while ($data = $DB->fetch_assoc($result)) {
-               $pdf->displayLine($data["name"], $data['entity'], basename($data["filename"]), $data["link"],
-                     Dropdown::getDropdownName("glpi_documentcategories",
-                           $data["documentcategories_id"]),
-                     $data["mime"], !empty($data["tag"]) ? Document::getImageTag($data["tag"]) : '',
-                      Html::convDateTime($data["assocdate"]));
+                               __('MIME type'), __('Tag'), __('Date').'</b>');
+            while ($data = $result->next()) {
+               $pdf->displayLine($data["name"], $data['completename'], basename($data["filename"]),
+                                 $data["link"], Dropdown::getDropdownName("glpi_documentcategories",
+                                                                     $data["documentcategories_id"]),
+                                 $data["mime"],
+                                 !empty($data["tag"]) ? Document::getImageTag($data["tag"]) : '',
+                                 Html::convDateTime($data["date_mod"]));
             }
          } else {
-            $pdf->setColumnsSize(32,15,14,11,8,8,12);
+            $pdf->setColumnsSize(27,20,10,10,10,8,15);
             $pdf->displayTitle('<b>'.__('Name'), __('Entity'), __('File'), __('Web link'), __('Heading'),
                   __('MIME type'), __('Date').'</b>');
-            while ($data = $DB->fetch_assoc($result)) {
-               $pdf->displayLine($data["name"], $data['entity'], basename($data["filename"]), $data["link"],
-                     Dropdown::getDropdownName("glpi_documentcategories",
-                           $data["documentcategories_id"]),
-                     $data["mime"], Html::convDateTime($data["assocdate"]));
+            while ($data = $result->next()) {
+               $pdf->displayLine($data["name"], $data['completename'], basename($data["filename"]),
+                                 $data["link"], Dropdown::getDropdownName("glpi_documentcategories",
+                                                                          ["documentcategories_id"]),
+                                 $data["mime"], Html::convDateTime($data["date_mod"]));
             }
          }
-
-
       }
       $pdf->displaySpace();
    }

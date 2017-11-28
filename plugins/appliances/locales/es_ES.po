@@ -1,81 +1,77 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
-#, fuzzy
+# 
+# Translators:
+# Le Rohellec Benoit <blerohellec@hotmail.com>, 2017
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: GLPI Project - Plugin Appliance\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-03-11 16:05+0100\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"POT-Creation-Date: 2017-10-09 18:33+0200\n"
+"PO-Revision-Date: 2017-09-22 23:49+0000\n"
+"Last-Translator: Le Rohellec Benoit <blerohellec@hotmail.com>\n"
+"Language-Team: Spanish (Spain) (http://www.transifex.com/yllen/glpi-project-plugin-appliance/language/es_ES/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"Language: es_ES\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: hook.php:76 hook.php:242 hook.php:256 setup.php:105
-#: front/appliance.form.php:148 front/appliance.form.php:151
-#: front/appliance.php:35 front/appliance.php:38 inc/appliance.class.php:46
-#: inc/appliance.class.php:48 inc/appliance.class.php:93
-#: inc/appliance_item.class.php:530
+#: hook.php:83 hook.php:265 hook.php:278 inc/appliance.class.php:54
+#: inc/appliance.class.php:93 inc/appliance_item.class.php:600
+#: inc/menu.class.php:45 inc/profile.class.php:170
 msgid "Appliance"
 msgid_plural "Appliances"
 msgstr[0] "Aplicativo"
-msgstr[1] "Aplicativo"
+msgstr[1] "Aplicativos"
 
-#: hook.php:193 inc/appliancetype.class.php:39
+#: hook.php:212 inc/appliancetype.class.php:51
 msgid "Type of appliance"
 msgstr "Tipo de aplicativo"
 
-#: hook.php:194 inc/appliance.class.php:154 inc/appliance.class.php:275
-#: inc/appliance.class.php:394 inc/environment.class.php:39
+#: hook.php:213 inc/appliance.class.php:168 inc/appliance.class.php:314
+#: inc/appliance.class.php:429 inc/environment.class.php:49
 msgid "Environment"
 msgstr "Entorno"
 
-#: hook.php:352 inc/appliance_item.class.php:137
-msgid "Associate"
-msgstr "Asociar"
-
-#: hook.php:353
-msgid "Dissociate"
-msgstr "Disociar"
-
-#: hook.php:358
+#: hook.php:428
 msgid "Associate to appliance"
-msgstr "Asociado al aplicativo"
+msgstr "Asociar a un aplicativo"
 
-#: setup.php:146 inc/profile.class.php:95 inc/profile.class.php:152
+#: setup.php:119
 msgid "Appliances"
-msgstr "Aplicativo"
+msgstr "Aplicativos"
 
-#: inc/appliance.class.php:121 inc/appliance_item.class.php:341
-#: inc/appliance_item.class.php:479
+#: inc/appliance.class.php:125
 msgid "Associated items"
 msgstr "Elementos asociados"
 
-#: inc/appliance.class.php:324 inc/appliance_item.class.php:145
-#: inc/appliance_item.class.php:489 inc/relation.class.php:246
+#: inc/appliance.class.php:363 inc/appliance_item.class.php:175
+#: inc/appliance_item.class.php:563 inc/relation.class.php:249
 msgid "Item to link"
-msgstr "Item a vincular"
+msgstr "Elemento a vincular"
 
-#: inc/appliance_item.class.php:147 inc/appliance_item.class.php:489
-#: inc/optvalue.class.php:67 inc/optvalue.class.php:117
-#: inc/optvalue_item.class.php:150
+#: inc/appliance_item.class.php:60
+msgid "Appliance item"
+msgid_plural "Appliances items"
+msgstr[0] ""
+msgstr[1] ""
+
+#: inc/appliance_item.class.php:167
+msgid "Associate"
+msgstr "Asociar"
+
+#: inc/appliance_item.class.php:177 inc/appliance_item.class.php:563
+#: inc/optvalue.class.php:75 inc/optvalue.class.php:126
+#: inc/optvalue_item.class.php:145
 msgid "User fields"
 msgstr "Campos de usuario"
 
-#: inc/appliance_item.class.php:273
+#: inc/appliance_item.class.php:305
 msgid "Associated appliances"
 msgstr "Aplicativo(s) asociado(s)"
 
-#: inc/optvalue.class.php:92
+#: inc/optvalue.class.php:97
 msgid "Default"
 msgstr "Defecto"
-
-#: inc/profile.class.php:90
-msgid "Rights management"
-msgstr "Permisos de uso"

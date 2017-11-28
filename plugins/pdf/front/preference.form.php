@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: preference.form.php 476 2017-01-09 15:53:05Z yllen $
+ * @version $Id: preference.form.php 474 2017-01-09 13:34:07Z yllen $
  -------------------------------------------------------------------------
  LICENSE
 

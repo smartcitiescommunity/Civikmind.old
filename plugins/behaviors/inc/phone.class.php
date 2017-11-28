@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: phone.class.php 204 2017-03-02 18:31:42Z yllen $
+ * @version $Id: phone.class.php 234 2017-10-18 12:40:59Z yllen $
  -------------------------------------------------------------------------
 
  LICENSE
@@ -38,7 +38,6 @@ class PluginBehaviorsPhone extends PluginBehaviorsCommon {
    static function afterAdd(Phone $phone) {
       // Toolbox::logDebug("PluginBehaviorsPhone::afterAdd(), Phone=", $phone);
    }
-
 
    static function afterUpdate(Phone $phone) {
       // Toolbox::logDebug("PluginBehaviorsPhone::afterUpdate(), Phone=", $phone);

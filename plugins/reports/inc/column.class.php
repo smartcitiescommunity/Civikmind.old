@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: column.class.php 336 2017-01-20 16:59:36Z yllen $
+ * @version $Id: column.class.php 345 2017-10-23 17:33:07Z yllen $
  -------------------------------------------------------------------------
   LICENSE
 
@@ -49,7 +49,7 @@ class PluginReportsColumn {
    protected $withtotal;
 
 
-   function __construct($name, $title, $options=array()) {
+   function __construct($name, $title, $options=[]) {
 
       $this->name      = $name;
       $this->title     = $title;
@@ -85,7 +85,7 @@ class PluginReportsColumn {
       $link  = $_SERVER['PHP_SELF'];
       $first = true;
       foreach ($_REQUEST as $name => $value) {
-         if (!in_array($name,array('sort','order','PHPSESSID'))) {
+         if (!in_array($name, ['sort','order','PHPSESSID'])) {
             $link .= ($first ? '?' : '&amp;');
             $link .= $name .'='.urlencode($value);
             $first = false;

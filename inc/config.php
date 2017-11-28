@@ -45,8 +45,10 @@ include_once (GLPI_ROOT."/inc/dbconnection.class.php");
 Session::setPath();
 Session::start();
 
-Config::detectRootDoc();
+//init cache
+$GLPI_CACHE = false;
 
+Config::detectRootDoc();
 
 if (!file_exists(GLPI_CONFIG_DIR . "/config_db.php")) {
    Session::loadLanguage();
@@ -57,7 +59,7 @@ if (!file_exists(GLPI_CONFIG_DIR . "/config_db.php")) {
       echo "<p>Error: GLPI seems to not be configured properly.</p>";
       echo "<p>config_db.php file is missing.</p>";
       echo "<p>Please restart the install process.</p>";
-      echo "<p><a class='red' href='".$CFG_GLPI['root_doc']."'>Click here to proceed</a></p>";
+      echo "<p><a class='red' href='".$CFG_GLPI['root_doc']."/install/install.php'>Click here to proceed</a></p>";
       echo "</div>";
       Html::nullFooter();
 
@@ -88,7 +90,7 @@ if (!file_exists(GLPI_CONFIG_DIR . "/config_db.php")) {
    }
 
    $config_object  = new Config();
-   $current_config = array();
+   $current_config = [];
 
    if (!isset($_GET['donotcheckversion'])  // use normal config table on restore process
        && (isset($TRY_OLD_CONFIG_FIRST) // index case
@@ -214,7 +216,7 @@ if (!file_exists(GLPI_CONFIG_DIR . "/config_db.php")) {
       }
    }
    // Check version
-   if ((!isset($CFG_GLPI["version"]) || (trim($CFG_GLPI["version"]) != GLPI_VERSION))
+   if ((!isset($CFG_GLPI['dbversion']) || (trim($CFG_GLPI["dbversion"]) != GLPI_SCHEMA_VERSION))
        && !isset($_GET["donotcheckversion"])) {
 
       Session::loadLanguage();
@@ -236,19 +238,48 @@ if (!file_exists(GLPI_CONFIG_DIR . "/config_db.php")) {
             Html::closeForm();
          }
          if ($error < 2) {
-            if (!isset($CFG_GLPI["version"]) || (trim($CFG_GLPI["version"]) < GLPI_VERSION)) {
+            $older = false;
+            $newer = false;
+            $dev   = false;
+
+            if (!isset($CFG_GLPI["version"])) {
+               $older = true;
+            } else {
+               if (strlen(GLPI_SCHEMA_VERSION) > 40) {
+                  $dev   = true;
+                  //got a sha1sum on both sides... cannot know if version is older or newer
+                  if (!isset($CFG_GLPI['dbversion']) || strlen(trim($CFG_GLPI['dbversion'])) < 40) {
+                     //not sure this is older... User will be warned.
+                     if (trim($CFG_GLPI["version"]) < GLPI_PREVER) {
+                        $older = true;
+                     } else if (trim($CFG_GLPI['version']) >= GLPI_PREVER) {
+                        $newer = true;
+                     }
+                  }
+               } else if (!isset($CFG_GLPI['dbversion']) || trim($CFG_GLPI["dbversion"]) < GLPI_SCHEMA_VERSION) {
+                  $older = true;
+               } else if (trim($CFG_GLPI["dbversion"]) > GLPI_SCHEMA_VERSION) {
+                  $newer = true;
+               }
+            }
+
+            if ($older === true) {
                echo "<form method='post' action='".$CFG_GLPI["root_doc"]."/install/update.php'>";
-               echo "<p class='red'>".
-                     __('The version of the database is not compatible with the version of the installed files. An update is necessary.')."</p>";
+               if ($dev === true) {
+                  echo Config::agreeDevMessage();
+               }
+               echo "<p class='red'>";
+               echo __('The version of the database is not compatible with the version of the installed files. An update is necessary.')."</p>";
                echo "<input type='submit' name='from_update' value=\""._sx('button', 'Upgrade')."\"
                       class='submit'>";
                Html::closeForm();
-
-            } else if (trim($CFG_GLPI["version"])>GLPI_VERSION) {
+            } else if ($newer === true) {
                echo "<p class='red'>".
                      __('You are trying to use GLPI with outdated files compared to the version of the database. Please install the correct GLPI files corresponding to the version of your database.')."</p>";
+            } else if ($dev === true) {
+               echo "<p class='red'><strong>".
+                     __('You are trying to update to a development version from a development version. This is not suppoorted.')."</strong></p>";
             }
-
          }
 
          echo "</div>";
@@ -257,4 +288,5 @@ if (!file_exists(GLPI_CONFIG_DIR . "/config_db.php")) {
       exit();
    }
 
+   $GLPI_CACHE = Config::getCache('cache_db');
 }

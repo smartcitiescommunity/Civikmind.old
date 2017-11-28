@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: export.massive.php 476 2017-01-09 15:53:05Z yllen $
+ * @version $Id: export.massive.php 498 2017-11-03 13:33:40Z yllen $
  -------------------------------------------------------------------------
  LICENSE
 
@@ -40,15 +40,14 @@ $item = new $type();
 $tab_id = unserialize($_SESSION["plugin_pdf"]["tab_id"]);
 unset($_SESSION["plugin_pdf"]["tab_id"]);
 
-$query = "SELECT `tabref`
-          FROM `glpi_plugin_pdf_preferences`
-          WHERE `users_ID` = '".$_SESSION['glpiID']."'
-                AND `itemtype` = '$type'";
-$result = $DB->query($query);
+$result = $DB->request(['SELECT' => 'tabref',
+                        'FROM'   => 'glpi_plugin_pdf_preferences',
+                        'WHERE'  => ['users_ID' => $_SESSION['glpiID'],
+                                     'itemtype' => $type]]);
 
-$tab = array();
+$tab = [];
 
-while ($data = $DB->fetch_array($result)) {
+while ($data = $result->next()) {
    if ($data["tabref"] == 'landscape') {
       $pag = 1;
    } else {

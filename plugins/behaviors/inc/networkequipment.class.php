@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: networkequipment.class.php 204 2017-03-02 18:31:42Z yllen $
+ * @version $Id: networkequipment.class.php 234 2017-10-18 12:40:59Z yllen $
  -------------------------------------------------------------------------
 
  LICENSE
@@ -38,7 +38,6 @@ class PluginBehaviorsNetworkEquipment extends PluginBehaviorsCommon {
    static function afterAdd(NetworkEquipment $network) {
       // Toolbox::logDebug("PluginBehaviorsNetworkEquipment::afterAdd(), NetworkEquipment=", $network);
    }
-
 
    static function afterUpdate(NetworkEquipment $network) {
       // Toolbox::logDebug("PluginBehaviorsNetworkEquipment::afterUpdate(), NetworkEquipment=", $network);

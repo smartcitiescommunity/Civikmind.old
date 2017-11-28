@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
- 
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -45,12 +44,6 @@ class RuleMailCollector extends Rule {
    static $rightname = 'rule_mailcollector';
    public $orderby   = "name";
    public $can_sort  = true;
-
-
-   // Temproray hack for this class in 0.84
-   static function getTable() {
-      return 'glpi_rules';
-   }
 
 
    /**
@@ -74,7 +67,7 @@ class RuleMailCollector extends Rule {
    **/
    function getCriterias() {
 
-      static $criterias = array();
+      static $criterias = [];
 
       if (count($criterias)) {
          return $criterias;
@@ -134,7 +127,7 @@ class RuleMailCollector extends Rule {
 
       $criterias['GROUPS']['table']                   = 'glpi_groups';
       $criterias['GROUPS']['field']                   = 'completename';
-      $criterias['GROUPS']['name']                    = sprintf(__('%1$s: %2$s'),__('User'),
+      $criterias['GROUPS']['name']                    = sprintf(__('%1$s: %2$s'), __('User'),
                                                                 __('Group'));
       $criterias['GROUPS']['linkfield']               = '';
       $criterias['GROUPS']['type']                    = 'dropdown';
@@ -147,7 +140,7 @@ class RuleMailCollector extends Rule {
       $criterias['KNOWN_DOMAIN']['type']              = 'yesno';
       $criterias['KNOWN_DOMAIN']['virtual']           = true;
       $criterias['KNOWN_DOMAIN']['id']                = 'entitydatas';
-      $criterias['KNOWN_DOMAIN']['allow_condition']   = array(Rule::PATTERN_IS);
+      $criterias['KNOWN_DOMAIN']['allow_condition']   = [Rule::PATTERN_IS];
 
       $criterias['PROFILES']['field']                 = 'name';
       $criterias['PROFILES']['name']                  = __('User featuring the profile');
@@ -155,7 +148,7 @@ class RuleMailCollector extends Rule {
       $criterias['PROFILES']['type']                  = 'dropdown';
       $criterias['PROFILES']['virtual']               = true;
       $criterias['PROFILES']['id']                    = 'profiles';
-      $criterias['PROFILES']['allow_condition']          = array(Rule::PATTERN_IS);
+      $criterias['PROFILES']['allow_condition']          = [Rule::PATTERN_IS];
 
       if (Session::isMultiEntitiesMode()) {
          $criterias['UNIQUE_PROFILE']['field']           = 'name';
@@ -164,7 +157,7 @@ class RuleMailCollector extends Rule {
          $criterias['UNIQUE_PROFILE']['type']            = 'dropdown';
          $criterias['UNIQUE_PROFILE']['virtual']         = true;
          $criterias['UNIQUE_PROFILE']['id']              = 'profiles';
-         $criterias['UNIQUE_PROFILE']['allow_condition'] = array(Rule::PATTERN_IS);
+         $criterias['UNIQUE_PROFILE']['allow_condition'] = [Rule::PATTERN_IS];
       }
 
       $criterias['ONE_PROFILE']['field']              = 'name';
@@ -173,7 +166,7 @@ class RuleMailCollector extends Rule {
       $criterias['ONE_PROFILE']['type']               = 'yesonly';
       $criterias['ONE_PROFILE']['virtual']            = true;
       $criterias['ONE_PROFILE']['id']                 = 'profiles';
-      $criterias['ONE_PROFILE']['allow_condition']    = array(Rule::PATTERN_IS);
+      $criterias['ONE_PROFILE']['allow_condition']    = [Rule::PATTERN_IS];
 
       return $criterias;
    }
@@ -184,7 +177,7 @@ class RuleMailCollector extends Rule {
    **/
    function getActions() {
 
-      $actions                                              = array();
+      $actions                                              = [];
 
       $actions['entities_id']['name']                       = __('Entity');
       $actions['entities_id']['type']                       = 'dropdown';
@@ -192,11 +185,11 @@ class RuleMailCollector extends Rule {
 
       $actions['_affect_entity_by_domain']['name']          = __('Entity from domain');
       $actions['_affect_entity_by_domain']['type']          = 'text';
-      $actions['_affect_entity_by_domain']['force_actions'] = array('regex_result');
+      $actions['_affect_entity_by_domain']['force_actions'] = ['regex_result'];
 
       $actions['_affect_entity_by_tag']['name']             = __('Entity from TAG');
       $actions['_affect_entity_by_tag']['type']             = 'text';
-      $actions['_affect_entity_by_tag']['force_actions']    = array('regex_result');
+      $actions['_affect_entity_by_tag']['force_actions']    = ['regex_result'];
 
       $actions['_affect_entity_by_user_entity']['name']     = __("Entity based on user's profile");
       $actions['_affect_entity_by_user_entity']['type']     = 'yesonly';
@@ -219,7 +212,7 @@ class RuleMailCollector extends Rule {
    /**
     * @see Rule::executeActions()
    **/
-   function executeActions($output,$params) {
+   function executeActions($output, $params) {
 
       if (count($this->actions)) {
 
@@ -246,16 +239,18 @@ class RuleMailCollector extends Rule {
                         //Case 2:
                         if (isset($this->criterias_results['ONE_PROFILE'])) {
                            $profile = $this->criterias_results['ONE_PROFILE'];
-                        //Case 3
+
                         } else if (isset($this->criterias_results['UNIQUE_PROFILE'])) {
+                           //Case 3
                            $profile = $this->criterias_results['UNIQUE_PROFILE'];
-                        //Case 1
+
                         } else if (isset($this->criterias_results['PROFILES'])) {
+                           //Case 1
                            $profile = $this->criterias_results['PROFILES'];
                         }
 
                         if ($profile) {
-                           $entities = array();
+                           $entities = [];
                            if (isset($params['_users_id_requester'])) { // Not set when testing
                               $entities
                                  = Profile_User::getEntitiesForProfileByUser($params['_users_id_requester'],
@@ -319,8 +314,8 @@ class RuleMailCollector extends Rule {
                         if ($entity_found > -1) {
                            $output['entities_id'] = $entity_found;
                            break;
-                         }
-                      }
+                        }
+                     }
                   } // switch (field)
                break;
                default:
@@ -335,4 +330,3 @@ class RuleMailCollector extends Rule {
    }
 
 }
-?>

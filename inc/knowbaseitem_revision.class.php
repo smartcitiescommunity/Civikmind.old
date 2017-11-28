@@ -42,11 +42,11 @@ if (!defined('GLPI_ROOT')) {
 /// since version 9.2
 class KnowbaseItem_Revision extends CommonDBTM {
 
-   static function getTypeName($nb=0) {
+   static function getTypeName($nb = 0) {
       return _n('Revision', 'Revisions', $nb);
    }
 
-   function getTabNameForItem(CommonGLPI $item, $withtemplate=0) {
+   function getTabNameForItem(CommonGLPI $item, $withtemplate = 0) {
       $nb = 0;
       if ($_SESSION['glpishow_count_on_tabs']) {
          $where = [];
@@ -70,7 +70,7 @@ class KnowbaseItem_Revision extends CommonDBTM {
       return self::createTabEntry(self::getTypeName($nb), $nb);
    }
 
-   static function displayTabContentForItem(CommonGLPI $item, $tabnum=1, $withtemplate=0) {
+   static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0) {
       self::showForItem($item, $withtemplate);
       return true;
    }
@@ -79,9 +79,9 @@ class KnowbaseItem_Revision extends CommonDBTM {
     * Show linked items of a knowbase item
     *
     * @param $item                     CommonDBTM object
-    * @param $withtemplate    integer  withtemplate param (default '')
+    * @param $withtemplate    integer  withtemplate param (default 0)
    **/
-   static function showForItem(CommonDBTM $item, $withtemplate='') {
+   static function showForItem(CommonDBTM $item, $withtemplate = 0) {
       global $DB, $CFG_GLPI;
 
       $item_id = $item->getID();
@@ -125,12 +125,13 @@ class KnowbaseItem_Revision extends CommonDBTM {
       Html::printAjaxPager(self::getTypeName(1), $start, $number);
       // Output events
       echo "<div class='center'>";
-      echo "<input type='button' name='compare' value='"._sx('button', 'Compare selected revisions')."' class='submit compare'>";
+      echo "<input type='button' name='compare' value='"._sx('button', 'Compare selected revisions').
+             "' class='submit compare'>";
       echo "<table class='tab_cadre_fixehov'>";
       $header = '<tr>';
-      $header .= "<th title='" . __('Revision') . "'>#</th>";
+      $header .= "<th title='" . __s('Revision') . "'>#</th>";
       $header .= "<th>&nbsp;</th>";
-      $header .= "<th>" . _('Author')  . "</th>";
+      $header .= "<th>" . __('Author')  . "</th>";
       $header .= "<th>".__('Creation date')."</th>";
       $header .= "<th></th></tr>";
       echo $header;
@@ -179,7 +180,8 @@ class KnowbaseItem_Revision extends CommonDBTM {
 
          echo "<td><a href='#' data-rev='" . $revision['revision']  . "'
                     data-revid='" . $revision['id']  . "' class='show'>" . __('show') . "</a>
-                 - <a href='{$CFG_GLPI["root_doc"]}/front/$form?id={$revision["knowbaseitems_id"]}&to_rev={$revision['id']}' class='restore'>" . __('restore')  . "</td>";
+                 - <a href='{$CFG_GLPI["root_doc"]}/front/$form?id={$revision["knowbaseitems_id"]}&to_rev={$revision['id']}' class='restore'>".
+                    __('restore')  . "</a></td>";
          echo "</tr>";
       }
 
@@ -189,7 +191,7 @@ class KnowbaseItem_Revision extends CommonDBTM {
             $(function() {
                $('.restore').on('click', function(e) {
                   lastClickedElement = e.target;
-                  return window.confirm('" . _('Do you want to restore the selected revision?')  . "');
+                  return window.confirm('" . __s('Do you want to restore the selected revision?')  . "');
                });
 
                $('.show').on('click', function(e) {
@@ -241,11 +243,11 @@ class KnowbaseItem_Revision extends CommonDBTM {
                         if (_diffid == 0) {
                            _diffid = '" . __('current') . "';
                         }
-                        var title = '" . __('Compare revisions old and diff') . "'.replace(/old/, _oldid).replace(/diff/, _diffid);
+                        var title = '" . __s('Compare revisions old and diff') . "'.replace(/old/, _oldid).replace(/diff/, _diffid);
                         var html_compare = '<div title=\"' + title + '\" id=\"compare_view\"><table class=\"tab_cadre_fixehov\">';
-                        html_compare += '<tr><th></th><th>" . __('Original') . "</th><th>" . __('Changed') ."</th><th>" . __('Differences')  . "</th></tr>';
-                        html_compare += '<tr><th>" . __('Subject') . "</th><td class=\"original\">' + data['old']['name'] + '</td><td class=\"changed\">' + data['diff']['name'] + '</td><td class=\"diff\"></td></tr>';
-                        html_compare += '<tr><th>" . __('Content')  . "</th><td class=\"original\">' + data['old']['answer'] + '</td><td class=\"changed\">' + data['diff']['answer'] + '</td><td class=\"diff\"></td></tr>';
+                        html_compare += '<tr><th></th><th>" . __s('Original') . "</th><th>" . __s('Changed') ."</th><th>" . __('Differences')  . "</th></tr>';
+                        html_compare += '<tr><th>" . __s('Subject') . "</th><td class=\"original\">' + data['old']['name'] + '</td><td class=\"changed\">' + data['diff']['name'] + '</td><td class=\"diff\"></td></tr>';
+                        html_compare += '<tr><th>" . __s('Content')  . "</th><td class=\"original\">' + data['old']['answer'] + '</td><td class=\"changed\">' + data['diff']['answer'] + '</td><td class=\"diff\"></td></tr>';
                         html_compare += '</table></div>';
                         $(html_compare).appendTo('body').dialog({
                            height: 'auto',

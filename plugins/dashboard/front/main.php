@@ -1,7 +1,7 @@
 <?php
 
 include ("../../../inc/includes.php");
-include ("../../../config/config.php");
+include ("../../../inc/config.php");
 
 global $DB;
 
@@ -166,10 +166,10 @@ $_SESSION['back'] = $back;
 	<?php
 	if($theme == 'trans.css') {		
    	echo "<body style=\"background: url('./img/".$back."') no-repeat top center fixed; \">";
-   	}
+   }
    else {
-   	echo "<body>";
-   	}	 
+   	echo "<body style='baclground-color:#E5E5E5;'>";
+   }	 
    ?>
    
 <!-- BEGIN Theme Setting -->
@@ -297,7 +297,8 @@ $sql_users = " SELECT COUNT(DISTINCT `glpi_users`.id) AS total
                FROM glpi_profiles_users
                LEFT JOIN `glpi_users`
                   ON (`glpi_users`.`id` = `glpi_profiles_users`.`users_id`)
-               WHERE `glpi_users`.`is_deleted` = '0'  
+               WHERE `glpi_users`.`is_deleted` = '0' 
+               AND is_active = 1 
      				".$entidade_u." ";
 
 $result_users = $DB->query($sql_users);
@@ -892,7 +893,7 @@ setTimeout(function(){
 <script src="js/bootstrap-switch.js"></script> 
 <script src="js/highcharts.js" type="text/javascript" ></script>
 <script src="js/highcharts-3d.js" type="text/javascript" ></script>
-<script src="./js/themes/<?php echo $_SESSION['charts_colors'] ?>"></script>';
+<script src="./js/themes/<?php echo $_SESSION['charts_colors']; ?>"></script>
 
 <script src="js/modules/exporting.js" type="text/javascript" ></script>
 <script src="js/modules/no-data-to-display.js" type="text/javascript" ></script>

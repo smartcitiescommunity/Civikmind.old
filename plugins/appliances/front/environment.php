@@ -1,6 +1,6 @@
 <?php
 /*
- * @version $Id: environment.php 221 2016-05-30 15:25:38Z yllen $
+ * @version $Id: environment.php 258 2017-10-10 13:21:54Z yllen $
  -------------------------------------------------------------------------
    LICENSE
 
@@ -21,7 +21,7 @@
 
  @package   appliances
  @author    Xavier CAILLAUD, Remi Collet, Nelly Mahu-Lasson
- @copyright Copyright (c) 2009-2016 Appliances plugin team
+ @copyright Copyright (c) 2009-2017 Appliances plugin team
  @license   AGPL License 3.0 or (at your option) any later version
             http://www.gnu.org/licenses/agpl-3.0-standalone.html
  @link      https://forge.glpi-project.org/projects/appliances

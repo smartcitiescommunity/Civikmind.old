@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: integercriteria.class.php 336 2017-01-20 16:59:36Z yllen $
+ * @version $Id: integercriteria.class.php 345 2017-10-23 17:33:07Z yllen $
  -------------------------------------------------------------------------
   LICENSE
 
@@ -93,12 +93,16 @@ class PluginReportsIntegerCriteria extends PluginReportsDropdownCriteria {
       $this->getReport()->startColumn();
       if (empty($this->signe)) {
          Dropdown::showFromArray($this->getName()."_sign",
-                                 array('<='    => '<=',
-                                       '>='    => '>='),
-                                 array('value' => Toolbox::unclean_cross_side_scripting_deep($this->getParameter($this->getName()."_sign"))));
+                                 ['<='    => '<=',
+                                  '>='    => '>='],
+                                 ['value' => Toolbox::unclean_cross_side_scripting_deep($this->getParameter($this->getName()."_sign"))]);
          echo "&nbsp;";
       }
-      Dropdown::showInteger($this->getName(), $this->getParameterValue(), $this->min, $this->max, 1);
+      $opt = ['value' => $this->getParameterValue(),
+              'min'   => $this->min,
+              'max'   => $this->max,
+              'step'  => 1];
+      Dropdown::showNumber($this->getName(), $opt);
       echo '&nbsp; '.$this->unit;
 
       $this->getReport()->endColumn();

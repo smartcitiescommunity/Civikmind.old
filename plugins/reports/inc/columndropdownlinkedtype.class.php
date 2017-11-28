@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: columndropdownlinkedtype.class.php 336 2017-01-20 16:59:36Z yllen $
+ * @version $Id: columndropdownlinkedtype.class.php 345 2017-10-23 17:33:07Z yllen $
  -------------------------------------------------------------------------
    LICENSE
 
@@ -41,7 +41,7 @@ class PluginReportsColumnDropdownLinkedType extends PluginReportsColumn {
    private $type_suffix  = '';
 
 
-   function __construct($nameid, $title, $nametype, $suffix = '', $options=array()) {
+   function __construct($nameid, $title, $nametype, $suffix = '', $options=[]) {
 
       parent::__construct($nameid, $title, $options);
 

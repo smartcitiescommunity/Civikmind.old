@@ -1,39 +1,39 @@
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
- 
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/> background-color:#000;.    background: url(../pics/login_logo_glpi.png)  no-repeat;
+ * ---------------------------------------------------------------------
 */
 
 /*  ############# Definition des styles de l'install et de l'update ############# */
 
 body {
-   background-color:#1B2F62;
+   background-image: url("../pics/img/back.jpg");
+   background-color: transparent;
    font-family: Verdana;
    color:#FFF;
 }
@@ -43,7 +43,7 @@ body {
    width:760px;
    font-family: Verdana;
    font-size:12px;
-   text-align: center; 
+   text-align: center;
    margin: auto;
    padding: 40px 40px 40px 40px;
 }
@@ -54,22 +54,25 @@ a {
 }
 
 #bloc {
-   width:760px;
+   width:700px;
    margin:0 auto;
    text-align:left;
    position:relative;
    padding:10px;
-   background:#3A5693;
+   background-color: transparent;
+   background: url(../pics/img/pix.png)  repeat;
+   border:4px solid transparent;
+   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
 }
 
 #logo_bloc {
    position:absolute;
-   top:-25px;
-   padding:0;
+   top:-45px;
+   padding:10;
    margin:0;
-   width: 145px;
-   height: 80px;
-   background: url(../pics/login_logo_glpi.png)  no-repeat; 
+   width: 128px;
+   height: 128px;
+   background: url(../pics/img/bgx.png)  no-repeat;
 }
 
 
@@ -96,7 +99,7 @@ p {
 
 table {
    text-align:center;
-   border: 0;
+   border: 4;
    margin: 20px;
    margin-left: auto;
    margin-right: auto;
@@ -116,14 +119,14 @@ th {
 
 .tab_check {
    padding:10px;
-   background-color: #FFF;
+   background-color: #fec95c;
    color: #000;
 }
 
 .tab_check th{
    font-size: 14px;
    font-weight: bold;
-   
+
 }
 
 .tab_check td {
@@ -132,8 +135,12 @@ th {
 }
 
 
-.red { 
+.red {
    color:red;
+}
+.migred {
+   color: white;
+   background-color: red;
 }
 .green {
    color:green;
@@ -157,7 +164,7 @@ input {
 fieldset {
    margin:40px;
    padding: 20px;
-   background: #FFF;
+   background: #FFC36B;
    border: none;
    font-size: 12px;
    font-weight:200;
@@ -186,7 +193,7 @@ fieldset label {
    text-align:center;
 }
 
-input.submit, 
+input.submit,
 span.vsubmit, a.vsubmit {
    padding: 5px;
    cursor:pointer;
@@ -194,20 +201,21 @@ span.vsubmit, a.vsubmit {
    font: bold 12px Arial, Helvetica;
    color: #8f5a0a;
    background-color: #FEC95C;
-   border: 0; 
+   border: 0;
 }
 
-input.submit:hover, 
+input.submit:hover,
 a.vsubmit:hover {
    background-color: #fddb6f;
    -moz-box-shadow: 0px 1px 1px #999;
    -webkit-box-shadow: 0px 1px 1px #999;
-   box-shadow: 0px 1px 1px #999;   
+   box-shadow: 0px 1px 1px #999;
 
 }
 
 
 #license {
+   background-color:transparent;
    text-align: left;
    width: 520px;
    margin: 20px auto;
@@ -275,4 +283,8 @@ a.vsubmit:hover {
    border-radius: 50%;
    background-color: #FEC95C;
    opacity: 0;
+}
+
+.ui-widget {
+   font-size: 12px;
 }

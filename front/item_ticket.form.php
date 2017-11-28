@@ -1,38 +1,40 @@
 <?php
-/*
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
-
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
 * @brief
 */
+
+use Glpi\Event;
 
 include ('../inc/includes.php');
 
@@ -49,7 +51,7 @@ if (isset($_POST["add"])) {
       $_POST['items_id'] = $_POST['add_items_id'];
    }
 
-   if(!isset($_POST['items_id']) || empty($_POST['items_id'])){
+   if (!isset($_POST['items_id']) || empty($_POST['items_id'])) {
       $message = sprintf(__('Mandatory fields are not filled. Please correct: %s'),
                          _n('Associated element', 'Associated elements', 1));
       Session::addMessageAfterRedirect($message, false, ERROR);
@@ -67,9 +69,9 @@ if (isset($_POST["add"])) {
 
 } else if (isset($_POST["delete"])) {
    $item_ticket = new Item_Ticket();
-   $deleted = $item_ticket->deleteByCriteria(array('tickets_id' => $_POST['tickets_id'],
+   $deleted = $item_ticket->deleteByCriteria(['tickets_id' => $_POST['tickets_id'],
                                                    'items_id'   => $_POST['items_id'],
-                                                   'itemtype'   => $_POST['itemtype']));
+                                                   'itemtype'   => $_POST['itemtype']]);
    Html::back();
 }
 

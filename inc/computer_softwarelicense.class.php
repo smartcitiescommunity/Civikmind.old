@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
-
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -39,6 +38,9 @@ if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
 
+/**
+ * Manage link beetween computer and software licenses.
+ */
 class Computer_SoftwareLicense extends CommonDBRelation {
 
    // From CommonDBRelation
@@ -49,10 +51,6 @@ class Computer_SoftwareLicense extends CommonDBRelation {
    static public $items_id_2 = 'softwarelicenses_id';
 
 
-   /**
-    * @since version 0.85
-    * @see CommonDBRelation::post_addItem()
-   **/
    function post_addItem() {
 
       SoftwareLicense::updateValidityIndicator($this->fields['softwarelicenses_id']);
@@ -69,45 +67,45 @@ class Computer_SoftwareLicense extends CommonDBRelation {
    }
 
 
-   /**
-    * Get search function for the class
-    *
-    * @since version 0.84
-    *
-    * @return array of search option
-   **/
-   function getSearchOptions() {
+   function getSearchOptionsNew() {
+      $tab = [];
 
-      $tab                       = array();
-      $tab['common']             = __('Characteristics');
+      $tab[] = [
+         'id'                 => 'common',
+         'name'               => __('Characteristics')
+      ];
 
-      $tab[2]['table']           = $this->getTable();
-      $tab[2]['field']           = 'id';
-      $tab[2]['name']            = __('ID');
-      $tab[2]['massiveaction']   = false;
-      $tab[2]['datatype']        = 'number';
+      $tab[] = [
+         'id'                 => '2',
+         'table'              => $this->getTable(),
+         'field'              => 'id',
+         'name'               => __('ID'),
+         'massiveaction'      => false,
+         'datatype'           => 'number'
+      ];
 
-      $tab[4]['table']           = 'glpi_softwarelicenses';
-      $tab[4]['field']           = 'name';
-      $tab[4]['name']            = _n('License', 'Licenses', 1);
-      $tab[4]['datatype']        = 'dropdown';
-      $tab[4]['massiveaction']   = false;
+      $tab[] = [
+         'id'                 => '4',
+         'table'              => 'glpi_softwarelicenses',
+         'field'              => 'name',
+         'name'               => _n('License', 'Licenses', 1),
+         'datatype'           => 'dropdown',
+         'massiveaction'      => false
+      ];
 
-      $tab[5]['table']           = 'glpi_computers';
-      $tab[5]['field']           = 'name';
-      $tab[5]['name']            = _n('Computer', 'Computers', 1);
-      $tab[5]['massiveaction']   = false;
-      $tab[5]['datatype']        = 'dropdown';
+      $tab[] = [
+         'id'                 => '5',
+         'table'              => 'glpi_computers',
+         'field'              => 'name',
+         'name'               => _n('Computer', 'Computers', 1),
+         'massiveaction'      => false,
+         'datatype'           => 'dropdown'
+      ];
 
       return $tab;
    }
 
 
-   /**
-    * @since version 0.85
-    *
-    * @see CommonDBTM::showMassiveActionsSubForm()
-   **/
    static function showMassiveActionsSubForm(MassiveAction $ma) {
       global $CFG_GLPI;
 
@@ -116,12 +114,12 @@ class Computer_SoftwareLicense extends CommonDBRelation {
          case 'move_license' :
             if (isset($input['options'])) {
                if (isset($input['options']['move'])) {
-                  SoftwareLicense::dropdown(array('condition'
+                  SoftwareLicense::dropdown(['condition'
                                                     => "`glpi_softwarelicenses`.`softwares_id`
                                                          = '".$input['options']['move']['softwares_id']."'",
                                                   'used'
-                                                    => $input['options']['move']['used']));
-                  echo Html::submit(_x('button','Post'), array('name' => 'massiveaction'));
+                                                    => $input['options']['move']['used']]);
+                  echo Html::submit(_x('button', 'Post'), ['name' => 'massiveaction']);
                   return true;
                }
             }
@@ -131,11 +129,6 @@ class Computer_SoftwareLicense extends CommonDBRelation {
    }
 
 
-   /**
-    * @since version 0.85
-    *
-    * @see CommonDBTM::processMassiveActionsForOneItemtype()
-   **/
    static function processMassiveActionsForOneItemtype(MassiveAction $ma, CommonDBTM $item,
                                                        array $ids) {
       global $DB;
@@ -147,9 +140,9 @@ class Computer_SoftwareLicense extends CommonDBRelation {
                foreach ($ids as $id) {
                   if ($item->can($id, UPDATE)) {
                      //Process rules
-                     if ($item->update(array('id'  => $id,
+                     if ($item->update(['id'  => $id,
                                              'softwarelicenses_id'
-                                             => $input['softwarelicenses_id']))) {
+                                             => $input['softwarelicenses_id']])) {
                         $ma->itemDone($item->getType(), $id, MassiveAction::ACTION_OK);
                      } else {
                         $ma->itemDone($item->getType(), $id, MassiveAction::ACTION_KO);
@@ -180,8 +173,8 @@ class Computer_SoftwareLicense extends CommonDBRelation {
                         $version = $sl->fields["softwareversions_id_buy"];
                      }
                      if ($version > 0) {
-                        $params = array('computers_id'        => $csl->fields['computers_id'],
-                                        'softwareversions_id' => $version);
+                        $params = ['computers_id'        => $csl->fields['computers_id'],
+                                        'softwareversions_id' => $version];
                         //Get software name and manufacturer
                         if ($csv->can(-1, CREATE, $params)) {
                            //Process rules
@@ -211,13 +204,13 @@ class Computer_SoftwareLicense extends CommonDBRelation {
    /**
     * Get number of installed licenses of a license
     *
-    * @param $softwarelicenses_id   license ID
-    * @param $entity                to search for computer in (default = all entities)
-    *                               (default '') -1 means no entity restriction
+    * @param integer $softwarelicenses_id license ID
+    * @param integer $entity              to search for computer in (default = all entities)
+    *                                     (default '') -1 means no entity restriction
     *
-    * @return number of installations
+    * @return integer number of installations
    **/
-   static function countForLicense($softwarelicenses_id, $entity='') {
+   static function countForLicense($softwarelicenses_id, $entity = '') {
       global $DB;
 
       $query = "SELECT COUNT(`glpi_computers_softwarelicenses`.`id`)
@@ -245,9 +238,9 @@ class Computer_SoftwareLicense extends CommonDBRelation {
    /**
     * Get number of installed licenses of a software
     *
-    * @param $softwares_id software ID
+    * @param integer $softwares_id software ID
     *
-    * @return number of installations
+    * @return integer number of installations
    **/
    static function countForSoftware($softwares_id) {
       global $DB;
@@ -277,9 +270,9 @@ class Computer_SoftwareLicense extends CommonDBRelation {
    /**
     * Show number of installation per entity
     *
-    * @param $license SoftwareLicense object
+    * @param SoftwareLicense $license SoftwareLicense instance
     *
-    * @return nothing
+    * @return void
    **/
    static function showForLicenseByEntity(SoftwareLicense $license) {
       global $DB, $CFG_GLPI;
@@ -304,7 +297,7 @@ class Computer_SoftwareLicense extends CommonDBRelation {
               ORDER BY `completename`";
 
       foreach ($DB->request($sql) as $ID => $data) {
-         $nb = self::countForLicense($softwarelicense_id,$ID);
+         $nb = self::countForLicense($softwarelicense_id, $ID);
          if ($nb > 0) {
             echo "<tr class='tab_bg_2'><td>" . $data["completename"] . "</td>";
             echo "<td class='numeric'>".$nb."</td></tr>\n";
@@ -325,9 +318,9 @@ class Computer_SoftwareLicense extends CommonDBRelation {
    /**
     * Show computers linked to a License
     *
-    * @param $license SoftwareLicense object
+    * @param SoftwareLicense $license SoftwareLicense instance
     *
-    * @return nothing
+    * @return void
    **/
    static function showForLicense(SoftwareLicense $license) {
       global $DB, $CFG_GLPI;
@@ -338,9 +331,8 @@ class Computer_SoftwareLicense extends CommonDBRelation {
          return false;
       }
 
-      $canedit         = Session::haveRightsOr("software", array(CREATE, UPDATE, DELETE, PURGE));
+      $canedit         = Session::haveRightsOr("software", [CREATE, UPDATE, DELETE, PURGE]);
       $canshowcomputer = Computer::canView();
-
 
       if (isset($_GET["start"])) {
          $start = $_GET["start"];
@@ -356,8 +348,8 @@ class Computer_SoftwareLicense extends CommonDBRelation {
 
       if (isset($_GET["sort"]) && !empty($_GET["sort"])) {
          // manage several param like location,compname : order first
-         $tmp  = explode(",",$_GET["sort"]);
-         $sort = "`".implode("` $order,`",$tmp)."`";
+         $tmp  = explode(",", $_GET["sort"]);
+         $sort = "`".implode("` $order,`", $tmp)."`";
       } else {
          $sort = "`entity` $order, `compname`";
       }
@@ -392,8 +384,8 @@ class Computer_SoftwareLicense extends CommonDBRelation {
          echo "<table class='tab_cadre_fixe'>";
          echo "<tr class='tab_bg_2 center'>";
          echo "<td>";
-         Computer::dropdown(array('entity'      => $license->fields['entities_id'],
-                                  'entity_sons' => $license->fields['is_recursive']));
+         Computer::dropdown(['entity'      => $license->fields['entities_id'],
+                                  'entity_sons' => $license->fields['is_recursive']]);
 
          echo "</td>";
          echo "<td><input type='submit' name='add' value=\""._sx('button', 'Add')."\" class='submit'>";
@@ -460,9 +452,9 @@ class Computer_SoftwareLicense extends CommonDBRelation {
             if ($canedit) {
                $rand = mt_rand();
                Html::openMassiveActionsForm('mass'.__CLASS__.$rand);
-               $massiveactionparams = array('num_displayed'    => min($_SESSION['glpilist_limit'], $DB->numrows($result)),
+               $massiveactionparams = ['num_displayed'    => min($_SESSION['glpilist_limit'], $DB->numrows($result)),
                                             'container'        => 'mass'.__CLASS__.$rand,
-                                            'specific_actions' => array('purge' => _x('button', 'Delete permanently')));
+                                            'specific_actions' => ['purge' => _x('button', 'Delete permanently')]];
 
                // show transfer only if multi licenses for this software
                if (self::countLicenses($data['softid']) > 1) {
@@ -470,7 +462,7 @@ class Computer_SoftwareLicense extends CommonDBRelation {
                }
 
                // Options to update license
-               $massiveactionparams['extraparams']['options']['move']['used'] = array($searchID);
+               $massiveactionparams['extraparams']['options']['move']['used'] = [$searchID];
                $massiveactionparams['extraparams']['options']['move']['softwares_id']
                                                                    = $license->fields['softwares_id'];
 
@@ -487,23 +479,19 @@ class Computer_SoftwareLicense extends CommonDBRelation {
 
             Session::initNavigateListItems('Computer', $text);
 
-            $sort_img = "<img src='" . $CFG_GLPI["root_doc"] . "/pics/" .
-                          ($order == "DESC" ? "puce-down.png" : "puce-up.png") . "' alt='' title=''>";
             echo "<table class='tab_cadre_fixehov'>";
 
-            $columns = array('compname'          => __('Name'),
+            $columns = ['compname'          => __('Name'),
                              'entity'            => __('Entity'),
                              'serial'            => __('Serial number'),
                              'otherserial'       => __('Inventory number'),
                              'location,compname' => __('Location'),
                              'state,compname'    => __('Status'),
                              'groupe,compname'   => __('Group'),
-                             'username,compname' => __('User'));
+                             'username,compname' => __('User')];
             if (!$showEntity) {
                unset($columns['entity']);
             }
-            $sort_img = "<img src=\"" . $CFG_GLPI["root_doc"] . "/pics/" .
-                          (($order == "DESC") ? "puce-down.png" : "puce-up.png") ."\" alt='' title=''>";
 
             $header_begin  = "<tr>";
             $header_top    = '';
@@ -521,7 +509,7 @@ class Computer_SoftwareLicense extends CommonDBRelation {
                if ($key[0] == '_') {
                   $header_end .= "<th>$val</th>";
                } else {
-                  $header_end .= "<th>".(($sort == "`$key`") ?$sort_img:"").
+                  $header_end .= "<th".($sort == "`$key`" ? " class='order_$order'" : '').">".
                                  "<a href='javascript:reloadTab(\"sort=$key&amp;order=".
                                  (($order == "ASC") ?"DESC":"ASC")."&amp;start=0\");'>$val</a></th>";
                }
@@ -531,7 +519,7 @@ class Computer_SoftwareLicense extends CommonDBRelation {
             echo $header_begin.$header_top.$header_end;
 
             do {
-               Session::addToNavigateListItems('Computer',$data["cID"]);
+               Session::addToNavigateListItems('Computer', $data["cID"]);
 
                echo "<tr class='tab_bg_2'>";
                if ($canedit) {
@@ -571,7 +559,7 @@ class Computer_SoftwareLicense extends CommonDBRelation {
             }
 
          } else { // Not found
-            _e('No item found');
+            echo __('No item found');
          }
       } // Query
       Html::printAjaxPager(__('Affected computers'), $start, $number);
@@ -584,19 +572,19 @@ class Computer_SoftwareLicense extends CommonDBRelation {
    /**
     * Update license associated on a computer
     *
-    * @param $licID                 ID of the install software lienk
-    * @param $softwarelicenses_id   ID of the new license
+    * @param integer $licID               ID of the install software lienk
+    * @param integer $softwarelicenses_id ID of the new license
     *
-    * @return nothing
+    * @return void
    **/
    function upgrade($licID, $softwarelicenses_id) {
       global $DB;
 
       if ($this->getFromDB($licID)) {
          $computers_id = $this->fields['computers_id'];
-         $this->delete(array('id' => $licID));
-         $this->add(array('computers_id'        => $computers_id,
-                          'softwarelicenses_id' => $softwarelicenses_id));
+         $this->delete(['id' => $licID]);
+         $this->add(['computers_id'        => $computers_id,
+                          'softwarelicenses_id' => $softwarelicenses_id]);
       }
    }
 
@@ -604,15 +592,15 @@ class Computer_SoftwareLicense extends CommonDBRelation {
    /**
     * Get licenses list corresponding to an installation
     *
-    * @param $computers_id          ID of the computer
-    * @param $softwareversions_id   ID of the version
+    * @param integer $computers_id        ID of the computer
+    * @param integer $softwareversions_id ID of the version
     *
-    * @return nothing
+    * @return void
    **/
    static function getLicenseForInstallation($computers_id, $softwareversions_id) {
       global $DB;
 
-      $lic = array();
+      $lic = [];
       $sql = "SELECT `glpi_softwarelicenses`.*,
                      `glpi_softwarelicensetypes`.`name` AS type
               FROM `glpi_softwarelicenses`
@@ -636,8 +624,10 @@ class Computer_SoftwareLicense extends CommonDBRelation {
    /**
     * Duplicate all software licenses from a computer template to its clone
     *
-    * @param $oldid ID of the computer to clone
-    * @param $newid ID of the computer cloned
+    * @param integer $oldid ID of the computer to clone
+    * @param integer $newid ID of the computer cloned
+    *
+    * @return void
    **/
    static function cloneComputer($oldid, $newid) {
       global $DB;
@@ -657,21 +647,18 @@ class Computer_SoftwareLicense extends CommonDBRelation {
    }
 
 
-   /**
-    * @see CommonGLPI::getTabNameForItem()
-   **/
-  function getTabNameForItem(CommonGLPI $item, $withtemplate=0) {
+   function getTabNameForItem(CommonGLPI $item, $withtemplate = 0) {
 
-     $nb = 0;
+      $nb = 0;
       switch ($item->getType()) {
          case 'SoftwareLicense' :
             if (!$withtemplate) {
                if ($_SESSION['glpishow_count_on_tabs']) {
                   $nb = self::countForLicense($item->getID());
                }
-               return array(1 => __('Summary'),
+               return [1 => __('Summary'),
                             2 => self::createTabEntry(Computer::getTypeName(Session::getPluralNumber()),
-                                                      $nb));
+                                                      $nb)];
             }
             break;
       }
@@ -679,12 +666,7 @@ class Computer_SoftwareLicense extends CommonDBRelation {
    }
 
 
-   /**
-    * @param $item         CommonGLPI object
-    * @param $tabnum       (default 1)
-    * @param $withtemplate (default 0)
-   **/
-   static function displayTabContentForItem(CommonGLPI $item, $tabnum=1, $withtemplate=0) {
+   static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0) {
 
       if ($item->getType() == 'SoftwareLicense') {
          switch ($tabnum) {
@@ -702,9 +684,13 @@ class Computer_SoftwareLicense extends CommonDBRelation {
 
 
    /**
+    * Count number of licenses for a software
+    *
     * @since version 0.85
     *
-    * count number of licenses for a software
+    * @param integer $softwares_id Software ID
+    *
+    * @return void
     **/
    static function countLicenses($softwares_id) {
       global $DB;
@@ -721,6 +707,4 @@ class Computer_SoftwareLicense extends CommonDBRelation {
       }
       return 0;
    }
-
 }
-?>

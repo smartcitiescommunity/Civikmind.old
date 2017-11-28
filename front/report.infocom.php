@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
- 
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -44,30 +43,36 @@ Html::header(Report::getTypeName(Session::getPluralNumber()), $_SERVER['PHP_SELF
 
 if (empty($_POST["date1"]) && empty($_POST["date2"])) {
    $year           = date("Y")-1;
-   $_POST["date1"] = date("Y-m-d",mktime(1,0,0,date("m"),date("d"),$year));
+   $_POST["date1"] = date("Y-m-d", mktime(1, 0, 0, date("m"), date("d"), $year));
    $_POST["date2"] = date("Y-m-d");
 }
 
 if (!empty($_POST["date1"])
     && !empty($_POST["date2"])
-    && (strcmp($_POST["date2"],$_POST["date1"]) < 0)) {
+    && (strcmp($_POST["date2"], $_POST["date1"]) < 0)) {
 
    $tmp            = $_POST["date1"];
    $_POST["date1"] = $_POST["date2"];
    $_POST["date2"] = $tmp;
 }
 
+$stat = new Stat();
+$chart_opts =  [
+   'width'  => '90%',
+   'legend' => false
+];
+
 Report::title();
 
 echo "<div class='center'><form method='post' name='form' action='".$_SERVER['PHP_SELF']."'>";
 echo "<table class='tab_cadre'><tr class='tab_bg_2'>";
 echo "<td class='right'>".__('Start date')."</td><td>";
-Html::showDateField("date1", array('value' => $_POST["date1"]));
+Html::showDateField("date1", ['value' => $_POST["date1"]]);
 echo "</td><td rowspan='2' class='center'>";
 echo "<input type='submit' class='submit' name='submit' value=\"".__s('Display report')."\"></td>".
      "</tr>";
 echo "<tr class='tab_bg_2'><td class='right'>".__('End date')."</td><td>";
-Html::showDateField("date2", array('value' => $_POST["date2"]));
+Html::showDateField("date2", ['value' => $_POST["date2"]]);
 echo "</td></tr>";
 echo "</table>";
 Html::closeForm();
@@ -76,8 +81,8 @@ echo "</div>";
 
 $valeurtot           = 0;
 $valeurnettetot      = 0;
-$valeurnettegraphtot = array();
-$valeurgraphtot      = array();
+$valeurnettegraphtot = [];
+$valeurgraphtot      = [];
 
 
 /** Display an infocom report
@@ -87,7 +92,7 @@ $valeurgraphtot      = array();
  * @param $end       end date
 **/
 function display_infocoms_report($itemtype, $begin, $end) {
-   global $DB, $valeurtot, $valeurnettetot, $valeurnettegraphtot, $valeurgraphtot, $CFG_GLPI;
+   global $DB, $valeurtot, $valeurnettetot, $valeurnettegraphtot, $valeurgraphtot, $CFG_GLPI, $stat, $chart_opts;
 
    $itemtable = getTableForItemType($itemtype);
    $query = "SELECT `glpi_infocoms`.*,
@@ -133,8 +138,8 @@ function display_infocoms_report($itemtype, $begin, $end) {
 
       $valeursoustot      = 0;
       $valeurnettesoustot = 0;
-      $valeurnettegraph   = array();
-      $valeurgraph        = array();
+      $valeurnettegraph   = [];
+      $valeurgraph        = [];
 
       while ($line=$DB->fetch_assoc($result)) {
          if (isset($line["is_global"]) && $line["is_global"]
@@ -165,7 +170,7 @@ function display_infocoms_report($itemtype, $begin, $end) {
          }
 
          if (!empty($line["buy_date"])) {
-            $year = substr($line["buy_date"],0,4);
+            $year = substr($line["buy_date"], 0, 4);
             if ($line["value"] > 0) {
                if (!isset($valeurgraph[$year])) {
                   $valeurgraph[$year] = 0;
@@ -174,7 +179,10 @@ function display_infocoms_report($itemtype, $begin, $end) {
             }
          }
 
-         $valeurnettesoustot += str_replace(" ","",$valeurnette);
+         $valeurnette = str_replace([" ", "-"], ["", ""], $valeurnette);
+         if (!empty($valeurnette)) {
+            $valeurnettesoustot += $valeurnette;
+         }
 
          echo "<tr class='tab_bg_1'><td>".$line["name"]."</td>";
          if ($display_entity) {
@@ -193,14 +201,13 @@ function display_infocoms_report($itemtype, $begin, $end) {
       $valeurtot      += $valeursoustot;
       $valeurnettetot += $valeurnettesoustot;
 
-
       $tmpmsg = sprintf(__('Total: Value=%1$s - Account net value=%2$s'),
                         Html::formatNumber($valeursoustot),
                         Html::formatNumber($valeurnettesoustot));
       echo "<tr><td colspan='6' class='center'><h3>$tmpmsg</h3></td></tr>";
 
       if (count($valeurnettegraph) > 0) {
-         echo "<tr><td colspan='5' class='center'>";
+         echo "<tr><td colspan='8' class='center'>";
          ksort($valeurnettegraph);
          $valeurnettegraphdisplay = array_map('round', $valeurnettegraph);
 
@@ -211,18 +218,25 @@ function display_infocoms_report($itemtype, $begin, $end) {
             $valeurnettegraphtot[$key] += $valeurnettegraph[$key];
          }
 
-         Stat::showGraph(array(__('Account net value') => $valeurnettegraphdisplay),
-                         array('title' => __('Account net value'),
-                               'width' => 400));
-
+         $stat->displayLineGraph(
+            sprintf(
+                __('%1$s account net value'),
+                $item->getTypeName(1)
+            ),
+            array_keys($valeurnettegraphdisplay), [
+               [
+                  'data' => $valeurnettegraphdisplay
+               ]
+            ], $chart_opts
+         );
          echo "</td></tr>";
       }
 
       if (count($valeurgraph) > 0) {
-         echo "<tr><td colspan='5' class='center'>";
+         echo "<tr><td colspan='8' class='center'>";
 
          ksort($valeurgraph);
-         $valeurgraphdisplay = array_map('round',$valeurgraph);
+         $valeurgraphdisplay = array_map('round', $valeurgraph);
 
          foreach ($valeurgraph as $key => $val) {
             if (!isset($valeurgraphtot[$key])) {
@@ -231,9 +245,17 @@ function display_infocoms_report($itemtype, $begin, $end) {
             $valeurgraphtot[$key] += $valeurgraph[$key];
          }
 
-         Stat::showGraph(array(_x('price', 'Value') => $valeurgraphdisplay),
-                         array('title' => _x('price', 'Value'),
-                               'width' => 400));
+         $stat->displayLineGraph(
+            sprintf(
+                __('%1$s value'),
+                $item->getTypeName(1)
+            ),
+            array_keys($valeurgraphdisplay), [
+               [
+                  'data' => $valeurgraphdisplay
+               ]
+            ], $chart_opts
+         );
          echo "</td></tr>";
       }
       echo "</table>";
@@ -242,7 +264,7 @@ function display_infocoms_report($itemtype, $begin, $end) {
    return false;
 }
 
-$types = array('Computer', 'Monitor', 'NetworkEquipment', 'Peripheral', 'Phone', 'Printer');
+$types = ['Computer', 'Monitor', 'NetworkEquipment', 'Peripheral', 'Phone', 'Printer'];
 
 $i = 0;
 echo "<table><tr><td class='top'>";
@@ -275,14 +297,27 @@ echo "<div class='center'><h3>$tmpmsg</h3></div>";
 
 if (count($valeurnettegraphtot) > 0) {
    $valeurnettegraphtotdisplay = array_map('round', $valeurnettegraphtot);
-   Stat::showGraph(array(__('Account net value') => $valeurnettegraphtotdisplay),
-                   array('title' => __('Account net value')));
+
+   $stat->displayLineGraph(
+      __('Total account net value'),
+      array_keys($valeurnettegraphtotdisplay), [
+         [
+            'data' => $valeurnettegraphtotdisplay
+         ]
+      ], $chart_opts
+   );
 }
 if (count($valeurgraphtot) > 0) {
    $valeurgraphtotdisplay = array_map('round', $valeurgraphtot);
-   Stat::showGraph(array(_x('price', 'Value') => $valeurgraphtotdisplay),
-                   array('title' => _x('price', 'Value')));
+
+   $stat->displayLineGraph(
+      __('Total value'),
+      array_keys($valeurgraphtotdisplay), [
+         [
+            'data' => $valeurgraphtotdisplay
+         ]
+      ], $chart_opts
+   );
 }
 
 Html::footer();
-?>

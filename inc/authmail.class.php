@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
- 
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -37,7 +36,7 @@
 
 /**
  *  Class used to manage Auth mail config
-**/
+ */
 class AuthMail extends CommonDBTM {
 
 
@@ -46,11 +45,9 @@ class AuthMail extends CommonDBTM {
 
    static $rightname = 'config';
 
-
-   static function getTypeName($nb=0) {
+   static function getTypeName($nb = 0) {
       return _n('Mail server', 'Mail servers', $nb);
    }
-
 
    function prepareInputForUpdate($input) {
 
@@ -60,19 +57,13 @@ class AuthMail extends CommonDBTM {
       return $input;
    }
 
-
    static function canCreate() {
       return static::canUpdate();
    }
 
-
-   /**
-    * @since version 0.85
-   **/
    static function canPurge() {
       return static::canUpdate();
    }
-
 
    function prepareInputForAdd($input) {
 
@@ -82,10 +73,9 @@ class AuthMail extends CommonDBTM {
       return $input;
    }
 
+   function defineTabs($options = []) {
 
-   function defineTabs($options=array()) {
-
-      $ong = array();
+      $ong = [];
       $this->addDefaultFormTab($ong);
       $this->addStandardTab(__CLASS__, $ong, $options);
       $this->addStandardTab('Log', $ong, $options);
@@ -93,64 +83,86 @@ class AuthMail extends CommonDBTM {
       return $ong;
    }
 
+   function getSearchOptionsNew() {
+      $tab = [];
 
-   function getSearchOptions() {
+      $tab[] = [
+         'id'                 => 'common',
+         'name'               => __('Email server')
+      ];
 
-      $tab = array();
-      $tab['common']             = __('Email server');
+      $tab[] = [
+         'id'                 => '1',
+         'table'              => $this->getTable(),
+         'field'              => 'name',
+         'name'               => __('Name'),
+         'datatype'           => 'itemlink',
+         'massiveaction'      => false
+      ];
 
-      $tab[1]['table']           = $this->getTable();
-      $tab[1]['field']           = 'name';
-      $tab[1]['name']            = __('Name');
-      $tab[1]['datatype']        = 'itemlink';
-      $tab[1]['massiveaction']   = false;
+      $tab[] = [
+         'id'                 => '2',
+         'table'              => $this->getTable(),
+         'field'              => 'id',
+         'name'               => __('ID'),
+         'datatype'           => 'number',
+         'massiveaction'      => false
+      ];
 
-      $tab[2]['table']           = $this->getTable();
-      $tab[2]['field']           = 'id';
-      $tab[2]['name']            = __('ID');
-      $tab[2]['datatype']        = 'number';
-      $tab[2]['massiveaction']   = false;
+      $tab[] = [
+         'id'                 => '3',
+         'table'              => $this->getTable(),
+         'field'              => 'host',
+         'name'               => __('Server'),
+         'datatype'           => 'string'
+      ];
 
-      $tab[3]['table']           = $this->getTable();
-      $tab[3]['field']           = 'host';
-      $tab[3]['name']            = __('Server');
-      $tab[3]['datatype']        = 'string';
+      $tab[] = [
+         'id'                 => '4',
+         'table'              => $this->getTable(),
+         'field'              => 'connect_string',
+         'name'               => __('Connection string'),
+         'massiveaction'      => false,
+         'datatype'           => 'string'
+      ];
 
-      $tab[4]['table']           = $this->getTable();
-      $tab[4]['field']           = 'connect_string';
-      $tab[4]['name']            = __('Connection string');
-      $tab[4]['massiveaction']   = false;
-      $tab[4]['datatype']        = 'string';
+      $tab[] = [
+         'id'                 => '6',
+         'table'              => $this->getTable(),
+         'field'              => 'is_active',
+         'name'               => __('Active'),
+         'datatype'           => 'bool'
+      ];
 
-      $tab[6]['table']           = $this->getTable();
-      $tab[6]['field']           = 'is_active';
-      $tab[6]['name']            = __('Active');
-      $tab[6]['datatype']        = 'bool';
+      $tab[] = [
+         'id'                 => '19',
+         'table'              => $this->getTable(),
+         'field'              => 'date_mod',
+         'name'               => __('Last update'),
+         'datatype'           => 'datetime',
+         'massiveaction'      => false
+      ];
 
-      $tab[19]['table']          = $this->getTable();
-      $tab[19]['field']          = 'date_mod';
-      $tab[19]['name']           = __('Last update');
-      $tab[19]['datatype']       = 'datetime';
-      $tab[19]['massiveaction']  = false;
-
-      $tab[16]['table']          = $this->getTable();
-      $tab[16]['field']          = 'comment';
-      $tab[16]['name']           = __('Comments');
-      $tab[16]['datatype']       = 'text';
+      $tab[] = [
+         'id'                 => '16',
+         'table'              => $this->getTable(),
+         'field'              => 'comment',
+         'name'               => __('Comments'),
+         'datatype'           => 'text'
+      ];
 
       return $tab;
    }
 
-
    /**
     * Print the auth mail form
     *
-    * @param $ID        Integer : ID of the item
-    * @param $options   array
+    * @param integer $ID      ID of the item
+    * @param array   $options Options
     *
-    * @return Nothing (display)
-   **/
-   function showForm($ID, $options=array()) {
+    * @return void (display)
+    */
+   function showForm($ID, $options = []) {
 
       if (!Config::canUpdate()) {
          return false;
@@ -210,7 +222,11 @@ class AuthMail extends CommonDBTM {
       }
    }
 
-
+   /**
+    * Show test mail form
+    *
+    * @return void
+    */
    function showFormTestMail() {
 
       $ID = $this->getField('id');
@@ -229,7 +245,7 @@ class AuthMail extends CommonDBTM {
                     autocomplete='off'></td></tr>";
 
          echo "<tr class='tab_bg_2'><td class='center' colspan='2'>";
-         echo "<input type='submit' name='test' class='submit' value=\""._sx('button','Test')."\">".
+         echo "<input type='submit' name='test' class='submit' value=\""._sx('button', 'Test')."\">".
               "</td>";
          echo "</tr></table></div>";
          Html::closeForm();
@@ -238,10 +254,10 @@ class AuthMail extends CommonDBTM {
 
 
    /**
-    * Is the Mail authentication used ?
+    * Is the Mail authentication used?
     *
     * @return boolean
-   **/
+    */
    static function useAuthMail() {
       return (countElementsInTable('glpi_authmails', "`is_active`") > 0);
    }
@@ -250,12 +266,12 @@ class AuthMail extends CommonDBTM {
    /**
     * Test a connexion to the IMAP/POP server
     *
-    * @param $connect_string     mail server
-    * @param $login              user login
-    * @param $password           user password
+    * @param string $connect_string mail server
+    * @param string $login          user login
+    * @param string $password       user password
     *
-    * @return authentification succeeded ?
-   **/
+    * @return boolean authentification succeeded?
+    */
    static function testAuth($connect_string, $login, $password) {
 
       $auth = new Auth();
@@ -267,13 +283,13 @@ class AuthMail extends CommonDBTM {
    /**
     * Authentify a user by checking a specific mail server
     *
-    * @param $auth         identification object
-    * @param $login        user login
-    * @param $password     user password
-    * @param $mail_method  mail_method array to use
+    * @param object $auth        identification object
+    * @param string $login       user login
+    * @param string $password    user password
+    * @param string $mail_method mail_method array to use
     *
-    * @return identification object
-   **/
+    * @return object identification object
+    */
    static function mailAuth($auth, $login, $password, $mail_method) {
 
       if (isset($mail_method["connect_string"]) && !empty($mail_method["connect_string"])) {
@@ -296,16 +312,16 @@ class AuthMail extends CommonDBTM {
    /**
     * Try to authentify a user by checking all the mail server
     *
-    * @param $auth      identification object
-    * @param $login     user login
-    * @param $password  user password
-    * @param $auths_id  auths_id already used for the user (default 0)
-    * @param $break     if user is not found in the first directory,
-    *                   stop searching or try the following ones (true by default)
+    * @param object  $auth     identification object
+    * @param string  $login    user login
+    * @param string  $password user password
+    * @param integer $auths_id auths_id already used for the user (default 0)
+    * @param boolean $break    if user is not found in the first directory,
+    *                          stop searching or try the following ones (true by default)
     *
-    * @return identification object
-   **/
-   static function tryMailAuth($auth, $login, $password, $auths_id=0, $break=true) {
+    * @return object identification object
+    */
+   static function tryMailAuth($auth, $login, $password, $auths_id = 0, $break = true) {
 
       if ($auths_id <= 0) {
          foreach ($auth->authtypes["mail"] as $mail_method) {
@@ -318,32 +334,29 @@ class AuthMail extends CommonDBTM {
             }
          }
 
-      } else if (array_key_exists($auths_id,$auth->authtypes["mail"])) {
+      } else if (array_key_exists($auths_id, $auth->authtypes["mail"])) {
          //Check if the mail server indicated as the last good one still exists !
          $auth = self::mailAuth($auth, $login, $password, $auth->authtypes["mail"][$auths_id]);
       }
       return $auth;
    }
 
-
    function cleanDBonPurge() {
       Rule::cleanForItemCriteria($this, 'MAIL_SERVER');
    }
 
+   function getTabNameForItem(CommonGLPI $item, $withtemplate = 0) {
 
-   function getTabNameForItem(CommonGLPI $item, $withtemplate=0) {
-
-      if (!$withtemplate && $item->can($item->getField('id'),READ)) {
-         $ong = array();
-         $ong[1] = _sx('button','Test');    // test connexion
+      if (!$withtemplate && $item->can($item->getField('id'), READ)) {
+         $ong = [];
+         $ong[1] = _sx('button', 'Test');    // test connexion
 
          return $ong;
       }
       return '';
    }
 
-
-   static function displayTabContentForItem(CommonGLPI $item, $tabnum=1, $withtemplate=0) {
+   static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0) {
 
       switch ($tabnum) {
          case 1 :
@@ -354,4 +367,3 @@ class AuthMail extends CommonDBTM {
    }
 
 }
-?>

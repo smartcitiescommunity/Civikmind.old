@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: export.php 476 2017-01-09 15:53:05Z yllen $
+ * @version $Id: export.php 498 2017-11-03 13:33:40Z yllen $
  -------------------------------------------------------------------------
  LICENSE
 
@@ -54,7 +54,7 @@ if (isset($_POST["plugin_pdf_inventory_type"])
       unset($_SESSION["plugin_pdf"][$type]);
    }
 
-   $tab = array();
+   $tab = [];
 
    if (isset($_POST['item'])) {
       foreach ($_POST['item'] as $key => $val) {
@@ -71,7 +71,7 @@ if (isset($_POST["plugin_pdf_inventory_type"])
        && class_exists($PLUGIN_HOOKS['plugin_pdf'][$type])) {
 
       $itempdf = new $PLUGIN_HOOKS['plugin_pdf'][$type]($item);
-      $itempdf->generatePDF(array($_POST["itemID"]), $tab, (isset($_POST["page"]) ? $_POST["page"] : 0));
+      $itempdf->generatePDF([$_POST["itemID"]], $tab, (isset($_POST["page"]) ? $_POST["page"] : 0));
    } else {
       die("Missing hook");
    }

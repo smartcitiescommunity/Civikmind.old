@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
- 
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -51,13 +50,6 @@ class RuleRight extends Rule {
    public $specific_parameters = true;
 
 
-   // Temproray hack for this class in 0.84
-   static function getTable() {
-      return 'glpi_rules';
-   }
-
-
-
    /**
     * @see Rule::maxActionsCount()
    **/
@@ -78,11 +70,11 @@ class RuleRight extends Rule {
 
       echo "<tr class='tab_bg_1'>";
       echo "<td>".__('Name') . "</td><td>";
-      Html::autocompletionTextField($this, "name", array('value' => '',
-                                                         'size'  => 33));
+      Html::autocompletionTextField($this, "name", ['value' => '',
+                                                         'size'  => 33]);
       echo '</td><td>'.__('Description') . "</td><td>";
-      Html::autocompletionTextField($this, "description", array('value' => '',
-                                                                'size'  => 33));
+      Html::autocompletionTextField($this, "description", ['value' => '',
+                                                                'size'  => 33]);
       echo "</td><td>".__('Logical operator') . "</td><td>";
       $this->dropdownRulesMatch();
       echo "</td><td rowspan='2' class='tab_bg_2 center middle'>";
@@ -90,14 +82,14 @@ class RuleRight extends Rule {
       echo "<input type=hidden name='entities_id' value='-1'>";
       echo "<input type=hidden name='affectentity' value='$ID'>";
       echo "<input type=hidden name='_method' value='AddRule'>";
-      echo "<input type='submit' name='execute' value=\""._sx('button','Add')."\" class='submit'>";
+      echo "<input type='submit' name='execute' value=\""._sx('button', 'Add')."\" class='submit'>";
       echo "</td></tr>\n";
 
       echo "<tr class='tab_bg_1'>";
       echo "<td class='center'>"._n('Profile', 'Profiles', 1) . "</td><td>";
       Profile::dropdown();
       echo "</td><td><span class='small_space'>".__('Recursive') . "</span></td><td colspan='3'>";
-      Dropdown::showYesNo("is_recursive",0);
+      Dropdown::showYesNo("is_recursive", 0);
       echo "</td></tr>\n";
 
       echo "</table>";
@@ -125,7 +117,7 @@ class RuleRight extends Rule {
       $output_src   = $output;
 
       if (count($this->actions)) {
-         $entity = array();
+         $entity = [];
          foreach ($this->actions as $action) {
 
             switch ($action->fields["action_type"]) {
@@ -212,12 +204,12 @@ class RuleRight extends Rule {
          if (count($entity)) {
             if ($right != '') {
                foreach ($entity as $entID) {
-                  $output["_ldap_rules"]["rules_entities_rights"][] = array($entID, $right,
-                                                                            $is_recursive);
+                  $output["_ldap_rules"]["rules_entities_rights"][] = [$entID, $right,
+                                                                            $is_recursive];
                }
             } else {
                foreach ($entity as $entID) {
-                  $output["_ldap_rules"]["rules_entities"][] = array($entID, $is_recursive);
+                  $output["_ldap_rules"]["rules_entities"][] = [$entID, $is_recursive];
                }
             }
          } else if ($right != '') {
@@ -239,7 +231,7 @@ class RuleRight extends Rule {
     * @see Rule::getCriterias()
    **/
    function getCriterias() {
-      static $criterias = array();
+      static $criterias = [];
 
       if (!count($criterias)) {
          $criterias['common']                   = __('Global criteria');
@@ -294,7 +286,7 @@ class RuleRight extends Rule {
    **/
    function getActions() {
 
-      $actions                                              = array();
+      $actions                                              = [];
 
       $actions['entities_id']['name']                       = __('Entity');
       $actions['entities_id']['type']                       = 'dropdown';
@@ -302,23 +294,22 @@ class RuleRight extends Rule {
 
       $actions['_affect_entity_by_dn']['name']              = __('Entity based on LDAP information');
       $actions['_affect_entity_by_dn']['type']              = 'text';
-      $actions['_affect_entity_by_dn']['force_actions']     = array('regex_result');
+      $actions['_affect_entity_by_dn']['force_actions']     = ['regex_result'];
       $actions['_affect_entity_by_dn']['duplicatewith']     = 'entities_id';
 
       $actions['_affect_entity_by_tag']['name']             = __('Entity from TAG');
       $actions['_affect_entity_by_tag']['type']             = 'text';
-      $actions['_affect_entity_by_tag']['force_actions']    = array('regex_result');
+      $actions['_affect_entity_by_tag']['force_actions']    = ['regex_result'];
       $actions['_affect_entity_by_tag']['duplicatewith']    = 'entities_id';
 
       $actions['_affect_entity_by_domain']['name']          = __('Entity from mail domain');
       $actions['_affect_entity_by_domain']['type']          = 'text';
-      $actions['_affect_entity_by_domain']['force_actions'] = array('regex_result');
+      $actions['_affect_entity_by_domain']['force_actions'] = ['regex_result'];
       $actions['_affect_entity_by_domain']['duplicatewith'] = 'entities_id';
-
 
       $actions['_affect_entity_by_completename']['name']          = __('Entity from complete name');
       $actions['_affect_entity_by_completename']['type']          = 'text';
-      $actions['_affect_entity_by_completename']['force_actions'] = array('regex_result');
+      $actions['_affect_entity_by_completename']['force_actions'] = ['regex_result'];
       $actions['_affect_entity_by_completename']['duplicatewith'] = 'entities_id';
 
       $actions['profiles_id']['name']                       = _n('Profile', 'Profiles', Session::getPluralNumber());
@@ -349,7 +340,7 @@ class RuleRight extends Rule {
    function addSpecificCriteriasToArray(&$criterias) {
 
       $criterias['ldap'] = __('LDAP criteria');
-      foreach (getAllDatasFromTable('glpi_rulerightparameters', '', true) as $datas ) {
+      foreach (getAllDatasFromTable('glpi_rulerightparameters', '', true) as $datas) {
          $criterias[$datas["value"]]['name']      = $datas["name"];
          $criterias[$datas["value"]]['field']     = $datas["value"];
          $criterias[$datas["value"]]['linkfield'] = '';
@@ -358,4 +349,3 @@ class RuleRight extends Rule {
    }
 
 }
-?>

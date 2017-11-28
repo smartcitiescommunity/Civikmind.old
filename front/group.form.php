@@ -1,39 +1,40 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
- 
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
 * @brief
 */
+
+use Glpi\Event;
 
 include ('../inc/includes.php');
 
@@ -51,7 +52,7 @@ if (isset($_POST["add"])) {
       Event::log($newID, "groups", 4, "setup",
                  sprintf(__('%1$s adds the item %2$s'), $_SESSION["glpiname"], $_POST["name"]));
       if ($_SESSION['glpibackcreated']) {
-         Html::redirect($group->getFormURL()."?id=".$newID);
+         Html::redirect($group->getLinkURL());
       }
    }
    Html::back();
@@ -61,7 +62,7 @@ if (isset($_POST["add"])) {
    if ($group->isUsed()
          && empty($_POST["forcepurge"])) {
       Html::header($group->getTypeName(1), $_SERVER['PHP_SELF'], "admin", "group",
-      str_replace('glpi_','',$group->getTable()));
+      str_replace('glpi_', '', $group->getTable()));
 
       $group->showDeleteConfirmForm($_SERVER['PHP_SELF']);
       Html::footer();
@@ -82,7 +83,7 @@ if (isset($_POST["add"])) {
    Html::back();
 
 } else if (isset($_GET['_in_modal'])) {
-   Html::popHeader(Group::getTypeName(Session::getPluralNumber()),$_SERVER['PHP_SELF']);
+   Html::popHeader(Group::getTypeName(Session::getPluralNumber()), $_SERVER['PHP_SELF']);
    $group->showForm($_GET["id"]);
    Html::popFooter();
 
@@ -97,7 +98,7 @@ if (isset($_POST["add"])) {
 
 } else {
    Html::header(Group::getTypeName(Session::getPluralNumber()), $_SERVER['PHP_SELF'], "admin", "group");
-   $group->display(array('id' =>$_GET["id"]));
+   $group->display(['id' =>$_GET["id"]]);
    Html::footer();
 }
-?>
+

@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
- 
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -42,9 +41,9 @@ if (!defined('GLPI_ROOT')) {
 /// Class DeviceProcessor
 class DeviceProcessor extends CommonDevice {
 
-   static protected $forward_entity_to = array('Item_DeviceProcessor', 'Infocom');
+   static protected $forward_entity_to = ['Item_DeviceProcessor', 'Infocom'];
 
-   static function getTypeName($nb=0) {
+   static function getTypeName($nb = 0) {
       return _n('Processor', 'Processors', $nb);
    }
 
@@ -52,49 +51,69 @@ class DeviceProcessor extends CommonDevice {
    function getAdditionalFields() {
 
       return array_merge(parent::getAdditionalFields(),
-                         array(array('name'  => 'frequency_default',
+                         [['name'  => 'frequency_default',
                                      'label' => __('Frequency by default'),
                                      'type'  => 'text',
-                                     'unit'  => __('MHz')),
-                               array('name'  => 'frequence',
+                                     'unit'  => __('MHz')],
+                               ['name'  => 'frequence',
                                      'label' => __('Frequency'),
                                      'type'  => 'text',
-                                     'unit'  => __('MHz')),
-                               array('name'  => 'nbcores_default',
+                                     'unit'  => __('MHz')],
+                               ['name'  => 'nbcores_default',
                                      'label' => __('Number of cores'),
-                                     'type'  => 'integer'),
-                               array('name'  => 'nbthreads_default',
+                                     'type'  => 'integer'],
+                               ['name'  => 'nbthreads_default',
                                      'label' => __('Number of threads'),
-                                     'type'  => 'integer')
-                           ));
+                                     'type'  => 'integer'],
+                               ['name'  => 'deviceprocessormodels_id',
+                                     'label' => __('Model'),
+                                     'type'  => 'dropdownValue']
+                           ]);
    }
 
 
-   function getSearchOptions() {
+   function getSearchOptionsNew() {
+      $tab = parent::getSearchOptionsNew();
 
-      $tab                 = parent::getSearchOptions();
+      $tab[] = [
+         'id'                 => '11',
+         'table'              => $this->getTable(),
+         'field'              => 'frequency_default',
+         'name'               => __('Frequency by default'),
+         'datatype'           => 'string'
+      ];
 
-      $tab[11]['table']    = $this->getTable();
-      $tab[11]['field']    = 'frequency_default';
-      $tab[11]['name']     = __('Frequency by default');
-      $tab[11]['datatype'] = 'string';
+      $tab[] = [
+         'id'                 => '12',
+         'table'              => $this->getTable(),
+         'field'              => 'frequence',
+         'name'               => __('Frequency'),
+         'datatype'           => 'string'
+      ];
 
-      $tab[12]['table']    = $this->getTable();
-      $tab[12]['field']    = 'frequence';
-      $tab[12]['name']     = __('Frequency');
-      $tab[12]['datatype'] = 'string';
+      $tab[] = [
+         'id'                 => '13',
+         'table'              => $this->getTable(),
+         'field'              => 'nbcores_default',
+         'name'               => __('Number of cores'),
+         'datatype'           => 'integer'
+      ];
 
+      $tab[] = [
+         'id'                 => '14',
+         'table'              => $this->getTable(),
+         'field'              => 'nbthreads_default',
+         'name'               => __('Number of threads'),
+         'datatype'           => 'integer'
+      ];
 
-
-      $tab[13]['table']    = $this->getTable();
-      $tab[13]['field']    = 'nbcores_default';
-      $tab[13]['name']     = __('Number of cores');
-      $tab[13]['datatype'] = 'integer';
-
-      $tab[14]['table']    = $this->getTable();
-      $tab[14]['field']    = 'nbthreads_default';
-      $tab[14]['name']     = __('Number of threads');
-      $tab[14]['datatype'] = 'integer';
+      $tab[] = [
+         'id'                 => '15',
+         'table'              => 'glpi_deviceprocessormodels',
+         'field'              => 'name',
+         'name'               => __('Model'),
+         'datatype'           => 'dropdown'
+      ];
 
       return $tab;
    }
@@ -108,8 +127,8 @@ class DeviceProcessor extends CommonDevice {
    **/
    function prepareInputForAddOrUpdate($input) {
 
-      foreach (array('frequence', 'frequency_default', 'nbcores_default',
-                     'nbthreads_default') as $field) {
+      foreach (['frequence', 'frequency_default', 'nbcores_default',
+                     'nbthreads_default'] as $field) {
          if (isset($input[$field]) && !is_numeric($input[$field])) {
             $input[$field] = 0;
          }
@@ -138,8 +157,8 @@ class DeviceProcessor extends CommonDevice {
     * @see CommonDevice::getHTMLTableHeader()
    **/
    static function getHTMLTableHeader($itemtype, HTMLTableBase $base,
-                                      HTMLTableSuperHeader $super=NULL,
-                                      HTMLTableHeader $father=NULL, array $options=array()) {
+                                      HTMLTableSuperHeader $super = null,
+                                      HTMLTableHeader $father = null, array $options = []) {
 
       $column = parent::getHTMLTableHeader($itemtype, $base, $super, $father, $options);
 
@@ -160,8 +179,8 @@ class DeviceProcessor extends CommonDevice {
     *
     * @see CommonDevice::getHTMLTableCellForItem()
    **/
-   function getHTMLTableCellForItem(HTMLTableRow $row=NULL, CommonDBTM $item=NULL,
-                                    HTMLTableCell $father=NULL, array $options=array()) {
+   function getHTMLTableCellForItem(HTMLTableRow $row = null, CommonDBTM $item = null,
+                                    HTMLTableCell $father = null, array $options = []) {
 
       $column = parent::getHTMLTableCellForItem($row, $item, $father, $options);
 
@@ -171,7 +190,7 @@ class DeviceProcessor extends CommonDevice {
 
       switch ($item->getType()) {
          case 'Computer' :
-            Manufacturer::getHTMLTableCellsForItem($row, $this, NULL, $options);
+            Manufacturer::getHTMLTableCellsForItem($row, $this, null, $options);
             break;
       }
    }
@@ -186,10 +205,9 @@ class DeviceProcessor extends CommonDevice {
    **/
    function getImportCriteria() {
 
-      return array('designation'          => 'equal',
+      return ['designation'          => 'equal',
                    'manufacturers_id'     => 'equal',
-                   'frequence'            => 'delta:10');
+                   'frequence'            => 'delta:10'];
    }
 
 }
-?>

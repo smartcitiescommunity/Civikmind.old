@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
-
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -42,10 +41,10 @@ if (!defined('GLPI_ROOT')) {
 class TicketSatisfaction extends CommonDBTM {
 
    public $dohistory         = true;
-   public $history_blacklist = array('date_answered');
+   public $history_blacklist = ['date_answered'];
 
 
-   static function getTypeName($nb=0) {
+   static function getTypeName($nb = 0) {
       return __('Satisfaction');
    }
 
@@ -59,7 +58,7 @@ class TicketSatisfaction extends CommonDBTM {
 
 
    function getLogTypeID() {
-      return array('Ticket', $this->fields['tickets_id']);
+      return ['Ticket', $this->fields['tickets_id']];
    }
 
 
@@ -86,7 +85,7 @@ class TicketSatisfaction extends CommonDBTM {
          return false;
       }
 
-      if ($ticket->isUser(CommonITILActor::REQUESTER,Session::getLoginUserID())
+      if ($ticket->isUser(CommonITILActor::REQUESTER, Session::getLoginUserID())
           || ($ticket->fields["users_id_recipient"] === Session::getLoginUserID() && Session::haveRight('ticket', Ticket::SURVEY))
           || (isset($_SESSION["glpigroups"])
               && $ticket->haveAGroup(CommonITILActor::REQUESTER, $_SESSION["glpigroups"]))) {
@@ -104,7 +103,7 @@ class TicketSatisfaction extends CommonDBTM {
    function showForm($ticket) {
 
       $tid                 = $ticket->fields['id'];
-      $options             = array();
+      $options             = [];
       $options['colspan']  = 1;
 
       // for external inquest => link
@@ -113,8 +112,7 @@ class TicketSatisfaction extends CommonDBTM {
          echo "<div class='center spaced'>".
               "<a href='$url'>".__('External survey')."</a><br>($url)</div>";
 
-      // for internal inquest => form
-      } else {
+      } else { // for internal inquest => form
          $this->showFormHeader($options);
 
          // Set default satisfaction to 3 if not set
@@ -128,13 +126,14 @@ class TicketSatisfaction extends CommonDBTM {
 
          echo "<select id='satisfaction_data' name='satisfaction'>";
 
-         for ($i=0 ; $i<=5 ; $i++) {
+         for ($i=0; $i<=5; $i++) {
             echo "<option value='$i' ".(($i == $this->fields["satisfaction"])?'selected':'').
                   ">$i</option>";
          }
          echo "</select>";
          echo "<div class='rateit' id='stars'></div>";
          echo  "<script type='text/javascript'>\n";
+         echo "$(function() {";
          echo "$('#stars').rateit({value: ".$this->fields["satisfaction"].",
                                    min : 0,
                                    max : 5,
@@ -142,7 +141,7 @@ class TicketSatisfaction extends CommonDBTM {
                                    backingfld: '#satisfaction_data',
                                    ispreset: true,
                                    resetable: false});";
-         echo "</script>";
+         echo "});</script>";
 
          echo "</td></tr>";
 
@@ -178,7 +177,7 @@ class TicketSatisfaction extends CommonDBTM {
    function post_addItem() {
       global $CFG_GLPI;
 
-      if (!isset($this->input['_disablenotif']) && $CFG_GLPI["use_mailing"]) {
+      if (!isset($this->input['_disablenotif']) && $CFG_GLPI["use_notifications"]) {
          $ticket = new Ticket();
          if ($ticket->getFromDB($this->fields['tickets_id'])) {
             NotificationEvent::raiseEvent("satisfaction", $ticket);
@@ -190,10 +189,10 @@ class TicketSatisfaction extends CommonDBTM {
    /**
     * @since version 0.85
    **/
-   function post_UpdateItem($history=1) {
+   function post_UpdateItem($history = 1) {
       global $CFG_GLPI;
 
-      if (!isset($this->input['_disablenotif']) && $CFG_GLPI["use_mailing"]) {
+      if (!isset($this->input['_disablenotif']) && $CFG_GLPI["use_notifications"]) {
          $ticket = new Ticket();
          if ($ticket->getFromDB($this->fields['tickets_id'])) {
             NotificationEvent::raiseEvent("replysatisfaction", $ticket);
@@ -251,10 +250,10 @@ class TicketSatisfaction extends CommonDBTM {
     * @param $values
     * @param $options   array
    **/
-   static function getSpecificValueToDisplay($field, $values, array $options=array()) {
+   static function getSpecificValueToDisplay($field, $values, array $options = []) {
 
       if (!is_array($values)) {
-         $values = array($field => $values);
+         $values = [$field => $values];
       }
       switch ($field) {
          case 'type':
@@ -272,22 +271,21 @@ class TicketSatisfaction extends CommonDBTM {
     * @param $values                (default '')
     * @param $options   array
    **/
-   static function getSpecificValueToSelect($field, $name='', $values='', array $options=array()) {
+   static function getSpecificValueToSelect($field, $name = '', $values = '', array $options = []) {
 
       if (!is_array($values)) {
-         $values = array($field => $values);
+         $values = [$field => $values];
       }
       $options['display'] = false;
 
       switch ($field) {
          case 'type' :
             $options['value'] = $values[$field];
-            $typeinquest = array(1 => __('Internal survey'),
-                                 2 => __('External survey'));
+            $typeinquest = [1 => __('Internal survey'),
+                                 2 => __('External survey')];
             return Dropdown::showFromArray($name, $typeinquest, $options);
       }
       return parent::getSpecificValueToSelect($field, $name, $values, $options);
    }
 
 }
-?>

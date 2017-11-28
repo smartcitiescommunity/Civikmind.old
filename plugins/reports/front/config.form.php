@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: config.form.php 336 2017-01-20 16:59:36Z yllen $
+ * @version $Id: config.form.php 345 2017-10-23 17:33:07Z yllen $
  -------------------------------------------------------------------------
   LICENSE
 
@@ -33,8 +33,8 @@
 include_once ("../../../inc/includes.php");
 Plugin::load('reports');
 
-Session::checkSeveralRightsOr(array("config"  => UPDATE,
-                                    "profile" => UPDATE));
+Session::checkSeveralRightsOr(["config"  => UPDATE,
+                               "profile" => UPDATE]);
 Html::header(__('Setup'), $_SERVER['PHP_SELF'], "config", "plugins");
 
 echo "<div class='center'>";

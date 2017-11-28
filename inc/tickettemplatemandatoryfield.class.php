@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
-
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -49,7 +48,7 @@ class TicketTemplateMandatoryField extends CommonDBChild {
    public $dohistory = true;
 
 
-   static function getTypeName($nb=0) {
+   static function getTypeName($nb = 0) {
       return _n('Mandatory field', 'Mandatory fields', $nb);
    }
 
@@ -82,7 +81,7 @@ class TicketTemplateMandatoryField extends CommonDBChild {
    }
 
 
-   function getTabNameForItem(CommonGLPI $item, $withtemplate=0) {
+   function getTabNameForItem(CommonGLPI $item, $withtemplate = 0) {
 
       // can exists for template
       if (($item->getType() == 'TicketTemplate')
@@ -90,7 +89,7 @@ class TicketTemplateMandatoryField extends CommonDBChild {
          $nb = 0;
          if ($_SESSION['glpishow_count_on_tabs']) {
             $nb = countElementsInTable($this->getTable(),
-                                       "`tickettemplates_id` = '".$item->getID()."'");
+                                       ['tickettemplates_id' => $item->getID()]);
          }
          return self::createTabEntry(self::getTypeName(Session::getPluralNumber()), $nb);
       }
@@ -98,7 +97,7 @@ class TicketTemplateMandatoryField extends CommonDBChild {
    }
 
 
-   static function displayTabContentForItem(CommonGLPI $item, $tabnum=1, $withtemplate=0) {
+   static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0) {
 
       self::showForTicketTemplate($item, $withtemplate);
       return true;
@@ -124,7 +123,7 @@ class TicketTemplateMandatoryField extends CommonDBChild {
          if ($result = $DB->query($query)) {
             if ($DB->numrows($result)) {
                $a = new self();
-               $a->delete(array('id' => $DB->result($result,0,0)));
+               $a->delete(['id' => $DB->result($result, 0, 0)]);
             }
          }
       }
@@ -141,7 +140,7 @@ class TicketTemplateMandatoryField extends CommonDBChild {
     *
     * @return an array of mandatory fields
    **/
-   function getMandatoryFields($ID, $withtypeandcategory=true) {
+   function getMandatoryFields($ID, $withtypeandcategory = true) {
       global $DB;
 
       $sql = "SELECT *
@@ -152,7 +151,7 @@ class TicketTemplateMandatoryField extends CommonDBChild {
 
       $tt             = new TicketTemplate();
       $allowed_fields = $tt->getAllowedFields($withtypeandcategory);
-      $fields         = array();
+      $fields         = [];
 
       while ($rule = $DB->fetch_assoc($result)) {
          if (isset($allowed_fields[$rule['num']])) {
@@ -164,16 +163,30 @@ class TicketTemplateMandatoryField extends CommonDBChild {
 
 
    /**
+    * Return fields who doesn't need to be used for this part of template
+    *
+    * @since 9.2
+    *
+    * @return array the excluded fields (keys and values are equals)
+    */
+   static function getExcludedFields() {
+      return [
+         175 => 175, // ticket's tasks
+      ];
+   }
+
+
+   /**
     * Print the mandatory fields
     *
     * @since version 0.83
     *
     * @param $tt                       Ticket Template
-    * @param $withtemplate    boolean  Template or basic item (default '')
+    * @param $withtemplate    boolean  Template or basic item (default 0)
     *
     * @return Nothing (call to classes members)
    **/
-   static function showForTicketTemplate(TicketTemplate $tt, $withtemplate='') {
+   static function showForTicketTemplate(TicketTemplate $tt, $withtemplate = 0) {
       global $DB;
 
       $ID = $tt->fields['id'];
@@ -185,6 +198,7 @@ class TicketTemplateMandatoryField extends CommonDBChild {
       $ttm               = new self();
       $used              = $ttm->getMandatoryFields($ID);
       $fields            = $tt->getAllowedFieldsNames(true);
+      $fields            = array_diff_key($fields, self::getExcludedFields());
       $simplified_fields = $tt->getSimplifiedInterfaceFields();
       $both_interfaces   = sprintf(__('%1$s + %2$s'), __('Simplified interface'), __
                                    ('Standard interface'));
@@ -196,8 +210,8 @@ class TicketTemplateMandatoryField extends CommonDBChild {
                 WHERE (`tickettemplates_id` = '$ID')";
 
       if ($result = $DB->query($query)) {
-         $mandatoryfields = array();
-         $used            = array();
+         $mandatoryfields = [];
+         $used            = [];
          if ($numrows = $DB->numrows($result)) {
             while ($data = $DB->fetch_assoc($result)) {
                $mandatoryfields[$data['id']] = $data;
@@ -223,7 +237,7 @@ class TicketTemplateMandatoryField extends CommonDBChild {
                }
             }
 
-            Dropdown::showFromArray('num', $select_fields, array('used' => $used));
+            Dropdown::showFromArray('num', $select_fields, ['used' => $used]);
             echo "</td><td class='center'>";
             echo "&nbsp;<input type='submit' name='add' value=\""._sx('button', 'Add').
                          "\" class='submit'>";
@@ -234,12 +248,11 @@ class TicketTemplateMandatoryField extends CommonDBChild {
             echo "</div>";
          }
 
-
          echo "<div class='spaced'>";
          if ($canedit && $numrows) {
             Html::openMassiveActionsForm('mass'.__CLASS__.$rand);
-            $massiveactionparams = array('num_displayed' => min($_SESSION['glpilist_limit'], $numrows),
-                                         'container'     => 'mass'.__CLASS__.$rand);
+            $massiveactionparams = ['num_displayed' => min($_SESSION['glpilist_limit'], $numrows),
+                                         'container'     => 'mass'.__CLASS__.$rand];
             Html::showMassiveActions($massiveactionparams);
          }
          echo "<table class='tab_cadre_fixehov'>";
@@ -272,13 +285,12 @@ class TicketTemplateMandatoryField extends CommonDBChild {
                if (in_array($data['num'], $simplified_fields)) {
                   echo $both_interfaces;
                } else {
-                  _e('Standard interface');
+                  echo __('Standard interface');
                }
                echo "</td>";
                echo "</tr>";
             }
             echo $header_begin.$header_bottom.$header_end;
-
 
          } else {
             echo "<tr><th colspan='2'>".__('No item found')."</th></tr>";
@@ -295,4 +307,3 @@ class TicketTemplateMandatoryField extends CommonDBChild {
    }
 
 }
-?>

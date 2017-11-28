@@ -1,6 +1,10 @@
 <?php
 
-class PluginFormcreatorFormlist extends CommonGLPI
+if (!defined('GLPI_ROOT')) {
+   die("Sorry. You can't access this file directly");
+}
+
+class PluginFormcreatorFormList extends CommonGLPI
 {
 
    /**
@@ -9,8 +13,7 @@ class PluginFormcreatorFormlist extends CommonGLPI
     * @param number $nb Number of item(s)
     * @return string Itemtype name
     */
-   public static function getTypeName($nb = 0)
-   {
+   public static function getTypeName($nb = 0) {
       return _n('Form', 'Forms', $nb, 'formcreator');
    }
 

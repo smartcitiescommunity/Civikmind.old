@@ -1,39 +1,41 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
- 
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
 * @brief
 */
+
+use Glpi\Event;
+
 if (!($dropdown instanceof CommonDropdown)) {
    Html::displayErrorAndDie('');
 }
@@ -63,11 +65,11 @@ if (isset($_POST["add"])) {
                     sprintf(__('%1$s adds the item %2$s'), $_SESSION["glpiname"], $_POST["name"]));
       }
       if ($_SESSION['glpibackcreated']) {
-        $url = $dropdown->getFormURLWithID($newID);
-        if (isset($_REQUEST['_in_modal'])) {
-          $url.="&_in_modal=1";
-        }
-        Html::redirect($url);
+         $url = $dropdown->getLinkURL();
+         if (isset($_REQUEST['_in_modal'])) {
+            $url.="&_in_modal=1";
+         }
+         Html::redirect($url);
       }
    }
    Html::back();
@@ -77,7 +79,7 @@ if (isset($_POST["add"])) {
    if ($dropdown->isUsed()
        && empty($_POST["forcepurge"])) {
       Html::header($dropdown->getTypeName(1), $_SERVER['PHP_SELF'], "config",
-                   $dropdown->second_level_menu, str_replace('glpi_','',$dropdown->getTable()));
+                   $dropdown->second_level_menu, str_replace('glpi_', '', $dropdown->getTable()));
       $dropdown->showDeleteConfirmForm($_SERVER['PHP_SELF']);
       Html::footer();
    } else {
@@ -111,14 +113,14 @@ if (isset($_POST["add"])) {
            && isset($_POST['_method'])) {
    $method = 'execute'.$_POST['_method'];
    if (method_exists($dropdown, $method)) {
-      call_user_func(array(&$dropdown, $method), $_POST);
+      call_user_func([&$dropdown, $method], $_POST);
       Html::back();
    } else {
       Html::displayErrorAndDie(__('No selected element or badly defined operation'));
    }
 
 } else if (isset($_GET['_in_modal'])) {
-   Html::popHeader($dropdown->getTypeName(1),$_SERVER['PHP_SELF']);
+   Html::popHeader($dropdown->getTypeName(1), $_SERVER['PHP_SELF']);
    $dropdown->showForm($_GET["id"]);
    Html::popFooter();
 
@@ -126,10 +128,9 @@ if (isset($_POST["add"])) {
    $dropdown->displayHeader();
 
    if (!isset($options)) {
-      $options = array();
+      $options = [];
    }
    $options['id'] = $_GET["id"];
    $dropdown->display($options);
    Html::footer();
 }
-?>

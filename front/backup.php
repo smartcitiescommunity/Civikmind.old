@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
-
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -46,7 +45,7 @@ if (isset($_POST['check_version'])) {
 Session::checkRight("backup", READ);
 
 // full path
-$path = GLPI_DUMP_DIR ;
+$path = GLPI_DUMP_DIR;
 
 Html::header(__('Maintenance'), $_SERVER['PHP_SELF'], "admin", "backup");
 
@@ -143,8 +142,8 @@ function current_time() {
 
    list($usec,$sec) = explode(" ", microtime());
    $TPSFIN          = $sec;
-   if (round($TPSFIN-$TPSDEB,1) >= $TPSCOUR+1) {//une seconde de plus
-      $TPSCOUR = round($TPSFIN-$TPSDEB,1);
+   if (round($TPSFIN-$TPSDEB, 1) >= $TPSCOUR+1) {//une seconde de plus
+      $TPSCOUR = round($TPSFIN-$TPSDEB, 1);
    }
 }
 
@@ -169,7 +168,7 @@ function get_content($DB, $table, $from, $limit) {
       while ($row = $DB->fetch_row($result)) {
          $insert = "INSERT INTO `$table` VALUES (";
 
-         for( $j=0 ; $j<$num_fields ; $j++) {
+         for ($j=0; $j<$num_fields; $j++) {
             if (is_null($row[$j])) {
                $insert .= "NULL,";
             } else if ($row[$j] != "") {
@@ -178,7 +177,7 @@ function get_content($DB, $table, $from, $limit) {
                $insert .= "'',";
             }
          }
-         $insert   = preg_replace("/,$/","",$insert);
+         $insert   = preg_replace("/,$/", "", $insert);
          $insert  .= ");\n";
          $content .= $insert;
       }
@@ -202,7 +201,7 @@ function get_def($DB, $table) {
    $DB->query("SET SESSION sql_quote_show_create = 1");
    $row = $DB->fetch_row($result);
 
-   $def .= preg_replace("/AUTO_INCREMENT=\w+/i","",$row[1]);
+   $def .= preg_replace("/AUTO_INCREMENT=\w+/i", "", $row[1]);
    $def .= ";";
    return $def."\n\n";
 }
@@ -242,14 +241,14 @@ function restoreMySqlDump($DB, $dumpFile, $duree) {
 
    if ($offset != 0) {
       if (substr($dumpFile, -2) == "gz") {
-         if (gzseek($fileHandle,$offset,SEEK_SET) != 0) { //erreur
+         if (gzseek($fileHandle, $offset, SEEK_SET) != 0) { //erreur
             //TRANS: %s is the number of the byte
             printf(__("Unable to find the byte %s"), Html::formatNumber($offset, false, 0));
             echo "<br>";
             return false;
          }
       } else {
-         if (fseek($fileHandle,$offset,SEEK_SET) != 0) { //erreur
+         if (fseek($fileHandle, $offset, SEEK_SET) != 0) { //erreur
             //TRANS: %s is the number of the byte
             printf(__("Unable to find the byte %s"), Html::formatNumber($offset, false, 0));
             echo "<br>";
@@ -275,7 +274,7 @@ function restoreMySqlDump($DB, $dumpFile, $duree) {
          // do not strip comments due to problems when # in begin of a data line
          $formattedQuery .= $buffer;
 
-         if (substr(rtrim($formattedQuery),-1) == ";") {
+         if (substr(rtrim($formattedQuery), -1) == ";") {
             // Do not use the $DB->query
             if ($DB->query($formattedQuery)) { //if no success continue to concatenate
                $offset         = gztell($fileHandle);
@@ -298,7 +297,7 @@ function restoreMySqlDump($DB, $dumpFile, $duree) {
          // do not strip comments due to problems when # in begin of a data line
          $formattedQuery .= $buffer;
 
-         if (substr(rtrim($formattedQuery),-1) == ";") {
+         if (substr(rtrim($formattedQuery), -1) == ";") {
             // Do not use the $DB->query
             if ($DB->query($formattedQuery)) { //if no success continue to concatenate
                $offset         = ftell($fileHandle);
@@ -345,7 +344,6 @@ function backupMySql($DB, $dumpFile, $duree, $rowlimit) {
       $fileHandle = gzopen64($dumpFile, "a");
    }
 
-
    if (!$fileHandle) {
       //TRANS: %s is the name of the file
       echo sprintf(__('Unauthorized access to the file %s'), $dumpFile)."<br>";
@@ -366,11 +364,11 @@ function backupMySql($DB, $dumpFile, $duree, $rowlimit) {
       $numtab++;
    }
 
-   for ( ; $offsettable<$numtab ; $offsettable++) {
+   for (; $offsettable<$numtab; $offsettable++) {
       // Dump de la structure table
       if ($offsetrow == -1) {
-         $todump = "\n".get_def($DB,$tables[$offsettable]);
-         gzwrite ($fileHandle,$todump);
+         $todump = "\n".get_def($DB, $tables[$offsettable]);
+         gzwrite ($fileHandle, $todump);
          $offsetrow++;
          $cpt++;
       }
@@ -381,11 +379,11 @@ function backupMySql($DB, $dumpFile, $duree, $rowlimit) {
       }
       $fin = 0;
       while (!$fin) {
-         $todump    = get_content($DB,$tables[$offsettable],$offsetrow,$rowlimit);
+         $todump    = get_content($DB, $tables[$offsettable], $offsetrow, $rowlimit);
          $rowtodump = substr_count($todump, "INSERT INTO");
 
          if ($rowtodump > 0) {
-            gzwrite ($fileHandle,$todump);
+            gzwrite ($fileHandle, $todump);
             $cpt       += $rowtodump;
             $offsetrow += $rowlimit;
             if ($rowtodump<$rowlimit) {
@@ -477,7 +475,7 @@ if (isset($_GET["dump"]) && $_GET["dump"] != "") {
       $tot = $DB->numrows($tab);
       if (isset($offsettable)) {
          if ($offsettable >= 0) {
-            $percent = min(100,round(100*$offsettable/$tot,0));
+            $percent = min(100, round(100*$offsettable/$tot, 0));
          } else {
             $percent = 100;
          }
@@ -491,13 +489,13 @@ if (isset($_GET["dump"]) && $_GET["dump"] != "") {
       }
 
       if ($offsettable >= 0) {
-         if (backupMySql($DB,$fichier,$duree,$rowlimit)) {
+         if (backupMySql($DB, $fichier, $duree, $rowlimit)) {
             echo "<div class='center spaced'>".
                  "<a href=\"backup.php?dump=1&duree=$duree&rowlimit=$rowlimit&offsetrow=".
                     "$offsetrow&offsettable=$offsettable&cpt=$cpt&fichier=$fichier\">".
                     __('Automatic redirection, else click')."</a>";
-            echo "<script language='javascript' type='text/javascript'>".
-                  "window.location=\"backup.php?dump=1&duree=$duree&rowlimit=".
+            echo "<script type='text/javascript'>" .
+                "window.location=\"backup.php?dump=1&duree=$duree&rowlimit=".
                      "$rowlimit&offsetrow=$offsetrow&offsettable=$offsettable&cpt=$cpt&fichier=".
                      "$fichier\";</script></div>";
             Html::glpi_flush();
@@ -546,7 +544,7 @@ if (isset($_GET["file"]) && ($_GET["file"] != "")
          if ($offset == -1) {
             $percent = 100;
          } else {
-            $percent = min(100,round(100*$offset/$fsize, 0));
+            $percent = min(100, round(100*$offset/$fsize, 0));
          }
       } else {
          $percent = 0;
@@ -629,11 +627,11 @@ echo "<br><table class='tab_cadre' cellpadding='5'>".
      "</tr>";
 
 $dir   = opendir($path);
-$files = array();
+$files = [];
 while ($file = readdir($dir)) {
    if (($file != ".") && ($file != "..")
-       && (preg_match("/\.sql.gz$/i",$file)
-           || preg_match("/\.sql$/i",$file))) {
+       && (preg_match("/\.sql.gz$/i", $file)
+           || preg_match("/\.sql$/i", $file))) {
 
       $files[$file] = filemtime($path."/".$file);
    }
@@ -645,23 +643,23 @@ if (count($files)) {
       $taille_fic = filesize($path."/".$file);
       echo "<tr class='tab_bg_2'><td>$file&nbsp;</td>".
            "<td class='right'>".Toolbox::getSize($taille_fic)."</td>".
-           "<td>&nbsp;" . Html::convDateTime(date("Y-m-d H:i",$date)) . "</td>";
+           "<td>&nbsp;" . Html::convDateTime(date("Y-m-d H:i", $date)) . "</td>";
       if (Session::haveRight('backup', PURGE)) {
          echo "<td>&nbsp;";
               //TRANS: %s is the filename
               $string = sprintf(__('Delete the file %s?'), $file);
               Html::showSimpleForm($_SERVER['PHP_SELF'], 'delfile',
                                    _x('button', 'Delete permanently'),
-                                   array('file' => $file),'','',$string);
+                                   ['file' => $file], '', '', $string);
 
          echo "</td>";
          echo "<td>&nbsp;";
          // Multiple confirmation
-         $string   = array();
+         $string   = [];
          //TRANS: %s is the filename
-         $string[] = array(sprintf(__('Replace the current database with the backup file %s?'),
-                                   $file));
-         $string[] = array(__('Warning, your actual database will be totaly overwriten by the database you want to restore !!!'));
+         $string[] = [sprintf(__('Replace the current database with the backup file %s?'),
+                                   $file)];
+         $string[] = [__('Warning, your actual database will be totaly overwriten by the database you want to restore !!!')];
 
          echo "<a class='vsubmit' href=\"#\" ".HTML::addConfirmationOnAction($string,
                                         "window.location='".$CFG_GLPI["root_doc"].
@@ -680,11 +678,11 @@ closedir($dir);
 
 $dir   = opendir($path);
 unset($files);
-$files = array();
+$files = [];
 
 while ($file = readdir($dir)) {
    if (($file != ".") && ($file != "..")
-       && preg_match("/\.xml$/i",$file)) {
+       && preg_match("/\.xml$/i", $file)) {
 
       $files[$file] = filemtime($path."/".$file);
    }
@@ -697,13 +695,13 @@ if (count($files)) {
       echo "<tr class='tab_bg_1'><td colspan='6'><hr noshade></td></tr>".
            "<tr class='tab_bg_2'><td>$file&nbsp;</td>".
             "<td class='right'>".Toolbox::getSize($taille_fic)."</td>".
-            "<td>&nbsp;" . Html::convDateTime(date("Y-m-d H:i",$date)) . "</td>";
+            "<td>&nbsp;" . Html::convDateTime(date("Y-m-d H:i", $date)) . "</td>";
       if (Session::haveRight('backup', PURGE)) {
          echo "<td colspan=2>";
          //TRANS: %s is the filename
-         $string = sprintf(__('Delete the file %s?'),$file);
+         $string = sprintf(__('Delete the file %s?'), $file);
          Html::showSimpleForm($_SERVER['PHP_SELF'], 'delfile', _x('button', 'Delete permanently'),
-                              array('file' => $file),'','',$string);
+                              ['file' => $file], '', '', $string);
          echo "</td>";
       }
       if (Session::haveRight('backup', CREATE)) {
@@ -719,4 +717,3 @@ echo "</table>";
 echo "</div>";
 
 Html::footer();
-?>

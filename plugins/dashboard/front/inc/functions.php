@@ -38,8 +38,6 @@ function conv_data_hora($data) {
 }
 
 
-
-
 function time_ext($solvedate)
 {
 
@@ -163,6 +161,30 @@ function dropdown2( $name, array $options, $selected=null )
     return $dropdown;
 }
 
+
+function margins() {
+
+	global $DB;
+	$query_lay = "SELECT value FROM glpi_plugin_dashboard_config WHERE name = 'layout' AND users_id = ".$_SESSION['glpiID']." ";																
+						$result_lay = $DB->query($query_lay);					
+						$layout = $DB->result($result_lay,0,'value');
+						
+	//redirect to index
+	if($layout == '0')
+		{
+			// sidebar
+			$margin = '0px 3% 0px 5%';
+		}
+	
+	if($layout == 1 || $layout == '' )
+		{
+			//top menu
+			$margin = '0px 2% 0px 2%';
+		}
+		
+	return $margin;	
+}
+
 //segundos para h:m:s
 /*
 $segundos = 15058084;
@@ -170,6 +192,158 @@ $segundos = 15058084;
 $converter = date('H:i:s',mktime(0,0,$segundos));//Converter os segundos em no formato mm:ss
 echo $converter;//no exemplo ira retornar 02:15	
 */
+
+
+function getEntityName($id) {
+
+	global $DB;
+	
+ 	if ($id == ''){
+   	return '';
+   }
+   
+   else { 
+	$sql_ent = "
+	SELECT name
+	FROM `glpi_entities`
+	WHERE id = ".$id." ";
+	
+	$result_ent = $DB->query($sql_ent);
+	$name = $DB->result($result_ent,0,'name');
+	return $name;
+	}
+
+}
+
+
+
+function getEntityLevel($id) {
+
+	global $DB;
+	
+ 	if ($id == ''){
+   	return '';
+   }
+   
+   else { 
+	$sql_ent = "
+	SELECT level
+	FROM `glpi_entities`
+	WHERE id = ".$id." ";
+	
+	$result_ent = $DB->query($sql_ent);
+	$level = $DB->result($result_ent,0,'level');
+	return $level;
+	}
+
+}
+
+
+
+function getChildren($node) {
+	
+global $DB;
+global $nodes;	
+
+if ($node == -1) {
+      $pos = 0;
+
+      foreach ($_SESSION['glpiactiveprofile']['entities'] as $entity) {
+         $ID                           = $entity['id'];
+         $is_recursive                 = $entity['is_recursive'];
+
+         $path = [
+            // append r for root nodes, id are uniques in jstree.
+            // so, in case of presence of this id in subtree of other nodes,
+            // it will be removed from root nodes
+            'id'   => $ID.'r',
+            'text' => Dropdown::getDropdownName("glpi_entities", $ID)
+         ];
+
+         if ($is_recursive) {
+            $path['children'] = true;
+            $query2 = "SELECT count(*)
+                       FROM `glpi_entities`
+                       WHERE `entities_id` = '$ID'";
+            $result2 = $DB->query($query2);
+            if ($DB->result($result2, 0, 0) > 0) {
+               //apend a i tag (one of shortest tags) to have the is_recursive link
+               //$path['text'].= '<i/>';
+               if (isset($ancestors[$ID])) {
+                  $path['state']['opened'] = 'true';
+               }
+            }
+         }
+         $nodes[] = $path;
+      }
+   } else { // standard node
+      $node_id = $node;
+      $query   = "SELECT ent.`id`, ent.`name`, ent.`sons_cache`, count(sub_entities.id) as nb_subs, ent.`level`
+                  FROM `glpi_entities` as ent
+                  LEFT JOIN `glpi_entities` as sub_entities
+                     ON sub_entities.entities_id = ent.id
+                  WHERE ent.`entities_id` = '$node_id'
+                  GROUP BY ent.`id`, ent.`name`, ent.`sons_cache`
+                  ORDER BY `name`";
+
+      if ($result = $DB->query($query)) {
+         while ($row = $DB->fetch_assoc($result)) {
+            $path = [
+               'id'   => $row['id'],
+               'text' => $row['name'],
+               'level' => $row['level'],
+            ];
+
+            if ($row['nb_subs'] > 0) {
+               //apend a i tag (one of shortest tags) to have the is_recursive link
+               //$path['text'].= '<i/>';
+               $path['children'] = true;
+
+               if (isset($ancestors[$row['id']])) {
+                  $path['state']['opened'] = 'true';
+               }
+            }
+            $nodes[] = $path;
+         }
+      }
+   }
+
+//return json_encode($nodes);
+return $nodes;
+
+}
+
+
+function unique_multidim_array($array, $key) {
+    $temp_array = array();
+    $i = 0;
+    $key_array = array();
+   
+    foreach($array as $val) {
+        if (!in_array($val[$key], $key_array)) {
+            $key_array[$i] = $val[$key];
+            $temp_array[$i] = $val;
+        }
+        $i++;
+    }
+    return $temp_array;
+} 
+
+
+function super_unique($array)
+{
+  $result = array_map("unserialize", array_unique(array_map("serialize", $array)));
+
+  foreach ($result as $key => $value)
+  {
+    if ( is_array($value) )
+    {
+      $result[$key] = super_unique($value);
+    }
+  }
+
+  return $result;
+}
 
 ?>
 

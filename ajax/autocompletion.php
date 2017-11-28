@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
- 
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -36,7 +35,7 @@
 */
 
 // Include plugin if it is a plugin table
-if (!strstr($_GET['itemtype'],"Plugin")) {
+if (!strstr($_GET['itemtype'], "Plugin")) {
    $AJAX_INCLUDE = 1;
 }
 include ('../inc/includes.php');
@@ -59,9 +58,9 @@ if (!isset($item->fields[$_GET['field']]) || !$item->canView()) {
 
 // Security : blacklist fields
 if (in_array($table.'.'.$_GET['field'],
-             array('glpi_authldaps.rootdn', 'glpi_authldaps.rootdn_passwd',
+             ['glpi_authldaps.rootdn', 'glpi_authldaps.rootdn_passwd',
                    'glpi_configs.value', 'glpi_mailcollectors.login',
-                   'glpi_mailcollectors.passwd', 'glpi_users.name', 'glpi_users.password'))) {
+                   'glpi_mailcollectors.passwd', 'glpi_users.name', 'glpi_users.password'])) {
    exit();
 }
 
@@ -83,7 +82,7 @@ $query = "SELECT COUNT(`".$_GET['field']."`)
                 AND `".$_GET['field']."` <> '".$_GET['term']."'
                 $entity ";
 $result = $DB->query($query);
-$totnum = $DB->result($result,0,0);
+$totnum = $DB->result($result, 0, 0);
 
 $query = "SELECT DISTINCT `".$_GET['field']."` AS VAL
           FROM `$table`
@@ -92,7 +91,7 @@ $query = "SELECT DISTINCT `".$_GET['field']."` AS VAL
                 $entity
           ORDER BY `".$_GET['field']."`";
 
-$values = array();
+$values = [];
 if ($result=$DB->query($query)) {
 
 
@@ -106,4 +105,3 @@ if ($result=$DB->query($query)) {
 if (count($values)) {
    echo json_encode($values);
 }
-?>

@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
-
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -47,7 +46,7 @@ class ChangeTask extends CommonITILTask {
    /**
     * @since version 0.84
    **/
-   static function getTypeName($nb=0) {
+   static function getTypeName($nb = 0) {
       return _n('Change task', 'Change tasks', $nb);
    }
 
@@ -58,7 +57,7 @@ class ChangeTask extends CommonITILTask {
 
 
    static function canView() {
-      return Session::haveRightsOr('change', array(Change::READALL, Change::READMY));
+      return Session::haveRightsOr('change', [Change::READALL, Change::READMY]);
    }
 
 
@@ -73,7 +72,7 @@ class ChangeTask extends CommonITILTask {
 
 
    function canEditAll() {
-      return Session::haveRightsOr('change', array(CREATE, UPDATE, DELETE, PURGE));
+      return Session::haveRightsOr('change', [CREATE, UPDATE, DELETE, PURGE]);
    }
 
 
@@ -154,7 +153,7 @@ class ChangeTask extends CommonITILTask {
     *
     * @return array of planning item
    **/
-   static function populatePlanning($options=array()) {
+   static function populatePlanning($options = []) {
       return parent::genericPopulatePlanning(__CLASS__, $options);
    }
 
@@ -182,10 +181,9 @@ class ChangeTask extends CommonITILTask {
     *
     * @return Nothing (display function)
    **/
-   static function displayPlanningItem(array $val, $who, $type="", $complete=0) {
-      return parent::genericDisplayPlanningItem(__CLASS__,$val, $who, $type, $complete);
+   static function displayPlanningItem(array $val, $who, $type = "", $complete = 0) {
+      return parent::genericDisplayPlanningItem(__CLASS__, $val, $who, $type, $complete);
    }
 
 
 }
-?>

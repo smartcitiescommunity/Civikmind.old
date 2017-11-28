@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
-
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -89,15 +88,14 @@ class Calendar_Holiday extends CommonDBRelation {
                 ORDER BY `glpi_holidays`.`name`";
       $result = $DB->query($query);
 
-      $holidays = array();
-      $used     = array();
+      $holidays = [];
+      $used     = [];
       if ($numrows = $DB->numrows($result)) {
          while ($data = $DB->fetch_assoc($result)) {
             $holidays[$data['id']] = $data;
             $used[$data['id']]     = $data['id'];
          }
       }
-
 
       if ($canedit) {
          echo "<div class='firstbloc'>";
@@ -108,8 +106,8 @@ class Calendar_Holiday extends CommonDBRelation {
          echo "<tr class='tab_bg_1'><th colspan='7'>".__('Add a close time')."</tr>";
          echo "<tr class='tab_bg_2'><td class='right'  colspan='4'>";
          echo "<input type='hidden' name='calendars_id' value='$ID'>";
-         Holiday::dropdown(array('used'   => $used,
-                                 'entity' => $calendar->fields["entities_id"]));
+         Holiday::dropdown(['used'   => $used,
+                                 'entity' => $calendar->fields["entities_id"]]);
          echo "</td><td class='center'>";
          echo "<input type='submit' name='add' value=\""._sx('button', 'Add')."\" class='submit'>";
          echo "</td></tr>";
@@ -122,8 +120,8 @@ class Calendar_Holiday extends CommonDBRelation {
 
       if ($canedit && $numrows) {
          Html::openMassiveActionsForm('mass'.__CLASS__.$rand);
-         $massiveactionparams = array('num_displayed' => min($_SESSION['glpilist_limit'], $numrows),
-                           'container'     => 'mass'.__CLASS__.$rand);
+         $massiveactionparams = ['num_displayed' => min($_SESSION['glpilist_limit'], $numrows),
+                           'container'     => 'mass'.__CLASS__.$rand];
          Html::showMassiveActions($massiveactionparams);
       }
       echo "<table class='tab_cadre_fixehov'>";
@@ -139,7 +137,7 @@ class Calendar_Holiday extends CommonDBRelation {
       echo "<th>".__('Recurrent')."</th>";
       echo "</tr>";
 
-      $used = array();
+      $used = [];
 
       if ($numrows) {
 
@@ -199,17 +197,16 @@ class Calendar_Holiday extends CommonDBRelation {
    }
 
 
-   function getTabNameForItem(CommonGLPI $item, $withtemplate=0) {
+   function getTabNameForItem(CommonGLPI $item, $withtemplate = 0) {
 
       if (!$withtemplate) {
          $nb = 0;
          switch ($item->getType()) {
             case 'Calendar' :
                if ($_SESSION['glpishow_count_on_tabs']) {
-                  $nb = countElementsInTable($this->getTable(),
-                                             "calendars_id = '".$item->getID()."'");
+                  $nb = countElementsInTable($this->getTable(), ['calendars_id' => $item->getID()]);
                }
-               return self::createTabEntry(_n('Close time','Close times', Session::getPluralNumber()),
+               return self::createTabEntry(_n('Close time', 'Close times', Session::getPluralNumber()),
                                             $nb);
          }
       }
@@ -217,7 +214,7 @@ class Calendar_Holiday extends CommonDBRelation {
    }
 
 
-   static function displayTabContentForItem(CommonGLPI $item, $tabnum=1, $withtemplate=0) {
+   static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0) {
 
       if ($item->getType()=='Calendar') {
          self::showForCalendar($item);
@@ -225,4 +222,4 @@ class Calendar_Holiday extends CommonDBRelation {
       return true;
    }
 }
-?>
+

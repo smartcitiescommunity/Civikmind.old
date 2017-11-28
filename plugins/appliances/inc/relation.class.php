@@ -1,6 +1,6 @@
 <?php
 /*
- * @version $Id: relation.class.php 246 2016-12-05 17:14:42Z yllen $
+ * @version $Id: relation.class.php 258 2017-10-10 13:21:54Z yllen $
  -------------------------------------------------------------------------
   LICENSE
 
@@ -21,7 +21,7 @@
 
  @package   appliances
  @author    Xavier CAILLAUD, Remi Collet, Nelly Mahu-Lasson
- @copyright Copyright (c) 2009-2016 Appliances plugin team
+ @copyright Copyright (c) 2009-2017 Appliances plugin team
  @license   AGPL License 3.0 or (at your option) any later version
             http://www.gnu.org/licenses/agpl-3.0-standalone.html
  @link      https://forge.glpi-project.org/projects/appliances
@@ -109,11 +109,11 @@ class PluginAppliancesRelation extends CommonDBTM {
 
    static function dropdownType($myname, $value=0) {
 
-      Dropdown::showFromArray($myname, array (0 => Dropdown::EMPTY_VALUE,
-                                              1 => __('Location'),
-                                              2 => _n('Network', 'Networks', 1),
-                                              3 => _n('Domain', 'Domains', 1)),
-                              array ('value' => $value));
+      Dropdown::showFromArray($myname, [0 => Dropdown::EMPTY_VALUE,
+                                        1 => __('Location'),
+                                        2 => _n('Network', 'Networks', 1),
+                                        3 => _n('Domain', 'Domains', 1)],
+                              ['value' => $value]);
    }
 
 
@@ -157,21 +157,21 @@ class PluginAppliancesRelation extends CommonDBTM {
                                     = `glpi_plugin_appliances_appliances_items`.`id`
                          AND `glpi_plugin_appliances_appliances_items`.`id` = '".$relID."'";
 
-      $result_loc = $DB->query($sql_loc);
-      $number_loc = $DB->numrows($result_loc);
+      $result_loc = $DB->request($sql_loc);
+      $number_loc = $result_loc->numrows();
 
       if ($canedit) {
          echo "<form method='post' name='relation' action='".
                $CFG_GLPI["root_doc"]."/plugins/appliances/front/appliance.form.php'>";
          echo "<br><input type='hidden' name='deviceID' value='".$relID."'>";
 
-         $i        = 0;
-         $used     = array();
+         $i    = 0;
+         $used = [];
 
          if ($number_loc >0) {
             echo "<table>";
             while ($i < $number_loc) {
-               $res = $DB->fetch_array($result_loc);
+               $res = $result_loc->next();
                echo "<tr><td class=top>";
                // when the value of the checkbox is changed, the corresponding hidden variable value
                // is also changed by javascript
@@ -188,15 +188,15 @@ class PluginAppliancesRelation extends CommonDBTM {
 
          echo "$title&nbsp;:&nbsp;";
 
-         Dropdown::show($itemtype, array('name'   => "tablekey[" . $relID . "]",
-                                         'entity' => $entity,
-                                         'used'   => $used));
+         Dropdown::show($itemtype, ['name'   => "tablekey[" . $relID . "]",
+                                    'entity' => $entity,
+                                    'used'   => $used]);
          echo "&nbsp;&nbsp;&nbsp;<input type='submit' name='addlieu' value=\""._sx('button', 'Add').
                "\" class='submit'><br>&nbsp;";
          Html::closeForm();
 
       } else if ($number_loc > 0) {
-         while ($res = $DB->fetch_array($result_loc)) {
+         while ($res = $result_loc->next()) {
             echo $res["dispname"]."<br>";
          }
       } else {
@@ -238,10 +238,10 @@ class PluginAppliancesRelation extends CommonDBTM {
                          AND `glpi_plugin_appliances_relations`.`plugin_appliances_appliances_items_id`
                                  = `glpi_plugin_appliances_appliances_items`.`id`
                          AND `glpi_plugin_appliances_appliances_items`.`id` = '".$relID."'";
-      $result_loc = $DB->query($sql_loc);
+      $result_loc = $DB->request($sql_loc);
 
       $opts = array();
-      while ($res = $DB->fetch_array($result_loc)) {
+      while ($res = $result_loc->next()) {
          $opts[] = $res["dispname"];
       }
       $pdf->setColumnsSize(100);

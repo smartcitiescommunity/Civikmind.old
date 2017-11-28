@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
- 
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -57,14 +56,15 @@ if (isset($_GET['docid'])) { // docid for document
 
          Html::displayErrorAndDie(__('File is altered (bad checksum)'), true); // Doc alterated
       } else {
-         $doc->send();
+         $context = isset($_GET['context']) ? $_GET['context'] : null;
+         $doc->send($context);
       }
    } else {
       Html::displayErrorAndDie(__('Unauthorized access to this file'), true); // No right
    }
 
 } else if (isset($_GET["file"])) { // for other file
-   $splitter = explode("/",$_GET["file"], 2);
+   $splitter = explode("/", $_GET["file"], 2);
    if (count($splitter) == 2) {
       $send = false;
       if (($splitter[0] == "_dumps")
@@ -73,9 +73,7 @@ if (isset($_GET['docid'])) { // docid for document
       }
 
       if ($splitter[0] == "_pictures") {
-         $filename = explode(".", $splitter[1]);
-         //check extension
-         if (in_array($filename[1], array('jpg', 'jpeg', 'png', 'bmp', 'gif'))) {
+         if (Document::isImage($_GET['file'])) {
             $send = true;
          }
       }
@@ -89,4 +87,3 @@ if (isset($_GET['docid'])) { // docid for document
       Html::displayErrorAndDie(__('Invalid filename'), true);
    }
 }
-?>

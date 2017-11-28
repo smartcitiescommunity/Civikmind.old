@@ -1,33 +1,33 @@
 <?php
-/*
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
-
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -45,7 +45,7 @@ class Manufacturer extends CommonDropdown {
    public $can_be_translated = false;
 
 
-   static function getTypeName($nb=0) {
+   static function getTypeName($nb = 0) {
       return _n('Manufacturer', 'Manufacturers', $nb);
    }
 
@@ -54,7 +54,7 @@ class Manufacturer extends CommonDropdown {
     * @since version 0.85
     * @see CommonDropdown::displaySpecificTypeField()
    **/
-   function displaySpecificTypeField($ID, $field=array()) {
+   function displaySpecificTypeField($ID, $field = []) {
 
       switch ($field['type']) {
          case 'registeredIDChooser':
@@ -70,12 +70,12 @@ class Manufacturer extends CommonDropdown {
    **/
    function getAdditionalFields() {
 
-      return array(array('name'  => 'none',
+      return [['name'  => 'none',
                          'label' => RegisteredID::getTypeName(Session::getPluralNumber()).
                                        RegisteredID::showAddChildButtonForItemForm($this,
                                                                                    '_registeredID',
-                                                                                   NULL, false),
-                         'type'  => 'registeredIDChooser'));
+                                                                                   null, false),
+                         'type'  => 'registeredIDChooser']];
    }
 
 
@@ -87,8 +87,8 @@ class Manufacturer extends CommonDropdown {
       if ((isset($this->input['_registeredID']))
           && (is_array($this->input['_registeredID']))) {
 
-         $input = array('itemtype' => $this->getType(),
-                        'items_id' => $this->getID());
+         $input = ['itemtype' => $this->getType(),
+                        'items_id' => $this->getID()];
 
          foreach ($this->input['_registeredID'] as $id => $registered_id) {
             $id_object     = new RegisteredID();
@@ -99,7 +99,7 @@ class Manufacturer extends CommonDropdown {
             } else {
                $input['device_type'] = '';
             }
-            //$input['device_type'] = ;
+            //$input['device_type'] = '';
             if ($id < 0) {
                if (!empty($registered_id)) {
                   $id_object->add($input);
@@ -110,7 +110,7 @@ class Manufacturer extends CommonDropdown {
                   $id_object->update($input);
                   unset($input['id']);
                } else {
-                  $id_object->delete(array('id' => $id));
+                  $id_object->delete(['id' => $id]);
                }
             }
          }
@@ -134,7 +134,7 @@ class Manufacturer extends CommonDropdown {
     * @since version 0.85
     * @see CommonDBTM::post_updateItem()
    **/
-   function post_updateItem($history=1) {
+   function post_updateItem($history = 1) {
 
       $this->post_workOnItem();
       parent::post_updateItem($history);
@@ -153,9 +153,9 @@ class Manufacturer extends CommonDropdown {
       }
 
       $rulecollection = new RuleDictionnaryManufacturerCollection();
-      $output         = array();
-      $output         = $rulecollection->processAllRules(array("name" => stripslashes($old_name)),
-                                                         $output, array());
+      $output         = [];
+      $output         = $rulecollection->processAllRules(["name" => stripslashes($old_name)],
+                                                         $output, []);
       if (isset($output["name"])) {
          return $output["name"];
       }
@@ -179,8 +179,8 @@ class Manufacturer extends CommonDropdown {
     * @param $options      array
    **/
    static function getHTMLTableHeader($itemtype, HTMLTableBase $base,
-                                      HTMLTableSuperHeader $super=NULL,
-                                      HTMLTableHeader $father=NULL, array $options=array()) {
+                                      HTMLTableSuperHeader $super = null,
+                                      HTMLTableHeader $father = null, array $options = []) {
 
       $column_name = __CLASS__;
 
@@ -200,8 +200,8 @@ class Manufacturer extends CommonDropdown {
     * @param $father             HTMLTableCell object (default NULL)
     * @param $options   array
    **/
-   static function getHTMLTableCellsForItem(HTMLTableRow $row=NULL, CommonDBTM $item=NULL,
-                                            HTMLTableCell $father=NULL, array $options = array()) {
+   static function getHTMLTableCellsForItem(HTMLTableRow $row = null, CommonDBTM $item = null,
+                                            HTMLTableCell $father = null, array $options = []) {
 
       $column_name = __CLASS__;
 

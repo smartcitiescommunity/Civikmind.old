@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: hook.php 336 2017-01-20 16:59:36Z yllen $
+ * @version $Id: hook.php 345 2017-10-23 17:33:07Z yllen $
  -------------------------------------------------------------------------
   LICENSE
 
@@ -35,13 +35,11 @@ function plugin_reports_install() {
    global $DB;
 
    // config of doublon report is now in glpi_blacklists
-   If (TableExists("glpi_plugin_reports_doublons_backlists")) {
-      $query = "SELECT *
-                FROM `glpi_plugin_reports_doublons_backlists`";
+   If ($DB->tableExists("glpi_plugin_reports_doublons_backlists")) {
 
-      if ($result = $DB->query($query)) {
-         if ($DB->numrows($result)  >0) {
-            while ($data = $DB->fetch_assoc($result)) {
+      if ($result = $DB->request(['FROM' => 'glpi_plugin_reports_doublons_backlists'])) {
+         if (count($result) > 0) {
+            while ($data = $result->next()) {
                $data = toolbox::addslashes_deep($data);
                if ($data['type'] == 1) {
                   $type = 2;

@@ -1,35 +1,34 @@
 <?php
 
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
-
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -38,6 +37,8 @@
 
 // Needed for signal handler
 declare(ticks = 1);
+
+use Glpi\Event;
 
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
@@ -74,7 +75,7 @@ class CronTask extends CommonDBTM{
     * @since version 0.85
    **/
    static function getForbiddenActionsForMenu() {
-      return array('add');
+      return ['add'];
    }
 
 
@@ -88,14 +89,14 @@ class CronTask extends CommonDBTM{
    }
 
 
-   static function getTypeName($nb=0) {
+   static function getTypeName($nb = 0) {
       return _n('Automatic action', 'Automatic actions', $nb);
    }
 
 
-   function defineTabs($options=array()) {
+   function defineTabs($options = []) {
 
-      $ong = array();
+      $ong = [];
       $this->addDefaultFormTab($ong);
       $this->addStandardTab('CronTaskLog', $ong, $options);
       $this->addStandardTab('Log', $ong, $options);
@@ -174,13 +175,13 @@ class CronTask extends CommonDBTM{
    static function getUsedItemtypes() {
       global $DB;
 
-      $types= array();
-      foreach  ($DB->request("SELECT DISTINCT(`itemtype`)
+      $types= [];
+      foreach ($DB->request("SELECT DISTINCT(`itemtype`)
                             FROM `glpi_crontasks`") as $data) {
-        $types[] = $data['itemtype'];
+         $types[] = $data['itemtype'];
       }
       return $types;
-    }
+   }
 
    /**
     * Signal handler callback
@@ -192,7 +193,7 @@ class CronTask extends CommonDBTM{
          pcntl_signal(SIGTERM, SIG_DFL);
 
          // End of this task
-         $this->end(NULL);
+         $this->end(null);
 
          // End of this cron
          $_SESSION["glpicronuserrunning"]='';
@@ -234,13 +235,13 @@ class CronTask extends CommonDBTM{
                         $this->getModeName(isCommandLine() ? self::MODE_EXTERNAL
                                                            : self::MODE_INTERNAL));
 
-         $this->startlog = $log->add(array('crontasks_id'    => $this->fields['id'],
+         $this->startlog = $log->add(['crontasks_id'    => $this->fields['id'],
                                            'date'            => $_SESSION['glpi_currenttime'],
                                            'content'         => addslashes($txt),
                                            'crontasklogs_id' => 0,
                                            'state'           => CronTaskLog::STATE_START,
                                            'volume'          => 0,
-                                           'elapsed'         => 0));
+                                           'elapsed'         => 0]);
          return true;
       }
       return false;
@@ -292,8 +293,7 @@ class CronTask extends CommonDBTM{
          if (is_null($retcode)) {
             $content = __('Action aborted');
             $content = 'Action aborted';
-         }
-         else if ($retcode < 0) {
+         } else if ($retcode < 0) {
             $content = __('Action completed, partially processed');
             $content = 'Action completed, partially processed';
 
@@ -306,13 +306,13 @@ class CronTask extends CommonDBTM{
          }
 
          $log = new CronTaskLog();
-         $log->add(array('crontasks_id'    => $this->fields['id'],
+         $log->add(['crontasks_id'    => $this->fields['id'],
                          'date'            => $_SESSION['glpi_currenttime'],
                          'content'         => $content,
                          'crontasklogs_id' => $this->startlog,
                          'state'           => CronTaskLog::STATE_STOP,
                          'volume'          => $this->volume,
-                         'elapsed'         => (microtime(true)-$this->timer)));
+                         'elapsed'         => (microtime(true)-$this->timer)]);
          return true;
       }
       return false;
@@ -331,13 +331,13 @@ class CronTask extends CommonDBTM{
       }
       $log     = new CronTaskLog();
       $content = Toolbox::substr($content, 0, 200);
-      return $log->add(array('crontasks_id'    => $this->fields['id'],
+      return $log->add(['crontasks_id'    => $this->fields['id'],
                              'date'            => $_SESSION['glpi_currenttime'],
                              'content'         => addslashes($content),
                              'crontasklogs_id' => $this->startlog,
                              'state'           => CronTaskLog::STATE_RUN,
                              'volume'          => $this->volume,
-                             'elapsed'         => (microtime(true)-$this->timer)));
+                             'elapsed'         => (microtime(true)-$this->timer)]);
    }
 
 
@@ -351,7 +351,7 @@ class CronTask extends CommonDBTM{
     *
     * @return false if no task to run
    **/
-   function getNeedToRun($mode=0, $name='') {
+   function getNeedToRun($mode = 0, $name = '') {
       global $DB;
 
       $hour = date('H');
@@ -388,14 +388,14 @@ class CronTask extends CommonDBTM{
             // Global lock
             return false;
          }
-         $locks = array();
+         $locks = [];
          foreach (glob(GLPI_CRON_DIR. '/*.lock') as $lock) {
             if (preg_match('!.*/(.*).lock$!', $lock, $reg)) {
                $locks[] = $reg[1];
             }
          }
          if (count($locks)) {
-            $lock = "AND `name` NOT IN ('".implode("','",$locks)."')";
+            $lock = "AND `name` NOT IN ('".implode("','", $locks)."')";
          } else {
             $lock = '';
          }
@@ -434,7 +434,7 @@ class CronTask extends CommonDBTM{
     *
     * @return Nothing (display)
    **/
-   function showForm($ID, $options=array()) {
+   function showForm($ID, $options = []) {
       global $CFG_GLPI;
 
       if (!Config::canView() || !$this->getFromDB($ID)) {
@@ -488,41 +488,41 @@ class CronTask extends CommonDBTM{
       echo "</td></tr>";
 
       echo "<tr class='tab_bg_1'><td>".__('Run mode')."</td><td>";
-      $modes = array();
+      $modes = [];
       if ($this->fields['allowmode']&self::MODE_INTERNAL) {
          $modes[self::MODE_INTERNAL] = self::getModeName(self::MODE_INTERNAL);
       }
       if ($this->fields['allowmode']&self::MODE_EXTERNAL) {
          $modes[self::MODE_EXTERNAL] = self::getModeName(self::MODE_EXTERNAL);
       }
-      Dropdown::showFromArray('mode', $modes, array('value' => $this->fields['mode']));
+      Dropdown::showFromArray('mode', $modes, ['value' => $this->fields['mode']]);
       echo "</td></tr>";
 
       echo "<tr class='tab_bg_1'><td>".__('Run period')."</td><td>";
-      Dropdown::showNumber('hourmin', array('value' => $this->fields['hourmin'],
+      Dropdown::showNumber('hourmin', ['value' => $this->fields['hourmin'],
                                             'min'   => 0,
-                                            'max'   => 24));
+                                            'max'   => 24]);
       echo "&nbsp;->&nbsp;";
-      Dropdown::showNumber('hourmax', array('value' => $this->fields['hourmax'],
+      Dropdown::showNumber('hourmax', ['value' => $this->fields['hourmax'],
                                             'min'   => 0,
-                                            'max'   => 24));
+                                            'max'   => 24]);
       echo "</td></tr>";
 
       echo "<tr class='tab_bg_1'><td>".__('Number of days this action logs are stored')."</td><td>";
-      Dropdown::showNumber('logs_lifetime', array('value' => $this->fields['logs_lifetime'],
+      Dropdown::showNumber('logs_lifetime', ['value' => $this->fields['logs_lifetime'],
                                                   'min'   => 10,
                                                   'max'   => 360,
                                                   'step'  => 10,
-                                                  'toadd' => array(0 => __('Infinite'))));
+                                                  'toadd' => [0 => __('Infinite')]]);
       echo "</td><td>".__('Last run')."</td><td>";
 
       if (empty($this->fields['lastrun'])) {
-         _e('Never');
+         echo __('Never');
       } else {
          echo Html::convDateTime($this->fields['lastrun']);
          echo "&nbsp;";
          Html::showSimpleForm(static::getFormURL(), 'resetdate', __('Blank'),
-                              array('id' => $ID), $CFG_GLPI['root_doc']."/pics/reset.png");
+                              ['id' => $ID], 'fa-times-circle');
       }
       echo "</td></tr>";
 
@@ -532,9 +532,9 @@ class CronTask extends CommonDBTM{
          echo "&nbsp;</td><td>&nbsp;";
       } else {
          echo $label."&nbsp;</td><td>";
-         Dropdown::showNumber('param', array('value' => $this->fields['param'],
+         Dropdown::showNumber('param', ['value' => $this->fields['param'],
                                              'min'   => 0,
-                                             'max'   => 400));
+                                             'max'   => 400]);
       }
       echo "</td><td>".__('Next run')."</td><td>";
 
@@ -547,10 +547,10 @@ class CronTask extends CommonDBTM{
       if ($tmpstate != self::STATE_WAITING) {
          echo $this->getStateName($tmpstate);
       } else if (empty($this->fields['lastrun'])) {
-         _e('As soon as possible');
+         echo __('As soon as possible');
       } else {
          $next = strtotime($this->fields['lastrun'])+$this->fields['frequency'];
-         $h    = date('H',$next);
+         $h    = date('H', $next);
          $deb  = ($this->fields['hourmin'] < 10 ? "0".$this->fields['hourmin']
                                                 : $this->fields['hourmin']);
          $fin  = ($this->fields['hourmax'] < 10 ? "0".$this->fields['hourmax']
@@ -584,12 +584,12 @@ class CronTask extends CommonDBTM{
 
       if ($launch) {
          echo "&nbsp;";
-         Html::showSimpleForm(static::getFormURL(), array('execute' => $this->fields['name']),
+         Html::showSimpleForm(static::getFormURL(), ['execute' => $this->fields['name']],
                               __('Execute'));
       }
       if ($tmpstate == self::STATE_RUNNING) {
          Html::showSimpleForm(static::getFormURL(), 'resetstate', __('Blank'),
-                              array('id' => $ID), $CFG_GLPI['root_doc']."/pics/reset.png");
+                              ['id' => $ID], 'fa-times-circle');
       }
       echo "</td></tr>";
 
@@ -608,8 +608,8 @@ class CronTask extends CommonDBTM{
       if (!isset($this->fields['id'])) {
          return false;
       }
-      return $this->update(array('id'      => $this->fields['id'],
-                                 'lastrun' => 'NULL'));
+      return $this->update(['id'      => $this->fields['id'],
+                                 'lastrun' => 'NULL']);
    }
 
 
@@ -622,8 +622,8 @@ class CronTask extends CommonDBTM{
       if (!isset($this->fields['id'])) {
          return false;
       }
-      return $this->update(array('id'    => $this->fields['id'],
-                                 'state' => self::STATE_WAITING));
+      return $this->update(['id'    => $this->fields['id'],
+                                 'state' => self::STATE_WAITING]);
    }
 
 
@@ -640,7 +640,7 @@ class CronTask extends CommonDBTM{
          $this->getFromDB($id);
       }
 
-      $hook = array($this->fields['itemtype'], 'cronInfo');
+      $hook = [$this->fields['itemtype'], 'cronInfo'];
       if (is_callable($hook)) {
          $info = call_user_func($hook, $this->fields['name']);
       } else {
@@ -662,7 +662,7 @@ class CronTask extends CommonDBTM{
    **/
    public function getParameterDescription() {
 
-      $hook = array($this->fields['itemtype'], 'cronInfo');
+      $hook = [$this->fields['itemtype'], 'cronInfo'];
 
       if (is_callable($hook)) {
          $info = call_user_func($hook, $this->fields['name']);
@@ -711,13 +711,13 @@ class CronTask extends CommonDBTM{
     *
     * @return nothing (display)
    **/
-   static function dropdownState($name, $value=0, $display=true) {
+   static function dropdownState($name, $value = 0, $display = true) {
 
       return Dropdown::showFromArray($name,
-                                     array(self::STATE_DISABLE => __('Disabled'),
-                                           self::STATE_WAITING => __('Scheduled')),
-                                     array('value'   => $value,
-                                           'display' => $display));
+                                     [self::STATE_DISABLE => __('Disabled'),
+                                           self::STATE_WAITING => __('Scheduled')],
+                                     ['value'   => $value,
+                                           'display' => $display]);
    }
 
 
@@ -784,7 +784,7 @@ class CronTask extends CommonDBTM{
     *
     * @return the name of last task launched
    **/
-   static public function launch($mode, $max=1, $name='') {
+   static public function launch($mode, $max = 1, $name = '') {
       global $CFG_GLPI;
 
       // No cron in maintenance mode
@@ -801,14 +801,14 @@ class CronTask extends CommonDBTM{
             Toolbox::logInFile('cron', __('A minimum of 64 Mio is commonly required for GLPI.')."\n");
          }
          // If no task in CLI mode, call cron.php from command line is not really usefull ;)
-         if (!countElementsInTable($crontask->getTable(), "`mode` = '".abs($mode)."'")) {
+         if (!countElementsInTable($crontask->getTable(), ['mode' => abs($mode)])) {
             Toolbox::logInFile('cron',
                                __('No task with Run mode = CLI, fix your tasks configuration')."\n");
          }
       }
 
       if (self::get_lock()) {
-         for ($i=1 ; $i<=$max ; $i++) {
+         for ($i=1; $i<=$max; $i++) {
             $prefix = (abs($mode) == self::MODE_EXTERNAL ? __('External')
                                                          : __('Internal'));
             if ($crontask->getNeedToRun($mode, $name)) {
@@ -817,8 +817,8 @@ class CronTask extends CommonDBTM{
                if ($plug = isPluginItemType($crontask->fields['itemtype'])) {
                   Plugin::load($plug['plugin'], true);
                }
-               $fonction = array($crontask->fields['itemtype'],
-                                 'cron' . $crontask->fields['name']);
+               $fonction = [$crontask->fields['itemtype'],
+                                 'cron' . $crontask->fields['name']];
 
                if (is_callable($fonction)) {
                   if ($crontask->start()) { // Lock in DB + log start
@@ -841,7 +841,7 @@ class CronTask extends CommonDBTM{
 
                } else {
                   if (is_array($fonction)) {
-                     $fonction = implode('::',$fonction);
+                     $fonction = implode('::', $fonction);
                   }
                   Toolbox::logInFile('php-errors',
                                      sprintf(__('Undefined function %s (for cron)')."\n",
@@ -883,10 +883,10 @@ class CronTask extends CommonDBTM{
     *
     * @return bool for success
    **/
-   static public function register($itemtype, $name, $frequency, $options=array()) {
+   static public function register($itemtype, $name, $frequency, $options = []) {
 
       // Check that hook exists
-      if (!isPluginItemType($itemtype)) {
+      if (!isPluginItemType($itemtype) && !class_exists($itemtype)) {
          return false;
       }
       $temp = new self();
@@ -894,13 +894,13 @@ class CronTask extends CommonDBTM{
       if ($temp->getFromDBbyName($itemtype, $name)) {
          return false;
       }
-      $input = array('itemtype'  => $itemtype,
+      $input = ['itemtype'  => $itemtype,
                      'name'      => $name,
                      'allowmode' => self::MODE_INTERNAL | self::MODE_EXTERNAL,
-                     'frequency' => $frequency);
+                     'frequency' => $frequency];
 
-      foreach (array('allowmode', 'comment', 'hourmax', 'hourmin', 'logs_lifetime', 'mode',
-                     'param', 'state') as $key) {
+      foreach (['allowmode', 'comment', 'hourmax', 'hourmin', 'logs_lifetime', 'mode',
+                     'param', 'state'] as $key) {
          if (isset($options[$key])) {
             $input[$key] = $options[$key];
          }
@@ -961,11 +961,11 @@ class CronTask extends CommonDBTM{
       echo "<tr><th colspan='2'>&nbsp;".__('Statistics')."</th></tr>\n";
 
       $nbstart = countElementsInTable('glpi_crontasklogs',
-                                      "`crontasks_id` = '".$this->fields['id']."'
-                                          AND `state` = '".CronTaskLog::STATE_START."'");
+                                      ['crontasks_id' => $this->fields['id'],
+                                       'state'        => CronTaskLog::STATE_START ]);
       $nbstop  = countElementsInTable('glpi_crontasklogs',
-                                      "`crontasks_id` = '".$this->fields['id']."'
-                                          AND `state` = '".CronTaskLog::STATE_STOP."'");
+                                      ['crontasks_id' => $this->fields['id'],
+                                       'state'        => CronTaskLog::STATE_STOP ]);
 
       echo "<tr class='tab_bg_2'><td>".__('Run count')."</td><td class='right'>";
       if ($nbstart == $nbstop) {
@@ -1011,12 +1011,12 @@ class CronTask extends CommonDBTM{
 
             echo "<tr class='tab_bg_2'><td>".__('Average time')."</td>";
             echo "<td class='right b'>".sprintf(_n('%s second', '%s seconds', $data['elapsedavg']),
-                                                number_format($data['elapsedavg'],2));
+                                                number_format($data['elapsedavg'], 2));
             echo "</td></tr>";
 
             echo "<tr class='tab_bg_1'><td>".__('Total duration')."</td>";
             echo "<td class='right'>".sprintf(_n('%s second', '%s seconds', $data['elapsedtot']),
-                                              number_format($data['elapsedtot'],2));
+                                              number_format($data['elapsedtot'], 2));
             echo "</td></tr>";
          }
 
@@ -1032,16 +1032,16 @@ class CronTask extends CommonDBTM{
 
             echo "<tr class='tab_bg_2'><td>".__('Average count')."</td>";
             echo "<td class='right b'>".sprintf(_n('%s item', '%s items', $data['volavg']),
-                                                number_format($data['volavg'],2)).
+                                                number_format($data['volavg'], 2)).
                  "</td></tr>";
 
             echo "<tr class='tab_bg_1'><td>".__('Total count')."</td>";
-            echo "<td class='right'>". sprintf(_n('%s item', '%s items',$data['voltot']),
+            echo "<td class='right'>". sprintf(_n('%s item', '%s items', $data['voltot']),
                                                $data['voltot'])."</td></tr>";
 
             echo "<tr class='tab_bg_2'><td>".__('Average speed')."</td>";
             echo "<td class='left'>".sprintf(__('%s items/sec'),
-                                             number_format($data['voltot']/$data['elapsedtot'],2));
+                                             number_format($data['voltot']/$data['elapsedtot'], 2));
             echo "</td></tr>";
          }
       }
@@ -1069,8 +1069,8 @@ class CronTask extends CommonDBTM{
 
       // Total Number of events
       $number = countElementsInTable('glpi_crontasklogs',
-                                     "`crontasks_id` = '".$this->fields['id']."'
-                                          AND `state` = '".CronTaskLog::STATE_STOP."'");
+                                     ['crontasks_id' => $this->fields['id'],
+                                      'state'        => CronTaskLog::STATE_STOP ]);
 
       echo "<br><div class='center'>";
       if ($number < 1) {
@@ -1107,7 +1107,7 @@ class CronTask extends CommonDBTM{
                echo "<td><a href='javascript:reloadTab(\"crontasklogs_id=".
                           $data['crontasklogs_id']."\");'>".Html::convDateTime($data['date']).
                     "</a></td>";
-               echo "<td class='right'>".sprintf(_n('%s second','%s seconds',
+               echo "<td class='right'>".sprintf(_n('%s second', '%s seconds',
                                                     intval($data['elapsed'])),
                                                  number_format($data['elapsed'], 3)).
                     "&nbsp;&nbsp;&nbsp;</td>";
@@ -1120,7 +1120,7 @@ class CronTask extends CommonDBTM{
             echo "</table>";
 
          } else { // Not found
-            _e('No item found');
+            echo __('No item found');
          }
       } // Query
       Html::printAjaxPager(__('Last run list'), $start, $number);
@@ -1170,7 +1170,7 @@ class CronTask extends CommonDBTM{
                      echo "<td>".__('Start')."</td>";
                      // Pass content to gettext
                      // implode (Run mode: XXX)
-                     $list = explode(':',$data['content']);
+                     $list = explode(':', $data['content']);
                      if (count($list)==2) {
                         $content = sprintf('%1$s: %2$s', __($list[0]), $list[1]);
                      }
@@ -1188,7 +1188,6 @@ class CronTask extends CommonDBTM{
                      $content = __($data['content']);
                }
 
-
                echo "<td class='right'>".sprintf(_n('%s second', '%s seconds',
                                                     intval($data['elapsed'])),
                                                  number_format($data['elapsed'], 3)).
@@ -1203,7 +1202,7 @@ class CronTask extends CommonDBTM{
             echo "</table>";
 
          } else { // Not found
-            _e('No item found');
+            echo __('No item found');
          }
       } // Query
 
@@ -1219,10 +1218,10 @@ class CronTask extends CommonDBTM{
     * @param $values             (default '')
     * @param $options      array
    **/
-   static function getSpecificValueToSelect($field, $name='', $values='', array $options=array()) {
+   static function getSpecificValueToSelect($field, $name = '', $values = '', array $options = []) {
 
       if (!is_array($values)) {
-         $values = array($field => $values);
+         $values = [$field => $values];
       }
       $options['display'] = 0;
       switch ($field) {
@@ -1240,10 +1239,10 @@ class CronTask extends CommonDBTM{
    }
 
 
-   static function getSpecificValueToDisplay($field, $values, array $options=array()) {
+   static function getSpecificValueToDisplay($field, $values, array $options = []) {
 
       if (!is_array($values)) {
-         $values = array($field => $values);
+         $values = [$field => $values];
       }
       switch ($field) {
          case 'mode':
@@ -1259,7 +1258,7 @@ class CronTask extends CommonDBTM{
    /**
     * @see CommonDBTM::getSpecificMassiveActions()
    **/
-   function getSpecificMassiveActions($checkitem=NULL) {
+   function getSpecificMassiveActions($checkitem = null) {
 
       $isadmin = static::canUpdate();
       $actions = parent::getSpecificMassiveActions($checkitem);
@@ -1305,104 +1304,149 @@ class CronTask extends CommonDBTM{
    }
 
 
-   function getSearchOptions() {
+   function getSearchOptionsNew() {
+      $tab = [];
 
-      $tab                     = array();
-      $tab['common']           = __('Characteristics');
+      $tab[] = [
+         'id'                 => 'common',
+         'name'               => __('Characteristics')
+      ];
 
-      $tab[1]['table']         = $this->getTable();
-      $tab[1]['field']         = 'name';
-      $tab[1]['name']          = __('Name');
-      $tab[1]['datatype']      = 'itemlink';
-      $tab[1]['massiveaction'] = false;
+      $tab[] = [
+         'id'                 => '1',
+         'table'              => $this->getTable(),
+         'field'              => 'name',
+         'name'               => __('Name'),
+         'datatype'           => 'itemlink',
+         'massiveaction'      => false
+      ];
 
-      $tab[2]['table']         = $this->getTable();
-      $tab[2]['field']         = 'id';
-      $tab[2]['name']          = __('ID');
-      $tab[2]['massiveaction'] = false;
-      $tab[2]['datatype']      = 'number';
+      $tab[] = [
+         'id'                 => '2',
+         'table'              => $this->getTable(),
+         'field'              => 'id',
+         'name'               => __('ID'),
+         'massiveaction'      => false,
+         'datatype'           => 'number'
+      ];
 
-      $tab[3]['table']         = $this->getTable();
-      $tab[3]['field']         = 'description';
-      $tab[3]['name']          = __('Description');
-      $tab[3]['nosearch']      = true;
-      $tab[3]['nosort']        = true;
-      $tab[3]['massiveaction'] = false;
-      $tab[3]['datatype']      = 'text';
-      $tab[3]['computation']   = "TABLE.`id`"; // Virtual data
+      $tab[] = [
+         'id'                 => '3',
+         'table'              => $this->getTable(),
+         'field'              => 'description',
+         'name'               => __('Description'),
+         'nosearch'           => true,
+         'nosort'             => true,
+         'massiveaction'      => false,
+         'datatype'           => 'text',
+         'computation'        => 'TABLE.`id`' // Virtual data
+      ];
 
-      $tab[4]['table']         = $this->getTable();
-      $tab[4]['field']         = 'state';
-      $tab[4]['name']          = __('Status');
-      $tab[4]['searchtype']    = array('equals', 'notequals');
-      $tab[4]['massiveaction'] = false;
-      $tab[4]['datatype']      = 'specific';
+      $tab[] = [
+         'id'                 => '4',
+         'table'              => $this->getTable(),
+         'field'              => 'state',
+         'name'               => __('Status'),
+         'searchtype'         => ['equals', 'notequals'],
+         'datatype'           => 'specific'
+      ];
 
-      $tab[5]['table']         = $this->getTable();
-      $tab[5]['field']         = 'mode';
-      $tab[5]['name']          = __('Run mode');
-      $tab[5]['datatype']      = 'specific';
-      $tab[5]['searchtype']    = array('equals', 'notequals');
+      $tab[] = [
+         'id'                 => '5',
+         'table'              => $this->getTable(),
+         'field'              => 'mode',
+         'name'               => __('Run mode'),
+         'datatype'           => 'specific',
+         'searchtype'         => ['equals', 'notequals']
+      ];
 
-      $tab[6]['table']         = $this->getTable();
-      $tab[6]['field']         = 'frequency';
-      $tab[6]['name']          = __('Run frequency');
-      $tab[6]['datatype']      = 'timestamp';
-      $tab[6]['massiveaction'] = false;
+      $tab[] = [
+         'id'                 => '6',
+         'table'              => $this->getTable(),
+         'field'              => 'frequency',
+         'name'               => __('Run frequency'),
+         'datatype'           => 'timestamp',
+         'massiveaction'      => false
+      ];
 
-      $tab[7]['table']         = $this->getTable();
-      $tab[7]['field']         = 'lastrun';
-      $tab[7]['name']          = __('Last run');
-      $tab[7]['datatype']      = 'datetime';
-      $tab[7]['massiveaction'] = false;
+      $tab[] = [
+         'id'                 => '7',
+         'table'              => $this->getTable(),
+         'field'              => 'lastrun',
+         'name'               => __('Last run'),
+         'datatype'           => 'datetime',
+         'massiveaction'      => false
+      ];
 
-      $tab[8]['table']         = $this->getTable();
-      $tab[8]['field']         = 'itemtype';
-      $tab[8]['name']          = __('Item type');
-      $tab[8]['massiveaction'] = false;
-      $tab[8]['datatype']      = 'itemtypename';
-      $tab[8]['types']         = self::getUsedItemtypes();
+      $tab[] = [
+         'id'                 => '8',
+         'table'              => $this->getTable(),
+         'field'              => 'itemtype',
+         'name'               => __('Item type'),
+         'massiveaction'      => false,
+         'datatype'           => 'itemtypename',
+         'types'              => self::getUsedItemtypes()
+      ];
 
+      $tab[] = [
+         'id'                 => '16',
+         'table'              => $this->getTable(),
+         'field'              => 'comment',
+         'name'               => __('Comments'),
+         'datatype'           => 'text'
+      ];
 
-      $tab[16]['table']        = $this->getTable();
-      $tab[16]['field']        = 'comment';
-      $tab[16]['name']         = __('Comments');
-      $tab[16]['datatype']     = 'text';
+      $tab[] = [
+         'id'                 => '17',
+         'table'              => $this->getTable(),
+         'field'              => 'hourmin',
+         'name'               => __('Begin hour of run period'),
+         'datatype'           => 'integer',
+         'min'                => 0,
+         'max'                => 24
+      ];
 
-      $tab[17]['table']        = $this->getTable();
-      $tab[17]['field']        = 'hourmin';
-      $tab[17]['name']         = __('Begin hour of run period');
-      $tab[17]['datatype']     = 'integer';
-      $tab[17]['min']          = 0;
-      $tab[17]['max']          = 24;
+      $tab[] = [
+         'id'                 => '18',
+         'table'              => $this->getTable(),
+         'field'              => 'hourmax',
+         'name'               => __('End hour of run period'),
+         'datatype'           => 'integer',
+         'min'                => 0,
+         'max'                => 24
+      ];
 
-      $tab[18]['table']        = $this->getTable();
-      $tab[18]['field']        = 'hourmax';
-      $tab[18]['name']         = __('End hour of run period');
-      $tab[18]['datatype']     = 'integer';
-      $tab[18]['min']          = 0;
-      $tab[18]['max']          = 24;
+      $tab[] = [
+         'id'                 => '19',
+         'table'              => $this->getTable(),
+         'field'              => 'logs_lifetime',
+         'name'               => __('Number of days this action logs are stored'),
+         'datatype'           => 'integer',
+         'min'                => 10,
+         'max'                => 360,
+         'step'               => 10,
+         'toadd'              => [
+            '0'                  => 'Infinite'
+         ]
+      ];
 
-      $tab[19]['table']        = $this->getTable();
-      $tab[19]['field']        = 'logs_lifetime';
-      $tab[19]['name']         = __('Number of days this action logs are stored');
-      $tab[19]['datatype']     = 'integer';
-      $tab[19]['min']          = 10;
-      $tab[19]['max']          = 360;
-      $tab[19]['step']         = 10;
-      $tab[19]['toadd']        = array(0 => __('Infinite'));
+      $tab[] = [
+         'id'                 => '20',
+         'table'              => $this->getTable(),
+         'field'              => 'date_mod',
+         'name'               => __('Last update'),
+         'datatype'           => 'datetime',
+         'massiveaction'      => false
+      ];
 
-      $tab[20]['table']          = $this->getTable();
-      $tab[20]['field']          = 'date_mod';
-      $tab[20]['name']           = __('Last update');
-      $tab[20]['datatype']       = 'datetime';
-      $tab[20]['massiveaction']  = false;
-
-      $tab[121]['table']          = $this->getTable();
-      $tab[121]['field']          = 'date_creation';
-      $tab[121]['name']           = __('Creation date');
-      $tab[121]['datatype']       = 'datetime';
-      $tab[121]['massiveaction']  = false;
+      $tab[] = [
+         'id'                 => '121',
+         'table'              => $this->getTable(),
+         'field'              => 'date_creation',
+         'name'               => __('Creation date'),
+         'datatype'           => 'datetime',
+         'massiveaction'      => false
+      ];
 
       return $tab;
    }
@@ -1454,55 +1498,55 @@ class CronTask extends CommonDBTM{
    static function cronCircularlogs($task) {
 
       $actionCode = 0; // by default
-      $error      = false ;
+      $error      = false;
       $task->setVolume(0); // start with zero
 
       // compute date in the past for the archived log to be deleted
       $firstdate = date("Ymd", time() - ($task->fields['param'] * DAY_TIMESTAMP)); // compute current date - param as days and format it like YYYYMMDD
 
       // first look for bak to delete
-      $dir       = GLPI_LOG_DIR."/*.bak" ;
-      $findfiles = glob( $dir ) ;
+      $dir       = GLPI_LOG_DIR."/*.bak";
+      $findfiles = glob($dir);
       foreach ($findfiles as $file) {
-         $shortfile = str_replace(GLPI_LOG_DIR.'/','',$file);
+         $shortfile = str_replace(GLPI_LOG_DIR.'/', '', $file);
          // now depending on the format of the name we delete the file (for aging archives) or rename it (will add Ymd.log to the end of the file)
          $match = null;
          if (preg_match('/.+[.]log[.](\\d{8})[.]bak$/', $file, $match) > 0) {
-            if ($match[1] < $firstdate ) {
+            if ($match[1] < $firstdate) {
                $task->addVolume(1);
                if (unlink($file)) {
                   $task->log(sprintf(__('Deletion of archived log file: %s'), $shortfile));
-                  $actionCode = 1 ;
+                  $actionCode = 1;
                } else {
                   $task->log(sprintf(__('Unable to delete archived log file: %s'), $shortfile));
-                  $error = true ;
+                  $error = true;
                }
             }
          }
       }
 
       // second look for log to archive
-      $dir       = GLPI_LOG_DIR."/*.log" ;
-      $findfiles = glob( $dir ) ;
+      $dir       = GLPI_LOG_DIR."/*.log";
+      $findfiles = glob($dir);
       foreach ($findfiles as $file) {
-         $shortfile    = str_replace(GLPI_LOG_DIR.'/','',$file);
+         $shortfile    = str_replace(GLPI_LOG_DIR.'/', '', $file);
          // rename the file
          $newfilename  = $file.".".date("Ymd", time()).".bak"; // will add to filename a string with format YYYYMMDD (= current date)
-         $shortnewfile = str_replace(GLPI_LOG_DIR.'/','',$newfilename);
+         $shortnewfile = str_replace(GLPI_LOG_DIR.'/', '', $newfilename);
 
          $task->addVolume(1);
          if (!file_exists($newfilename) && rename($file, $newfilename)) {
             $task->log(sprintf(__('Archiving log file: %1$s to %2$s'), $shortfile, $shortnewfile));
-            $actionCode = 1 ;
+            $actionCode = 1;
          } else {
             $task->log(sprintf(__('Unable to archive log file: %1$s. %2$s already exists. Wait till next day.'),
-                                 $shortfile, $shortnewfile)) ;
-            $error = true ;
+                                 $shortfile, $shortnewfile));
+            $error = true;
          }
       }
 
       if ($error) {
-         return -1 ;
+         return -1;
       }
       return $actionCode;
    }
@@ -1622,7 +1666,7 @@ class CronTask extends CommonDBTM{
    **/
    static function cronOptimize($task) {
 
-      $nb = DBmysql::optimize_tables(NULL, true);
+      $nb = DBmysql::optimize_tables(null, true);
       $task->setVolume($nb);
 
       return 1;
@@ -1645,7 +1689,7 @@ class CronTask extends CommonDBTM{
                 WHERE `state` = '".self::STATE_RUNNING."'
                       AND ((unix_timestamp(`lastrun`) + 2 * `frequency` < unix_timestamp(now()))
                            OR (unix_timestamp(`lastrun`) + 2*".HOUR_TIMESTAMP." < unix_timestamp(now())))";
-      $crontasks = array();
+      $crontasks = [];
       foreach ($DB->request($query) as $data) {
          $crontasks[$data['id']] = $data;
       }
@@ -1653,11 +1697,11 @@ class CronTask extends CommonDBTM{
       if (count($crontasks)) {
          $task = new self();
          $task->getFromDBByQuery("WHERE `itemtype` = 'Crontask' AND `name` = 'watcher'");
-         if (NotificationEvent::raiseEvent("alert", $task,  array('items' => $crontasks))) {
+         if (NotificationEvent::raiseEvent("alert", $task, ['items' => $crontasks])) {
             $cron_status = 1;
             $task->addVolume(1);
          }
-         QueuedMail::forceSendFor($task->getType(), $task->fields['id']);
+         QueuedNotification::forceSendFor($task->getType(), $task->fields['id']);
       }
 
       return 1;
@@ -1675,31 +1719,31 @@ class CronTask extends CommonDBTM{
 
       switch ($name) {
          case 'checkupdate' :
-            return array('description' => __('Check for new updates'));
+            return ['description' => __('Check for new updates')];
 
          case 'logs' :
-            return array('description' => __('Clean old logs'),
+            return ['description' => __('Clean old logs'),
                          'parameter'
-                           => __('System logs retention period (in days, 0 for infinite)'));
+                           => __('System logs retention period (in days, 0 for infinite)')];
 
          case 'optimize' :
-            return array('description' => __('Database optimization'));
+            return ['description' => __('Database optimization')];
 
          case 'session' :
-            return array('description' => __('Clean expired sessions'));
+            return ['description' => __('Clean expired sessions')];
 
          case 'graph' :
-            return array('description' => __('Clean generated graphics'));
+            return ['description' => __('Clean generated graphics')];
 
          case 'temp' :
-            return array('description' => __('Clean temporary files'));
+            return ['description' => __('Clean temporary files')];
 
          case 'watcher' :
-            return array('description' => __('Monitoring of automatic actions'));
+            return ['description' => __('Monitoring of automatic actions')];
 
          case 'circularlogs' :
-            return array('description' => __("Archives log files and deletes aging ones"),
-                         'parameter'   => __("Number of days to keep archived logs"));
+            return ['description' => __("Archives log files and deletes aging ones"),
+                         'parameter'   => __("Number of days to keep archived logs")];
       }
    }
 
@@ -1710,32 +1754,32 @@ class CronTask extends CommonDBTM{
     * @param $name   select name
     * @param $value  default value (default 0)
    **/
-   function dropdownFrequency($name, $value=0) {
+   function dropdownFrequency($name, $value = 0) {
 
-      $tab = array();
+      $tab = [];
 
-      $tab[MINUTE_TIMESTAMP] = sprintf(_n('%d minute','%d minutes',1),1);
+      $tab[MINUTE_TIMESTAMP] = sprintf(_n('%d minute', '%d minutes', 1), 1);
 
       // Minutes
-      for ($i=5 ; $i<60 ; $i+=5) {
-         $tab[$i*MINUTE_TIMESTAMP] = sprintf(_n('%d minute','%d minutes',$i), $i);
+      for ($i=5; $i<60; $i+=5) {
+         $tab[$i*MINUTE_TIMESTAMP] = sprintf(_n('%d minute', '%d minutes', $i), $i);
       }
 
       // Heures
-      for ($i=1 ; $i<24 ; $i++) {
-         $tab[$i*HOUR_TIMESTAMP] = sprintf(_n('%d hour','%d hours',$i), $i);
+      for ($i=1; $i<24; $i++) {
+         $tab[$i*HOUR_TIMESTAMP] = sprintf(_n('%d hour', '%d hours', $i), $i);
       }
 
       // Jours
       $tab[DAY_TIMESTAMP] = __('Each day');
-      for ($i=2 ; $i<7 ; $i++) {
-         $tab[$i*DAY_TIMESTAMP] = sprintf(_n('%d day','%d days',$i),$i);
+      for ($i=2; $i<7; $i++) {
+         $tab[$i*DAY_TIMESTAMP] = sprintf(_n('%d day', '%d days', $i), $i);
       }
 
       $tab[WEEK_TIMESTAMP]  = __('Each week');
       $tab[MONTH_TIMESTAMP] = __('Each month');
 
-      Dropdown::showFromArray($name, $tab, array('value' => $value));
+      Dropdown::showFromArray($name, $tab, ['value' => $value]);
    }
 
 
@@ -1777,4 +1821,3 @@ class CronTask extends CommonDBTM{
       }
    }
 }
-?>

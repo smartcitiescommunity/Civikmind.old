@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
-
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -37,7 +36,7 @@
 */
 
 // Direct access to file
-if (strpos($_SERVER['PHP_SELF'],"getDropdownValue.php")) {
+if (strpos($_SERVER['PHP_SELF'], "getDropdownValue.php")) {
    include ('../inc/includes.php');
    header("Content-Type: text/html; charset=UTF-8");
    Html::header_nocache();
@@ -60,18 +59,29 @@ if (isset($_POST["entity_restrict"])
    }
    $_POST["entity_restrict"] = $entities;
 }
+if (isset($_POST['entity_restrict']) && 'default' === $_POST['entity_restrict']) {
+   $_POST['entity_restrict'] = $_SESSION['glpiactiveentities'];
+}
 
 // Security
 if (!($item = getItemForItemtype($_POST['itemtype']))) {
    exit();
 }
 $table = $item->getTable();
-$datas = array();
+$datas = [];
 
 $displaywith = false;
 if (isset($_POST['displaywith'])) {
    if (is_array($_POST['displaywith']) && count($_POST['displaywith'])) {
-      $displaywith = true;
+      $table = getTableForItemType($_POST['itemtype']);
+      foreach ($_POST['displaywith'] as $key => $value) {
+         if (!$DB->FieldExists($table, $value)) {
+            unset($_POST['displaywith'][$key]);
+         }
+      }
+      if (count($_POST['displaywith'])) {
+         $displaywith = true;
+      }
    }
 }
 
@@ -80,11 +90,11 @@ if (!isset($_POST['permit_select_parent'])) {
 }
 
 if (isset($_POST['condition']) && !empty($_POST['condition'])) {
-    if (isset($_SESSION['glpicondition'][$_POST['condition']])) {
-        $_POST['condition'] = $_SESSION['glpicondition'][$_POST['condition']];
-    } else {
-        $_POST['condition'] = '';
-    }
+   if (isset($_SESSION['glpicondition'][$_POST['condition']])) {
+      $_POST['condition'] = $_SESSION['glpicondition'][$_POST['condition']];
+   } else {
+      $_POST['condition'] = '';
+   }
 }
 
 if (!isset($_POST['emptylabel']) || ($_POST['emptylabel'] == '')) {
@@ -118,14 +128,14 @@ if (isset($_POST['used'])) {
    $used = $_POST['used'];
 
    if (count($used)) {
-      $where .=" AND `$table`.`id` NOT IN ('".implode("','",$used)."' ) ";
+      $where .=" AND `$table`.`id` NOT IN ('".implode("','", $used)."' ) ";
    }
 }
 
 if (isset($_POST['toadd'])) {
    $toadd = $_POST['toadd'];
 } else {
-   $toadd = array();
+   $toadd = [];
 }
 
 // $where .= ") ";
@@ -287,8 +297,8 @@ if ($item instanceof CommonTreeDropdown) {
       if ($_POST['page'] == 1 && empty($_POST['searchText'])) {
          if ($_POST['display_emptychoice']) {
             if (($one_item < 0) || ($one_item  == 0)) {
-               array_push($datas, array('id'   => 0,
-                                        'text' => $_POST['emptylabel']));
+               array_push($datas, ['id'   => 0,
+                                        'text' => $_POST['emptylabel']]);
             }
          }
       }
@@ -297,14 +307,14 @@ if ($item instanceof CommonTreeDropdown) {
          if (count($toadd)) {
             foreach ($toadd as $key => $val) {
                if (($one_item < 0) || ($one_item == $key)) {
-                  array_push($datas, array('id'   => $key,
-                                           'text' => stripslashes($val)));
+                  array_push($datas, ['id'   => $key,
+                                           'text' => stripslashes($val)]);
                }
             }
          }
       }
-      $last_level_displayed = array();
-      $datastoadd           = array();
+      $last_level_displayed = [];
+      $datastoadd           = [];
 
       // Ignore first item for all pages except first page or one_item
       $firstitem = (($_POST['page'] > 1) && ($one_item < 0));
@@ -329,9 +339,9 @@ if ($item instanceof CommonTreeDropdown) {
                   if ($prev >= 0) {
                      if (count($datastoadd)) {
                         array_push($datas,
-                                   array('text'     => Dropdown::getDropdownName("glpi_entities",
+                                   ['text'     => Dropdown::getDropdownName("glpi_entities",
                                                                                  $prev),
-                                         'children' => $datastoadd));
+                                         'children' => $datastoadd]);
                      }
                   }
                }
@@ -340,7 +350,7 @@ if ($item instanceof CommonTreeDropdown) {
                   $firstitem_entity = $prev;
                }
                // Reset last level displayed :
-               $datastoadd = array();
+               $datastoadd = [];
             }
 
 
@@ -361,7 +371,7 @@ if ($item instanceof CommonTreeDropdown) {
 
                      $work_level    = $level-1;
                      $work_parentID = $data[$item->getForeignKeyField()];
-                     $parent_datas  = array();
+                     $parent_datas  = [];
                      do {
                         // Get parent
                         if ($item->getFromDB($work_parentID)) {
@@ -382,12 +392,12 @@ if ($item instanceof CommonTreeDropdown) {
                                                                                  'name',
                                                                                  $_SESSION['glpilanguage'],
                                                                                  $item->fields['name']);
-                           //   $output2 = $item->getName();
+                              //   $output2 = $item->getName();
 
-                              $temp = array('id'       => $ID,
+                              $temp = ['id'       => $ID,
                                             'text'     => $output2,
                                             'level'    => $work_level,
-                                            'disabled' => true);
+                                            'disabled' => true];
                               if ($_POST['permit_select_parent']) {
                                  unset($temp['disabled']);
                               }
@@ -405,7 +415,7 @@ if ($item instanceof CommonTreeDropdown) {
                               && (!isset($last_level_displayed[$work_level])
                                   || ($last_level_displayed[$work_level] != $work_parentID)));
                      // Add parents
-                     foreach($parent_datas as $val){
+                     foreach ($parent_datas as $val) {
                         array_push($datastoadd, $val);
                      }
                   }
@@ -434,10 +444,10 @@ if ($item instanceof CommonTreeDropdown) {
                   }
                   $title = sprintf(__('%1$s - %2$s'), $title, $addcomment);
                }
-               array_push($datastoadd, array('id'    => $ID,
+               array_push($datastoadd, ['id'    => $ID,
                                              'text'  => $outputval,
                                              'level' => $level,
-                                             'title' => $title));
+                                             'title' => $title]);
                $count++;
             }
             $firstitem = false;
@@ -450,8 +460,8 @@ if ($item instanceof CommonTreeDropdown) {
          if ($prev == $firstitem_entity) {
             $datas = array_merge($datas, $datastoadd);
          } else {
-            array_push($datas, array('text'     => Dropdown::getDropdownName("glpi_entities", $prev),
-                                     'children' => $datastoadd));
+            array_push($datas, ['text'     => Dropdown::getDropdownName("glpi_entities", $prev),
+                                     'children' => $datastoadd]);
          }
       }
    } else {
@@ -556,6 +566,10 @@ if ($item instanceof CommonTreeDropdown) {
                    $where";
          break;
 
+      case KnowbaseItem::getType():
+         $addjoin   .= KnowbaseItem::addVisibilityJoins();
+         //no break to reach default case.
+
       default :
          $query = "SELECT `$table`.* $addselect
                    FROM `$table`
@@ -577,8 +591,8 @@ if ($item instanceof CommonTreeDropdown) {
       if ($_POST['page'] == 1 && empty($_POST['searchText'])) {
          if (!isset($_POST['display_emptychoice']) || $_POST['display_emptychoice']) {
             if (($one_item < 0) || ($one_item == 0)) {
-               array_push($datas, array('id'    => 0,
-                                        'text'  => $_POST["emptylabel"]));
+               array_push($datas, ['id'    => 0,
+                                        'text'  => $_POST["emptylabel"]]);
             }
          }
       }
@@ -586,16 +600,16 @@ if ($item instanceof CommonTreeDropdown) {
          if (count($toadd)) {
             foreach ($toadd as $key => $val) {
                if (($one_item < 0) || ($one_item == $key)) {
-                  array_push($datas, array('id'    => $key,
-                                           'text'  => stripslashes($val)));
+                  array_push($datas, ['id'    => $key,
+                                           'text'  => stripslashes($val)]);
                }
             }
          }
       }
 
-//       $outputval = Dropdown::getDropdownName($table, $_POST['value']);
+      //       $outputval = Dropdown::getDropdownName($table, $_POST['value']);
 
-      $datastoadd = array();
+      $datastoadd = [];
 
       if ($DB->numrows($result)) {
          $prev = -1;
@@ -606,13 +620,13 @@ if ($item instanceof CommonTreeDropdown) {
                if ($prev >= 0) {
                   if (count($datastoadd)) {
                      array_push($datas,
-                                array('text'     => Dropdown::getDropdownName("glpi_entities",
+                                ['text'     => Dropdown::getDropdownName("glpi_entities",
                                                                               $prev),
-                                      'children' => $datastoadd));
+                                      'children' => $datastoadd]);
                   }
                }
                $prev       = $data["entities_id"];
-               $datastoadd = array();
+               $datastoadd = [];
             }
 
             if (isset($data['transname']) && !empty($data['transname'])) {
@@ -620,7 +634,7 @@ if ($item instanceof CommonTreeDropdown) {
             } else if ($field == 'itemtype' && class_exists($data['itemtype'])) {
                $tmpitem = new $data[$field]();
                if ($tmpitem->getFromDB($data['items_id'])) {
-                  $outputval = sprintf(__('%1$s - %2$s'), $tmpitem->getTypeName(),$tmpitem->getName());
+                  $outputval = sprintf(__('%1$s - %2$s'), $tmpitem->getTypeName(), $tmpitem->getName());
                } else {
                   $outputval = $tmpitem->getTypeName();
                }
@@ -660,16 +674,16 @@ if ($item instanceof CommonTreeDropdown) {
                   }
                }
             }
-            array_push($datastoadd, array('id'    => $ID,
+            array_push($datastoadd, ['id'    => $ID,
                                           'text'  => $outputval,
-                                          'title' => $title));
+                                          'title' => $title]);
             $count++;
          }
          if ($multi) {
             if (count($datastoadd)) {
-               array_push($datas, array('text'     => Dropdown::getDropdownName("glpi_entities",
+               array_push($datas, ['text'     => Dropdown::getDropdownName("glpi_entities",
                                                                                 $prev),
-                                        'children' => $datastoadd));
+                                        'children' => $datastoadd]);
             }
          } else {
             if (count($datastoadd)) {
@@ -689,4 +703,3 @@ if (($one_item >= 0) && isset($datas[0])) {
    echo json_encode($ret);
 }
 
-?>

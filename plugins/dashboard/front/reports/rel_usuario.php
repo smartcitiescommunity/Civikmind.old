@@ -1,7 +1,7 @@
 <?php
 
 include ("../../../../inc/includes.php");
-include ("../../../../config/config.php");
+include ("../../../../inc/config.php");
 include "../inc/functions.php";
 
 global $DB, $style;
@@ -98,7 +98,7 @@ else {
 
 </head>
 
-<body style="background-color: #e5e5e5; margin-left:0%;">
+<body style="background-color: #e5e5e5;">
 
 <?php
 $sql_tec = "
@@ -117,7 +117,7 @@ $tec = $DB->fetch_assoc($result_tec);
 ?>
 
 <div id='content' >
-<div id='container-fluid' style="margin: 0px 5% 0px 5%;">
+<div id='container-fluid' style="margin: <?php echo margins(); ?> ;">
 <div id="charts" class="fluid chart" >
 <div id="pad-wrapper" >
 <div id="head-rel" class="fluid">
@@ -304,8 +304,7 @@ AND glpi_tickets.date ".$datas2."
 ".$entidade."
 AND glpi_tickets.status IN ".$status."
 GROUP BY id
-ORDER BY id DESC
-";
+ORDER BY id DESC ";
 
 $result_cons1 = $DB->query($consulta1);
 $conta_cons = $DB->numrows($result_cons1);
@@ -472,14 +471,14 @@ while($row = $DB->fetch_assoc($result_cham)){
     if($status1 == "6" ) { $status1 = "closed";}
 
     echo "
-<tr>
-	<td style='vertical-align:middle; text-align:center;'><a href=".$CFG_GLPI['url_base']."/front/ticket.form.php?id=". $row['id'] ." target=_blank >" . $row['id'] . "</a> </td>
-	<td style='vertical-align:middle;'><img src=".$CFG_GLPI['url_base']."/pics/".$status1.".png title='".Ticket::getStatus($row['status'])."' style=' cursor: pointer; cursor: hand;'/> &nbsp; ".Ticket::getStatus($row['status'])."</td>
-	<td> ". substr($row['name'],0,75) ." </td>
-	<td> ". conv_data_hora($row['date']) ." </td>
-	<td> ". conv_data_hora($row['solvedate']) ." </td>
-	<td> ". time_ext($row['time']) ."</td>
-</tr>";
+		<tr style='font-weight:normal;'>
+			<td style='vertical-align:middle; text-align:center; font-weight:bold;'><a href=".$CFG_GLPI['url_base']."/front/ticket.form.php?id=". $row['id'] ." target=_blank >" . $row['id'] . "</a> </td>
+			<td style='vertical-align:middle;'><img src=".$CFG_GLPI['url_base']."/pics/".$status1.".png title='".Ticket::getStatus($row['status'])."' style=' cursor: pointer; cursor: hand;'/> &nbsp; ".Ticket::getStatus($row['status'])."</td>
+			<td> ". substr($row['name'],0,75) ." </td>
+			<td style='text-align:center; vertical-align:middle;'> ". conv_data_hora($row['date']) ." </td>
+			<td style='text-align:center; vertical-align:middle;'> ". conv_data_hora($row['solvedate']) ." </td>
+			<td style='text-align:center; vertical-align:middle;'> ". time_ext($row['time']) ."</td>
+		</tr>";
 }
 
 echo "</tbody>
@@ -502,7 +501,7 @@ $(document).ready(function() {
         deferRender: true,
         sorting: [[0,'desc'],[1,'desc'],[2,'desc'],[3,'desc'],[4,'desc'],[5,'desc']],
 		  displayLength: 25,
-        lengthMenu: [[25, 50, 100, -1], [25, 50, 100, "All"]],        
+        lengthMenu: [[25, 50, 75, 100], [25, 50, 75, 100]],        
         buttons: [
         	    {
                  extend: "copyHtml5",

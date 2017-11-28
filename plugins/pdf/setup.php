@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: setup.php 468 2016-12-14 17:50:42Z yllen $
+ * @version $Id: setup.php 498 2017-11-03 13:33:40Z yllen $
  -------------------------------------------------------------------------
  LICENSE
 
@@ -21,7 +21,7 @@
 
  @package   pdf
  @authors   Nelly Mahu-Lasson, Remi Collet
- @copyright Copyright (c) 2009-2016 PDF plugin team
+ @copyright Copyright (c) 2009-2017 PDF plugin team
  @license   AGPL License 3.0 or (at your option) any later version
             http://www.gnu.org/licenses/agpl-3.0-standalone.html
  @link      https://forge.glpi-project.org/projects/pdf
@@ -35,9 +35,11 @@ function plugin_init_pdf() {
 
    $PLUGIN_HOOKS['csrf_compliant']['pdf'] = true;
 
-   Plugin::registerClass('PluginPdfProfile',    array('addtabon' => 'Profile'));
+   Plugin::registerClass('PluginPdfProfile', ['addtabon' => 'Profile']);
+   $PLUGIN_HOOKS['change_profile']['pdf'] = ['PluginPdfProfile','initProfile'];
+
    if (Session::haveRight('plugin_pdf', READ)) {
-      Plugin::registerClass('PluginPdfPreference', array('addtabon' => 'Preference'));
+      Plugin::registerClass('PluginPdfPreference', ['addtabon' => 'Preference']);
    }
 
    if (Session::getLoginUserID()
@@ -54,6 +56,7 @@ function plugin_init_pdf() {
 
 
       // Define the type for which we know how to generate PDF :
+      $PLUGIN_HOOKS['plugin_pdf']['Change']           = 'PluginPdfChange';
       $PLUGIN_HOOKS['plugin_pdf']['Computer']         = 'PluginPdfComputer';
       $PLUGIN_HOOKS['plugin_pdf']['Group']            = 'PluginPdfGroup';
       $PLUGIN_HOOKS['plugin_pdf']['KnowbaseItem']     = 'PluginPdfKnowbaseItem';
@@ -62,12 +65,13 @@ function plugin_init_pdf() {
       $PLUGIN_HOOKS['plugin_pdf']['Peripheral']       = 'PluginPdfPeripheral';
       $PLUGIN_HOOKS['plugin_pdf']['Phone']            = 'PluginPdfPhone';
       $PLUGIN_HOOKS['plugin_pdf']['Printer']          = 'PluginPdfPrinter';
+      $PLUGIN_HOOKS['plugin_pdf']['Problem']          = 'PluginPdfProblem';
       $PLUGIN_HOOKS['plugin_pdf']['Software']         = 'PluginPdfSoftware';
       $PLUGIN_HOOKS['plugin_pdf']['SoftwareLicense']  = 'PluginPdfSoftwareLicense';
       $PLUGIN_HOOKS['plugin_pdf']['SoftwareVersion']  = 'PluginPdfSoftwareVersion';
       $PLUGIN_HOOKS['plugin_pdf']['Ticket']           = 'PluginPdfTicket';
-      $PLUGIN_HOOKS['plugin_pdf']['Problem']          = 'PluginPdfProblem';
-      $PLUGIN_HOOKS['plugin_pdf']['Change']           = 'PluginPdfChange';
+      $PLUGIN_HOOKS['plugin_pdf']['User']             = 'PluginPdfUser';
+
 
       // End init, when all types are registered by all plugins
       $PLUGIN_HOOKS['post_init']['pdf'] = 'plugin_pdf_postinit';
@@ -79,19 +83,22 @@ function plugin_init_pdf() {
 
 function plugin_version_pdf() {
 
-   return array('name'           => __('Print to pdf', 'pdf'),
-                'version'        => '1.1',
-                'author'         => 'Remi Collet, Nelly Mahu-Lasson',
-                'license'        => 'GPLv3+',
-                'homepage'       => 'https://forge.indepnet.net/projects/pdf',
-                'minGlpiVersion' => '0.85.3');
+   return ['name'           => __('Print to pdf', 'pdf'),
+           'version'        => '1.3.0',
+           'author'         => 'Remi Collet, Nelly Mahu-Lasson',
+           'license'        => 'GPLv3+',
+           'homepage'       => 'https://forge.indepnet.net/projects/pdf',
+           'minGlpiVersion' => '9.2',
+           'requirements'   => ['glpi' => ['min' => '9.2',
+                                           'max' => '9.3']]];
+
 }
 
 
 function plugin_pdf_check_prerequisites(){
 
-   if (version_compare(GLPI_VERSION,'9.1','lt') || version_compare(GLPI_VERSION,'9.2','ge')) {
-      echo "This plugin requires GLPI >= 9.1";
+   if (version_compare(GLPI_VERSION,'9.2','lt') || version_compare(GLPI_VERSION,'9.3','ge')) {
+      echo "This plugin requires GLPI >= 9.2";
       return false;
    }
    return true;

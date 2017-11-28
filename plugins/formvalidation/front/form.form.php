@@ -46,7 +46,7 @@ Session::checkLoginUser();
 $form = new PluginFormvalidationForm();
 if (isset($_POST["purge"])) {
    $form->check($_POST["id"], PURGE);
-   $form->delete($_POST,1);
+   $form->delete($_POST, 1);
 
    //Event::log($_POST["id"], "change", 4, "maintain",
    //           //TRANS: %s is the user login
@@ -55,8 +55,8 @@ if (isset($_POST["purge"])) {
 
 } else if (isset($_POST["update"])) {
    $form->check($_POST["id"], UPDATE);
-   
-   $_POST["formula"] = Html::entity_decode_deep( $_POST["formula"] ) ;
+
+   $_POST["formula"] = Html::entity_decode_deep( $_POST["formula"] );
 
    $form->update($_POST);
    //Event::log($_POST["id"], "change", 4, "maintain",
@@ -67,8 +67,7 @@ if (isset($_POST["purge"])) {
 
 } else {
    //   Html::header(Change::getTypeName(Session::getPluralNumber()), $_SERVER['PHP_SELF'], "helpdesk", "change");
-   Html::header(__('Form Validation - Form','formvalidation'), $_SERVER['PHP_SELF'] , "config", "PluginFormvalidationMenu", "formvalidationform");
+   Html::header(__('Form Validation - Form', 'formvalidation'), $_SERVER['PHP_SELF'], "config", "PluginFormvalidationMenu", "formvalidationform");
    $form->display($_GET);
    Html::footer();
 }
-?>

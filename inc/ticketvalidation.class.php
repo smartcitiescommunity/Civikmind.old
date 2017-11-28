@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
- 
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -58,12 +57,12 @@ class TicketValidation  extends CommonITILValidation {
 
 
    static function getCreateRights() {
-      return array(static::CREATEREQUEST, static::CREATEINCIDENT);
+      return [static::CREATEREQUEST, static::CREATEINCIDENT];
    }
 
 
    static function getValidateRights() {
-      return array(static::VALIDATEREQUEST, static::VALIDATEINCIDENT);
+      return [static::VALIDATEREQUEST, static::VALIDATEINCIDENT];
    }
 
 
@@ -73,20 +72,20 @@ class TicketValidation  extends CommonITILValidation {
    function canCreateItem() {
 
       if ($this->canChildItem('canViewItem', 'canView')) {
-          $ticket = new Ticket();
-          if ($ticket->getFromDB($this->fields['tickets_id'])) {
-              // No validation for closed tickets
-              if (in_array($ticket->fields['status'],$ticket->getClosedStatusArray())) {
-                return false;
-              }
-          
-              if ($ticket->fields['type'] == Ticket::INCIDENT_TYPE) {
-                 return Session::haveRight(self::$rightname, self::CREATEINCIDENT);
-              }
-              if ($ticket->fields['type'] == Ticket::DEMAND_TYPE) {
-                 return Session::haveRight(self::$rightname, self::CREATEREQUEST);
-              }
-          }
+         $ticket = new Ticket();
+         if ($ticket->getFromDB($this->fields['tickets_id'])) {
+            // No validation for closed tickets
+            if (in_array($ticket->fields['status'], $ticket->getClosedStatusArray())) {
+               return false;
+            }
+
+            if ($ticket->fields['type'] == Ticket::INCIDENT_TYPE) {
+               return Session::haveRight(self::$rightname, self::CREATEINCIDENT);
+            }
+            if ($ticket->fields['type'] == Ticket::DEMAND_TYPE) {
+               return Session::haveRight(self::$rightname, self::CREATEREQUEST);
+            }
+         }
       }
    }
 
@@ -95,17 +94,17 @@ class TicketValidation  extends CommonITILValidation {
     *
     * @see commonDBTM::getRights()
     **/
-   function getRights($interface='central') {
+   function getRights($interface = 'central') {
 
       $values = parent::getRights();
       unset($values[UPDATE], $values[CREATE], $values[READ]);
 
       $values[self::CREATEREQUEST]
-                              = array('short' => __('Create for request'),
-                                      'long'  => __('Create a validation request for a request'));
+                              = ['short' => __('Create for request'),
+                                      'long'  => __('Create a validation request for a request')];
       $values[self::CREATEINCIDENT]
-                              = array('short' => __('Create for incident'),
-                                      'long'  => __('Create a validation request for an incident'));
+                              = ['short' => __('Create for incident'),
+                                      'long'  => __('Create a validation request for an incident')];
       $values[self::VALIDATEREQUEST]
                               = __('Validate a request');
       $values[self::VALIDATEINCIDENT]
@@ -119,4 +118,3 @@ class TicketValidation  extends CommonITILValidation {
    }
 
 }
-?>

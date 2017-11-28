@@ -1,3 +1,33 @@
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
+ */
 /* ====== BODY ====== */
 
 body {
@@ -6,12 +36,12 @@ body {
 
 /* ===== LOGIN ===== */
 
-#firstboxlogin  {
+#firstboxlogin {
    background-color: #006573;
 }
 
 #logo_login {
-   background: url(../../pics/login_logo_glpi.png) center no-repeat, #008B8D; 
+   background: url(../../pics/login_logo_glpi.png) center no-repeat, #008B8D;
 }
 
 #display-login {
@@ -40,7 +70,7 @@ a, a:link, .ui-widget-content a {
   background: linear-gradient(to top, #353166, #524b9d);
 }
 
-#c_preference a {
+#c_preference a, #language_link > span {
    color: #8783c2;
 }
 
@@ -70,7 +100,7 @@ ul#menu ul.ssmenu li.active > a {
    color: #FFF;
 }
 
-ul#menu > li:hover, 
+ul#menu > li:hover,
 ul#menu > li:hover > a {
    background-color: #3c3874;
    color: #fff;
@@ -83,7 +113,7 @@ ul#menu ul li a:hover {
 
 /* ====== BUTTONS ====== */
 
-input.submit {   
+input.submit {
   background-color: #5953ab;
   color: #fff;
 }
@@ -136,4 +166,38 @@ a.vsubmit:hover {
 #footer .copyright,
 #footer .right a {
   color: #fff;
+}
+
+/* Primary color elements (white on blue BG) designed to be overridden from palettes */
+/* Colors are same as #c_menu */
+.primary-bg {
+   background: #564B7F;
+}
+.primary-bg-inverse {
+   background: white;
+}
+
+.primary-fg, .primary-fg:hover {
+   color: white;
+}
+
+.primary-fg-inverse, .primary-fg-inverse:hover {
+   color: #564B7F;
+}
+
+#show_all_menu dt a {
+   color:white;
+}
+
+#show_all_menu dt a:hover {
+   background: #3c3874;
+}
+
+#show_all_menu a {
+   color: #6660b2;
+}
+
+#show_all_menu a:hover {
+   background-color: #564B7F;
+   color: white;
 }

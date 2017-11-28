@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: contract_item.class.php 476 2017-01-09 15:53:05Z yllen $
+ * @version $Id: contract_item.class.php 498 2017-11-03 13:33:40Z yllen $
  -------------------------------------------------------------------------
  LICENSE
 
@@ -47,24 +47,29 @@ class PluginPdfContract_Item extends PluginPdfCommon {
       $type = $item->getType();
       $ID   = $item->getField('id');
       $con  = new Contract();
+      $dbu  = new DbUtils();
 
-      $query = "SELECT `glpi_contracts_items`.*
+     $query = "SELECT `glpi_contracts_items`.*
                 FROM `glpi_contracts_items`,
                      `glpi_contracts`
                 LEFT JOIN `glpi_entities` ON (`glpi_contracts`.`entities_id`=`glpi_entities`.`id`)
                 WHERE `glpi_contracts`.`id`=`glpi_contracts_items`.`contracts_id`
                       AND `glpi_contracts_items`.`items_id` = '".$ID."'
                       AND `glpi_contracts_items`.`itemtype` = '".$type."'".
-                      getEntitiesRestrictRequest(" AND","glpi_contracts",'','',true)."
+                      $dbu->getEntitiesRestrictRequest(" AND","glpi_contracts",'','',true)."
                 ORDER BY `glpi_contracts`.`name`";
 
-      $result = $DB->query($query);
-      $number = $DB->numrows($result);
+      $result = $DB->request($query, true);
+      $number = count($result);
       $i = $j = 0;
 
       $pdf->setColumnsSize(100);
-      if ($number > 0) {
-         $pdf->displayTitle('<b>'._N('Associated contract', 'Associated contracts', $number).'</b>');
+      $title = '<b>'._n('Associated contract', 'Associated contracts', $number).'</b>';
+      if (!$number) {
+         $pdf->displayTitle(sprintf(__('%1$s: %2$s'), $title, __('No item to display')));
+      } else {
+         $title = sprintf(__('%1$s: %2$s'), $title, $number);
+         $pdf->displayTitle($title);
 
          $pdf->setColumnsSize(19,19,15,10,16,11,10);
          $pdf->displayTitle(__('Name'), __('Entity'), _x('phone', 'Number'), __('Contract type'),
@@ -73,8 +78,9 @@ class PluginPdfContract_Item extends PluginPdfCommon {
          $i++;
 
          while ($j < $number) {
-            $cID     = $DB->result($result, $j, "contracts_id");
-            $assocID = $DB->result($result, $j, "id");
+            $row     = $result->next();
+            $cID     = $row['contracts_id'];
+            $assocID = $row['id'];
 
             if ($con->getFromDB($cID)) {
                $pdf->displayLine(
@@ -85,13 +91,15 @@ class PluginPdfContract_Item extends PluginPdfCommon {
                                                        $con->fields["contracttypes_id"])),
                   str_replace("<br>", " ", $con->getSuppliersNames()),
                   Html::convDate($con->fields["begin_date"]),
-                  sprintf(_n('%d month', '%d months', $con->fields["duration"]),
-                          $con->fields["duration"]));
+                  sprintf(__('%1$s - %2$s'),
+                          sprintf(_n('%d month', '%d months', $con->fields["duration"]),
+                                  $con->fields["duration"]),
+                          sprintf(__('Valid to %s'),
+                                  Infocom::getWarrantyExpir($con->fields["begin_date"],
+                                                            $con->fields["duration"]))));
             }
             $j++;
          }
-      } else {
-         $pdf->displayTitle("<b>".__('No associated contract')."</b>");
       }
       $pdf->displaySpace();
    }

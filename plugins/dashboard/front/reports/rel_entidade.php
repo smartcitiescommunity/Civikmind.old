@@ -1,7 +1,7 @@
 <?php
 
 include ("../../../../inc/includes.php");
-include ("../../../../config/config.php");
+include ("../../../../inc/config.php");
 include "../inc/functions.php";
 
 global $DB;
@@ -18,10 +18,11 @@ if(!empty($_POST['submit']))
 else {
     $data_ini = date("Y-m-01");
     $data_fin = date("Y-m-d");
-    }
+}
 
 if(!isset($_POST["sel_ent"])) {
-	$id_ent = $_GET["ent"];
+	//$id_ent = $_REQUEST["sel_ent"];	
+	$id_ent = '';
 }
 
 else {
@@ -57,6 +58,13 @@ else {
 <script src="../js/media/js/dataTables.bootstrap.js"></script>
 <link href="../js/media/css/dataTables.bootstrap.css" type="text/css" rel="stylesheet" />
 
+<script src="../js/extensions/Select/js/dataTables.select.min.js"></script>
+<link href="../js/extensions/Select/css/select.bootstrap.css" type="text/css" rel="stylesheet" />
+
+<script src="../js/extensions/FixedHeader/js/dataTables.fixedHeader.min.js"></script>
+<link href="../js/extensions/FixedHeader/css/fixedHeader.dataTables.min.css" type="text/css" rel="stylesheet" />
+<link href="../js/extensions/FixedHeader/css/fixedHeader.bootstrap.min.css" type="text/css" rel="stylesheet" />
+
 <script src="../js/extensions/Buttons/js/dataTables.buttons.min.js"></script>
 <script src="../js/extensions/Buttons/js/buttons.html5.min.js"></script>
 <script src="../js/extensions/Buttons/js/buttons.bootstrap.min.js"></script>
@@ -66,8 +74,6 @@ else {
 <script src="../js/media/vfs_fonts.js"></script>
 <script src="../js/media/jszip.min.js"></script>
 
-<script src="../js/extensions/Select/js/dataTables.select.min.js"></script>
-<link href="../js/extensions/Select/css/select.bootstrap.css" type="text/css" rel="stylesheet" />
 
 <style type="text/css">
 	select { width: 60px; }
@@ -82,14 +88,14 @@ else {
 <body style="background-color: #e5e5e5; margin-left:0%;">
 
 <div id='content' >
-<div id='container-fluid' style="margin: 0px 2% 0px 2%;">
+<div id='container-fluid' style="margin: <?php echo margins(); ?> ;">
 	<div id="charts" class="fluid chart">
 		<div id="pad-wrapper" >
 
 			<div id="head-lg" class="fluid">
 				<a href="../index.php"><i class="fa fa-home" style="font-size:14pt; margin-left:25px;"></i><span></span></a>
 				    <div id="titulo_rel"> <?php echo __('Tickets', 'dashboard') .'  '. __('by Entity', 'dashboard') ?> </div>
-						    <div id="datas-tec" class="col-md-12 fluid" >
+						    <div id="datas-tec" class="col-md-12 col-sm-12 fluid" >
 							    <form id="form1" name="form1" class="form_rel" method="post" action="rel_entidade.php?con=1">
 								    <table border="0" cellspacing="0" cellpadding="3" bgcolor="#efefef" >
 								    <tr>
@@ -155,11 +161,10 @@ else {
 										$arr_ent[0] = "-- ". __('Select a entity', 'dashboard') . " --" ;
 
 										//$DB->data_seek($result_ent, 0) ;
-										while ($row_result = $DB->fetch_assoc($result_ent))
-										    {
-										    	$v_row_result = $row_result['id'];
-										    	$arr_ent[$v_row_result] = $row_result['cname'] ;
-										    }
+										while ($row_result = $DB->fetch_assoc($result_ent)) {
+										   $v_row_result = $row_result['id'];
+										   $arr_ent[$v_row_result] = $row_result['cname'] ;
+										}
 
 										$name = 'sel_ent';
 										$options = $arr_ent;
@@ -187,7 +192,10 @@ else {
 		<?php
 
 		//entidades
-		$con = $_GET['con'];
+		if(isset($_REQUEST['con'])) {
+			$con = $_REQUEST['con'];
+		}
+		else { $con = ''; }
 
 		if($con == "1") {
 
@@ -203,7 +211,8 @@ else {
 		}
 
 		if(!isset($_POST["sel_ent"])) {
-			$id_ent = $_GET["ent"];
+			//$id_ent = $_REQUEST["sel_ent"];	
+			$id_ent = '';	
 		}
 
 		else {
@@ -265,13 +274,11 @@ else {
 		WHERE glpi_tickets.entities_id = ".$id_ent."
 		AND glpi_tickets.is_deleted = 0
 		AND glpi_tickets.date ".$datas2."
-		AND glpi_tickets.status IN ".$status."
-		";
+		AND glpi_tickets.status IN ".$status." ";
 
 		$result_cons1 = $DB->query($consulta1);
 
 		$conta_cons = $DB->numrows($result_cons1);
-
 		$consulta = $conta_cons;
 
 		if($consulta > 0) {
@@ -374,7 +381,7 @@ else {
 		<table class='fluid'  style='width:100%; font-size: 18px; font-weight:bold;' cellpadding = '1px'>
 			<td  style='font-size: 16px; font-weight:bold; vertical-align:middle;'><span style='color:#000;'> ".__('Entity', 'dashboard').": </span>".$ent_name['name']." </td>
 			<td  style='font-size: 16px; font-weight:bold; vertical-align:middle;'><span style='color:#000;'> ".__('Tickets', 'dashboard').": </span>".$consulta." </td>
-			<td colspan='3' style='font-size: 16px; font-weight:bold; vertical-align:middle; width:200px;'><span style='color:#000;'>
+			<td colspan='3' style='font-size: 16px vertical-align:middle; width:200px;'><span style='color:#000;'>
 			".__('Period', 'dashboard') .": </span> " . conv_data($data_ini2) ." a ". conv_data($data_fin2)."
 			</td>
 			<td style='vertical-align:middle; width: 190px;'>
@@ -396,19 +403,19 @@ else {
 			</tr>
 		</table>
 
-		<table style='font-size: 16px; font-weight:bold; width: 50%;' border=0>
+		<table style='font-size: 16px; width: 50%;' border=0>
 			<tr>
-				<td><span style='color: #000;'>". _x('status','New').": </span>".$new." </td>
-				<td><span style='color: #000;'>". __('Assigned'). ": </span>". ($assig + $plan) ."</td>
-				<td><span style='color: #000;'>". __('Pending').": </span>".$pend." </td>
-				<td><span style='color: #000;'>". __('Solved','dashboard').": </span>".$solve." </td>
-				<td><span style='color: #000;'>". __('Closed').": </span>".$close." </td>
+				<td style='font-weight:bold;'><span style='color: #000;'>". _x('status','New').": </span>".$new." </td>
+				<td style='font-weight:bold;'><span style='color: #000;'>". __('Assigned'). ": </span>". ($assig + $plan) ."</td>
+				<td style='font-weight:bold;'><span style='color: #000;'>". __('Pending').": </span>".$pend." </td>
+				<td style='font-weight:bold;'><span style='color: #000;'>". __('Solved','dashboard').": </span>".$solve." </td>
+				<td style='font-weight:bold;'><span style='color: #000;'>". __('Closed').": </span>".$close." </td>
 			</tr>
 			<tr><td>&nbsp;</td></tr>
 			<tr><td>&nbsp;</td></tr>
 		</table>
 
-		<table id='t_ent' class='display' style='font-size: 11px; font-weight:bold;' >
+		<table id='t_ent' class='display' style='font-size: 11px;' >
 			<thead>
 				<tr>
 					<th style='font-size: 12px; font-weight:bold; text-align: center; cursor:pointer;'> ".__('Tickets', 'dashboard')." </th>
@@ -464,7 +471,7 @@ else {
 				$row_tec = $DB->fetch_assoc($result_tec);
 
 
-		//category
+				//category
 		    	$sql_cat = "SELECT name, completename
 				FROM glpi_itilcategories
 				WHERE id = ".$row['cat']." ";
@@ -473,7 +480,7 @@ else {
 				$row_cat = $DB->fetch_assoc($result_cat);
 
 
-		// associated element
+				// associated element
 			   $sql_item = "SELECT itemtype, items_id
 				FROM glpi_items_tickets
 				WHERE glpi_items_tickets.tickets_id = ". $row['id'] ."";
@@ -495,11 +502,11 @@ else {
 
 		if($result_ass != '') {
 			$row_item = $DB->fetch_assoc($result_ass);
-				}
+		}
 
 		echo "
 		<tr>
-			<td style='vertical-align:middle; text-align:center;'><a href=".$CFG_GLPI['url_base']."/front/ticket.form.php?id=". $row['id'] ." target=_blank >" . $row['id'] . "</a></td>
+			<td style='vertical-align:middle; text-align:center; font-weight:bold;'><a href=".$CFG_GLPI['url_base']."/front/ticket.form.php?id=". $row['id'] ." target=_blank >" . $row['id'] . "</a></td>
 			<td style='vertical-align:middle; font-size:10px;'><img src=".$CFG_GLPI['url_base']."/pics/".$status1.".png title='".Ticket::getStatus($row['status'])."' style=' cursor: pointer; cursor: hand;'/>&nbsp; ".Ticket::getStatus($row['status'])." </td>
 			<td style='vertical-align:middle;'> ". Ticket::getTicketTypeName($row['TYPE']) ." </td>
 			<td style='vertical-align:middle;'> ". substr($row['descr'],0,55) ." </td>
@@ -528,13 +535,17 @@ else {
 
 				  select: true,
 		        dom: 'Blfrtip',
-		        //stateSave: true,
+		        stateSave: true,
 		        filter: false,
 		        pagingType: "full_numbers",
 		        deferRender: true,
+				  fixedHeader: true,
+       		 //"scrollY":   "90vh",
+        		 //"scrollCollapse": true,
 		        sorting: [[0,'desc'],[1,'desc'],[2,'desc'],[3,'desc'],[4,'desc'],[5,'desc'],[6,'desc'],[7,'desc'],[8,'desc'],[9,'desc'],[10,'desc']],
 				  displayLength: 25,
-		        lengthMenu: [[25, 50, 100, -1], [25, 50, 100, "All"]],
+		        lengthMenu: [[25, 50, 75, 100], [25, 50, 75, 100]],
+		        //select: { style: "multi" },
 		        buttons: [
 		        	    {
 		                 extend: "copyHtml5",
@@ -561,7 +572,7 @@ else {
 				                 exportOptions: {
 				                 	  columns: ':visible',
 				                    modifier: {
-				                        selected: true,
+				                        selected: true
 				                    }
 				                }
 				                }
@@ -605,10 +616,12 @@ else {
 
 			echo "
 			<div id='nada_rel' class='well info_box fluid col-md-12'>
-			<table class='table' style='font-size: 18px; font-weight:bold;' cellpadding = 1px>
-			<tr><td style='vertical-align:middle; text-align:center;'> <span style='color: #000;'>" . __('No ticket found', 'dashboard') . "</td></tr>
-			<tr></tr>
-			</table></div>";
+				<table class='table' style='font-size: 18px; font-weight:bold;' cellpadding = 1px>
+					<tr>
+						<td style='vertical-align:middle; text-align:center;'> <span style='color: #000;'>" . __('No ticket found', 'dashboard') . "</td></tr>
+					<tr></tr>
+				</table>
+			</div>\n";
 		}
 		}
 		?>

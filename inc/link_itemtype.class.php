@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
-
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -81,8 +80,8 @@ class Link_Itemtype extends CommonDBChild {
                 WHERE `links_id` = '$links_id'
                 ORDER BY `itemtype`";
       $result = $DB->query($query);
-      $types  = array();
-      $used   = array();
+      $types  = [];
+      $used   = [];
       if ($numrows = $DB->numrows($result)) {
          while ($data = $DB->fetch_assoc($result)) {
             $types[$data['id']]      = $data;
@@ -100,7 +99,7 @@ class Link_Itemtype extends CommonDBChild {
 
          echo "<tr class='tab_bg_2'><td class='right'>";
          echo "<input type='hidden' name='links_id' value='$links_id'>";
-         Dropdown::showItemTypes('itemtype', $CFG_GLPI["link_types"], array('used' => $used));
+         Dropdown::showItemTypes('itemtype', $CFG_GLPI["link_types"], ['used' => $used]);
          echo "</td><td class='center'>";
          echo "<input type='submit' name='add' value=\""._sx('button', 'Add')."\" class='submit'>";
          echo "</td></tr>";
@@ -113,8 +112,8 @@ class Link_Itemtype extends CommonDBChild {
       echo "<div class='spaced'>";
       if ($canedit && $numrows) {
          Html::openMassiveActionsForm('mass'.__CLASS__.$rand);
-         $massiveactionparams = array('num_displayed'  => min($_SESSION['glpilist_limit'], $numrows),
-                                      'container'      => 'mass'.__CLASS__.$rand);
+         $massiveactionparams = ['num_displayed'  => min($_SESSION['glpilist_limit'], $numrows),
+                                      'container'      => 'mass'.__CLASS__.$rand];
          Html::showMassiveActions($massiveactionparams);
       }
       echo "<table class='tab_cadre_fixe'>";
@@ -157,7 +156,7 @@ class Link_Itemtype extends CommonDBChild {
    }
 
 
-   function getTabNameForItem(CommonGLPI $item, $withtemplate=0) {
+   function getTabNameForItem(CommonGLPI $item, $withtemplate = 0) {
 
       if (!$withtemplate) {
          $nb = 0;
@@ -165,7 +164,7 @@ class Link_Itemtype extends CommonDBChild {
             case 'Link' :
                if ($_SESSION['glpishow_count_on_tabs']) {
                   $nb = countElementsInTable($this->getTable(),
-                                             "links_id = '".$item->getID()."'");
+                                             ['links_id' => $item->getID()]);
                }
                return self::createTabEntry(_n('Associated item type', 'Associated item types',
                                               Session::getPluralNumber()), $nb);
@@ -175,7 +174,7 @@ class Link_Itemtype extends CommonDBChild {
    }
 
 
-   static function displayTabContentForItem(CommonGLPI $item, $tabnum=1, $withtemplate=0) {
+   static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0) {
 
       if ($item->getType() == 'Link') {
          self::showForLink($item);
@@ -202,4 +201,4 @@ class Link_Itemtype extends CommonDBChild {
    }
 
 }
-?>
+

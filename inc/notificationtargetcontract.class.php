@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
- 
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -48,28 +47,22 @@ class NotificationTargetContract extends NotificationTarget {
 
    function getEvents() {
 
-      return array('end'               => __('End of contract'),
+      return ['end'               => __('End of contract'),
                    'notice'            => __('Notice'),
                    'periodicity'       => __('Periodicity'),
-                   'periodicitynotice' => __('Periodicity notice'));
+                   'periodicitynotice' => __('Periodicity notice')];
    }
 
 
-   /**
-    * Get all data needed for template processing
-    *
-    * @param $event
-    * @param $options   array
-   **/
-   function getDatasForTemplate($event, $options=array()) {
-      $this->datas['##contract.entity##'] = Dropdown::getDropdownName('glpi_entities',
+   function addDataForTemplate($event, $options = []) {
+      $this->data['##contract.entity##'] = Dropdown::getDropdownName('glpi_entities',
                                                                       $options['entities_id']);
       $events                             = $this->getEvents();
-      $this->datas['##contract.action##'] = sprintf(__('%1$s - %2$s'), __('Contracts alarm'),
+      $this->data['##contract.action##'] = sprintf(__('%1$s - %2$s'), __('Contracts alarm'),
                                                     $events[$event]);
 
       foreach ($options['items'] as $id => $contract) {
-         $tmp                        = array();
+         $tmp                        = [];
          $tmp['##contract.name##']   = $contract['name'];
          $tmp['##contract.number##'] = $contract['num'];
 
@@ -107,48 +100,48 @@ class NotificationTargetContract extends NotificationTarget {
          $tmp['##contract.items.number##'] = 0;
          $tmp['##contract.items##']        = '';
          if (isset($contract['items']) && count($contract['items'])) {
-            $toadd = array();
+            $toadd = [];
             foreach ($contract['items'] as $itemtype => $item) {
                if ($type = getItemForItemtype($itemtype)) {
                   $typename = $type->getTypeName();
                   foreach ($item as $item_data) {
-                     $toadd[] = sprintf(__('%1$s - %2$s'),$typename, $item_data['name']);
+                     $toadd[] = sprintf(__('%1$s - %2$s'), $typename, $item_data['name']);
                      $tmp['##contract.items.number##']++;
                   }
                }
             }
             if (count($toadd)) {
-               $tmp["##contract.items##"] = implode(', ',$toadd);
+               $tmp["##contract.items##"] = implode(', ', $toadd);
             }
          }
 
-         $this->datas['contracts'][] = $tmp;
+         $this->data['contracts'][] = $tmp;
       }
 
       switch ($event) {
          case 'end':
-            $this->datas['##lang.contract.time##'] = __('Contract expired since the');
+            $this->data['##lang.contract.time##'] = __('Contract expired since the');
             break;
 
          case 'notice':
-            $this->datas['##lang.contract.time##'] =  __('Contract with notice since the');
+            $this->data['##lang.contract.time##'] =  __('Contract with notice since the');
             break;
 
          case 'periodicity':
-            $this->datas['##lang.contract.time##']
+            $this->data['##lang.contract.time##']
                         =  __('Contract reached the end of a period since the');
             break;
 
          case 'periodicitynotice':
-            $this->datas['##lang.contract.time##']
+            $this->data['##lang.contract.time##']
                         =  __('Contract with notice for the current period since the');
             break;
       }
 
       $this->getTags();
       foreach ($this->tag_descriptions[NotificationTarget::TAG_LANGUAGE] as $tag => $values) {
-         if (!isset($this->datas[$tag])) {
-            $this->datas[$tag] = $values['label'];
+         if (!isset($this->data[$tag])) {
+            $this->data[$tag] = $values['label'];
          }
       }
 
@@ -157,7 +150,7 @@ class NotificationTargetContract extends NotificationTarget {
 
    function getTags() {
 
-      $tags = array('contract.action'       => _n('Event', 'Events', 1),
+      $tags = ['contract.action'       => _n('Event', 'Events', 1),
                     'contract.name'         => __('Name'),
                     'contract.number'       => _x('phone', 'Number'),
                     'contract.items.number' => _x('quantity', 'Number of items'),
@@ -166,38 +159,36 @@ class NotificationTargetContract extends NotificationTarget {
                     'contract.entity'       => __('Entity'),
                     'contract.time'         => sprintf(__('%1$s / %2$s'),
                                                   __('Contract expired since the'),
-                                                  __('Contract with notice since the')));
+                                                  __('Contract with notice since the'))];
 
       foreach ($tags as $tag => $label) {
-         $this->addTagToList(array('tag'   => $tag,
+         $this->addTagToList(['tag'   => $tag,
                                    'label' => $label,
-                                   'value' => true));
+                                   'value' => true]);
       }
 
-
       //Tags without lang
-      $tags = array('contract.url' => sprintf(__('%1$s: %2$s'), _n('Contract', 'Contracts', 1),
-                                              __('URL')));
+      $tags = ['contract.url' => sprintf(__('%1$s: %2$s'), _n('Contract', 'Contracts', 1),
+                                              __('URL'))];
 
       foreach ($tags as $tag => $label) {
-         $this->addTagToList(array('tag'   => $tag,
+         $this->addTagToList(['tag'   => $tag,
                                    'label' => $label,
                                    'value' => true,
-                                   'lang'  => false));
+                                   'lang'  => false]);
       }
 
       //Foreach global tags
-      $tags = array('contracts' => _n('Contract', 'Contracts', Session::getPluralNumber()));
+      $tags = ['contracts' => _n('Contract', 'Contracts', Session::getPluralNumber())];
 
       foreach ($tags as $tag => $label) {
-         $this->addTagToList(array('tag'     => $tag,
+         $this->addTagToList(['tag'     => $tag,
                                    'label'   => $label,
                                    'value'   => false,
-                                   'foreach' => true));
+                                   'foreach' => true]);
       }
 
       asort($this->tag_descriptions);
    }
 
 }
-?>

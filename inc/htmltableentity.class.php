@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
- 
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -50,8 +49,8 @@ if (!defined('GLPI_ROOT')) {
 abstract class HTMLTableEntity {
 
    private $html_id    = '';
-   private $html_style = array();
-   private $html_class = array();
+   private $html_style = [];
+   private $html_class = [];
 
    private $content;
 
@@ -61,7 +60,7 @@ abstract class HTMLTableEntity {
     *
     * @param $content The content of a cell, header, ... Can simply be a string. But it can also
     *                 be a call to a specific function during the rendering of the table in case
-    *                 of direct display function (for instance: Dropdown::showInteger). A function
+    *                 of direct display function (for instance: Dropdown::showNumber). A function
     *                 call is an array containing two elements : 'function', the name the function
     *                 and 'parameters', an array of the parameters given to the function.
    **/
@@ -78,7 +77,7 @@ abstract class HTMLTableEntity {
       $this->html_id    = $origin->html_id;
       $this->html_style = $origin->html_style;
       $this->html_class = $origin->html_class;
-    }
+   }
 
 
    /**
@@ -118,7 +117,7 @@ abstract class HTMLTableEntity {
    /**
     * @param $options   array
    **/
-   function displayEntityAttributs(array $options=array()) {
+   function displayEntityAttributs(array $options = []) {
 
       $id = $this->html_id;
       if (isset($options['id'])) {
@@ -167,19 +166,19 @@ abstract class HTMLTableEntity {
       if (is_string($this->content)) {
          // Manage __RAND__ to be computed on display
          $content = $this->content;
-         $content = str_replace('__RAND__',mt_rand(), $content);
+         $content = str_replace('__RAND__', mt_rand(), $content);
          echo $content;
       } else if (is_array($this->content)) {
          foreach ($this->content as $content) {
             if (is_string($content)) {
                // Manage __RAND__ to be computed on display
-               $content = str_replace('__RAND__',mt_rand(), $content);
+               $content = str_replace('__RAND__', mt_rand(), $content);
                echo $content;
             } else if (isset($content['function'])) {
                if (isset($content['parameters'])) {
                   $parameters = $content['parameters'];
                } else {
-                  $parameters = array();
+                  $parameters = [];
                }
                call_user_func_array ($content['function'], $parameters);
             }
@@ -187,4 +186,3 @@ abstract class HTMLTableEntity {
       }
    }
 }
-?>

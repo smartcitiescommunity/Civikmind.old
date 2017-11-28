@@ -205,14 +205,15 @@ class PluginTypologyTypology_Item extends CommonDBRelation {
    static function checkIfExist($input, $display = true){
 
       //to control if item has already a typo
-      $restrict = "`items_id` = '".$input["items_id"]."'
-                  AND `itemtype` = '".$input["itemtype"]."'";
+      $restrict = "`items_id` = '" . $input["items_id"] . "'
+                  AND `itemtype` = '" . $input["itemtype"] . "'";
       //item a déjà une typo, action annulee + message erreur
-      $typo_items = getAllDatasFromTable("glpi_plugin_typology_typologies_items",$restrict);
+      $dbu        = new DbUtils();
+      $typo_items = $dbu->getAllDataFromTable("glpi_plugin_typology_typologies_items", $restrict);
       if (!empty($typo_items)) {
          foreach ($typo_items as $typo_item) {
             $typoID = $typo_item["plugin_typology_typologies_id"];
-            $ID = $typo_item["id"];
+            $ID     = $typo_item["id"];
          }
       }
       if (isset($typoID) && $typoID > 0) {
@@ -459,26 +460,26 @@ class PluginTypologyTypology_Item extends CommonDBRelation {
       echo "<div align='center'><table class='tab_cadre_fixe'>";
 
       //typologie attribuée
-      if (countElementsInTable($table_typo_item,$restrict) > 0) {
-         
-         $typos = getAllDatasFromTable($table_typo_item,$restrict);
+      if (countElementsInTable($table_typo_item, $restrict) > 0) {
+         $dbu   = new DbUtils();
+         $typos = $dbu->getAllDataFromTable($table_typo_item, $restrict);
          if (!empty($typos)) {
             foreach ($typos as $typo) {
                $typo_ID = $typo["plugin_typology_typologies_id"];
             }
          }
 
-         $query = "SELECT `".$table_typo_item."`.`id` AS typo_items_id,
-                           `".$table_typo_item."`.`is_validated`,
-                           `".$table_typo_item."`.`error`,
+         $query = "SELECT `" . $table_typo_item . "`.`id` AS typo_items_id,
+                           `" . $table_typo_item . "`.`is_validated`,
+                           `" . $table_typo_item . "`.`error`,
                              `glpi_plugin_typology_typologies`.*"
-                    ." FROM `".$table_typo_item."`,`glpi_plugin_typology_typologies` "
-                    ." LEFT JOIN `glpi_entities` ON (`glpi_entities`.`id` = `glpi_plugin_typology_typologies`.`entities_id`) "
-                    ." WHERE `".$table_typo_item."`.`plugin_typology_typologies_id` = '".$typo_ID."' "
-                    ." AND `".$table_typo_item."`.`items_id` = '".$ID."' "
-                    ." AND `".$table_typo_item."`.`itemtype` = '".$itemtype."'
-                    AND `".$table_typo_item."`.`plugin_typology_typologies_id`=`glpi_plugin_typology_typologies`.`id`"
-                    . getEntitiesRestrictRequest(" AND ","glpi_plugin_typology_typologies",'','',true);
+                  . " FROM `" . $table_typo_item . "`,`glpi_plugin_typology_typologies` "
+                  . " LEFT JOIN `glpi_entities` ON (`glpi_entities`.`id` = `glpi_plugin_typology_typologies`.`entities_id`) "
+                  . " WHERE `" . $table_typo_item . "`.`plugin_typology_typologies_id` = '" . $typo_ID . "' "
+                  . " AND `" . $table_typo_item . "`.`items_id` = '" . $ID . "' "
+                  . " AND `" . $table_typo_item . "`.`itemtype` = '" . $itemtype . "'
+                    AND `" . $table_typo_item . "`.`plugin_typology_typologies_id`=`glpi_plugin_typology_typologies`.`id`"
+                  . getEntitiesRestrictRequest(" AND ", "glpi_plugin_typology_typologies", '', '', true);
 
          $result = $DB->query($query);
          
@@ -666,7 +667,10 @@ class PluginTypologyTypology_Item extends CommonDBRelation {
 
          echo "<tr class='tab_bg_1'><td colspan='4' class='center'>";
          echo "<input type='hidden' name='plugin_typology_typologies_id' value='$typoID'>";
-         Dropdown::showAllItems("items_id", 0, 0, ($typo->fields['is_recursive'] ? -1 : $typo->fields['entities_id']), PluginTypologyTypology::getTypes());
+         Dropdown::showSelectItemFromItemtypes(['items_id_name'   => "items_id",
+                                                'entity_restrict' => ($typo->fields['is_recursive'] ? -1 : $typo->fields['entities_id']),
+                                                'itemtypes'       => PluginTypologyTypology::getTypes()
+                                               ]);
          echo "</td>";
          echo "<td colspan='3' class='center' class='tab_bg_2'>";
 
@@ -701,7 +705,7 @@ class PluginTypologyTypology_Item extends CommonDBRelation {
       if(empty($type)){
          echo "<table class='tab_cadre_fixe'>";
          echo "<tr><th class='center'>";
-         _e('Select a type', 'typology');
+         echo __('Select a type', 'typology');
          echo "</th></tr>";
          echo "</table>";
          
@@ -716,7 +720,7 @@ class PluginTypologyTypology_Item extends CommonDBRelation {
 
          if ($canedit && $number) {
             Html::openMassiveActionsForm('mass' . __CLASS__ . $rand);
-            $massiveactionparams = array();
+            $massiveactionparams = array('item' => $typo, 'container' => 'mass'.__CLASS__.$rand);
             Html::showMassiveActions($massiveactionparams);
          }
          echo "<table class='tab_cadre_fixe'>";
@@ -724,9 +728,9 @@ class PluginTypologyTypology_Item extends CommonDBRelation {
          echo "<th colspan='" . ($canedit ? (7 + $colsup) : (6 + $colsup)) . "'>";
 
          if ($number == 0) {
-            _e('No linked element', 'typology');
+            echo __('No linked element', 'typology');
          } else {
-            _e('Linked elements', 'typology');
+            echo __('Linked elements', 'typology');
          }
 
          echo "</th></tr><tr>";
@@ -814,8 +818,8 @@ class PluginTypologyTypology_Item extends CommonDBRelation {
          }
          echo "</table>";
          if ($canedit && $number) {
-            $paramsma['ontop'] = false;
-            Html::showMassiveActions($paramsma);
+            $massiveactionparams['ontop'] = false;
+            Html::showMassiveActions($massiveactionparams);
             Html::closeForm();
          }
 
@@ -896,10 +900,11 @@ class PluginTypologyTypology_Item extends CommonDBRelation {
       $options['seeResult'] = 1 ;
       $options['seeItemtype']=1;
 
-      $restrict = "`glpi_plugin_typology_typologycriterias`.`plugin_typology_typologies_id` = '$typo_ID'
+      $restrict  = "`glpi_plugin_typology_typologycriterias`.`plugin_typology_typologies_id` = '$typo_ID'
                      AND `glpi_plugin_typology_typologycriterias`.`is_active` = 1
                      ORDER BY `glpi_plugin_typology_typologycriterias`.`itemtype`";
-      $criterias = getAllDatasFromTable('glpi_plugin_typology_typologycriterias', $restrict);
+      $dbu       = new DbUtils();
+      $criterias = $dbu->getAllDataFromTable('glpi_plugin_typology_typologycriterias', $restrict);
 
       //typology criteria exist -> managmentconsole will be not empty
       if(!empty($criterias)){
@@ -909,7 +914,7 @@ class PluginTypologyTypology_Item extends CommonDBRelation {
 
             //title
             echo "<tr><th colspan='7'>";
-            _e('Management console','typology');
+            echo __('Management console','typology');
             echo "</th></tr>";
 
             //column name
@@ -982,7 +987,6 @@ class PluginTypologyTypology_Item extends CommonDBRelation {
    public function getForbiddenStandardMassiveAction() {
       $forbidden = parent::getForbiddenStandardMassiveAction();
       $forbidden[] = 'update';
-      $forbidden[] = 'purge';
 
       return $forbidden;
    }
@@ -998,7 +1002,7 @@ class PluginTypologyTypology_Item extends CommonDBRelation {
          //add item to a typo
          case "add_item":
             echo "</br>&nbsp;".PluginTypologyTypology::getTypeName(2)." : ";
-            Dropdown::show('PluginTypologyTypology', 
+            Dropdown::show('PluginTypologyTypology',
                      array('name' => "plugin_typology_typologies_id"));
             echo "&nbsp;" .
             Html::submit(_x('button', 'Post'), array('name' => 'massiveaction'));

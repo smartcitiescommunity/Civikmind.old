@@ -584,9 +584,10 @@ function showHideDiv(id, img_name, img_src_close, img_src_open) {
 
    if (img_name != '') {
       var _awesome = img_src_close.match(/^fa-/);
-      var _deco;
+      var _deco,
+          _img;
       if (!_awesome) {
-         _deco = $('img[name=' + img_name + ']');
+         _img = $('img[name=' + img_name + ']');
          if (_elt.is(':visible')) {
             _img.attr('src', img_src_close);
          } else {
@@ -913,6 +914,11 @@ langSwitch = function(elt) {
 }
 
 $(function(){
+   $('#menu.fullmenu li').on('mouseover', function() {
+      var _id = $(this).data('id');
+      menuAff('menu' + _id, 'menu');
+   });
+
    $("body").delegate('td','mouseover mouseleave', function(e) {
       var col = $(this).closest('tr').children().index($(this));
       var tr = $(this).closest('tr');

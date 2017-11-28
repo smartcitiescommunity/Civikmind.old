@@ -1,7 +1,7 @@
 <?php
 
 include ("../../../../inc/includes.php");
-include ("../../../../config/config.php");
+include ("../../../../inc/config.php");
 include "../inc/functions.php";
 
 global $DB;
@@ -77,10 +77,10 @@ else {
 
 </head>
 
-<body style="background-color: #e5e5e5; margin-left:0%;">
+<body style="background-color: #e5e5e5;">
 
 <div id='content' >
-<div id='container-fluid' style="margin: 0px 2% 0px 2%;">
+<div id='container-fluid' style="margin: <?php echo margins(); ?> ;">
 
 <div id="charts" class="fluid chart" >
 <div id="pad-wrapper" >
@@ -99,7 +99,7 @@ a:hover {
 
     <div id="titulo_rel"> <?php echo _n('Task','Tasks',2) .'  '. __('by Entity','dashboard') ?>  </div>
 
-    <div id="datas-tec" class="span12 fluid" >
+    <div id="datas-tec" class="col-md-12 col-sm-12 fluid" >
     <form id="form1" name="form1" class="form_rel" method="post" action="rel_task_ent.php?con=1">
     <table border="0" cellspacing="0" cellpadding="3" bgcolor="#efefef">
 	   <tr>
@@ -337,8 +337,8 @@ while($row = $DB->fetch_assoc($result_cham)){
 	$req = $DB->fetch_assoc($result_req);
 	
 	echo "
-	<tr>
-		<td style='text-align:center; vertical-align:middle;'><a href=".$CFG_GLPI['url_base']."/front/ticket.form.php?id=". $row['id'] ." target=_blank >" . $row['id'] . "</a></td>
+	<tr style='font-weight:normal; font-size:11px;'>
+		<td style='text-align:center; vertical-align:middle; font-weight:bold;'><a href=".$CFG_GLPI['url_base']."/front/ticket.form.php?id=". $row['id'] ." target=_blank >" . $row['id'] . "</a></td>
 		<td style='text-align:center; vertical-align:middle;'> ". conv_data_hora($row['date']) ." </td>
 		<td style='vertical-align:middle;'> ". $row_nome['firstname'] ." ".$row_nome['realname']." </td>
 		<td style='vertical-align:middle;'> ". $req['name']." ".$req['sname']." </td>
@@ -368,7 +368,7 @@ $(document).ready(function() {
         pagingType: "full_numbers",
         sorting: [[0,'desc'],[1,'desc'],[2,'desc'],[3,'desc'],[4,'desc'],[5,'desc']],
 		  displayLength: 25,
-        lengthMenu: [[25, 50, 100, -1], [25, 50, 100, "All"]],        
+        lengthMenu: [[25, 50, 75, 100], [25, 50, 75, 100]],        
         buttons: [
         	    {
                  extend: "copyHtml5",

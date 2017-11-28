@@ -1,33 +1,33 @@
 <?php
-/*
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
-
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -60,8 +60,8 @@ class CalendarSegment extends CommonDBChild {
    }
 
 
-   static function getTypeName($nb=0) {
-      return _n('Time range','Time ranges',$nb);
+   static function getTypeName($nb = 0) {
+      return _n('Time range', 'Time ranges', $nb);
    }
 
 
@@ -247,7 +247,7 @@ class CalendarSegment extends CommonDBChild {
 
       if ($result = $DB->query($query)) {
          if ($DB->numrows($result)) {
-            return $DB->result($result,0,0);
+            return $DB->result($result, 0, 0);
          }
       }
       return false;
@@ -274,7 +274,7 @@ class CalendarSegment extends CommonDBChild {
 
       if ($result = $DB->query($query)) {
          if ($DB->numrows($result)) {
-            return $DB->result($result,0,0);
+            return $DB->result($result, 0, 0);
          }
       }
       return false;
@@ -301,7 +301,6 @@ class CalendarSegment extends CommonDBChild {
                       AND `day` = '$day'
                       AND `begin` <= '$hour'
                       AND `end` >= '$hour'";
- //     Toolbox::logDebug($query);
       if ($result = $DB->query($query)) {
          if ($DB->numrows($result)) {
             return true;
@@ -327,14 +326,12 @@ class CalendarSegment extends CommonDBChild {
       $canedit = $calendar->can($ID, UPDATE);
       $rand    = mt_rand();
 
-
       $query = "SELECT *
                 FROM `glpi_calendarsegments`
                 WHERE `calendars_id` = '$ID'
                 ORDER BY `day`, `begin`, `end`";
       $result = $DB->query($query);
       $numrows = $DB->numrows($result);
-
 
       if ($canedit) {
          echo "<div class='firstbloc'>";
@@ -348,9 +345,9 @@ class CalendarSegment extends CommonDBChild {
          echo "<input type='hidden' name='calendars_id' value='$ID'>";
          Dropdown::showFromArray('day', Toolbox::getDaysOfWeekArray());
          echo "</td><td class='center'>".__('Start').'</td><td>';
-         Dropdown::showHours("begin", array('value' => date('H').":00"));
+         Dropdown::showHours("begin", ['value' => date('H').":00"]);
          echo "</td><td class='center'>".__('End').'</td><td>';
-         Dropdown::showHours("end",array('value' => (date('H')+1).":00"));
+         Dropdown::showHours("end", ['value' => (date('H')+1).":00"]);
          echo "</td><td class='center'>";
             echo "<input type='submit' name='add' value=\""._sx('button', 'Add')."\" class='submit'>";
          echo "</td></tr>";
@@ -363,8 +360,8 @@ class CalendarSegment extends CommonDBChild {
       echo "<div class='spaced'>";
       if ($canedit && $numrows) {
          Html::openMassiveActionsForm('mass'.__CLASS__.$rand);
-         $massiveactionparams = array('num_displayed' => min($_SESSION['glpilist_limit'], $numrows),
-                           'container'     => 'mass'.__CLASS__.$rand);
+         $massiveactionparams = ['num_displayed' => min($_SESSION['glpilist_limit'], $numrows),
+                           'container'     => 'mass'.__CLASS__.$rand];
          Html::showMassiveActions($massiveactionparams);
       }
       echo "<table class='tab_cadre_fixehov'>";
@@ -409,7 +406,7 @@ class CalendarSegment extends CommonDBChild {
    }
 
 
-   function getTabNameForItem(CommonGLPI $item, $withtemplate=0) {
+   function getTabNameForItem(CommonGLPI $item, $withtemplate = 0) {
 
       if (!$withtemplate) {
          $nb = 0;
@@ -417,16 +414,16 @@ class CalendarSegment extends CommonDBChild {
             case 'Calendar' :
                if ($_SESSION['glpishow_count_on_tabs']) {
                   $nb = countElementsInTable($this->getTable(),
-                                             "calendars_id = '".$item->getID()."'");
+                                             ['calendars_id' => $item->getID()]);
                }
-               return self::createTabEntry(self::getTypeName(Session::getPluralNumber()),$nb);
+               return self::createTabEntry(self::getTypeName(Session::getPluralNumber()), $nb);
          }
       }
       return '';
    }
 
 
-   static function displayTabContentForItem(CommonGLPI $item, $tabnum=1, $withtemplate=0) {
+   static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0) {
 
       if ($item->getType()=='Calendar') {
          self::showForCalendar($item);

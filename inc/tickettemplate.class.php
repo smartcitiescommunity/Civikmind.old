@@ -1,33 +1,33 @@
 <?php
-/*
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
-
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -61,11 +61,11 @@ class TicketTemplate extends CommonDropdown {
 
    // Specific fields
    /// Mandatory Fields
-   public $mandatory  = array();
+   public $mandatory  = [];
    /// Hidden fields
-   public $hidden     = array();
+   public $hidden     = [];
    /// Predefined fields
-   public $predefined = array();
+   public $predefined = [];
 
 
    /**
@@ -78,7 +78,7 @@ class TicketTemplate extends CommonDropdown {
     *
     * @return true if succeed else false
    **/
-   function getFromDBWithDatas($ID, $withtypeandcategory=true) {
+   function getFromDBWithDatas($ID, $withtypeandcategory = true) {
       global $DB;
 
       if ($this->getFromDB($ID)) {
@@ -105,15 +105,26 @@ class TicketTemplate extends CommonDropdown {
 
          $ttp              = new TicketTemplatePredefinedField();
          $this->predefined = $ttp->getPredefinedFields($ID, $withtypeandcategory);
-         // Compute due_date
-         if (isset($this->predefined['due_date'])) {
-            $this->predefined['due_date']
-                        = Html::computeGenericDateTimeSearch($this->predefined['due_date'], false);
+         // Compute time_to_resolve
+         if (isset($this->predefined['time_to_resolve'])) {
+            $this->predefined['time_to_resolve']
+                        = Html::computeGenericDateTimeSearch($this->predefined['time_to_resolve'], false);
          }
          if (isset($this->predefined['time_to_own'])) {
             $this->predefined['time_to_own']
                         = Html::computeGenericDateTimeSearch($this->predefined['time_to_own'], false);
          }
+
+         // Compute internal_time_to_resolve
+         if (isset($this->predefined['internal_time_to_resolve'])) {
+            $this->predefined['internal_time_to_resolve']
+               = Html::computeGenericDateTimeSearch($this->predefined['internal_time_to_resolve'], false);
+         }
+         if (isset($this->predefined['internal_time_to_own'])) {
+            $this->predefined['internal_time_to_own']
+               = Html::computeGenericDateTimeSearch($this->predefined['internal_time_to_own'], false);
+         }
+
          // Compute date
          if (isset($this->predefined['date'])) {
             $this->predefined['date']
@@ -125,7 +136,7 @@ class TicketTemplate extends CommonDropdown {
    }
 
 
-   static function getTypeName($nb=0) {
+   static function getTypeName($nb = 0) {
       return _n('Ticket template', 'Ticket templates', $nb);
    }
 
@@ -134,9 +145,9 @@ class TicketTemplate extends CommonDropdown {
     * @param $withtypeandcategory   (default 0)
     * @param $withitemtype         (default 0)
    **/
-   static function getAllowedFields($withtypeandcategory=0, $withitemtype=0) {
+   static function getAllowedFields($withtypeandcategory = 0, $withitemtype = 0) {
 
-      static $allowed_fields = array();
+      static $allowed_fields = [];
 
       // For integer value for index
       if ($withtypeandcategory) {
@@ -156,7 +167,7 @@ class TicketTemplate extends CommonDropdown {
 
          // SearchOption ID => name used for options
          $allowed_fields[$withtypeandcategory][$withitemtype]
-             = array($ticket->getSearchOptionIDByField('field', 'name',
+             = [$ticket->getSearchOptionIDByField('field', 'name',
                                                        'glpi_tickets')   => 'name',
                      $ticket->getSearchOptionIDByField('field', 'content',
                                                        'glpi_tickets')   => 'content',
@@ -173,14 +184,22 @@ class TicketTemplate extends CommonDropdown {
                                                                          => 'requesttypes_id',
                      $ticket->getSearchOptionIDByField('field', 'completename',
                                                        'glpi_locations') => 'locations_id',
-                     $ticket->getSearchOptionIDByField('field', 'slts_tto_id',
-                                                       'glpi_slts')      => 'slts_tto_id',
-                     $ticket->getSearchOptionIDByField('field', 'slts_ttr_id',
-                                                       'glpi_slts')      => 'slts_ttr_id',
-                     $ticket->getSearchOptionIDByField('field', 'due_date',
-                                                       'glpi_tickets')   => 'due_date',
+                     $ticket->getSearchOptionIDByField('field', 'slas_tto_id',
+                                                       'glpi_slas')      => 'slas_tto_id',
+                     $ticket->getSearchOptionIDByField('field', 'slas_ttr_id',
+                                                       'glpi_slas')      => 'slas_ttr_id',
+                     $ticket->getSearchOptionIDByField('field', 'olas_tto_id',
+                                                       'glpi_olas')      => 'olas_tto_id',
+                     $ticket->getSearchOptionIDByField('field', 'olas_ttr_id',
+                                                       'glpi_olas')      => 'olas_ttr_id',
+                     $ticket->getSearchOptionIDByField('field', 'time_to_resolve',
+                                                       'glpi_tickets')   => 'time_to_resolve',
                      $ticket->getSearchOptionIDByField('field', 'time_to_own',
                                                        'glpi_tickets')   => 'time_to_own',
+                     $ticket->getSearchOptionIDByField('field', 'internal_time_to_resolve',
+                                                       'glpi_tickets')   => 'internal_time_to_resolve',
+                     $ticket->getSearchOptionIDByField('field', 'internal_time_to_own',
+                                                       'glpi_tickets')   => 'internal_time_to_own',
                      $ticket->getSearchOptionIDByField('field', 'date',
                                                        'glpi_tickets')   => 'date',
                      $ticket->getSearchOptionIDByField('field', 'actiontime',
@@ -188,16 +207,16 @@ class TicketTemplate extends CommonDropdown {
                      $ticket->getSearchOptionIDByField('field', 'global_validation',
                                                        'glpi_tickets')   => 'global_validation',
 
-                     4                                                   => '_users_id_requester',
-                     71                                                  => '_groups_id_requester',
-                     5                                                   => '_users_id_assign',
-                     8                                                   => '_groups_id_assign',
+                                                       4                 => '_users_id_requester',
+                                                       71                => '_groups_id_requester',
+                                                       5                 => '_users_id_assign',
+                                                       8                 => '_groups_id_assign',
                      $ticket->getSearchOptionIDByField('field', 'name',
                                                        'glpi_suppliers') => '_suppliers_id_assign',
 
-                     66                                                  => '_users_id_observer',
-                     65                                                  => '_groups_id_observer',
-            );
+                                                       66                => '_users_id_observer',
+                                                       65                => '_groups_id_observer',
+             ];
 
          if ($withtypeandcategory) {
             $allowed_fields[$withtypeandcategory][$withitemtype]
@@ -225,6 +244,11 @@ class TicketTemplate extends CommonDropdown {
          $allowed_fields[$withtypeandcategory][$withitemtype]
                [$ticket->getSearchOptionIDByField('field', 'name',
                                                   'glpi_documents')] = '_documents_id';
+
+         // Add TicketTask (from task templates)
+         $allowed_fields[$withtypeandcategory][$withitemtype]
+               [$ticket->getSearchOptionIDByField('field', 'name',
+                                                  TaskTemplate::getTable())] = '_tasktemplates_id';
       }
 
       return $allowed_fields[$withtypeandcategory][$withitemtype];
@@ -235,7 +259,7 @@ class TicketTemplate extends CommonDropdown {
     * @param $withtypeandcategory   (default 0)
     * @param $with_items_id         (default 0)
    **/
-   function getAllowedFieldsNames($withtypeandcategory=0, $with_items_id=0) {
+   function getAllowedFieldsNames($withtypeandcategory = 0, $with_items_id = 0) {
 
       $searchOption = Search::getOptions('Ticket');
       $tab          = $this->getAllowedFields($withtypeandcategory, $with_items_id);
@@ -243,6 +267,10 @@ class TicketTemplate extends CommonDropdown {
          switch ($ID) {
             case -2 :
                $tab[-2] = __('Approval request');
+               break;
+
+            case 175 :
+               $tab[175] = CommonITILTask::getTypeName();
                break;
 
             default :
@@ -256,12 +284,12 @@ class TicketTemplate extends CommonDropdown {
 
 
    /**
-    *  àsince version 0.84
+    *  ??since version 0.84
    **/
    function getSimplifiedInterfaceFields() {
 
       $ticket = new Ticket();
-      $fields = array($ticket->getSearchOptionIDByField('field', 'name', 'glpi_tickets'),
+      $fields = [$ticket->getSearchOptionIDByField('field', 'name', 'glpi_tickets'),
                       $ticket->getSearchOptionIDByField('field', 'content', 'glpi_tickets'),
                       $ticket->getSearchOptionIDByField('field', 'urgency', 'glpi_tickets'),
                       $ticket->getSearchOptionIDByField('field', 'completename', 'glpi_locations'),
@@ -272,14 +300,14 @@ class TicketTemplate extends CommonDropdown {
                       $ticket->getSearchOptionIDByField('field', 'items_id', 'glpi_tickets'),
                       $ticket->getSearchOptionIDByField('field', 'name', 'glpi_documents'),
                       66 // users_id_observer
-                      );
+                      ];
       return $fields;
    }
 
 
-   function defineTabs($options=array()) {
+   function defineTabs($options = []) {
 
-      $ong          = array();
+      $ong          = [];
       $this->addDefaultFormTab($ong);
       $this->addStandardTab('TicketTemplateMandatoryField', $ong, $options);
       $this->addStandardTab('TicketTemplatePredefinedField', $ong, $options);
@@ -292,7 +320,7 @@ class TicketTemplate extends CommonDropdown {
    }
 
 
-   static function displayTabContentForItem(CommonGLPI $item, $tabnum=1, $withtemplate=0) {
+   static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0) {
 
       switch ($item->getType()) {
          case 'TicketTemplate' :
@@ -312,7 +340,7 @@ class TicketTemplate extends CommonDropdown {
    }
 
 
-   function getTabNameForItem(CommonGLPI $item, $withtemplate=0) {
+   function getTabNameForItem(CommonGLPI $item, $withtemplate = 0) {
 
       if (Session::haveRight(self::$rightname, READ)) {
          switch ($item->getType()) {
@@ -326,17 +354,6 @@ class TicketTemplate extends CommonDropdown {
    }
 
 
-
-   /**
-    * Get search function for the class
-    *
-    * @return array of search option
-   **/
-   function getSearchOptions() {
-      return parent::getSearchOptions();
-   }
-
-
    /**
     * Get mandatory mark if field is mandatory
     *
@@ -347,10 +364,10 @@ class TicketTemplate extends CommonDropdown {
     *
     * @return string to display
    **/
-   function getMandatoryMark($field, $force=false) {
+   function getMandatoryMark($field, $force = false) {
 
       if ($force || $this->isMandatoryField($field)) {
-         return "<span class='red'>*</span>";
+         return "<span class='required'>*</span>";
       }
       return '';
    }
@@ -420,7 +437,7 @@ class TicketTemplate extends CommonDropdown {
     *
     * @return string to display
    **/
-   function getEndHiddenFieldValue($field, &$ticket=NULL) {
+   function getEndHiddenFieldValue($field, &$ticket = null) {
 
       $output = '';
       if ($this->isHiddenField($field)) {
@@ -431,15 +448,15 @@ class TicketTemplate extends CommonDropdown {
          if ($this->isPredefinedField($field)
              && !is_null($ticket)) {
             if ($num = array_search($field, $this->getAllowedFields())) {
-               $display_options = array('comments' => true,
-                                        'html'     => true);
+               $display_options = ['comments' => true,
+                                        'html'     => true];
                $output .= $ticket->getValueToDisplay($num, $ticket->fields[$field], $display_options);
 
                /// Display items_id
                if ($field == 'itemtype') {
                   $output .= "<input type='hidden' name='items_id' value=\"".
                                $ticket->fields['items_id']."\">";
-                  if ($num = array_search('items_id',$this->getAllowedFields())) {
+                  if ($num = array_search('items_id', $this->getAllowedFields())) {
                      $output = sprintf(__('%1$s - %2$s'), $output,
                                        $ticket->getValueToDisplay($num, $ticket->fields,
                                                                   $display_options));
@@ -522,7 +539,7 @@ class TicketTemplate extends CommonDropdown {
       }
       if ($tt->getFromDBWithDatas($tt->getID())) {
          $ticket = new Ticket();
-         $ticket->showForm(0, array('template_preview' => $tt->getID()));
+         $ticket->showForm(0, ['template_preview' => $tt->getID()]);
       }
    }
 
@@ -551,7 +568,7 @@ class TicketTemplate extends CommonDropdown {
     *
     * @see CommonDBTM::getSpecificMassiveActions()
    **/
-   function getSpecificMassiveActions($checkitem=NULL) {
+   function getSpecificMassiveActions($checkitem = null) {
 
       $isadmin = static::canUpdate();
       $actions = parent::getSpecificMassiveActions($checkitem);
@@ -576,7 +593,7 @@ class TicketTemplate extends CommonDropdown {
       switch ($ma->getAction()) {
          case 'merge' :
             echo "&nbsp;".$_SESSION['glpiactive_entity_shortname'];
-            echo "<br><br>".Html::submit(_x('button', 'Merge'), array('name' => 'massiveaction'));
+            echo "<br><br>".Html::submit(_x('button', 'Merge'), ['name' => 'massiveaction']);
             return true;
       }
 
@@ -597,8 +614,8 @@ class TicketTemplate extends CommonDropdown {
             foreach ($ids as $key) {
                if ($item->can($key, UPDATE)) {
                   if ($item->getEntityID() == $_SESSION['glpiactive_entity']) {
-                     if ($item->update(array('id'           => $key,
-                                             'is_recursive' => 1))) {
+                     if ($item->update(['id'           => $key,
+                                             'is_recursive' => 1])) {
                         $ma->itemDone($item->getType(), $key, MassiveAction::ACTION_OK);
                      } else {
                         $ma->itemDone($item->getType(), $key, MassiveAction::ACTION_KO);
@@ -611,7 +628,7 @@ class TicketTemplate extends CommonDropdown {
                      $input2['is_recursive'] = 1;
                      $input2 = Toolbox::addslashes_deep($input2);
 
-                     if (!$item->import($input2)){
+                     if (!$item->import($input2)) {
                         $ma->itemDone($item->getType(), $key, MassiveAction::ACTION_KO);
                         $ma->addMessage($item->getErrorMessage(ERROR_ON_ACTION));
                      } else {
@@ -642,10 +659,10 @@ class TicketTemplate extends CommonDropdown {
       global $DB;
 
       // Tables linked to ticket template
-      $to_merge = array('predefinedfields', 'mandatoryfields', 'hiddenfields');
+      $to_merge = ['predefinedfields', 'mandatoryfields', 'hiddenfields'];
 
       // Source fields
-      $source = array();
+      $source = [];
       foreach ($to_merge as $merge) {
          $source[$merge]
             = $this->formatFieldsToMerge(getAllDatasFromTable('glpi_tickettemplate'.$merge,
@@ -653,7 +670,7 @@ class TicketTemplate extends CommonDropdown {
       }
 
       // Target fields
-      $target = array();
+      $target = [];
       foreach ($to_merge as $merge) {
          $target[$merge]
             = $this->formatFieldsToMerge(getAllDatasFromTable('glpi_tickettemplate'.$merge,
@@ -684,16 +701,16 @@ class TicketTemplate extends CommonDropdown {
    function mergeTemplateITILCategories($target_id, $source_id) {
       global $DB;
 
-      $to_merge = array('tickettemplates_id_incident', 'tickettemplates_id_demand');
+      $to_merge = ['tickettemplates_id_incident', 'tickettemplates_id_demand'];
 
       // Source categories
-      $source = array();
+      $source = [];
       foreach ($to_merge as $merge) {
          $source[$merge] = getAllDatasFromTable('glpi_itilcategories', "$merge='".$source_id."'");
       }
 
       // Target categories
-      $target = array();
+      $target = [];
       foreach ($to_merge as $merge) {
          $target[$merge] = getAllDatasFromTable('glpi_itilcategories', "$merge='".$target_id."'");
       }
@@ -723,8 +740,8 @@ class TicketTemplate extends CommonDropdown {
    **/
    function formatFieldsToMerge($data) {
 
-      $output = array();
-      foreach($data as $val){
+      $output = [];
+      foreach ($data as $val) {
          $output[$val['num']] = $val;
       }
 
@@ -732,7 +749,7 @@ class TicketTemplate extends CommonDropdown {
    }
 
 
-  /**
+   /**
     * Import a dropdown - check if already exists
     *
     * @since version 0.90

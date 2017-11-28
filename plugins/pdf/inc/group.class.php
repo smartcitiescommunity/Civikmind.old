@@ -84,7 +84,7 @@ class PluginPdfGroup extends PluginPdfCommon {
 
       if (Session::haveRight("config", READ) && AuthLdap::useAuthLdap()) {
          $pdf->setColumnsSize(100);
-         $pdf->displayTitle(__('LDAP directory link'));
+         $pdf->displayTitle('<b>'.__('LDAP directory link').'</b>');
 
          $pdf->displayText('<b>'.sprintf(__('%1$s: %2$s'),
                                          __('User attribute containing its groups').'</b>', ''),
@@ -103,6 +103,8 @@ class PluginPdfGroup extends PluginPdfCommon {
    static function pdfItems(PluginPdfSimplePDF $pdf, Group $group, $tech, $tree, $user) {
       global $CFG_GLPI;
 
+      $dbu = new DbUtils();
+
       if ($tech) {
          $types = $CFG_GLPI['linkgroup_tech_types'];
          $field = 'groups_id_tech';
@@ -113,7 +115,7 @@ class PluginPdfGroup extends PluginPdfCommon {
          $title = __('Used items');
       }
 
-      $datas  = array();
+      $datas  = [];
       $max = $group->getDataItems($types, $field, $tree, $user, 0, $datas);
       $nb = count($datas);
 
@@ -123,7 +125,7 @@ class PluginPdfGroup extends PluginPdfCommon {
          $title = sprintf(__('%1$s (%2$s)'), $title, $nb);
       }
       $pdf->setColumnsSize(100);
-      $pdf->displayTitle($title);
+      $pdf->displayTitle('<b>'.$title.'</b>');
 
       if ($nb) {
          if ($tree || $user) {
@@ -155,7 +157,7 @@ class PluginPdfGroup extends PluginPdfCommon {
                }
 
             } else if ($usr = $item->getField(str_replace('groups', 'users', $field))) {
-               $col4 = Html::clean(getUserName($usr));
+               $col4 = Html::clean($dbu->getUserName($usr));
             }
 
          }
@@ -167,13 +169,11 @@ class PluginPdfGroup extends PluginPdfCommon {
    }
 
 
-   function defineAllTabs($options=array()) {
+   function defineAllTabs($options=[]) {
 
       $onglets = parent::defineAllTabs($options);
 
       unset($onglets['NotificationTarget$1']);  // TODO Notifications
-      unset($onglets['Item_Problem$1']); // TODO add method to print linked Problems
-      unset($onglets['Change_Item$1']); // TODO add method to print linked Changes
 
       return $onglets;
    }
@@ -188,13 +188,13 @@ class PluginPdfGroup extends PluginPdfCommon {
       $entity_assign = $item->isEntityAssign();
 
       $fk            = $item->getForeignKeyField();
-      $crit          = array($fk     => $item->getID(),
-                             'ORDER' => 'name');
-
-      $pdf->setColumnsSize(100);
-      $pdf->displayTitle(sprintf(__('Sons of %s'), '<b>'.$item->getNameID().'</b>'));
+      $crit          = [$fk     => $item->getID(),
+                        'ORDER' => 'name'];
 
       if ($item->haveChildren()) {
+         $pdf->setColumnsSize(100);
+         $pdf->displayTitle(sprintf(__('Sons of %s'), '<b>'.$item->getNameID().'</b>'));
+
          if ($entity_assign) {
             if ($fk == 'entities_id') {
                $crit['id']  = $_SESSION['glpiactiveentities'];
@@ -220,7 +220,9 @@ class PluginPdfGroup extends PluginPdfCommon {
             }
          }
       } else {
-         $pdf->displayLine(__('No item found'));
+         $pdf->setColumnsSize(100);
+         $pdf->displayTitle('<b>'.sprintf(__('No sons of %s', 'behaviors'), $item->getNameID().'</b>'));
+
       }
 
       $pdf->displaySpace();
@@ -237,6 +239,10 @@ class PluginPdfGroup extends PluginPdfCommon {
             self::pdfItems($pdf, $item, false, $tree, $user);
             break;
 
+         case 'Group$2' :
+            self::pdfItems($pdf, $item, true, $tree, $user);
+            break;
+
          case 'Group$3' :
             self::pdfLdapForm($pdf, $item);
             break;
@@ -248,6 +254,15 @@ class PluginPdfGroup extends PluginPdfCommon {
          case 'Group_User$1' :
             PluginPdfGroup_User::pdfForGroup($pdf, $item, $tree);
             break;
+
+         case 'Change_Item$1' :
+            PluginPdfChange_Item::pdfForItem($pdf, $item, $tree);
+            break;
+
+         case 'Item_Problem$1' :
+            PluginPdfItem_Problem::pdfForItem($pdf, $item, $tree);
+               break;
+
 
          default :
             return false;

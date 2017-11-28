@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
- 
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -44,17 +43,17 @@ function update0831to0833() {
    global $DB, $migration;
 
    $updateresult     = true;
-   $ADDTODISPLAYPREF = array();
+   $ADDTODISPLAYPREF = [];
 
    $migration->displayTitle(sprintf(__('Update to %s'), '0.83.3'));
    $migration->setVersion('0.83.3');
 
    $backup_tables = false;
-   $newtables     = array();
+   $newtables     = [];
 
    foreach ($newtables as $new_table) {
       // rename new tables if exists ?
-      if (TableExists($new_table)) {
+      if ($DB->tableExists($new_table)) {
          $migration->dropTable("backup_$new_table");
          $migration->displayWarning("$new_table table already exists. ".
                                     "A backup have been done to backup_$new_table.");
@@ -79,7 +78,6 @@ function update0831to0833() {
    // ************ Keep it at the end **************
    $migration->displayMessage('Migration of glpi_displaypreferences');
 
-
    foreach ($ADDTODISPLAYPREF as $type => $tab) {
       $query = "SELECT DISTINCT `users_id`
                 FROM `glpi_displaypreferences`
@@ -93,7 +91,7 @@ function update0831to0833() {
                          WHERE `users_id` = '".$data['users_id']."'
                                AND `itemtype` = '$type'";
                $result = $DB->query($query);
-               $rank   = $DB->result($result,0,0);
+               $rank   = $DB->result($result, 0, 0);
                $rank++;
 
                foreach ($tab as $newval) {
@@ -131,4 +129,3 @@ function update0831to0833() {
 
    return $updateresult;
 }
-?>

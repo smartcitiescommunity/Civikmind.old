@@ -1,39 +1,40 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
- 
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
 * @brief
 */
+
+use Glpi\Event;
 
 include ('../inc/includes.php');
 
@@ -45,7 +46,7 @@ $cartype = new CartridgeItem();
 if (isset($_POST["add"])) {
    $cartype->check($_POST["cartridgeitems_id"], CREATE);
 
-   for ($i=0 ; $i<$_POST["to_add"] ; $i++) {
+   for ($i=0; $i<$_POST["to_add"]; $i++) {
       unset($cart->fields["id"]);
       $cart->add($_POST);
    }
@@ -67,8 +68,8 @@ if (isset($_POST["add"])) {
 } else if (isset($_POST["install"])) {
    if ($_POST["cartridgeitems_id"]) {
       $cartype->check($_POST["cartridgeitems_id"], UPDATE);
-      for ($i=0 ; $i<$_POST["nbcart"] ; $i++) {
-         if ($cart->install($_POST["printers_id"],$_POST["cartridgeitems_id"])) {
+      for ($i=0; $i<$_POST["nbcart"]; $i++) {
+         if ($cart->install($_POST["printers_id"], $_POST["cartridgeitems_id"])) {
             Event::log($_POST["printers_id"], "printers", 5, "inventory",
                        //TRANS: %s is the user login
                        sprintf(__('%s installs a cartridge'), $_SESSION["glpiname"]));
@@ -90,4 +91,3 @@ if (isset($_POST["add"])) {
 } else {
    Html::back();
 }
-?>

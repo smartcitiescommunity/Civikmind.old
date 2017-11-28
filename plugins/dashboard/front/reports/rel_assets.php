@@ -1,7 +1,7 @@
 <?php
 
 include ("../../../../inc/includes.php");
-include ("../../../../config/config.php");
+include ("../../../../inc/config.php");
 include "../inc/functions.php";
 
 global $DB, $row_count, $type;
@@ -97,7 +97,7 @@ else {
 
 <body style="background-color: #e5e5e5; margin-left:0%;">
 <div id='content' >
-<div id='container-fluid' style="margin: 0px 5% 0px 5%;">
+<div id='container-fluid' style="margin: <?php echo margins(); ?> ;">
 <div id="charts" class="fluid chart">
 <div id="pad-wrapper" >
 <div id="head-rel" class="fluid" style="height:400px;">
@@ -157,7 +157,7 @@ else {
 					<option value='5'>".__('Device')."</option>
 					<option value='6'>".__('Printer')."</option>
 					<option value='7'>".__('Phone')."</option>
-				</select> ";
+				</select>\n ";
 				?>
 				</td>
 			</tr>
@@ -401,17 +401,6 @@ if($id_fab != '' && $id_mod != '') {
 
 if($consulta > 0) {
 
-//fabricante
-/*
-	$sql_fab = "SELECT name
-			 		FROM glpi_manufacturers
-			 		WHERE id = ".$id_fab1." ";
-
-	$result_fab = $DB->query($sql_fab);
-	$fab = $DB->fetch_assoc($result_fab);
-
-<td  style='font-size: 16px; font-weight:bold; vertical-align:middle;'><span style='color:#000;'> ".__('Manufacturer').": </span>". $fab['name'] ." </td>
-*/
 
 //listar chamados
 
@@ -539,8 +528,8 @@ else	{
 echo "
 	<tr>
 		<td style='vertical-align:middle;'><a href=".$CFG_GLPI['url_base']."/front/".$type.".form.php?id=". $row_item['id'] ." target=_blank >".$row_item['name']." (".$row_item['id'].")</a></td>
-		<td style='vertical-align:middle;'> ". $row_mod['name'] ." </td>
-		<td style='vertical-align:middle;'> ". $row_item['serial'] ." </td>
+		<td style='vertical-align:middle; font-weight:normal;'> ". $row_mod['name'] ." </td>
+		<td style='vertical-align:middle; font-weight:normal;'> ". $row_item['serial'] ." </td>
 		<td style='vertical-align:middle; text-align:center;'> <a href='rel_assets_tickets.php?con=1&itemtype=".$type."&sel_item=".$row['id']."&sel_fab=".$id_fab1."&date1=".$data_ini2."&date2=".$data_fin2."' target=_blank>". $row_count['conta'] ." </a></td>
 	</tr>";
 }
@@ -565,7 +554,7 @@ $(document).ready(function() {
         pagingType: "full_numbers",
         sorting: [[0,'asc'],[1,'desc'],[2,'desc'],[3,'desc']],
 		  displayLength: 25,
-        lengthMenu: [[25, 50, 100, -1], [25, 50, 100, "All"]],        
+        lengthMenu: [[25, 50, 75, 100], [25, 50, 75, 100]],        
         buttons: [
         	    {
                  extend: "copyHtml5",

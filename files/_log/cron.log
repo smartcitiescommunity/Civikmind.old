@@ -1,0 +1,498 @@
+2017-11-17 03:16:16 [@F-3542]
+Interno #1: Ejecutar graph
+2017-11-17 03:23:54 [@F-3542]
+Interno #1: Ejecutar mailgate
+2017-11-17 03:41:39 [2@F-3542]
+Interno #1: Ejecutar planningrecall
+2017-11-17 03:54:52 [@F-3542]
+Interno #1: Ejecutar reservation
+2017-11-17 03:55:44 [@F-3542]
+Interno #1: Ejecutar queuednotification
+2017-11-17 03:55:46 [@F-3542]
+Error enviando el correo electrónico<br/>Could not instantiate mail function.
+2017-11-17 03:55:53 [@F-3542]
+Interno #1: Ejecutar ticketrecurrent
+2017-11-17 04:01:06 [2@F-3542]
+Interno #1: Ejecutar temp
+2017-11-17 04:07:01 [2@F-3542]
+Interno #1: Ejecutar slaticket
+2017-11-17 04:14:11 [2@F-3542]
+Interno #1: Ejecutar certificate
+2017-11-17 04:20:05 [2@F-3542]
+Interno #1: Ejecutar watcher
+2017-11-17 04:20:08 [2@F-3542]
+Error en el envío del correo<br/>Could not instantiate mail function.
+2017-11-17 04:25:12 [2@F-3542]
+Interno #1: Ejecutar queuednotificationclean
+2017-11-17 04:29:54 [@F-3542]
+Interno #1: Ejecutar mailgate
+2017-11-17 04:31:57 [@F-3542]
+Interno #1: Ejecutar planningrecall
+2017-11-17 04:42:07 [2@F-3542]
+Interno #1: Ejecutar mailgateerror
+2017-11-17 04:42:31 [@F-3542]
+Interno #1: Ejecutar contract
+2017-11-17 04:42:34 [@F-3542]
+Interno #1: Ejecutar queuednotification
+2017-11-17 04:42:36 [@F-3542]
+Error enviando el correo electrónico<br/>Could not instantiate mail function.
+2017-11-17 04:47:41 [2@F-3542]
+Interno #1: Ejecutar infocom
+2017-11-17 04:52:15 [2@F-3542]
+Interno #1: Ejecutar session
+2017-11-17 04:57:30 [2@F-3542]
+Interno #1: Ejecutar slaticket
+2017-11-17 05:03:10 [2@F-3542]
+Interno #1: Ejecutar graph
+2017-11-17 05:08:12 [2@F-3542]
+Interno #1: Ejecutar planningrecall
+2017-11-17 05:19:43 [2@F-3542]
+Interno #1: Ejecutar mailgate
+2017-11-17 05:40:04 [2@F-3542]
+Interno #1: Ejecutar queuednotification
+2017-11-17 05:40:06 [2@F-3542]
+Error en el envío del correo<br/>Could not instantiate mail function.
+2017-11-17 05:45:55 [2@F-3542]
+Interno #1: Ejecutar reservation
+2017-11-17 05:50:58 [2@F-3542]
+Interno #1: Ejecutar ticketrecurrent
+2017-11-17 05:57:08 [2@F-3542]
+Interno #1: Ejecutar temp
+2017-11-17 05:58:25 [@F-3542]
+Interno #1: Ejecutar slaticket
+2017-11-17 06:03:28 [2@F-3542]
+Interno #1: Ejecutar planningrecall
+2017-11-17 06:04:02 [@F-3542]
+Interno #1: Ejecutar mailgate
+2017-11-17 06:06:46 [@F-3542]
+Interno #1: Ejecutar createinquest
+2017-11-17 06:07:35 [@F-3542]
+Interno #1: Ejecutar watcher
+2017-11-17 06:08:56 [@F-3542]
+Interno #1: Ejecutar ticketrecurrent
+2017-11-17 06:20:02 [@F-3542]
+Interno #1: Ejecutar planningrecall
+2017-11-17 06:20:16 [@F-3542]
+Interno #1: Ejecutar queuednotification
+2017-11-17 06:22:00 [@F-3542]
+Interno #1: Ejecutar queuednotificationclean
+2017-11-17 06:23:17 [@F-3542]
+Interno #1: Ejecutar temp
+2017-11-17 06:24:33 [@F-3542]
+Interno #1: Ejecutar mailgateerror
+2017-11-17 06:29:44 [@F-3542]
+Interno #1: Ejecutar contract
+2017-11-17 06:32:52 [@F-3542]
+Interno #1: Ejecutar infocom
+2017-11-17 06:32:56 [@F-3542]
+Interno #1: Ejecutar optimize
+2017-11-17 06:35:35 [@F-3542]
+Interno #1: Ejecutar mailgate
+2017-11-17 06:40:54 [@F-3542]
+Interno #1: Ejecutar session
+2017-11-17 06:41:06 [@F-3542]
+Interno #1: Ejecutar graph
+2017-11-17 06:41:10 [@F-3542]
+Interno #1: Ejecutar reservation
+2017-11-17 06:42:51 [@F-3542]
+Interno #1: Ejecutar closeticket
+2017-11-17 06:44:07 [@F-3542]
+Interno #1: Ejecutar alertnotclosed
+2017-11-17 06:47:02 [@F-3542]
+Interno #1: Ejecutar slaticket
+2017-11-17 06:47:06 [@F-3542]
+Interno #1: Ejecutar olaticket
+2017-11-17 06:48:26 [@F-3542]
+Interno #1: Ejecutar queuednotification
+2017-11-17 06:49:27 [@F-3542]
+Interno #1: Ejecutar planningrecall
+2017-11-17 06:52:05 [@F-3542]
+Interno #1: Ejecutar mailgate
+2017-11-17 06:56:06 [@F-3542]
+Interno #1: Ejecutar createinquest
+2017-11-17 06:56:24 [@F-3542]
+Interno #1: Ejecutar watcher
+2017-11-17 06:56:51 [@F-3542]
+Interno #1: Ejecutar queuednotification
+2017-11-17 06:56:53 [@F-3542]
+Error en el envío del correo<br/>Could not instantiate mail function.
+2017-11-17 06:58:20 [2@F-3542]
+Interno #1: Ejecutar graph
+2017-11-17 07:00:27 [@F-3542]
+Interno #1: Ejecutar slaticket
+2017-11-17 07:07:06 [2@F-3542]
+Interno #1: Ejecutar planningrecall
+2017-11-17 07:08:45 [@F-3542]
+Interno #1: Ejecutar mailgate
+2017-11-18 19:15:55 [@F-3542]
+Interno #1: Ejecutar reservation
+2017-11-18 19:16:01 [@F-3542]
+Interno #1: Ejecutar ticketrecurrent
+2017-11-18 19:25:46 [2@F-3542]
+Interno #1: Ejecutar queuednotification
+2017-11-18 19:25:48 [2@F-3542]
+Error en el envío del correo<br/>Could not instantiate mail function.
+2017-11-18 19:34:55 [2@F-3542]
+Interno #1: Ejecutar temp
+2017-11-18 19:40:06 [2@F-3542]
+Interno #1: Ejecutar slaticket
+2017-11-18 19:45:05 [2@F-3542]
+Interno #1: Ejecutar planningrecall
+2017-11-18 19:54:55 [2@F-3542]
+Interno #1: Ejecutar mailgate
+2017-11-18 20:02:16 [2@F-3542]
+Interno #1: Ejecutar graph
+2017-11-18 20:07:31 [2@F-3542]
+Interno #1: Ejecutar closeticket
+2017-11-18 20:13:02 [2@F-3542]
+Interno #1: Ejecutar alertnotclosed
+2017-11-18 22:35:56 [@F-3542]
+Interno #1: Ejecutar certificate
+2017-11-18 23:02:52 [2@F-3542]
+Interno #1: Ejecutar watcher
+2017-11-18 23:02:57 [2@F-3542]
+Error en el envío del correo<br/>Could not instantiate mail function.
+2017-11-18 23:11:52 [2@F-3542]
+Interno #1: Ejecutar queuednotificationclean
+2017-11-18 23:58:06 [2@F-3542]
+Interno #1: Ejecutar contract
+2017-11-18 23:58:22 [@F-3542]
+Interno #1: Ejecutar mailgateerror
+2017-11-19 00:01:05 [@F-3542]
+Interno #1: Ejecutar infocom
+2017-11-19 00:03:25 [@F-3542]
+Interno #1: Ejecutar session
+2017-11-21 18:59:43 [@F-3542]
+Interno #1: Ejecutar queuednotification
+2017-11-21 18:59:45 [@F-3542]
+Error enviando el correo electrónico<br/>Could not instantiate mail function.
+2017-11-21 19:09:45 [@F-3542]
+Interno #1: Ejecutar slaticket
+2017-11-21 19:09:51 [@F-3542]
+Interno #1: Ejecutar planningrecall
+2017-11-21 19:10:16 [@F-3542]
+Interno #1: Ejecutar mailgate
+2017-11-21 19:10:27 [@F-3542]
+Interno #1: Ejecutar reservation
+2017-11-21 19:10:38 [@F-3542]
+Interno #1: Ejecutar ticketrecurrent
+2017-11-21 19:11:32 [@F-3542]
+Interno #1: Ejecutar temp
+2017-11-21 19:12:16 [@F-3542]
+Interno #1: Ejecutar graph
+2017-11-21 19:13:39 [@F-3542]
+Interno #1: Ejecutar closeticket
+2017-11-21 19:18:27 [@F-3542]
+Interno #1: Ejecutar alertnotclosed
+2017-11-21 19:20:13 [@F-3542]
+Interno #1: Ejecutar certificate
+2017-11-21 19:45:34 [@F-3542]
+Interno #1: Ejecutar watcher
+2017-11-21 19:45:39 [@F-3542]
+Error enviando el correo electrónico<br/>Could not instantiate mail function.
+2017-11-21 19:45:46 [@F-3542]
+Interno #1: Ejecutar queuednotificationclean
+2017-11-21 19:47:57 [@F-3542]
+Interno #1: Ejecutar contract
+2017-11-21 19:48:00 [@F-3542]
+Interno #1: Ejecutar mailgateerror
+2017-11-21 19:54:19 [@F-3542]
+Interno #1: Ejecutar infocom
+2017-11-21 19:55:51 [@F-3542]
+Interno #1: Ejecutar session
+2017-11-21 19:57:41 [@F-3542]
+Interno #1: Ejecutar queuednotification
+2017-11-21 19:57:43 [@F-3542]
+Error enviando el correo electrónico<br/>Could not instantiate mail function.
+2017-11-21 19:59:09 [2@F-3542]
+Interno #1: Ejecutar slaticket
+2017-11-21 20:01:41 [@F-3542]
+Interno #1: Ejecutar planningrecall
+2017-11-21 20:02:01 [@F-3542]
+Interno #1: Ejecutar mailgate
+2017-11-21 20:07:00 [@F-3542]
+Interno #1: Ejecutar queuednotification
+2017-11-21 20:07:02 [@F-3542]
+Error enviando el correo electrónico<br/>Could not instantiate mail function.
+2017-11-21 20:08:04 [@F-3542]
+Interno #1: Ejecutar slaticket
+2017-11-21 20:11:11 [@F-3542]
+Interno #1: Ejecutar planningrecall
+2017-11-21 20:12:08 [@F-3542]
+Interno #1: Ejecutar queuednotification
+2017-11-21 20:12:10 [@F-3542]
+Error enviando el correo electrónico<br/>Could not instantiate mail function.
+2017-11-21 20:25:57 [@F-3542]
+Interno #1: Ejecutar reservation
+2017-11-21 20:31:35 [@F-3542]
+Interno #1: Ejecutar ticketrecurrent
+2017-11-21 20:42:35 [@F-3542]
+Interno #1: Ejecutar temp
+2017-11-21 20:46:49 [@F-3542]
+Interno #1: Ejecutar mailgate
+2017-11-21 20:47:53 [@F-3542]
+Interno #1: Ejecutar graph
+2017-11-21 20:49:34 [@F-3542]
+Interno #1: Ejecutar slaticket
+2017-11-21 21:03:13 [@F-3542]
+Interno #1: Ejecutar queuednotification
+2017-11-21 21:03:15 [@F-3542]
+Error enviando el correo electrónico<br/>Could not instantiate mail function.
+2017-11-21 21:03:54 [@F-3542]
+Interno #1: Ejecutar planningrecall
+2017-11-21 21:06:39 [@F-3542]
+Interno #1: Ejecutar slaticket
+2017-11-21 21:13:27 [@F-3542]
+Interno #1: Ejecutar mailgate
+2017-11-21 21:14:05 [@F-3542]
+Interno #1: Ejecutar queuednotification
+2017-11-21 21:14:06 [@F-3542]
+Error enviando el correo electrónico<br/>Could not instantiate mail function.
+2017-11-21 21:14:10 [@F-3542]
+Interno #1: Ejecutar planningrecall
+2017-11-21 21:15:26 [@F-3542]
+Interno #1: Ejecutar slaticket
+2017-11-21 21:15:30 [@F-3542]
+Interno #1: Ejecutar queuednotification
+2017-11-21 21:16:27 [@F-3542]
+Interno #1: Ejecutar queuednotification
+2017-11-21 21:16:31 [@F-3542]
+Interno #1: Ejecutar AccountsAlert
+2017-11-21 23:07:02 [@F-3542]
+Interno #1: Ejecutar queuednotification
+2017-11-21 23:30:17 [@F-3542]
+Interno #1: Ejecutar planningrecall
+2017-11-21 23:30:33 [@F-3542]
+Interno #1: Ejecutar slaticket
+2017-11-21 23:31:15 [@F-3542]
+Interno #1: Ejecutar mailgate
+2017-11-21 23:31:41 [@F-3542]
+Interno #1: Ejecutar reservation
+2017-11-22 00:26:11 [@F-3542]
+Interno #1: Ejecutar ticketrecurrent
+2017-11-22 00:32:01 [@F-3542]
+Interno #1: Ejecutar temp
+2017-11-22 00:32:18 [@F-3542]
+Interno #1: Ejecutar graph
+2017-11-22 02:18:30 [@F-3542]
+Interno #1: Ejecutar queuednotification
+2017-11-22 02:20:27 [@F-3542]
+Interno #1: Ejecutar slaticket
+2017-11-22 02:20:40 [@F-3542]
+Interno #1: Ejecutar planningrecall
+2017-11-22 02:20:51 [@F-3542]
+Interno #1: Ejecutar mailgate
+2017-11-22 02:21:37 [@F-3542]
+Interno #1: Ejecutar reservation
+2017-11-22 02:23:30 [@F-3542]
+Interno #1: Ejecutar ticketrecurrent
+2017-11-22 02:24:16 [@F-3542]
+Interno #1: Ejecutar graph
+2017-11-22 02:25:42 [@F-3542]
+Interno #1: Ejecutar temp
+2017-11-22 02:36:54 [@F-3542]
+Interno #1: Ejecutar queuednotification
+2017-11-22 02:39:03 [@F-3542]
+Interno #1: Ejecutar slaticket
+2017-11-22 02:39:04 [@F-3542]
+Interno #1: Ejecutar planningrecall
+2017-11-22 02:41:21 [@F-3542]
+Interno #1: Ejecutar mailgate
+2017-11-22 02:42:10 [@F-3542]
+Interno #1: Ejecutar queuednotification
+2017-11-22 02:43:36 [@F-3542]
+Interno #1: Ejecutar queuednotification
+2017-11-22 02:55:30 [@F-3542]
+Interno #1: Ejecutar slaticket
+2017-11-22 02:59:17 [@F-3542]
+Interno #1: Ejecutar planningrecall
+2017-11-22 03:08:01 [@F-3542]
+Interno #1: Ejecutar queuednotification
+2017-11-22 03:09:50 [@F-3542]
+Interno #1: Ejecutar mailgate
+2017-11-22 03:11:52 [@F-3542]
+Interno #1: Ejecutar slaticket
+2017-11-22 03:12:54 [@F-3542]
+Interno #1: Ejecutar planningrecall
+2017-11-22 03:14:14 [@F-3542]
+Interno #1: Ejecutar queuednotification
+2017-11-22 03:15:18 [@F-3542]
+Interno #1: Ejecutar queuednotification
+2017-11-22 03:16:21 [@F-3542]
+Interno #1: Ejecutar slaticket
+2017-11-22 03:16:29 [@F-3542]
+Interno #1: Ejecutar queuednotification
+2017-11-22 03:17:20 [@F-3542]
+Interno #1: Ejecutar planningrecall
+2017-11-22 06:54:02 [@F-3542]
+Interno #1: Ejecutar queuednotification
+2017-11-22 07:02:30 [2@F-3542]
+Interno #1: Ejecutar mailgate
+2017-11-22 07:07:31 [2@F-3542]
+Interno #1: Ejecutar reservation
+2017-11-22 07:13:53 [2@F-3542]
+Interno #1: Ejecutar slaticket
+2017-11-22 07:18:47 [2@F-3542]
+Interno #1: Ejecutar planningrecall
+2017-11-22 19:26:03 [@F-3542]
+Interno #1: Ejecutar ticketrecurrent
+2017-11-27 21:16:48 [@F-3542]
+Interno #1: Ejecutar createinquest
+2017-11-27 21:17:25 [@F-3542]
+Interno #1: Ejecutar watcher
+2017-11-27 21:23:53 [2@F-3542]
+Interno #1: Ejecutar ticketrecurrent
+2017-11-27 21:30:36 [2@F-3542]
+Interno #1: Ejecutar planningrecall
+2017-11-27 21:53:10 [@F-3542]
+Internal #1: Launch createinquest
+2017-11-27 21:53:23 [@F-3542]
+Internal #1: Launch watcher
+2017-11-27 21:53:44 [@F-3542]
+Internal #1: Launch ticketrecurrent
+2017-11-27 21:53:54 [@F-3542]
+Internal #1: Launch planningrecall
+2017-11-27 22:44:11 [@F-3542]
+Interno #1: Ejecutar createinquest
+2017-11-27 23:12:24 [@F-3542]
+Interno #1: Ejecutar createinquest
+2017-11-27 23:15:23 [@F-3542]
+Interno #1: Ejecutar watcher
+2017-11-27 23:16:53 [@F-3542]
+Interno #1: Ejecutar ticketrecurrent
+2017-11-27 23:17:47 [@F-3542]
+Interno #1: Ejecutar planningrecall
+2017-11-27 23:24:26 [@F-3542]
+Interno #1: Ejecutar queuednotification
+2017-11-27 23:33:06 [@F-3542]
+Interno #1: Ejecutar queuednotificationclean
+2017-11-27 23:33:10 [@F-3542]
+Interno #1: Ejecutar temp
+2017-11-27 23:53:23 [@F-3542]
+Interno #1: Ejecutar mailgateerror
+2017-11-28 01:14:38 [@F-3542]
+Interno #1: Ejecutar telemetry
+2017-11-28 01:23:07 [@F-3542]
+Interno #1: Ejecutar createinquest
+2017-11-28 01:23:41 [@F-3542]
+Interno #1: Ejecutar watcher
+2017-11-28 01:24:58 [@F-3542]
+Interno #1: Ejecutar ticketrecurrent
+2017-11-28 01:25:26 [@F-3542]
+Interno #1: Ejecutar planningrecall
+2017-11-28 01:31:37 [2@F-3542]
+Interno #1: Ejecutar queuednotification
+2017-11-28 01:44:17 [@F-3542]
+Interno #1: Ejecutar queuednotificationclean
+2017-11-28 01:49:11 [@F-3542]
+Interno #1: Ejecutar createinquest
+2017-11-28 01:55:27 [@F-3542]
+Interno #1: Ejecutar watcher
+2017-11-28 01:55:30 [@F-3542]
+Interno #1: Ejecutar ticketrecurrent
+2017-11-28 02:00:51 [@F-3542]
+Interno #1: Ejecutar createinquest
+2017-11-28 02:01:30 [@F-3542]
+Interno #1: Ejecutar watcher
+2017-11-28 02:07:14 [@F-3542]
+Interno #1: Ejecutar createinquest
+2017-11-28 02:11:02 [@F-3542]
+Interno #1: Ejecutar createinquest
+2017-11-28 02:17:33 [2@F-3542]
+Interno #1: Ejecutar watcher
+2017-11-28 02:18:56 [@F-3542]
+Interno #1: Ejecutar ticketrecurrent
+2017-11-28 02:28:30 [2@F-3542]
+Interno #1: Ejecutar planningrecall
+2017-11-28 02:37:49 [@F-3542]
+Interno #1: Ejecutar queuednotification
+2017-11-28 02:39:39 [@F-3542]
+Interno #1: Ejecutar createinquest
+2017-11-28 03:35:58 [2@F-3542]
+Interno #1: Ejecutar watcher
+2017-11-28 03:43:27 [@F-3542]
+Interno #1: Ejecutar createinquest
+2017-11-28 03:49:18 [2@F-3542]
+Interno #1: Ejecutar watcher
+2017-11-28 03:55:25 [2@F-3542]
+Interno #1: Ejecutar ticketrecurrent
+2017-11-28 04:01:19 [2@F-3542]
+Interno #1: Ejecutar planningrecall
+2017-11-28 04:06:31 [2@F-3542]
+Interno #1: Ejecutar queuednotification
+2017-11-28 04:11:37 [2@F-3542]
+Interno #1: Ejecutar queuednotificationclean
+2017-11-28 04:17:02 [2@F-3542]
+Interno #1: Ejecutar temp
+2017-11-28 04:22:08 [2@F-3542]
+Interno #1: Ejecutar mailgateerror
+2017-11-28 04:28:26 [2@F-3542]
+Interno #1: Ejecutar telemetry
+2017-11-28 04:37:46 [2@F-3542]
+Interno #1: Ejecutar contract
+2017-11-28 04:42:47 [2@F-3542]
+Interno #1: Ejecutar infocom
+2017-11-28 04:48:06 [2@F-3542]
+Interno #1: Ejecutar optimize
+2017-11-28 04:53:57 [2@F-3542]
+Interno #1: Ejecutar mailgate
+2017-11-28 05:09:34 [@F-3542]
+Interno #1: Ejecutar reservation
+2017-11-28 05:32:22 [@F-3542]
+Interno #1: Ejecutar createinquest
+2017-11-28 05:37:57 [@F-3542]
+Interno #1: Ejecutar watcher
+2017-11-28 06:09:46 [@F-3542]
+Interno #1: Ejecutar ticketrecurrent
+2017-11-28 06:19:11 [@F-3542]
+Interno #1: Ejecutar createinquest
+2017-11-28 06:31:41 [@F-3542]
+Interno #1: Ejecutar createinquest
+2017-11-28 06:34:17 [@F-3542]
+Interno #1: Ejecutar watcher
+2017-11-28 06:35:59 [@F-3542]
+Interno #1: Ejecutar ticketrecurrent
+2017-11-28 06:42:18 [2@F-3542]
+Interno #1: Ejecutar planningrecall
+2017-11-28 06:44:49 [@F-3542]
+Interno #1: Ejecutar queuednotification
+2017-11-28 06:50:06 [5@F-3542]
+Interno #1: Ejecutar queuednotificationclean
+2017-11-28 06:52:34 [@F-3542]
+Interno #1: Ejecutar temp
+2017-11-28 06:54:49 [@F-3542]
+Interno #1: Ejecutar mailgateerror
+2017-11-28 06:56:12 [@F-3542]
+Interno #1: Ejecutar telemetry
+2017-11-28 06:59:07 [@F-3542]
+Interno #1: Ejecutar contract
+2017-11-28 06:59:48 [@F-3542]
+Interno #1: Ejecutar infocom
+2017-11-28 07:00:59 [@F-3542]
+Interno #1: Ejecutar optimize
+2017-11-28 07:16:48 [@F-3542]
+Interno #1: Ejecutar createinquest
+2017-11-28 07:17:28 [@F-3542]
+Interno #1: Ejecutar watcher
+2017-11-28 07:26:07 [@F-3542]
+Interno #1: Ejecutar createinquest
+2017-11-28 07:31:45 [2@F-3542]
+Interno #1: Ejecutar watcher
+2017-11-28 07:37:14 [2@F-3542]
+Interno #1: Ejecutar ticketrecurrent
+2017-11-28 07:43:07 [2@F-3542]
+Interno #1: Ejecutar planningrecall
+2017-11-28 07:48:09 [2@F-3542]
+Interno #1: Ejecutar queuednotification
+2017-11-28 07:54:33 [2@F-3542]
+Interno #1: Ejecutar queuednotificationclean
+2017-11-28 07:59:53 [2@F-3542]
+Interno #1: Ejecutar temp
+2017-11-28 08:08:14 [@F-3542]
+Interno #1: Ejecutar createinquest
+2017-11-28 08:09:14 [@F-3542]
+Interno #1: Ejecutar watcher
+2017-11-28 08:09:24 [@F-3542]
+Interno #1: Ejecutar ticketrecurrent
+2017-11-28 08:10:07 [@F-3542]
+Interno #1: Ejecutar planningrecall

@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: groupcriteria.class.php 336 2017-01-20 16:59:36Z yllen $
+ * @version $Id: groupcriteria.class.php 333 2017-01-20 16:49:38Z yllen $
  -------------------------------------------------------------------------
   LICENSE
 

@@ -1,7 +1,7 @@
 <?php
 
 include ("../../../../inc/includes.php");
-include ("../../../../config/config.php");
+include ("../../../../inc/config.php");
 
 Session::checkLoginUser();
 Session::checkRight("profile", READ);
@@ -107,13 +107,11 @@ if($sel_ent == '' || $sel_ent == -1) {
 	$ent = implode(",",$entities);
 
 	$entidade = "AND glpi_tickets.entities_id IN (".$ent.")";
-	$entidade_cw = "WHERE entities_id IN (".$ent.")";
-	$entidade1 = "";
-
+	$entidade_cw = "WHERE (entities_id IN (".$ent.") OR is_recursive = 1)";	
 }
 else {
 	$entidade = "AND glpi_tickets.entities_id IN (".$sel_ent.")";
-	$entidade_cw = "WHERE entities_id IN (".$sel_ent.")";
+	$entidade_cw = "WHERE (entities_id IN (".$sel_ent.") OR is_recursive = 1)";	
 }
 
 // lista
@@ -144,9 +142,8 @@ function dropdown( $name, array $options, $selected=null )
 $sql_cat = "
 SELECT id, completename AS name
 FROM `glpi_itilcategories`
-".$entidade_cw."
-ORDER BY `name` ASC
-";
+". $entidade_cw ."
+ORDER BY `name` ASC ";
 
 $result_cat = $DB->query($sql_cat);
 

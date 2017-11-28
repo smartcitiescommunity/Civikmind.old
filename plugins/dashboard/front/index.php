@@ -1,7 +1,7 @@
 <?php
 
 include ("../../../inc/includes.php");
-include ("../../../config/config.php");
+include ("../../../inc/config.php");
 
 global $DB;
 
@@ -9,18 +9,19 @@ Session::checkLoginUser();
 
 
 $query_lay = "SELECT value FROM glpi_plugin_dashboard_config WHERE name = 'layout' AND users_id = ".$_SESSION['glpiID']." ";																
-					$result_lay = $DB->query($query_lay);
-					
+					$result_lay = $DB->query($query_lay);					
 					$layout = $DB->result($result_lay,0,'value');
 					
 //redirect to index
 if($layout == '0')
 	{
+		// sidebar
 		$redir = '<meta http-equiv="refresh" content="0; url=index2.php" />';
 	}
 
 if($layout == 1 || $layout == '' )
 	{
+		//top menu
 		$redir = '<meta http-equiv="refresh" content="0; url=index1.php" />';
 	}
 						

@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
-
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -49,23 +48,23 @@ class DocumentType  extends CommonDropdown {
 
    function getAdditionalFields() {
 
-      return array(array('name'  => 'icon',
+      return [['name'  => 'icon',
                          'label' => __('Icon'),
-                         'type'  => 'icon'),
-                   array('name'  => 'is_uploadable',
+                         'type'  => 'icon'],
+                   ['name'  => 'is_uploadable',
                          'label' => __('Authorized upload'),
-                         'type'  => 'bool'),
-                   array('name'    => 'ext',
+                         'type'  => 'bool'],
+                   ['name'    => 'ext',
                          'label'   => __('Extension'),
                          'type'    => 'text',
-                         'comment' => __('May be a regular expression')),
-                   array('name'  => 'mime',
+                         'comment' => __('May be a regular expression')],
+                   ['name'  => 'mime',
                          'label' => __('MIME type'),
-                         'type'  => 'text'));
+                         'type'  => 'text']];
    }
 
 
-   static function getTypeName($nb=0) {
+   static function getTypeName($nb = 0) {
       return _n('Document type', 'Document types', $nb);
    }
 
@@ -75,30 +74,41 @@ class DocumentType  extends CommonDropdown {
     *
     * @return array of search option
    **/
-   function getSearchOptions() {
+   function getSearchOptionsNew() {
+      $tab = parent::getSearchOptionsNew();
 
-      $tab                       = parent::getSearchOptions();
+      $tab[] = [
+         'id'                 => '3',
+         'table'              => $this->getTable(),
+         'field'              => 'ext',
+         'name'               => __('Extension'),
+         'datatype'           => 'string'
+      ];
 
-      $tab[3]['table']           = $this->getTable();
-      $tab[3]['field']           = 'ext';
-      $tab[3]['name']            = __('Extension');
-      $tab[3]['datatype']        = 'string';
+      $tab[] = [
+         'id'                 => '6',
+         'table'              => $this->getTable(),
+         'field'              => 'icon',
+         'name'               => __('Icon'),
+         'massiveaction'      => false,
+         'datatype'           => 'specific'
+      ];
 
-      $tab[6]['table']           = $this->getTable();
-      $tab[6]['field']           = 'icon';
-      $tab[6]['name']            = __('Icon');
-      $tab[6]['massiveaction']   = false;
-      $tab[6]['datatype']        = 'specific';
+      $tab[] = [
+         'id'                 => '4',
+         'table'              => $this->getTable(),
+         'field'              => 'mime',
+         'name'               => __('MIME type'),
+         'datatype'           => 'string'
+      ];
 
-      $tab[4]['table']           = $this->getTable();
-      $tab[4]['field']           = 'mime';
-      $tab[4]['name']            = __('MIME type');
-      $tab[4]['datatype']        = 'string';
-
-      $tab[5]['table']           = $this->getTable();
-      $tab[5]['field']           = 'is_uploadable';
-      $tab[5]['name']            = __('Authorized upload');
-      $tab[5]['datatype']        = 'bool';
+      $tab[] = [
+         'id'                 => '5',
+         'table'              => $this->getTable(),
+         'field'              => 'is_uploadable',
+         'name'               => __('Authorized upload'),
+         'datatype'           => 'bool'
+      ];
 
       return $tab;
    }
@@ -107,11 +117,11 @@ class DocumentType  extends CommonDropdown {
    /**
     * @since version 0.84
    **/
-   static function getSpecificValueToDisplay($field, $values, array $options=array()) {
+   static function getSpecificValueToDisplay($field, $values, array $options = []) {
       global $CFG_GLPI;
 
       if (!is_array($values)) {
-         $values = array($field => $values);
+         $values = [$field => $values];
       }
 
       switch ($field) {
@@ -133,10 +143,10 @@ class DocumentType  extends CommonDropdown {
     * @param $values             (default '')
     * @param $options      array
    **/
-   static function getSpecificValueToSelect($field, $name='', $values='', array $options=array()) {
+   static function getSpecificValueToSelect($field, $name = '', $values = '', array $options = []) {
 
       if (!is_array($values)) {
-         $values = array($field => $values);
+         $values = [$field => $values];
       }
       $options['display'] = false;
       switch ($field) {
@@ -150,17 +160,32 @@ class DocumentType  extends CommonDropdown {
 
    /**
     * @since version 0.85
+    *
+    * @param array $options list of options with theses possible keys:
+    *                        - bool 'display', echo the generated html or return it
    **/
-   static function showAvailableTypesLink() {
+   static function showAvailableTypesLink($options = []) {
       global $CFG_GLPI;
 
-      echo " <a href='#' onClick=\"".Html::jsGetElementbyID('documenttypelist').".dialog('open');return false;\">";
-      echo "<img src='".$CFG_GLPI["root_doc"]."/pics/info-small.png' title=\"".__s('Help')."\"
-             alt=\"".__s('Help')."\" class='calendrier pointer'>";
-      echo "</a>";
-      Ajax::createIframeModalWindow('documenttypelist',
-                                    $CFG_GLPI["root_doc"]."/front/documenttype.list.php",
-                                    array('title' => static::getTypeName(Session::getPluralNumber())));
+      $p['display'] = true;
+
+      //merge default options with options parameter
+      $p = array_merge($p, $options);
+
+      $display = "&nbsp;";
+      $display .= "<a href='#' onClick=\"".Html::jsGetElementbyID('documenttypelist').
+                  ".dialog('open'); return false;\" class='fa fa-info pointer' title='" . __s('Help') . "' >";
+      $display .= "<span class='sr-only'>".__s('Help')."></span>";
+      $display .= "</a>";
+      $display .= Ajax::createIframeModalWindow('documenttypelist',
+                                                $CFG_GLPI["root_doc"]."/front/documenttype.list.php",
+                                                ['title'   => static::getTypeName(Session::getPluralNumber()),
+                                                 'display' => false]);
+
+      if ($p['display']) {
+         echo $display;
+      } else {
+         return $display;
+      }
    }
 }
-?>

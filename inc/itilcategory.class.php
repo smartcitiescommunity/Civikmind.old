@@ -1,33 +1,33 @@
 <?php
-/*
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
-
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -53,56 +53,56 @@ class ITILCategory extends CommonTreeDropdown {
 
    function getAdditionalFields() {
 
-      $tab = array(array('name'      => $this->getForeignKeyField(),
+      $tab = [['name'      => $this->getForeignKeyField(),
                          'label'     => __('As child of'),
                          'type'      => 'parent',
-                         'list'      => false),
-                   array('name'      => 'users_id',
+                         'list'      => false],
+                   ['name'      => 'users_id',
                          'label'     => __('Technician in charge of the hardware'),
                          'type'      => 'UserDropdown',
                          'right'     => 'own_ticket',
-                         'list'      => true),
-                   array('name'      => 'groups_id',
+                         'list'      => true],
+                   ['name'      => 'groups_id',
                          'label'     => __('Group in charge of the hardware'),
                          'type'      => 'dropdownValue',
                          'condition' => '`is_assign`',
-                         'list'      => true),
-                   array('name'      => 'knowbaseitemcategories_id',
+                         'list'      => true],
+                   ['name'      => 'knowbaseitemcategories_id',
                          'label'     => __('Knowledge base'),
                          'type'      => 'dropdownValue',
-                         'list'      => true),
-                   array('name'      => 'is_helpdeskvisible',
+                         'list'      => true],
+                   ['name'      => 'is_helpdeskvisible',
                          'label'     => __('Visible in the simplified interface'),
                          'type'      => 'bool',
-                         'list'      => true),
-                   array('name'      => 'is_incident',
+                         'list'      => true],
+                   ['name'      => 'is_incident',
                          'label'     => __('Visible for an incident'),
                          'type'      => 'bool',
-                         'list'      => true),
-                   array('name'      => 'is_request',
+                         'list'      => true],
+                   ['name'      => 'is_request',
                          'label'     => __('Visible for a request'),
                          'type'      => 'bool',
-                         'list'      => true),
-                   array('name'      => 'is_problem',
+                         'list'      => true],
+                   ['name'      => 'is_problem',
                          'label'     => __('Visible for a problem'),
                          'type'      => 'bool',
-                         'list'      => true),
-                   array('name'      => 'is_change',
+                         'list'      => true],
+                   ['name'      => 'is_change',
                          'label'     => __('Visible for a change'),
                          'type'      => 'bool',
-                         'list'      => true),
-                   array('name'      => 'tickettemplates_id_demand',
+                         'list'      => true],
+                   ['name'      => 'tickettemplates_id_demand',
                          'label'     => __('Template for a request'),
                          'type'      => 'dropdownValue',
-                         'list'      => true),
-                   array('name'      => 'tickettemplates_id_incident',
+                         'list'      => true],
+                   ['name'      => 'tickettemplates_id_incident',
                          'label'     => __('Template for an incident'),
                          'type'      => 'dropdownValue',
-                         'list'      => true),
-                  );
+                         'list'      => true],
+                  ];
 
-      if (!Session::haveRightsOr('problem', array(CREATE, UPDATE, DELETE,
-                                                  Problem::READALL, Problem::READMY))) {
+      if (!Session::haveRightsOr('problem', [CREATE, UPDATE, DELETE,
+                                                  Problem::READALL, Problem::READMY])) {
 
          unset($tab[7]);
       }
@@ -111,92 +111,136 @@ class ITILCategory extends CommonTreeDropdown {
    }
 
 
-   function getSearchOptions() {
+   function getSearchOptionsNew() {
+      $tab                       = parent::getSearchOptionsNew();
 
-      $tab                       = parent::getSearchOptions();
+      $tab[] = [
+         'id'                 => '70',
+         'table'              => 'glpi_users',
+         'field'              => 'name',
+         'name'               => __('Technician in charge of the hardware'),
+         'datatype'           => 'dropdown',
+         'right'              => 'own_ticket'
+      ];
 
-      $tab[70]['table']          = 'glpi_users';
-      $tab[70]['field']          = 'name';
-      $tab[70]['name']           = __('Technician in charge of the hardware');
-      $tab[70]['datatype']       = 'dropdown';
-      $tab[70]['right']          = 'own_ticket';
+      $tab[] = [
+         'id'                 => '71',
+         'table'              => 'glpi_groups',
+         'field'              => 'completename',
+         'name'               => __('Group'),
+         'datatype'           => 'dropdown'
+      ];
 
-      $tab[71]['table']          = 'glpi_groups';
-      $tab[71]['field']          = 'completename';
-      $tab[71]['name']           = __('Group');
-      $tab[71]['datatype']       = 'dropdown';
+      $tab[] = [
+         'id'                 => '72',
+         'table'              => 'glpi_tickettemplates',
+         'field'              => 'name',
+         'linkfield'          => 'tickettemplates_id_demand',
+         'name'               => __('Template for a request'),
+         'datatype'           => 'dropdown'
+      ];
 
-      $tab[72]['table']          = 'glpi_tickettemplates';
-      $tab[72]['field']          = 'name';
-      $tab[72]['linkfield']      = 'tickettemplates_id_demand';
-      $tab[72]['name']           = __('Template for a request');
-      $tab[72]['datatype']       = 'dropdown';
+      $tab[] = [
+         'id'                 => '73',
+         'table'              => 'glpi_tickettemplates',
+         'field'              => 'name',
+         'linkfield'          => 'tickettemplates_id_incident',
+         'name'               => __('Template for an incident'),
+         'datatype'           => 'dropdown'
+      ];
 
-      $tab[73]['table']          = 'glpi_tickettemplates';
-      $tab[73]['field']          = 'name';
-      $tab[73]['linkfield']      = 'tickettemplates_id_incident';
-      $tab[73]['name']           = __('Template for an incident');
-      $tab[73]['datatype']       = 'dropdown';
+      $tab[] = [
+         'id'                 => '74',
+         'table'              => $this->getTable(),
+         'field'              => 'is_incident',
+         'name'               => __('Visible for an incident'),
+         'datatype'           => 'bool'
+      ];
 
-      $tab[74]['table']          = $this->getTable();
-      $tab[74]['field']          = 'is_incident';
-      $tab[74]['name']           = __('Visible for an incident');
-      $tab[74]['datatype']       = 'bool';
+      $tab[] = [
+         'id'                 => '75',
+         'table'              => $this->getTable(),
+         'field'              => 'is_request',
+         'name'               => __('Visible for a request'),
+         'datatype'           => 'bool'
+      ];
 
-      $tab[75]['table']          = $this->getTable();
-      $tab[75]['field']          = 'is_request';
-      $tab[75]['name']           = __('Visible for a request');
-      $tab[75]['datatype']       = 'bool';
+      $tab[] = [
+         'id'                 => '76',
+         'table'              => $this->getTable(),
+         'field'              => 'is_problem',
+         'name'               => __('Visible for a problem'),
+         'datatype'           => 'bool'
+      ];
 
-      $tab[76]['table']          = $this->getTable();
-      $tab[76]['field']          = 'is_problem';
-      $tab[76]['name']           = __('Visible for a problem');
-      $tab[76]['datatype']       = 'bool';
+      $tab[] = [
+         'id'                 => '85',
+         'table'              => $this->getTable(),
+         'field'              => 'is_change',
+         'name'               => __('Visible for a change'),
+         'datatype'           => 'bool'
+      ];
 
-      $tab[85]['table']          = $this->getTable();
-      $tab[85]['field']          = 'is_change';
-      $tab[85]['name']           = __('Visible for a change');
-      $tab[85]['datatype']       = 'bool';
+      $tab[] = [
+         'id'                 => '3',
+         'table'              => $this->getTable(),
+         'field'              => 'is_helpdeskvisible',
+         'name'               => __('Visible in the simplified interface'),
+         'datatype'           => 'bool'
+      ];
 
-      $tab[3]['table']           = $this->getTable();
-      $tab[3]['field']           = 'is_helpdeskvisible';
-      $tab[3]['name']            = __('Visible in the simplified interface');
-      $tab[3]['datatype']        = 'bool';
+      $tab[] = [
+         'id'                 => '77',
+         'table'              => 'glpi_tickets',
+         'field'              => 'id',
+         'name'               => _x('quantity', 'Number of tickets'),
+         'datatype'           => 'count',
+         'forcegroupby'       => true,
+         'massiveaction'      => false,
+         'joinparams'         => [
+            'jointype'           => 'child'
+         ]
+      ];
 
-      $tab[77]['table']          = 'glpi_tickets';
-      $tab[77]['field']          = 'id';
-      $tab[77]['name']           = _x('quantity', 'Number of tickets');
-      $tab[77]['datatype']       = 'count';
-      $tab[77]['forcegroupby']   = true;
-      $tab[77]['massiveaction']  = false;
-      $tab[77]['joinparams']     = array('jointype' => 'child');
+      $tab[] = [
+         'id'                 => '78',
+         'table'              => 'glpi_problems',
+         'field'              => 'id',
+         'name'               => _x('quantity', 'Number of problems'),
+         'datatype'           => 'count',
+         'forcegroupby'       => true,
+         'massiveaction'      => false,
+         'joinparams'         => [
+            'jointype'           => 'child'
+         ]
+      ];
 
-      $tab[78]['table']          = 'glpi_problems';
-      $tab[78]['field']          = 'id';
-      $tab[78]['name']           = _x('quantity', 'Number of problems');
-      $tab[78]['datatype']       = 'count';
-      $tab[78]['forcegroupby']   = true;
-      $tab[78]['massiveaction']  = false;
-      $tab[78]['joinparams']     = array('jointype' => 'child');
+      $tab[] = [
+         'id'                 => '98',
+         'table'              => 'glpi_changes',
+         'field'              => 'id',
+         'name'               => _x('quantity', 'Number of changes'),
+         'datatype'           => 'count',
+         'forcegroupby'       => true,
+         'massiveaction'      => false,
+         'joinparams'         => [
+            'jointype'           => 'child'
+         ]
+      ];
 
-      $tab[98]['table']          = 'glpi_changes';
-      $tab[98]['field']          = 'id';
-      $tab[98]['name']           = _x('quantity', 'Number of changes');
-      $tab[98]['datatype']       = 'count';
-      $tab[98]['forcegroupby']   = true;
-      $tab[98]['massiveaction']  = false;
-      $tab[98]['joinparams']     = array('jointype' => 'child');
-
-      $tab[79]['table']          = 'glpi_knowbaseitemcategories';
-      $tab[79]['field']          = 'completename';
-      $tab[79]['name']           = __('Knowledge base');
-      $tab[79]['datatype']       = 'dropdown';
+      $tab[] = [
+         'id'                 => '79',
+         'table'              => 'glpi_knowbaseitemcategories',
+         'field'              => 'completename',
+         'name'               => __('Knowledge base'),
+         'datatype'           => 'dropdown'
+      ];
 
       return $tab;
    }
 
 
-   static function getTypeName($nb=0) {
+   static function getTypeName($nb = 0) {
       return _n('Ticket category', 'Ticket categories', $nb);
    }
 
@@ -211,39 +255,6 @@ class ITILCategory extends CommonTreeDropdown {
    }
 
 
-   /**
-    * Get links to Faq
-    *
-    * @param $withname  boolean  also display name ? (false by default)
-   **/
-   function getLinks($withname=false) {
-      global $CFG_GLPI;
-
-      $ret = '';
-
-      if ($withname) {
-         $ret .= $this->fields["name"];
-         $ret .= "&nbsp;&nbsp;";
-      }
-
-      if ($this->fields['knowbaseitemcategories_id']) {
-         $title = __('FAQ');
-
-         if (isset($_SESSION['glpiactiveprofile'])
-             && ($_SESSION['glpiactiveprofile']['interface'] == 'central')) {
-            $title = __('Knowledge base');
-         }
-
-         $ret .= "<a href='".$CFG_GLPI["root_doc"].
-                   "/front/knowbaseitem.php?knowbaseitemcategories_id=".
-                   $this->fields['knowbaseitemcategories_id']."'>".
-                 "<img src='".$CFG_GLPI["root_doc"]."/pics/faqadd.png' class='middle'
-                   alt=\"$title\" title=\"$title\"></a>";
-      }
-      return $ret;
-   }
-
-
    function cleanDBonPurge() {
       Rule::cleanForItemCriteria($this);
    }
@@ -255,7 +266,7 @@ class ITILCategory extends CommonTreeDropdown {
     * @param $item         CommonGLPI object
     * @param $withtemplate (default 0)
    **/
-   function getTabNameForItem(CommonGLPI $item, $withtemplate=0) {
+   function getTabNameForItem(CommonGLPI $item, $withtemplate = 0) {
 
       if (Session::haveRight(self::$rightname, READ)) {
          switch ($item->getType()) {
@@ -268,7 +279,7 @@ class ITILCategory extends CommonTreeDropdown {
    }
 
 
-   static function displayTabContentForItem(CommonGLPI $item, $tabnum=1, $withtemplate=0) {
+   static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0) {
 
       if ($item->getType() == 'TicketTemplate') {
          self::showForTicketTemplate($item, $withtemplate);
@@ -279,9 +290,9 @@ class ITILCategory extends CommonTreeDropdown {
 
    /**
     * @param $tt           TicketTemplate object
-    * @param $withtemplate (default '')
+    * @param $withtemplate (default 0)
    **/
-   static function showForTicketTemplate(TicketTemplate $tt, $withtemplate='') {
+   static function showForTicketTemplate(TicketTemplate $tt, $withtemplate = 0) {
       global $DB, $CFG_GLPI;
 
       $itilcategory = new self();
@@ -309,8 +320,8 @@ class ITILCategory extends CommonTreeDropdown {
          echo self::getTypeName($DB->numrows($result));
          echo "</a>";
          echo "</th></tr>";
-         $used_incident = array();
-         $used_demand   = array();
+         $used_incident = [];
+         $used_demand   = [];
          if ($DB->numrows($result)) {
             echo "<th>".__('Name')."</th>";
             echo "<th>".__('Incident')."</th>";
@@ -320,7 +331,7 @@ class ITILCategory extends CommonTreeDropdown {
             while ($data = $DB->fetch_assoc($result)) {
                echo "<tr class='tab_bg_2'>";
                $itilcategory->getFromDB($data['id']);
-               echo "<td>".$itilcategory->getLink(array('comments' => true))."</td>";
+               echo "<td>".$itilcategory->getLink(['comments' => true])."</td>";
                if ($data['tickettemplates_id_incident'] == $ID) {
                   echo "<td class='center'>
                         <img src='".$CFG_GLPI["root_doc"]."/pics/ok.png' alt=\"".__('OK').

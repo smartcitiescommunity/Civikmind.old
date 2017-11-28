@@ -1,15 +1,15 @@
-Versão 0.8.3:
+Versão 0.8.8:
 
-- Correção nos links dos mapas;
-- Correção na tela de Ativos;
-- Correções de bugs diversos;
-- Você agora pode me comprar uma cerveja pelo paypal; :)
+- GLPI 9.2 apenas;
+- Correção na página de ativos;
+- Correeção dos relatórios e gráficos de SLA;
+- Correção de bugs diversos;
 
 
-Version 0.8.3:
+Version 0.8.8:
 
-- Fix links on maps;
+- Only for GLPI 9.2;
 - Fix assets page;
+- Fix SLA reports and charts;
 - Fix minor bugs;
-- Now you can buy me a beer in Paypal; :)
 

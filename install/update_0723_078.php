@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
- 
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -53,8 +52,8 @@ function update0723to078() {
    $migration->displayMessage(sprintf(__('Change of the database layout - %s'),
                                           'Clean DB : rename tables'));
 
-   $changes     = array();
-   $glpi_tables = array('glpi_alerts'                       => 'glpi_alerts',
+   $changes     = [];
+   $glpi_tables = ['glpi_alerts'                       => 'glpi_alerts',
                         'glpi_auth_ldap'                    => 'glpi_authldaps',
                         'glpi_auth_ldap_replicate'          => 'glpi_authldapreplicates',
                         'glpi_auth_mail'                    => 'glpi_authmails',
@@ -193,16 +192,16 @@ function update0723to078() {
                         'glpi_users'                        => 'glpi_users',
                         'glpi_dropdown_user_titles'         => 'glpi_usertitles',
                         'glpi_dropdown_user_types'          => 'glpi_usercategories',
-                        'glpi_dropdown_vlan'                => 'glpi_vlans');
+                        'glpi_dropdown_vlan'                => 'glpi_vlans'];
 
    $backup_tables = false;
    foreach ($glpi_tables as $original_table => $new_table) {
-      if (strcmp($original_table,$new_table)!=0) {
+      if (strcmp($original_table, $new_table)!=0) {
          // Original table exists ?
-         if (TableExists($original_table)) {
+         if ($DB->tableExists($original_table)) {
             // rename new tables if exists ?
-            if (TableExists($new_table)) {
-               if (TableExists("backup_$new_table")) {
+            if ($DB->tableExists($new_table)) {
+               if ($DB->tableExists("backup_$new_table")) {
                   $query = "DROP TABLE `backup_".$new_table."`";
                   $DB->queryOrDie($query, "0.78 drop backup table backup_$new_table");
                }
@@ -220,7 +219,7 @@ function update0723to078() {
             $DB->queryOrDie($query, "0.78 rename $original_table to $new_table");
          }
       }
-      if (FieldExists($new_table,'ID', false)) {
+      if ($DB->fieldExists($new_table, 'ID', false)) {
          // ALTER ID -> id
          $changes[$new_table][] = "CHANGE `ID` `id` INT( 11 ) NOT NULL AUTO_INCREMENT";
       }
@@ -234,166 +233,166 @@ function update0723to078() {
                                       'Clean DB: rename foreign keys'));
 
    $foreignkeys
-      = array('assign'  => array(array('to'     => 'users_id_assign',
-                                       'tables' => array('glpi_tickets'))),
+      = ['assign'  => [['to'     => 'users_id_assign',
+                                       'tables' => ['glpi_tickets']]],
 
               'assign_group'
-                        => array(array('to'     => 'groups_id_assign',
-                                       'tables' => array('glpi_tickets'))),
+                        => [['to'     => 'groups_id_assign',
+                                       'tables' => ['glpi_tickets']]],
 
-              'assign_ent'
-                        => array(array('to'     => 'suppliers_id_assign',
-                                       'tables' => array('glpi_tickets'))),
+                        'assign_ent'
+                        => [['to'     => 'suppliers_id_assign',
+                                       'tables' => ['glpi_tickets']]],
 
-              'auth_method'
-                        => array(array('to'      => 'authtype',
-                                       'noindex' => array('glpi_users'),
-                                       'tables'  => array('glpi_users'))),
+                        'auth_method'
+                        => [['to'      => 'authtype',
+                                       'noindex' => ['glpi_users'],
+                                       'tables'  => ['glpi_users']]],
 
-              'author'  => array(array('to'     => 'users_id',
-                                       'tables' => array('glpi_ticketfollowups',
-                                                         'glpi_knowbaseitems', 'glpi_tickets'))),
+                        'author'  => [['to'     => 'users_id',
+                                       'tables' => ['glpi_ticketfollowups',
+                                                         'glpi_knowbaseitems', 'glpi_tickets']]],
 
-              'auto_update'
-                        => array(array('to'     => 'autoupdatesystems_id',
-                                       'tables' => array('glpi_computers'))),
+                        'auto_update'
+                        => [['to'     => 'autoupdatesystems_id',
+                                       'tables' => ['glpi_computers']]],
 
-              'budget'  => array(array('to'     => 'budgets_id',
-                                       'tables' => array('glpi_infocoms'))),
+                        'budget'  => [['to'     => 'budgets_id',
+                                       'tables' => ['glpi_infocoms']]],
 
-              'buy_version'
-                        => array(array('to'     => 'softwareversions_id_buy',
-                                       'tables' => array('glpi_softwarelicenses'))),
+                        'buy_version'
+                        => [['to'     => 'softwareversions_id_buy',
+                                       'tables' => ['glpi_softwarelicenses']]],
 
-              'category'
-                        => array(array('to'     => 'ticketcategories_id',
-                                       'tables' => array('glpi_tickets')),
-                                  array('to'     => 'softwarecategories_id',
-                                        'tables' => array('glpi_softwares'))),
+                        'category'
+                        => [['to'     => 'ticketcategories_id',
+                                       'tables' => ['glpi_tickets']],
+                                  ['to'     => 'softwarecategories_id',
+                                        'tables' => ['glpi_softwares']]],
 
-              'categoryID'
-                        => array(array('to'     => 'knowbaseitemcategories_id',
-                                       'tables' => array('glpi_knowbaseitems'))),
+                        'categoryID'
+                        => [['to'     => 'knowbaseitemcategories_id',
+                                       'tables' => ['glpi_knowbaseitems']]],
 
-              'category_on_software_delete'
-                        => array(array('to'       => 'softwarecategories_id_ondelete',
-                                       'noindex'  => array('glpi_configs'),
-                                       'tables'   => array('glpi_configs'),
-                                       'comments' => array('glpi_configs'
-                                                            =>'category applyed when a software is deleted'))),
+                        'category_on_software_delete'
+                        => [['to'       => 'softwarecategories_id_ondelete',
+                                       'noindex'  => ['glpi_configs'],
+                                       'tables'   => ['glpi_configs'],
+                                       'comments' => ['glpi_configs'
+                                                            =>'category applyed when a software is deleted']]],
 
-              'cID'     => array(array('to'     => 'computers_id',
-                                       'tables' => array('glpi_computers_softwareversions'))),
+                        'cID'     => [['to'     => 'computers_id',
+                                       'tables' => ['glpi_computers_softwareversions']]],
 
-              'computer'
-                        => array(array('to'      => 'items_id',
-                                       'noindex' => array('glpi_tickets'),
-                                       'tables'  => array('glpi_tickets'))),
+                        'computer'
+                        => [['to'      => 'items_id',
+                                       'noindex' => ['glpi_tickets'],
+                                       'tables'  => ['glpi_tickets']]],
 
-              'computer_id'
-                        => array(array('to'     => 'computers_id',
-                                       'tables' => array('glpi_registrykeys'))),
+                        'computer_id'
+                        => [['to'     => 'computers_id',
+                                       'tables' => ['glpi_registrykeys']]],
 
-              'contract_type'
-                        => array(array('to'     => 'contracttypes_id',
-                                       'tables' => array('glpi_contracts'))),
+                        'contract_type'
+                        => [['to'     => 'contracttypes_id',
+                                       'tables' => ['glpi_contracts']]],
 
-              'default_rubdoc_tracking'
-                        => array(array('to'       => 'documentcategories_id_forticket',
-                                       'noindex'  => array('glpi_configs'),
-                                       'tables'   => array('glpi_configs'),
-                                       'comments' => array('glpi_configs'
-                                                           =>'default category for documents added with a ticket'))),
+                        'default_rubdoc_tracking'
+                        => [['to'       => 'documentcategories_id_forticket',
+                                       'noindex'  => ['glpi_configs'],
+                                       'tables'   => ['glpi_configs'],
+                                       'comments' => ['glpi_configs'
+                                                           =>'default category for documents added with a ticket']]],
 
-              'default_state'
-                        => array(array('to'      => 'states_id_default',
-                                       'noindex' => array('glpi_ocsservers'),
-                                       'tables'  => array('glpi_ocsservers'))),
+                        'default_state'
+                        => [['to'      => 'states_id_default',
+                                       'noindex' => ['glpi_ocsservers'],
+                                       'tables'  => ['glpi_ocsservers']]],
 
-              'device_type'
-                        => array(array('to'      => 'itemtype',
-                                       'noindex' => array('glpi_alerts', 'glpi_contracts_items',
+                        'device_type'
+                        => [['to'      => 'itemtype',
+                                       'noindex' => ['glpi_alerts', 'glpi_contracts_items',
                                                           'glpi_bookmarks_users',
                                                           'glpi_documents_items', 'glpi_infocoms',
                                                           'glpi_links_itemtypes', 'glpi_networkports',
-                                                          'glpi_reservationitems', 'glpi_tickets'),
-                                       'tables'  => array('glpi_alerts', 'glpi_contracts_items',
+                                                          'glpi_reservationitems', 'glpi_tickets'],
+                                       'tables'  => ['glpi_alerts', 'glpi_contracts_items',
                                                           'glpi_documents_items', 'glpi_infocoms',
                                                           'glpi_bookmarks', 'glpi_bookmarks_users',
                                                           'glpi_links_itemtypes', 'glpi_networkports',
-                                                          'glpi_reservationitems', 'glpi_tickets'))),
+                                                          'glpi_reservationitems', 'glpi_tickets']]],
 
-              'domain'  => array(array('to'     => 'domains_id',
-                                       'tables' => array('glpi_computers', 'glpi_networkequipments',
-                                                         'glpi_printers'))),
+                        'domain'  => [['to'     => 'domains_id',
+                                       'tables' => ['glpi_computers', 'glpi_networkequipments',
+                                                         'glpi_printers']]],
 
-              'end1'    => array(array('to'       => 'items_id',
-                                       'noindex'  => array('glpi_computers_items'),
-                                       'tables'   => array('glpi_computers_items'),
-                                       'comments' => array('glpi_computers_items'
-                                                           =>'RELATION to various table, according to itemtype (ID)')),
-                                 array('to'      => 'networkports_id_1',
-                                       'noindex' => array('glpi_networkports_networkports'),
-                                       'tables'  => array('glpi_networkports_networkports'))),
+                        'end1'    => [['to'       => 'items_id',
+                                       'noindex'  => ['glpi_computers_items'],
+                                       'tables'   => ['glpi_computers_items'],
+                                       'comments' => ['glpi_computers_items'
+                                                           =>'RELATION to various table, according to itemtype (ID)']],
+                                 ['to'      => 'networkports_id_1',
+                                       'noindex' => ['glpi_networkports_networkports'],
+                                       'tables'  => ['glpi_networkports_networkports']]],
 
-              'end2'    => array(array('to'     => 'computers_id',
-                                       'tables' => array('glpi_computers_items')),
-                                 array('to'     => 'networkports_id_2',
-                                       'tables' => array('glpi_networkports_networkports'))),
+                        'end2'    => [['to'     => 'computers_id',
+                                       'tables' => ['glpi_computers_items']],
+                                 ['to'     => 'networkports_id_2',
+                                       'tables' => ['glpi_networkports_networkports']]],
 
-              'extra_ldap_server'
-                        => array(array('to'         => 'authldaps_id_extra',
-                                       'noindex'   => array('glpi_configs'),
-                                       'tables'     => array('glpi_configs'),
-                                       'comments' => array('glpi_configs'=>'extra server'))),
+                        'extra_ldap_server'
+                        => [['to'         => 'authldaps_id_extra',
+                                       'noindex'   => ['glpi_configs'],
+                                       'tables'     => ['glpi_configs'],
+                                       'comments' => ['glpi_configs'=>'extra server']]],
 
-              'firmware'
-                        => array(array('to'     => 'networkequipmentfirmwares_id',
-                                       'tables' => array('glpi_networkequipments'))),
+                        'firmware'
+                        => [['to'     => 'networkequipmentfirmwares_id',
+                                       'tables' => ['glpi_networkequipments']]],
 
-              'FK_bookmark'
-                        => array(array('to'     => 'bookmarks_id',
-                                       'tables' => array('glpi_bookmarks_users'))),
+                        'FK_bookmark'
+                        => [['to'     => 'bookmarks_id',
+                                       'tables' => ['glpi_bookmarks_users']]],
 
-              'FK_computers'
-                        => array(array('to'     => 'computers_id',
-                                       'tables' => array('glpi_computerdisks',
-                                                         'glpi_softwarelicenses'))),
+                        'FK_computers'
+                        => [['to'     => 'computers_id',
+                                       'tables' => ['glpi_computerdisks',
+                                                         'glpi_softwarelicenses']]],
 
-              'FK_contact'
-                        => array(array('to'     => 'contacts_id',
-                                       'tables' => array('glpi_contacts_suppliers'))),
+                        'FK_contact'
+                        => [['to'     => 'contacts_id',
+                                       'tables' => ['glpi_contacts_suppliers']]],
 
-              'FK_contract'
-                        => array(array('to'      => 'contracts_id',
-                                       'noindex' => array('glpi_contracts_items'),
-                                       'tables'  => array('glpi_contracts_suppliers',
-                                                          'glpi_contracts_items'))),
+                        'FK_contract'
+                        => [['to'      => 'contracts_id',
+                                       'noindex' => ['glpi_contracts_items'],
+                                       'tables'  => ['glpi_contracts_suppliers',
+                                                          'glpi_contracts_items']]],
 
-              'FK_device'
-                        => array(array('to'     => 'items_id',
-                                       'noindex' => array('glpi_alerts', 'glpi_contracts_items',
-                                                          'glpi_documents_items', 'glpi_infocoms'),
-                                       'tables' => array('glpi_alerts', 'glpi_contracts_items',
-                                                         'glpi_documents_items', 'glpi_infocoms'))),
+                        'FK_device'
+                        => [['to'     => 'items_id',
+                                       'noindex' => ['glpi_alerts', 'glpi_contracts_items',
+                                                          'glpi_documents_items', 'glpi_infocoms'],
+                                       'tables' => ['glpi_alerts', 'glpi_contracts_items',
+                                                         'glpi_documents_items', 'glpi_infocoms']]],
 
-              'FK_doc'  => array(array('to'      => 'documents_id',
-                                       'noindex' => array('glpi_documents_items'),
-                                       'tables'  => array('glpi_documents_items'))),
+                        'FK_doc'  => [['to'      => 'documents_id',
+                                       'noindex' => ['glpi_documents_items'],
+                                       'tables'  => ['glpi_documents_items']]],
 
-              'FK_enterprise'
-                        => array(array('to'      => 'suppliers_id',
-                                       'noindex' => array('glpi_contacts_suppliers',
-                                                          'glpi_contracts_suppliers'),
-                                       'tables'  => array('glpi_contacts_suppliers',
+                        'FK_enterprise'
+                        => [['to'      => 'suppliers_id',
+                                       'noindex' => ['glpi_contacts_suppliers',
+                                                          'glpi_contracts_suppliers'],
+                                       'tables'  => ['glpi_contacts_suppliers',
                                                           'glpi_contracts_suppliers',
-                                                          'glpi_infocoms'))),
+                                                          'glpi_infocoms']]],
 
-              'FK_entities'
-                        => array(array('to'       => 'entities_id',
-                                       'noindex'  => array('glpi_locations', 'glpi_netpoints',
-                                                          'glpi_entitydatas',),
-                                       'tables'  => array('glpi_bookmarks', 'glpi_cartridgeitems',
+                        'FK_entities'
+                        => [['to'       => 'entities_id',
+                                       'noindex'  => ['glpi_locations', 'glpi_netpoints',
+                                                          'glpi_entitydatas',],
+                                       'tables'  => ['glpi_bookmarks', 'glpi_cartridgeitems',
                                                           'glpi_computers', 'glpi_consumableitems',
                                                           'glpi_contacts', 'glpi_contracts',
                                                           'glpi_documents', 'glpi_locations',
@@ -406,31 +405,31 @@ function update0723to078() {
                                                           'glpi_reminders', 'glpi_rules',
                                                           'glpi_softwares', 'glpi_softwarelicenses',
                                                           'glpi_tickets', 'glpi_users',
-                                                          'glpi_profiles_users'),
-                                       'default' => array('glpi_bookmarks' => "-1"))),
+                                                          'glpi_profiles_users'],
+                                       'default' => ['glpi_bookmarks' => "-1"]]],
 
-              'FK_filesystems'
-                        => array(array('to'     => 'filesystems_id',
-                                       'tables' => array('glpi_computerdisks'))),
+                        'FK_filesystems'
+                        => [['to'     => 'filesystems_id',
+                                       'tables' => ['glpi_computerdisks']]],
 
-              'FK_glpi_cartridges_type'
-                        => array(array('to'     => 'cartridgeitems_id',
-                                       'tables' => array('glpi_cartridges',
-                                                         'glpi_cartridges_printermodels'))),
+                        'FK_glpi_cartridges_type'
+                        => [['to'     => 'cartridgeitems_id',
+                                       'tables' => ['glpi_cartridges',
+                                                         'glpi_cartridges_printermodels']]],
 
-              'FK_glpi_consumables_type'
-                        => array(array('to'      => 'consumableitems_id',
-                                       'noindex' => array(''),
-                                       'tables'  => array('glpi_consumables'))),
+                        'FK_glpi_consumables_type'
+                        => [['to'      => 'consumableitems_id',
+                                       'noindex' => [''],
+                                       'tables'  => ['glpi_consumables']]],
 
-              'FK_glpi_dropdown_model_printers'
-                        => array(array('to'      => 'printermodels_id',
-                                       'noindex' => array('glpi_cartridges_printermodels'),
-                                       'tables'  => array('glpi_cartridges_printermodels'))),
+                        'FK_glpi_dropdown_model_printers'
+                        => [['to'      => 'printermodels_id',
+                                       'noindex' => ['glpi_cartridges_printermodels'],
+                                       'tables'  => ['glpi_cartridges_printermodels']]],
 
-              'FK_glpi_enterprise'
-                        => array(array('to'     => 'manufacturers_id',
-                                       'tables' => array('glpi_cartridgeitems', 'glpi_computers',
+                        'FK_glpi_enterprise'
+                        => [['to'     => 'manufacturers_id',
+                                       'tables' => ['glpi_cartridgeitems', 'glpi_computers',
                                                          'glpi_consumableitems', 'glpi_devicecases',
                                                          'glpi_devicecontrols', 'glpi_devicedrives',
                                                          'glpi_devicegraphiccards',
@@ -443,190 +442,190 @@ function update0723to078() {
                                                          'glpi_devicesoundcards', 'glpi_monitors',
                                                          'glpi_networkequipments',
                                                          'glpi_peripherals', 'glpi_phones',
-                                                         'glpi_printers', 'glpi_softwares'))),
+                                                         'glpi_printers', 'glpi_softwares']]],
 
-              'FK_glpi_printers'
-                        => array(array('to'     => 'printers_id',
-                                       'tables' => array('glpi_cartridges'))),
+                        'FK_glpi_printers'
+                        => [['to'     => 'printers_id',
+                                       'tables' => ['glpi_cartridges']]],
 
-              'FK_group'
-                        => array(array('to'     => 'groups_id',
-                                       'tables' => array('glpi_tickets'))),
+                        'FK_group'
+                        => [['to'     => 'groups_id',
+                                       'tables' => ['glpi_tickets']]],
 
-              'FK_groups'
-                        => array(array('to'     => 'groups_id',
-                                       'tables' => array('glpi_computers', 'glpi_monitors',
+                        'FK_groups'
+                        => [['to'     => 'groups_id',
+                                       'tables' => ['glpi_computers', 'glpi_monitors',
                                                          'glpi_networkequipments', 'glpi_peripherals',
                                                          'glpi_phones', 'glpi_printers',
-                                                         'glpi_softwares', 'glpi_groups_users'))),
+                                                         'glpi_softwares', 'glpi_groups_users']]],
 
-              'FK_interface'
-                        => array(array('to'     => 'interfacetypes_id',
-                                       'tables' => array('glpi_devicegraphiccards'))),
+                        'FK_interface'
+                        => [['to'     => 'interfacetypes_id',
+                                       'tables' => ['glpi_devicegraphiccards']]],
 
-              'FK_item' => array(array('to'      => 'items_id',
-                                       'noindex' => array('glpi_mailingsettings'),
-                                       'tables'  => array('glpi_mailingsettings'))),
+                        'FK_item' => [['to'      => 'items_id',
+                                       'noindex' => ['glpi_mailingsettings'],
+                                       'tables'  => ['glpi_mailingsettings']]],
 
-              'FK_links'
-                        => array(array('to'     => 'links_id',
-                                       'tables' => array('glpi_links_itemtypes'))),
+                        'FK_links'
+                        => [['to'     => 'links_id',
+                                       'tables' => ['glpi_links_itemtypes']]],
 
-              'FK_port' => array(array('to'      => 'networkports_id',
-                                       'noindex' => array('glpi_networkports_vlans'),
-                                       'tables'  => array('glpi_networkports_vlans'))),
+                        'FK_port' => [['to'      => 'networkports_id',
+                                       'noindex' => ['glpi_networkports_vlans'],
+                                       'tables'  => ['glpi_networkports_vlans']]],
 
-              'FK_profiles'
-                        => array(array('to'     => 'profiles_id',
-                                       'tables' => array('glpi_profiles_users', 'glpi_users'))),
+                        'FK_profiles'
+                        => [['to'     => 'profiles_id',
+                                       'tables' => ['glpi_profiles_users', 'glpi_users']]],
 
-              'FK_rules'
-                        => array(array('to'     => 'rules_id',
-                                       'tables' => array('glpi_rulecriterias', 'glpi_ruleactions'))),
+                        'FK_rules'
+                        => [['to'     => 'rules_id',
+                                       'tables' => ['glpi_rulecriterias', 'glpi_ruleactions']]],
 
-              'FK_tracking'
-                        => array(array('to'     => 'tickets_id',
-                                       'tables' => array('glpi_documents'))),
+                        'FK_tracking'
+                        => [['to'     => 'tickets_id',
+                                       'tables' => ['glpi_documents']]],
 
-              'FK_users'
-                        => array(array('to'      => 'users_id',
-                                       'noindex' => array('glpi_displaypreferences',
-                                                          'glpi_bookmarks_users', 'glpi_groups_users'),
-                                       'tables'  => array('glpi_bookmarks', 'glpi_displaypreferences',
+                        'FK_users'
+                        => [['to'      => 'users_id',
+                                       'noindex' => ['glpi_displaypreferences',
+                                                          'glpi_bookmarks_users', 'glpi_groups_users'],
+                                       'tables'  => ['glpi_bookmarks', 'glpi_displaypreferences',
                                                           'glpi_documents', 'glpi_groups',
                                                           'glpi_reminders', 'glpi_bookmarks_users',
                                                           'glpi_groups_users', 'glpi_profiles_users',
                                                           'glpi_computers', 'glpi_monitors',
                                                           'glpi_networkequipments', 'glpi_peripherals',
                                                           'glpi_phones', 'glpi_printers',
-                                                          'glpi_softwares'))),
+                                                          'glpi_softwares']]],
 
-              'FK_vlan' => array(array('to'     => 'vlans_id',
-                                       'tables' => array('glpi_networkports_vlans'))),
+                        'FK_vlan' => [['to'     => 'vlans_id',
+                                       'tables' => ['glpi_networkports_vlans']]],
 
-              'glpi_id' => array(array('to'     => 'computers_id',
-                                       'tables' => array('glpi_ocslinks'))),
+                        'glpi_id' => [['to'     => 'computers_id',
+                                       'tables' => ['glpi_ocslinks']]],
 
-              'id_assign'
-                        => array(array('to'     => 'users_id',
-                                       'tables' => array('glpi_ticketplannings'))),
+                        'id_assign'
+                        => [['to'     => 'users_id',
+                                       'tables' => ['glpi_ticketplannings']]],
 
-              'id_auth' => array(array('to'      => 'auths_id',
-                                       'noindex' => array('glpi_users'),
-                                       'tables'  => array('glpi_users'))),
+                        'id_auth' => [['to'      => 'auths_id',
+                                       'noindex' => ['glpi_users'],
+                                       'tables'  => ['glpi_users']]],
 
-              'id_device'
-                        => array(array('to'      => 'items_id',
-                                       'noindex' => array('glpi_reservationitems'),
-                                       'tables'  => array('glpi_reservationitems'))),
+                        'id_device'
+                        => [['to'      => 'items_id',
+                                       'noindex' => ['glpi_reservationitems'],
+                                       'tables'  => ['glpi_reservationitems']]],
 
-              'id_followup'
-                        => array(array('to'     => 'ticketfollowups_id',
-                                       'tables' => array('glpi_ticketplannings'))),
+                        'id_followup'
+                        => [['to'     => 'ticketfollowups_id',
+                                       'tables' => ['glpi_ticketplannings']]],
 
-              'id_item' => array(array('to'     => 'reservationitems_id',
-                                       'tables' => array('glpi_reservations'))),
+                        'id_item' => [['to'     => 'reservationitems_id',
+                                       'tables' => ['glpi_reservations']]],
 
-              'id_user' => array(array('to'     => 'users_id',
-                                       'tables' => array('glpi_consumables', 'glpi_reservations'))),
+                        'id_user' => [['to'     => 'users_id',
+                                       'tables' => ['glpi_consumables', 'glpi_reservations']]],
 
-              'iface'   => array(array('to'     => 'networkinterfaces_id',
-                                       'tables' => array('glpi_networkports'))),
+                        'iface'   => [['to'     => 'networkinterfaces_id',
+                                       'tables' => ['glpi_networkports']]],
 
-              'interface'
-                        => array(array('to'     => 'interfacetypes_id',
-                                       'tables' => array('glpi_devicecontrols',
-                                                         'glpi_deviceharddrives', 'glpi_devicedrives'))),
+                        'interface'
+                        => [['to'     => 'interfacetypes_id',
+                                       'tables' => ['glpi_devicecontrols',
+                                                         'glpi_deviceharddrives', 'glpi_devicedrives']]],
 
-              'item'    => array(array('to'      => 'items_id',
-                                       'noindex' => array('glpi_events'),
-                                       'tables'  => array('glpi_events'))),
+                        'item'    => [['to'      => 'items_id',
+                                       'noindex' => ['glpi_events'],
+                                       'tables'  => ['glpi_events']]],
 
-              'link_if_status'
-                        => array(array('to'      => 'states_id_linkif',
-                                       'noindex' => array('glpi_ocsservers'),
-                                       'tables'  => array('glpi_ocsservers'))),
+                        'link_if_status'
+                        => [['to'      => 'states_id_linkif',
+                                       'noindex' => ['glpi_ocsservers'],
+                                       'tables'  => ['glpi_ocsservers']]],
 
-              'location'
-                        => array(array('to'      => 'locations_id',
-                                       'noindex' => array('glpi_netpoints'),
-                                       'tables'  => array('glpi_cartridgeitems', 'glpi_computers',
+                        'location'
+                        => [['to'      => 'locations_id',
+                                       'noindex' => ['glpi_netpoints'],
+                                       'tables'  => ['glpi_cartridgeitems', 'glpi_computers',
                                                           'glpi_consumableitems', 'glpi_netpoints',
                                                           'glpi_monitors', 'glpi_networkequipments',
                                                           'glpi_peripherals', 'glpi_phones',
                                                           'glpi_printers', 'glpi_users',
-                                                          'glpi_softwares'))),
+                                                          'glpi_softwares']]],
 
-              'model'   => array(array('to'     => 'computermodels_id',
-                                       'tables' => array('glpi_computers')),
-                                 array('to'     => 'monitormodels_id',
-                                       'tables' => array('glpi_monitors')),
-                                 array('to'     => 'networkequipmentmodels_id',
-                                       'tables' => array('glpi_networkequipments')),
-                                 array('to'     => 'peripheralmodels_id',
-                                       'tables' => array('glpi_peripherals')),
-                                 array('to'     => 'phonemodels_id',
-                                       'tables' => array('glpi_phones')),
-                                 array('to'      => 'printermodels_id',
-                                        'tables' => array('glpi_printers'))),
+                        'model'   => [['to'     => 'computermodels_id',
+                                       'tables' => ['glpi_computers']],
+                                 ['to'     => 'monitormodels_id',
+                                       'tables' => ['glpi_monitors']],
+                                 ['to'     => 'networkequipmentmodels_id',
+                                       'tables' => ['glpi_networkequipments']],
+                                 ['to'     => 'peripheralmodels_id',
+                                       'tables' => ['glpi_peripherals']],
+                                 ['to'     => 'phonemodels_id',
+                                       'tables' => ['glpi_phones']],
+                                 ['to'      => 'printermodels_id',
+                                        'tables' => ['glpi_printers']]],
 
-              'netpoint'
-                        => array(array('to'      => 'netpoints_id',
-                                       'tables' => array('glpi_networkports'))),
+                        'netpoint'
+                        => [['to'      => 'netpoints_id',
+                                       'tables' => ['glpi_networkports']]],
 
-             'network'  => array(array('to'     => 'networks_id',
-                                       'tables' => array('glpi_computers', 'glpi_networkequipments',
-                                                         'glpi_printers'))),
+                        'network'  => [['to'     => 'networks_id',
+                                       'tables' => ['glpi_computers', 'glpi_networkequipments',
+                                                         'glpi_printers']]],
 
-             'ocs_id'   => array(array('to'      => 'ocsid',
-                                       'noindex' => array('glpi_ocslinks'),
-                                       'tables'  => array('glpi_ocslinks'))),
+                        'ocs_id'   => [['to'      => 'ocsid',
+                                       'noindex' => ['glpi_ocslinks'],
+                                       'tables'  => ['glpi_ocslinks']]],
 
-             'ocs_server_id'
-                        => array(array('to'      => 'ocsservers_id',
-                                       'noindex' => array('glpi_ocslinks'),
-                                       'tables'  => array('glpi_ocsadmininfoslinks', 'glpi_ocslinks'))),
+                        'ocs_server_id'
+                        => [['to'      => 'ocsservers_id',
+                                       'noindex' => ['glpi_ocslinks'],
+                                       'tables'  => ['glpi_ocsadmininfoslinks', 'glpi_ocslinks']]],
 
-             'on_device'
-                        => array(array('to'      => 'items_id',
-                                       'noindex' => array('glpi_networkports'),
-                                       'tables'  => array('glpi_networkports'))),
+                        'on_device'
+                        => [['to'      => 'items_id',
+                                       'noindex' => ['glpi_networkports'],
+                                       'tables'  => ['glpi_networkports']]],
 
-             'os'       => array(array('to'      => 'operatingsystems_id',
-                                       'tables' => array('glpi_computers'))),
+                        'os'       => [['to'      => 'operatingsystems_id',
+                                       'tables' => ['glpi_computers']]],
 
-             'os_sp'    => array(array('to'     => 'operatingsystemservicepacks_id',
-                                       'tables' => array('glpi_computers'))),
+                        'os_sp'    => [['to'     => 'operatingsystemservicepacks_id',
+                                       'tables' => ['glpi_computers']]],
 
-             'os_version'
-                        => array(array('to'     => 'operatingsystemversions_id',
-                                       'tables' => array('glpi_computers'))),
+                        'os_version'
+                        => [['to'     => 'operatingsystemversions_id',
+                                       'tables' => ['glpi_computers']]],
 
-             'parentID' => array(array('to'      => 'knowbaseitemcategories_id',
-                                       'noindex' => array('glpi_knowbaseitemcategories'),
-                                       'tables'  => array('glpi_knowbaseitemcategories')),
-                                 array('to'     => 'locations_id',
-                                       'tables' => array('glpi_locations')),
-                                 array('to'     => 'ticketcategories_id',
-                                       'tables' => array('glpi_ticketcategories')),
-                                 array('to'     => 'entities_id',
-                                       'tables' => array('glpi_entities'))),
+                        'parentID' => [['to'      => 'knowbaseitemcategories_id',
+                                       'noindex' => ['glpi_knowbaseitemcategories'],
+                                       'tables'  => ['glpi_knowbaseitemcategories']],
+                                 ['to'     => 'locations_id',
+                                       'tables' => ['glpi_locations']],
+                                 ['to'     => 'ticketcategories_id',
+                                       'tables' => ['glpi_ticketcategories']],
+                                 ['to'     => 'entities_id',
+                                       'tables' => ['glpi_entities']]],
 
-             'platform' => array(array('to'     => 'operatingsystems_id',
-                                       'tables' => array('glpi_softwares'))),
+                        'platform' => [['to'     => 'operatingsystems_id',
+                                       'tables' => ['glpi_softwares']]],
 
-             'power'    => array(array('to'     => 'phonepowersupplies_id',
-                                       'tables' => array('glpi_phones'))),
+                        'power'    => [['to'     => 'phonepowersupplies_id',
+                                       'tables' => ['glpi_phones']]],
 
-             'recipient'
-                        => array(array('to'     => 'users_id_recipient',
-                                       'tables' => array('glpi_tickets'))),
+                        'recipient'
+                        => [['to'     => 'users_id_recipient',
+                                       'tables' => ['glpi_tickets']]],
 
-             'rubrique' => array(array('to'     => 'documentcategories_id',
-                                       'tables' => array('glpi_documents'))),
+                        'rubrique' => [['to'     => 'documentcategories_id',
+                                       'tables' => ['glpi_documents']]],
 
-             'rule_id'  => array(array('to'     => 'rules_id',
-                                       'tables' => array('glpi_rulecachemanufacturers',
+                        'rule_id'  => [['to'     => 'rules_id',
+                                       'tables' => ['glpi_rulecachemanufacturers',
                                                          'glpi_rulecachecomputermodels',
                                                          'glpi_rulecachemonitormodels',
                                                          'glpi_rulecachenetworkequipmentmodels',
@@ -642,90 +641,89 @@ function update0723to078() {
                                                          'glpi_rulecachenetworkequipmenttypes',
                                                          'glpi_rulecacheperipheraltypes',
                                                          'glpi_rulecachephonetypes',
-                                                         'glpi_rulecacheprintertypes'))),
+                                                         'glpi_rulecacheprintertypes']]],
 
-             'server_id'
-                        => array(array('to'      => 'authldaps_id',
-                                       'tables' => array('glpi_authldapreplicates'))),
+                        'server_id'
+                        => [['to'      => 'authldaps_id',
+                                       'tables' => ['glpi_authldapreplicates']]],
 
-             'sID'      => array(array('to'     => 'softwares_id',
-                                       'tables' => array('glpi_softwarelicenses',
-                                                         'glpi_softwareversions'))),
+                        'sID'      => [['to'     => 'softwares_id',
+                                       'tables' => ['glpi_softwarelicenses',
+                                                         'glpi_softwareversions']]],
 
-             'state'    => array(array('to'     => 'states_id',
-                                       'tables' => array('glpi_computers', 'glpi_monitors',
+                        'state'    => [['to'     => 'states_id',
+                                       'tables' => ['glpi_computers', 'glpi_monitors',
                                                          'glpi_networkequipments', 'glpi_peripherals',
                                                          'glpi_phones', 'glpi_printers',
-                                                         'glpi_softwareversions'))),
+                                                         'glpi_softwareversions']]],
 
-             'tech_num' => array(array('to'     => 'users_id_tech',
-                                       'tables' => array('glpi_cartridgeitems', 'glpi_computers',
+                        'tech_num' => [['to'     => 'users_id_tech',
+                                       'tables' => ['glpi_cartridgeitems', 'glpi_computers',
                                                          'glpi_consumableitems', 'glpi_monitors',
                                                          'glpi_networkequipments', 'glpi_peripherals',
                                                          'glpi_phones', 'glpi_printers',
-                                                         'glpi_softwares'))),
+                                                         'glpi_softwares']]],
 
-             'title'    => array(array('to'     => 'usertitles_id',
-                                       'tables' => array('glpi_users'))),
+                        'title'    => [['to'     => 'usertitles_id',
+                                       'tables' => ['glpi_users']]],
 
-             'tracking' => array(array('to'     => 'tickets_id',
-                                       'tables' => array('glpi_ticketfollowups'))),
+                        'tracking' => [['to'     => 'tickets_id',
+                                       'tables' => ['glpi_ticketfollowups']]],
 
-             'type'     => array(array('to'     => 'cartridgeitemtypes_id',
-                                       'tables' => array('glpi_cartridgeitems')),
-                                 array('to'     => 'computertypes_id',
-                                       'tables' => array('glpi_computers')),
-                                 array('to'     => 'consumableitemtypes_id',
-                                       'tables' => array('glpi_consumableitems')),
-                                 array('to'     => 'contacttypes_id',
-                                       'tables' => array('glpi_contacts')),
-                                 array('to'     => 'devicecasetypes_id',
-                                       'tables' => array('glpi_devicecases')),
-                                 array('to'     => 'devicememorytypes_id',
-                                       'tables' => array('glpi_devicememories')),
-                                 array('to'     => 'suppliertypes_id',
-                                       'tables' => array('glpi_suppliers')),
-                                 array('to'     => 'monitortypes_id',
-                                       'tables' => array('glpi_monitors')),
-                                 array('to'     => 'networkequipmenttypes_id',
-                                       'tables' => array('glpi_networkequipments')),
-                                 array('to'     => 'peripheraltypes_id',
-                                       'tables' => array('glpi_peripherals')),
-                                 array('to'     => 'phonetypes_id',
-                                       'tables' => array('glpi_phones')),
-                                 array('to'     => 'printertypes_id',
-                                       'tables' => array('glpi_printers')),
-                                 array('to'     => 'softwarelicensetypes_id',
-                                       'tables' => array('glpi_softwarelicenses')),
-                                 array('to'     => 'usercategories_id',
-                                       'tables' => array('glpi_users')),
-                                 array('to'      => 'itemtype',
-                                       'noindex' => array('glpi_computers_items'),
-                                       'tables'  => array('glpi_computers_items',
-                                                          'glpi_displaypreferences'))),
+                        'type'     => [['to'     => 'cartridgeitemtypes_id',
+                                       'tables' => ['glpi_cartridgeitems']],
+                                 ['to'     => 'computertypes_id',
+                                       'tables' => ['glpi_computers']],
+                                 ['to'     => 'consumableitemtypes_id',
+                                       'tables' => ['glpi_consumableitems']],
+                                 ['to'     => 'contacttypes_id',
+                                       'tables' => ['glpi_contacts']],
+                                 ['to'     => 'devicecasetypes_id',
+                                       'tables' => ['glpi_devicecases']],
+                                 ['to'     => 'devicememorytypes_id',
+                                       'tables' => ['glpi_devicememories']],
+                                 ['to'     => 'suppliertypes_id',
+                                       'tables' => ['glpi_suppliers']],
+                                 ['to'     => 'monitortypes_id',
+                                       'tables' => ['glpi_monitors']],
+                                 ['to'     => 'networkequipmenttypes_id',
+                                       'tables' => ['glpi_networkequipments']],
+                                 ['to'     => 'peripheraltypes_id',
+                                       'tables' => ['glpi_peripherals']],
+                                 ['to'     => 'phonetypes_id',
+                                       'tables' => ['glpi_phones']],
+                                 ['to'     => 'printertypes_id',
+                                       'tables' => ['glpi_printers']],
+                                 ['to'     => 'softwarelicensetypes_id',
+                                       'tables' => ['glpi_softwarelicenses']],
+                                 ['to'     => 'usercategories_id',
+                                       'tables' => ['glpi_users']],
+                                 ['to'      => 'itemtype',
+                                       'noindex' => ['glpi_computers_items'],
+                                       'tables'  => ['glpi_computers_items',
+                                                          'glpi_displaypreferences']]],
 
-             'update_software'
-                        => array(array('to'     => 'softwares_id',
-                                       'tables' => array('glpi_softwares'))),
+                        'update_software'
+                        => [['to'     => 'softwares_id',
+                                       'tables' => ['glpi_softwares']]],
 
-             'use_version'
-                        => array(array('to'     => 'softwareversions_id_use',
-                                       'tables' => array('glpi_softwarelicenses'))),
+                        'use_version'
+                        => [['to'     => 'softwareversions_id_use',
+                                       'tables' => ['glpi_softwarelicenses']]],
 
-              'vID'     => array(array('to'      => 'softwareversions_id',
-                                       'tables' => array('glpi_computers_softwareversions'))));
-
+                        'vID'     => [['to'      => 'softwareversions_id',
+                                       'tables' => ['glpi_computers_softwareversions']]]];
 
    foreach ($foreignkeys as $oldname => $newnames) {
       foreach ($newnames as $tab) {
          $newname = $tab['to'];
          foreach ($tab['tables'] as $table) {
             $doindex = true;
-            if (isset($tab['noindex']) && in_array($table,$tab['noindex'])) {
+            if (isset($tab['noindex']) && in_array($table, $tab['noindex'])) {
                $doindex = false;
             }
             // Rename field
-            if (FieldExists($table, $oldname, false)) {
+            if ($DB->fieldExists($table, $oldname, false)) {
                $addcomment = '';
                if (isset($tab['comments']) && isset($tab['comments'][$table])) {
                   $addcomment = " COMMENT '".$tab['comments'][$table]."' ";
@@ -759,614 +757,613 @@ function update0723to078() {
       }
    }
 
-
    $migration->displayMessage(sprintf(__('Change of the database layout - %s'),
                                       'Clean DB: rename bool values'));
 
    $boolfields
-      = array('glpi_authldaps'
-                              => array(array('from'    => 'ldap_use_tls',
+      = ['glpi_authldaps'
+                              => [['from'    => 'ldap_use_tls',
                                              'to'      => 'use_tls',
                                              'default' => 0,
-                                             'noindex '=> true),
-                                       array('from'    => 'use_dn',
+                                             'noindex' => true],
+                                       ['from'    => 'use_dn',
                                              'to'      => 'use_dn',
                                              'default' => 1,
-                                             'noindex' => true)),
+                                             'noindex' => true]],
 
-              'glpi_bookmarks'
-                              => array(array('from'    => 'private',
+                              'glpi_bookmarks'
+                              => [['from'    => 'private',
                                              'to'      => 'is_private',
-                                             'default' => 1 ),
-                                       array('from'    => 'recursive',
+                                             'default' => 1 ],
+                                       ['from'    => 'recursive',
                                              'to'      => 'is_recursive',
-                                             'default' => 0)),
+                                             'default' => 0]],
 
-              'glpi_cartridgeitems'
-                              => array(array('from'    => 'deleted',
+                              'glpi_cartridgeitems'
+                              => [['from'    => 'deleted',
                                              'to'      => 'is_deleted',
-                                             'default' => 0)),
+                                             'default' => 0]],
 
-              'glpi_computers'
-                              => array(array('from'    => 'is_template',
+                              'glpi_computers'
+                              => [['from'    => 'is_template',
                                              'to'      => 'is_template',
-                                             'default' => 0),
-                                       array('from'    => 'deleted',
+                                             'default' => 0],
+                                       ['from'    => 'deleted',
                                              'to'      => 'is_deleted',
-                                             'default' => 0),
-                                       array('from'    => 'ocs_import',
+                                             'default' => 0],
+                                       ['from'    => 'ocs_import',
                                              'to'      => 'is_ocs_import',
-                                             'default' => 0)),
+                                             'default' => 0]],
 
-              'glpi_configs'  => array(array('from'    => 'jobs_at_login',
+                              'glpi_configs'  => [['from'    => 'jobs_at_login',
                                              'to'      => 'show_jobs_at_login',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'mailing',
+                                             'noindex' => true],
+                                       ['from'    => 'mailing',
                                              'to'      => 'use_mailing',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'permit_helpdesk',
+                                             'noindex' => true],
+                                       ['from'    => 'permit_helpdesk',
                                              'to'      => 'use_anonymous_helpdesk',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'existing_auth_server_field_clean_domain',
+                                             'noindex' => true],
+                                       ['from'    => 'existing_auth_server_field_clean_domain',
                                              'to'      => 'existing_auth_server_field_clean_domain',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'auto_assign',
+                                             'noindex' => true],
+                                       ['from'    => 'auto_assign',
                                              'to'      => 'use_auto_assign_to_tech',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'public_faq',
+                                             'noindex' => true],
+                                       ['from'    => 'public_faq',
                                              'to'      => 'use_public_faq',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'url_in_mail',
+                                             'noindex' => true],
+                                       ['from'    => 'url_in_mail',
                                              'to'      => 'show_link_in_mail',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'use_ajax',
+                                             'noindex' => true],
+                                       ['from'    => 'use_ajax',
                                              'to'      => 'use_ajax',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'ajax_autocompletion',
+                                             'noindex' => true],
+                                       ['from'    => 'ajax_autocompletion',
                                              'to'      => 'use_ajax_autocompletion',
                                              'default' => 1,
-                                             'noindex' => true),
-                                       array('from'    => 'auto_add_users',
+                                             'noindex' => true],
+                                       ['from'    => 'auto_add_users',
                                              'to'      => 'is_users_auto_add',
                                              'default' => 1,
-                                             'noindex' => true),
-                                       array('from'    => 'view_ID',
+                                             'noindex' => true],
+                                       ['from'    => 'view_ID',
                                              'to'      => 'is_ids_visible',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'ocs_mode',
+                                             'noindex' => true],
+                                       ['from'    => 'ocs_mode',
                                              'to'      => 'use_ocs_mode',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'followup_on_update_ticket',
+                                             'noindex' => true],
+                                       ['from'    => 'followup_on_update_ticket',
                                              'to'      => 'add_followup_on_update_ticket',
                                              'default' => 1,
-                                             'noindex' => true),
-                                       array('from'    => 'licenses_alert',
+                                             'noindex' => true],
+                                       ['from'    => 'licenses_alert',
                                              'to'      => 'use_licenses_alert',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'keep_tracking_on_delete',
+                                             'noindex' => true],
+                                       ['from'    => 'keep_tracking_on_delete',
                                              'to'      => 'keep_tickets_on_delete',
                                              'default' => 1,
-                                             'noindex' => true),
-                                       array('from'    => 'use_errorlog',
+                                             'noindex' => true],
+                                       ['from'    => 'use_errorlog',
                                              'to'      => 'use_log_in_files',
                                              'default' => 0,
-                                             'noindex '=> true),
-                                       array('from'    => 'autoupdate_link_contact',
+                                             'noindex' => true],
+                                       ['from'    => 'autoupdate_link_contact',
                                              'to'      => 'is_contact_autoupdate',
                                              'default' => 1,
-                                             'noindex' => true),
-                                       array('from'    => 'autoupdate_link_user',
+                                             'noindex' => true],
+                                       ['from'    => 'autoupdate_link_user',
                                              'to'      => 'is_user_autoupdate',
                                              'default' => 1,
-                                             'noindex' => true),
-                                       array('from'    => 'autoupdate_link_group',
+                                             'noindex' => true],
+                                       ['from'    => 'autoupdate_link_group',
                                              'to'      => 'is_group_autoupdate',
                                              'default' => 1,
-                                             'noindex '=> true),//
-                                       array('from'    => 'autoupdate_link_location',
+                                             'noindex' => true],//
+                                       ['from'    => 'autoupdate_link_location',
                                              'to'      => 'is_location_autoupdate',
                                              'default' => 1,
-                                             'noindex' => true),
-                                       array('from'    => 'autoclean_link_contact',
+                                             'noindex' => true],
+                                       ['from'    => 'autoclean_link_contact',
                                              'to'      => 'is_contact_autoclean',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'autoclean_link_user',
+                                             'noindex' => true],
+                                       ['from'    => 'autoclean_link_user',
                                              'to'      => 'is_user_autoclean',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'autoclean_link_group',
+                                             'noindex' => true],
+                                       ['from'    => 'autoclean_link_group',
                                              'to'      => 'is_group_autoclean',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'autoclean_link_location',
+                                             'noindex' => true],
+                                       ['from'    => 'autoclean_link_location',
                                              'to'      => 'is_location_autoclean',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'flat_dropdowntree',
+                                             'noindex' => true],
+                                       ['from'    => 'flat_dropdowntree',
                                              'to'      => 'use_flat_dropdowntree',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'autoname_entity',
+                                             'noindex' => true],
+                                       ['from'    => 'autoname_entity',
                                              'to'      => 'use_autoname_by_entity',
                                              'default' => 1,
-                                             'noindex' => true),
-                                       array('from'    => 'expand_soft_categorized',
+                                             'noindex' => true],
+                                       ['from'    => 'expand_soft_categorized',
                                              'to'      => 'is_categorized_soft_expanded',
                                              'default' => 1,
-                                             'noindex' => true),
-                                       array('from'    => 'expand_soft_not_categorized',
+                                             'noindex' => true],
+                                       ['from'    => 'expand_soft_not_categorized',
                                              'to'      => 'is_not_categorized_soft_expanded',
                                              'default' => 1,
-                                             'noindex' => true),
-                                       array('from'    => 'ticket_title_mandatory',
+                                             'noindex' => true],
+                                       ['from'    => 'ticket_title_mandatory',
                                              'to'      => 'is_ticket_title_mandatory',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'ticket_content_mandatory',
+                                             'noindex' => true],
+                                       ['from'    => 'ticket_content_mandatory',
                                              'to'      => 'is_ticket_content_mandatory',
                                              'default' => 1,
-                                             'noindex' => true),
-                                       array('from'    => 'ticket_category_mandatory',
+                                             'noindex' => true],
+                                       ['from'    => 'ticket_category_mandatory',
                                              'to'      => 'is_ticket_category_mandatory',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'followup_private',
+                                             'noindex' => true],
+                                       ['from'    => 'followup_private',
                                              'to'      => 'followup_private',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'software_helpdesk_visible',
+                                             'noindex' => true],
+                                       ['from'    => 'software_helpdesk_visible',
                                              'to'      => 'default_software_helpdesk_visible',
                                              'default' => 1,
-                                             'noindex' => true)),
+                                             'noindex' => true]],
 
-              'glpi_consumableitems'
-                              => array(array('from'    => 'deleted',
+                              'glpi_consumableitems'
+                              => [['from'    => 'deleted',
                                              'to'      => 'is_deleted',
-                                             'default' => 0)),
+                                             'default' => 0]],
 
-              'glpi_contacts' => array(array('from'    => 'recursive',
+                              'glpi_contacts' => [['from'    => 'recursive',
                                              'to'      => 'is_recursive',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'deleted',
+                                             'noindex' => true],
+                                       ['from'    => 'deleted',
                                              'to'      => 'is_deleted',
-                                             'default' => 0)),
+                                             'default' => 0]],
 
-              'glpi_contracts'
-                              => array(array('from'    => 'recursive',
+                              'glpi_contracts'
+                              => [['from'    => 'recursive',
                                              'to'      => 'is_recursive',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'deleted',
+                                             'noindex' => true],
+                                       ['from'    => 'deleted',
                                              'to'      => 'is_deleted',
-                                             'default' => 0),
-                                       array('from'    => 'monday',
+                                             'default' => 0],
+                                       ['from'    => 'monday',
                                              'to'      => 'use_monday',
-                                             'default' => 0),
-                                       array('from'    => 'saturday',
+                                             'default' => 0],
+                                       ['from'    => 'saturday',
                                              'to'      => 'use_saturday',
-                                             'default' => 0)),
+                                             'default' => 0]],
 
-              'glpi_devicecontrols'
-                              => array(array('from'    => 'raid',
+                              'glpi_devicecontrols'
+                              => [['from'    => 'raid',
                                              'to'      => 'is_raid',
                                              'default' => 0,
-                                             'noindex' => true)),
+                                             'noindex' => true]],
 
-             'glpi_devicedrives'
-                              => array(array('from'    => 'is_writer',
+                              'glpi_devicedrives'
+                              => [['from'    => 'is_writer',
                                              'to'      => 'is_writer',
                                              'default' => 1,
-                                             'noindex' => true)),
+                                             'noindex' => true]],
 
-             'glpi_devicepowersupplies'
-                              => array(array('from'    => 'atx',
+                              'glpi_devicepowersupplies'
+                              => [['from'    => 'atx',
                                              'to'      => 'is_atx',
                                              'default' => 1,
-                                             'noindex' => true)),
+                                             'noindex' => true]],
 
-             'glpi_documents' => array(array('from'    => 'recursive',
+                              'glpi_documents' => [['from'    => 'recursive',
                                              'to'      => 'is_recursive',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'deleted',
+                                             'noindex' => true],
+                                       ['from'    => 'deleted',
                                              'to'      => 'is_deleted',
-                                             'default' => 0)),
+                                             'default' => 0]],
 
-             'glpi_documenttypes'
-                              => array(array('from'    => 'upload',
+                              'glpi_documenttypes'
+                              => [['from'    => 'upload',
                                              'to'      => 'is_uploadable',
-                                             'default' => 1)),
+                                             'default' => 1]],
 
-             'glpi_groups'    => array(array('from'    => 'recursive',
+                              'glpi_groups'    => [['from'    => 'recursive',
                                              'to'      => 'is_recursive',
                                              'default' => 0,
-                                             'noindex' => true)),
+                                             'noindex' => true]],
 
-             'glpi_knowbaseitems'
-                              => array(array('from'    => 'recursive',
+                              'glpi_knowbaseitems'
+                              => [['from'    => 'recursive',
                                              'to'      => 'is_recursive',
                                              'default' => 1,
-                                             'noindex' => true),
-                                       array('from'    => 'faq',
+                                             'noindex' => true],
+                                       ['from'    => 'faq',
                                              'to'      => 'is_faq',
-                                             'default' => 0) ),
+                                             'default' => 0] ],
 
-             'glpi_links'     => array(array('from'    => 'recursive',
+                              'glpi_links'     => [['from'    => 'recursive',
                                              'to'      => 'is_recursive',
                                              'default' => 1,
-                                             'noindex' => true)),
+                                             'noindex' => true]],
 
-             'glpi_monitors'  => array(array('from'    => 'deleted',
+                              'glpi_monitors'  => [['from'    => 'deleted',
                                              'to'      => 'is_deleted',
-                                             'default' => 0),
-                                       array('from'    => 'is_template',
+                                             'default' => 0],
+                                       ['from'    => 'is_template',
                                              'to'      => 'is_template',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'is_global',
+                                             'noindex' => true],
+                                       ['from'    => 'is_global',
                                              'to'      => 'is_global',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'flags_micro',
+                                             'noindex' => true],
+                                       ['from'    => 'flags_micro',
                                              'to'      => 'have_micro',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'flags_speaker',
+                                             'noindex' => true],
+                                       ['from'    => 'flags_speaker',
                                              'to'      => 'have_speaker',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'flags_subd',
+                                             'noindex' => true],
+                                       ['from'    => 'flags_subd',
                                              'to'      => 'have_subd',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'flags_bnc',
+                                             'noindex' => true],
+                                       ['from'    => 'flags_bnc',
                                              'to'      => 'have_bnc',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'flags_dvi',
+                                             'noindex' => true],
+                                       ['from'    => 'flags_dvi',
                                              'to'      => 'have_dvi',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'flags_pivot',
+                                             'noindex' => true],
+                                       ['from'    => 'flags_pivot',
                                              'to'      => 'have_pivot',
                                              'default' => 0,
-                                             'noindex' => true)),
+                                             'noindex' => true]],
 
-             'glpi_networkequipments'
-                              => array(array('from'    => 'recursive',
+                              'glpi_networkequipments'
+                              => [['from'    => 'recursive',
                                              'to'      => 'is_recursive',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'deleted',
+                                             'noindex' => true],
+                                       ['from'    => 'deleted',
                                              'to'      => 'is_deleted',
-                                             'default' => 0),
-                                       array('from'    => 'is_template',
+                                             'default' => 0],
+                                       ['from'    => 'is_template',
                                              'to'      => 'is_template',
                                              'default' => 0,
-                                             'noindex' => true)),
+                                             'noindex' => true]],
 
-             'glpi_ocslinks'  => array(array('from'    => 'auto_update',
+                              'glpi_ocslinks'  => [['from'    => 'auto_update',
                                              'to'      => 'use_auto_update',
-                                             'default' => 1)),
+                                             'default' => 1]],
 
-             'glpi_ocsservers'
-                              => array(array('from'    => 'import_periph',
+                              'glpi_ocsservers'
+                              => [['from'    => 'import_periph',
                                              'to'      => 'import_periph',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'import_monitor',
+                                             'noindex' => true],
+                                       ['from'    => 'import_monitor',
                                              'to'      => 'import_monitor',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'import_software',
+                                             'noindex' => true],
+                                       ['from'    => 'import_software',
                                              'to'      => 'import_software',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'import_printer',
+                                             'noindex' => true],
+                                       ['from'    => 'import_printer',
                                              'to'      => 'import_printer',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'import_general_name',
+                                             'noindex' => true],
+                                       ['from'    => 'import_general_name',
                                              'to'      => 'import_general_name',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'import_general_os',
+                                             'noindex' => true],
+                                       ['from'    => 'import_general_os',
                                              'to'      => 'import_general_os',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'import_general_serial',
+                                             'noindex' => true],
+                                       ['from'    => 'import_general_serial',
                                              'to'      => 'import_general_serial',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'import_general_model',
+                                             'noindex' => true],
+                                       ['from'    => 'import_general_model',
                                              'to'      => 'import_general_model',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'import_general_enterprise',
+                                             'noindex' => true],
+                                       ['from'    => 'import_general_enterprise',
                                              'to'      => 'import_general_manufacturer',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'import_general_type',
+                                             'noindex' => true],
+                                       ['from'    => 'import_general_type',
                                              'to'      => 'import_general_type',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'import_general_domain',
+                                             'noindex' => true],
+                                       ['from'    => 'import_general_domain',
                                              'to'      => 'import_general_domain',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'import_general_contact',
+                                             'noindex' => true],
+                                       ['from'    => 'import_general_contact',
                                              'to'      => 'import_general_contact',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'import_general_comments',
+                                             'noindex' => true],
+                                       ['from'    => 'import_general_comments',
                                              'to'      => 'import_general_comment',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'import_device_processor',
+                                             'noindex' => true],
+                                       ['from'    => 'import_device_processor',
                                              'to'      => 'import_device_processor',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'import_device_memory',
+                                             'noindex' => true],
+                                       ['from'    => 'import_device_memory',
                                              'to'      => 'import_device_memory',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'import_device_hdd',
+                                             'noindex' => true],
+                                       ['from'    => 'import_device_hdd',
                                              'to'      => 'import_device_hdd',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'import_device_iface',
+                                             'noindex' => true],
+                                       ['from'    => 'import_device_iface',
                                              'to'      => 'import_device_iface',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'import_device_gfxcard',
+                                             'noindex' => true],
+                                       ['from'    => 'import_device_gfxcard',
                                              'to'      => 'import_device_gfxcard',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'import_device_sound',
+                                             'noindex' => true],
+                                       ['from'    => 'import_device_sound',
                                              'to'      => 'import_device_sound',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'import_device_drives',
+                                             'noindex' => true],
+                                       ['from'    => 'import_device_drives',
                                              'to'      => 'import_device_drive',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'import_device_ports',
+                                             'noindex' => true],
+                                       ['from'    => 'import_device_ports',
                                              'to'      => 'import_device_port',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'import_device_modems',
+                                             'noindex' => true],
+                                       ['from'    => 'import_device_modems',
                                              'to'      => 'import_device_modem',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'import_registry',
+                                             'noindex' => true],
+                                       ['from'    => 'import_registry',
                                              'to'      => 'import_registry',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'import_os_serial',
+                                             'noindex' => true],
+                                       ['from'    => 'import_os_serial',
                                              'to'      => 'import_os_serial',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'import_ip',
+                                             'noindex' => true],
+                                       ['from'    => 'import_ip',
                                              'to'      => 'import_ip',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'import_disk',
+                                             'noindex' => true],
+                                       ['from'    => 'import_disk',
                                              'to'      => 'import_disk',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'import_monitor_comments',
+                                             'noindex' => true],
+                                       ['from'    => 'import_monitor_comments',
                                              'to'      => 'import_monitor_comment',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'glpi_link_enabled',
+                                             'noindex' => true],
+                                       ['from'    => 'glpi_link_enabled',
                                              'to'      => 'is_glpi_link_enabled',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'link_ip',
+                                             'noindex' => true],
+                                       ['from'    => 'link_ip',
                                              'to'      => 'use_ip_to_link',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'link_name',
+                                             'noindex' => true],
+                                       ['from'    => 'link_name',
                                              'to'      => 'use_name_to_link',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'link_mac_address',
+                                             'noindex' => true],
+                                       ['from'    => 'link_mac_address',
                                              'to'      => 'use_mac_to_link',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'link_serial',
+                                             'noindex' => true],
+                                       ['from'    => 'link_serial',
                                              'to'      => 'use_serial_to_link',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'use_soft_dict',
+                                             'noindex' => true],
+                                       ['from'    => 'use_soft_dict',
                                              'to'      => 'use_soft_dict',
                                              'default' => 0,
-                                             'noindex' => true)),
+                                             'noindex' => true]],
 
-              'glpi_peripherals'
-                              => array(array('from'    => 'deleted',
+                              'glpi_peripherals'
+                              => [['from'    => 'deleted',
                                              'to'      => 'is_deleted',
-                                             'default' => 0),
-                                       array('from'    => 'is_template',
+                                             'default' => 0],
+                                       ['from'    => 'is_template',
                                              'to'      => 'is_template',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'is_global',
+                                             'noindex' => true],
+                                       ['from'    => 'is_global',
                                              'to'      => 'is_global',
                                              'default' => 0,
-                                             'noindex' => true)),
+                                             'noindex' => true]],
 
-              'glpi_phones'   => array(array('from'    => 'deleted',
+                              'glpi_phones'   => [['from'    => 'deleted',
                                              'to'      => 'is_deleted',
-                                             'default' => 0),
-                                       array('from'    => 'is_template',
+                                             'default' => 0],
+                                       ['from'    => 'is_template',
                                              'to'      => 'is_template',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'is_global',
+                                             'noindex' => true],
+                                       ['from'    => 'is_global',
                                              'to'      => 'is_global',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'flags_hp',
+                                             'noindex' => true],
+                                       ['from'    => 'flags_hp',
                                              'to'      => 'have_hp',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'flags_casque',
+                                             'noindex' => true],
+                                       ['from'    => 'flags_casque',
                                              'to'      => 'have_headset',
                                              'default' => 0,
-                                             'noindex' => true)),
+                                             'noindex' => true]],
 
-             'glpi_printers'
-                              => array(array('from'    => 'recursive',
+                              'glpi_printers'
+                              => [['from'    => 'recursive',
                                              'to'      => 'is_recursive',
-                                             'default' => 0, 'noindex' => true),
-                                       array('from'    => 'deleted',
+                                             'default' => 0, 'noindex' => true],
+                                       ['from'    => 'deleted',
                                              'to'      => 'is_deleted',
-                                             'default' => 0),
-                                       array('from'    => 'is_template',
+                                             'default' => 0],
+                                       ['from'    => 'is_template',
                                              'to'      => 'is_template',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'is_global',
+                                             'noindex' => true],
+                                       ['from'    => 'is_global',
                                              'to'      => 'is_global',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'flags_usb',
+                                             'noindex' => true],
+                                       ['from'    => 'flags_usb',
                                              'to'      => 'have_usb',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'flags_par',
+                                             'noindex' => true],
+                                       ['from'    => 'flags_par',
                                              'to'      => 'have_parallel',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'flags_serial',
+                                             'noindex' => true],
+                                       ['from'    => 'flags_serial',
                                              'to'      => 'have_serial',
                                              'default' => 0,
-                                             'noindex' => true)),
+                                             'noindex' => true]],
 
-             'glpi_profiles_users'
-                              => array(array('from'    => 'recursive',
+                              'glpi_profiles_users'
+                              => [['from'    => 'recursive',
                                              'to'      => 'is_recursive',
-                                             'default' => 1),
-                                       array('from'    => 'dynamic',
+                                             'default' => 1],
+                                       ['from'    => 'dynamic',
                                              'to'      => 'is_dynamic',
-                                             'default' => 0)),
+                                             'default' => 0]],
 
-             'glpi_profiles'  => array(array('from'    => 'is_default',
+                              'glpi_profiles'  => [['from'    => 'is_default',
                                              'to'      => 'is_default',
-                                             'default' => 0)),
+                                             'default' => 0]],
 
-             'glpi_reminders' => array(array('from'    => 'private',
+                              'glpi_reminders' => [['from'    => 'private',
                                              'to'      => 'is_private',
-                                             'default' => 1),
-                                       array('from'    => 'recursive',
+                                             'default' => 1],
+                                       ['from'    => 'recursive',
                                              'to'      => 'is_recursive',
-                                             'default' => 0),
-                                       array('from'    => 'rv',
+                                             'default' => 0],
+                                       ['from'    => 'rv',
                                              'to'      => 'is_planned',
-                                             'default' => 0)),
+                                             'default' => 0]],
 
-             'glpi_reservationitems'
-                              => array(array('from'    => 'active',
+                              'glpi_reservationitems'
+                              => [['from'    => 'active',
                                              'to'      => 'is_active',
-                                             'default' => 1)),
+                                             'default' => 1]],
 
-             'glpi_rules'     => array(array('from'    => 'active',
+                              'glpi_rules'     => [['from'    => 'active',
                                              'to'      => 'is_active',
-                                             'default' => 1)),
+                                             'default' => 1]],
 
-             'glpi_suppliers' => array(array('from'    => 'recursive',
+                              'glpi_suppliers' => [['from'    => 'recursive',
                                              'to'      => 'is_recursive',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'deleted',
+                                             'noindex' => true],
+                                       ['from'    => 'deleted',
                                              'to'      => 'is_deleted',
-                                             'default' => 0)),
+                                             'default' => 0]],
 
-             'glpi_softwares' => array(array('from'    => 'recursive',
+                              'glpi_softwares' => [['from'    => 'recursive',
                                              'to'      => 'is_recursive',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'deleted',
+                                             'noindex' => true],
+                                       ['from'    => 'deleted',
                                              'to'      => 'is_deleted',
-                                             'default' => 0),
-                                       array('from'    => 'helpdesk_visible',
+                                             'default' => 0],
+                                       ['from'    => 'helpdesk_visible',
                                              'to'      => 'is_helpdesk_visible',
-                                             'default' => 1),
-                                       array('from'    => 'is_template',
+                                             'default' => 1],
+                                       ['from'    => 'is_template',
                                              'to'      => 'is_template',
                                              'default' => 0,
-                                             'noindex' => true),
-                                       array('from'    => 'is_update',
+                                             'noindex' => true],
+                                       ['from'    => 'is_update',
                                              'to'      => 'is_update',
                                              'default' => 0,
-                                             'noindex' => true)),
+                                             'noindex' => true]],
 
-             'glpi_softwarelicenses'
-                              => array(array('from'    => 'recursive',
+                              'glpi_softwarelicenses'
+                              => [['from'    => 'recursive',
                                              'to'      => 'is_recursive',
                                              'default' => 0,
-                                             'noindex' => true)),
+                                             'noindex' => true]],
 
-             'glpi_tickets'   => array(array('from'    => 'emailupdates',
+                              'glpi_tickets'   => [['from'    => 'emailupdates',
                                              'to'      => 'use_email_notification',
                                              'default' => 0,
-                                             'noindex' => true)),
+                                             'noindex' => true]],
 
-             'glpi_ticketfollowups'
-                              => array(array('from'    => 'private',
+                              'glpi_ticketfollowups'
+                              => [['from'    => 'private',
                                              'to'      => 'is_private',
-                                             'default' => 0)),
+                                             'default' => 0]],
 
-             'glpi_users'     => array(array('from'      => 'deleted',
+                              'glpi_users'     => [['from'      => 'deleted',
                                              'to'        => 'is_deleted',
-                                             'default'   => 0),
-                                       array('from'      => 'active',
+                                             'default'   => 0],
+                                       ['from'      => 'active',
                                              'to'        => 'is_active',
-                                             'default'   => 1),
-                                       array('from'      => 'jobs_at_login',
+                                             'default'   => 1],
+                                       ['from'      => 'jobs_at_login',
                                              'to'        => 'show_jobs_at_login',
-                                             'default'   => NULL,
+                                             'default'   => null,
                                              'maybenull' => true,
-                                             'noindex'   => true),
-                                       array('from'      => 'followup_private',
+                                             'noindex'   => true],
+                                       ['from'      => 'followup_private',
                                              'to'        => 'followup_private',
-                                             'default'   => NULL,
+                                             'default'   => null,
                                              'maybenull' => true,
-                                             'noindex'   => true),
-                                       array('from'      => 'expand_soft_categorized',
+                                             'noindex'   => true],
+                                       ['from'      => 'expand_soft_categorized',
                                              'to'        => 'is_categorized_soft_expanded',
-                                             'default'   => NULL,
+                                             'default'   => null,
                                              'maybenull' => true,
-                                             'noindex'   => true),
-                                       array('from'      => 'expand_soft_not_categorized',
+                                             'noindex'   => true],
+                                       ['from'      => 'expand_soft_not_categorized',
                                              'to'        => 'is_not_categorized_soft_expanded',
-                                             'default'   => NULL,
+                                             'default'   => null,
                                              'maybenull' => true,
-                                             'noindex'   => true),
-                                       array('from'      => 'flat_dropdowntree',
+                                             'noindex'   => true],
+                                       ['from'      => 'flat_dropdowntree',
                                              'to'        => 'use_flat_dropdowntree',
-                                             'default'   => NULL,
+                                             'default'   => null,
                                              'maybenull' => true,
-                                             'noindex'   => true),
-                                       array('from'      => 'view_ID',
+                                             'noindex'   => true],
+                                       ['from'      => 'view_ID',
                                              'to'        => 'is_ids_visible',
-                                             'default'   => NULL,
+                                             'default'   => null,
                                              'maybenull' => true,
-                                             'noindex'  => true)));
+                                             'noindex'  => true]]];
 
    foreach ($boolfields as $table => $tab) {
       foreach ($tab as $update) {
@@ -1377,7 +1374,7 @@ function update0723to078() {
             $doindex = false;
          }
          // Rename field
-         if (FieldExists($table, $oldname, false)) {
+         if ($DB->fieldExists($table, $oldname, false)) {
             $NULL = "NOT NULL";
             if (isset($update['maybenull']) && $update['maybenull']) {
                $NULL = "NULL";
@@ -1387,26 +1384,25 @@ function update0723to078() {
                          SET `$oldname` = 1
                          WHERE `$oldname` <> 0
                                AND `$oldname` IS NOT NULL";
-               $DB->queryOrDie($query, "0.78 prepare datas for update $oldname to $newname in $table");
+               $DB->queryOrDie($query, "0.78 prepare data for update $oldname to $newname in $table");
             } else {
                // Manage NULL fields
                $query = "UPDATE `$table`
                          SET `$oldname` = 0
                          WHERE `$oldname` IS NULL";
-               $DB->queryOrDie($query, "0.78 prepare datas for update $oldname to $newname in $table");
+               $DB->queryOrDie($query, "0.78 prepare data for update $oldname to $newname in $table");
 
                // Manage not zero values
                $query = "UPDATE `$table`
                          SET `$oldname` = 1
                          WHERE `$oldname` <> 0";
-               $DB->queryOrDie($query, "0.78 prepare datas for update $oldname to $newname in $table");
+               $DB->queryOrDie($query, "0.78 prepare data for update $oldname to $newname in $table");
             }
 
             $default = "DEFAULT NULL";
             if (isset($update['default']) && !is_null($update['default'])) {
                $default = "DEFAULT ".$update['default'];
             }
-
 
             $changes[$table][] = "CHANGE `$oldname` `$newname` TINYINT( 1 ) $NULL $default";
 
@@ -1430,9 +1426,9 @@ function update0723to078() {
                                          'Clean DB: update text fields'));
 
    $textfields
-      = array('comments'
-                        => array('to'     => 'comment',
-                                 'tables' => array('glpi_cartridgeitems', 'glpi_computers',
+      = ['comments'
+                        => ['to'     => 'comment',
+                                 'tables' => ['glpi_cartridgeitems', 'glpi_computers',
                                                    'glpi_consumableitems', 'glpi_contacts',
                                                    'glpi_contracts', 'glpi_documents',
                                                    'glpi_autoupdatesystems', 'glpi_budgets',
@@ -1463,27 +1459,27 @@ function update0723to078() {
                                                    'glpi_softwarelicenses', 'glpi_softwareversions',
                                                    'glpi_computertypes', 'glpi_monitortypes',
                                                    'glpi_networkequipmenttypes', 'glpi_peripheraltypes',
-                                                   'glpi_phonetypes', 'glpi_printertypes', 'glpi_users')),
+                                                   'glpi_phonetypes', 'glpi_printertypes', 'glpi_users']],
 
-              'notes'   => array('to'     => 'notepad',
+                        'notes'   => ['to'     => 'notepad',
                                  'long'   => true,
-                                 'tables' => array('glpi_cartridgeitems', 'glpi_computers',
+                                 'tables' => ['glpi_cartridgeitems', 'glpi_computers',
                                                    'glpi_consumableitems', 'glpi_contacts',
                                                    'glpi_contracts', 'glpi_documents', 'glpi_suppliers',
                                                    'glpi_entitydatas', 'glpi_printers', 'glpi_monitors',
                                                    'glpi_phones', 'glpi_peripherals',
-                                                   'glpi_networkequipments', 'glpi_softwares')),
+                                                   'glpi_networkequipments', 'glpi_softwares']],
 
-              'ldap_condition'
-                        => array('to'     => 'condition',
-                                 'tables' => array('glpi_authldaps')),
+                        'ldap_condition'
+                        => ['to'     => 'condition',
+                                 'tables' => ['glpi_authldaps']],
 
-              'import_printers'
-                         => array('to'    => 'import_printer','long'=>true,
-                                 'tables' => array('glpi_ocslinks')),
+                        'import_printers'
+                         => ['to'    => 'import_printer','long'=>true,
+                                 'tables' => ['glpi_ocslinks']],
 
-              'contents' => array('to'    => 'content','long'=>true,
-                                 'tables' => array('glpi_tickets','glpi_ticketfollowups')));
+                         'contents' => ['to'    => 'content','long'=>true,
+                                 'tables' => ['glpi_tickets','glpi_ticketfollowups']]];
 
    foreach ($textfields as $oldname => $tab) {
       $newname = $tab['to'];
@@ -1493,7 +1489,7 @@ function update0723to078() {
       }
       foreach ($tab['tables'] as $table) {
          // Rename field
-         if (FieldExists($table, $oldname, false)) {
+         if ($DB->fieldExists($table, $oldname, false)) {
             $query = "ALTER TABLE `$table`
                       CHANGE `$oldname` `$newname` $type NULL DEFAULT NULL ";
             $DB->queryOrDie($query, "0.78 rename $oldname to $newname in $table");
@@ -1505,174 +1501,174 @@ function update0723to078() {
    }
 
    $varcharfields
-      = array('glpi_authldaps'
-                              => array(array('from'    => 'ldap_host',
+      = ['glpi_authldaps'
+                              => [['from'    => 'ldap_host',
                                              'to'      => 'host',
-                                             'noindex' => true),
-                                       array('from'    => 'ldap_basedn',
+                                             'noindex' => true],
+                                       ['from'    => 'ldap_basedn',
                                              'to'      => 'basedn',
-                                             'noindex' => true),
-                                       array('from'    => 'ldap_rootdn',
+                                             'noindex' => true],
+                                       ['from'    => 'ldap_rootdn',
                                              'to'      => 'rootdn',
-                                             'noindex' => true),
-                                       array('from'    => 'ldap_pass',
+                                             'noindex' => true],
+                                       ['from'    => 'ldap_pass',
                                              'to'      => 'rootdn_password',
-                                             'noindex' => true),
-                                       array('from'    => 'ldap_login',
+                                             'noindex' => true],
+                                       ['from'    => 'ldap_login',
                                              'to'      => 'login_field',
                                              'default' => 'uid',
-                                             'noindex' => true),
-                                       array('from'    => 'ldap_field_group',
+                                             'noindex' => true],
+                                       ['from'    => 'ldap_field_group',
                                              'to'      => 'group_field',
-                                             'noindex' => true),
-                                       array('from'    => 'ldap_group_condition',
+                                             'noindex' => true],
+                                       ['from'    => 'ldap_group_condition',
                                              'to'      => 'group_condition',
-                                             'noindex' => true),
-                                       array('from'    => 'ldap_field_group_member',
+                                             'noindex' => true],
+                                       ['from'    => 'ldap_field_group_member',
                                              'to'      => 'group_member_field',
-                                             'noindex' => true),
-                                       array('from'    => 'ldap_field_email',
+                                             'noindex' => true],
+                                       ['from'    => 'ldap_field_email',
                                              'to'      => 'email_field',
-                                             'noindex' => true),
-                                       array('from'    => 'ldap_field_realname',
+                                             'noindex' => true],
+                                       ['from'    => 'ldap_field_realname',
                                              'to'      => 'realname_field',
-                                             'noindex' => true),
-                                       array('from'    => 'ldap_field_firstname',
+                                             'noindex' => true],
+                                       ['from'    => 'ldap_field_firstname',
                                              'to'      => 'firstname_field',
-                                             'noindex' => true),
-                                       array('from'    => 'ldap_field_phone',
+                                             'noindex' => true],
+                                       ['from'    => 'ldap_field_phone',
                                              'to'      => 'phone_field',
-                                             'noindex' => true),
-                                       array('from'    => 'ldap_field_phone2',
+                                             'noindex' => true],
+                                       ['from'    => 'ldap_field_phone2',
                                              'to'      => 'phone2_field',
-                                             'noindex' => true),
-                                       array('from'    => 'ldap_field_mobile',
+                                             'noindex' => true],
+                                       ['from'    => 'ldap_field_mobile',
                                              'to'      => 'mobile_field',
-                                             'noindex' => true),
-                                       array('from'    => 'ldap_field_comments',
+                                             'noindex' => true],
+                                       ['from'    => 'ldap_field_comments',
                                              'to'      => 'comment_field',
-                                             'noindex' => true),
-                                       array('from'    => 'ldap_field_title',
+                                             'noindex' => true],
+                                       ['from'    => 'ldap_field_title',
                                              'to'      => 'title_field',
-                                             'noindex' => true),
-                                       array('from'    => 'ldap_field_type',
+                                             'noindex' => true],
+                                       ['from'    => 'ldap_field_type',
                                              'to'      => 'category_field',
-                                             'noindex' => true),
-                                       array('from'    => 'ldap_field_language',
+                                             'noindex' => true],
+                                       ['from'    => 'ldap_field_language',
                                              'to'      => 'language_field',
-                                             'noindex' => true)),
+                                             'noindex' => true]],
 
-              'glpi_authldapreplicates'
-                              => array(array('from'    => 'ldap_host',
+                              'glpi_authldapreplicates'
+                              => [['from'    => 'ldap_host',
                                              'to'      => 'host',
-                                             'noindex' => true)),
+                                             'noindex' => true]],
 
-              'glpi_authmails'
-                              => array(array('from'    => 'imap_auth_server',
+                              'glpi_authmails'
+                              => [['from'    => 'imap_auth_server',
                                              'to'      => 'connect_string',
-                                             'noindex' => true),
-                                       array('from'    => 'imap_host',
+                                             'noindex' => true],
+                                       ['from'    => 'imap_host',
                                              'to'      => 'host',
-                                             'noindex' => true)),
+                                             'noindex' => true]],
 
-              'glpi_computers'
-                              => array(array('from'    => 'os_license_id',
+                              'glpi_computers'
+                              => [['from'    => 'os_license_id',
                                              'to'      => 'os_licenseid',
-                                             'noindex' => true),
-                                       array('from'    => 'tplname',
+                                             'noindex' => true],
+                                       ['from'    => 'tplname',
                                              'to'      => 'template_name',
-                                             'noindex' => true)),
+                                             'noindex' => true]],
 
-              'glpi_configs'  => array(array('from'    => 'helpdeskhelp_url',
+                              'glpi_configs'  => [['from'    => 'helpdeskhelp_url',
                                              'to'      => 'helpdesk_doc_url',
-                                             'noindex' => true),
-                                       array('from'    => 'centralhelp_url',
+                                             'noindex' => true],
+                                       ['from'    => 'centralhelp_url',
                                              'to'      => 'central_doc_url',
-                                             'noindex' => true)),
+                                             'noindex' => true]],
 
-              'glpi_contracts'
-                              => array(array('from'    => 'compta_num',
+                              'glpi_contracts'
+                              => [['from'    => 'compta_num',
                                              'to'   => 'accounting_number',
-                                             'noindex' => true)),
+                                             'noindex' => true]],
 
-              'glpi_events'   => array(array('from'    => 'itemtype',
+                              'glpi_events'   => [['from'    => 'itemtype',
                                              'to'      => 'type',
-                                             'noindex' => true)),
+                                             'noindex' => true]],
 
-              'glpi_infocoms' => array(array('from'    => 'num_commande',
+                              'glpi_infocoms' => [['from'    => 'num_commande',
                                              'to'      => 'order_number',
-                                             'noindex' => true),
-                                       array('from'    => 'bon_livraison',
+                                             'noindex' => true],
+                                       ['from'    => 'bon_livraison',
                                              'to'      => 'delivery_number',
-                                             'noindex' => true),
-                                       array('from'    => 'num_immo',
+                                             'noindex' => true],
+                                       ['from'    => 'num_immo',
                                              'to'      => 'immo_number',
-                                             'noindex' => true),
-                                       array('from'    => 'facture',
+                                             'noindex' => true],
+                                       ['from'    => 'facture',
                                              'to'      => 'bill',
-                                             'noindex' => true)),
+                                             'noindex' => true]],
 
-              'glpi_monitors' => array(array('from'    => 'tplname',
+                              'glpi_monitors' => [['from'    => 'tplname',
                                              'to'      => 'template_name',
-                                             'noindex' => true)),
+                                             'noindex' => true]],
 
-              'glpi_networkequipments'
-                              => array(array('from'    => 'tplname',
+                              'glpi_networkequipments'
+                              => [['from'    => 'tplname',
                                              'to'      => 'template_name',
-                                             'noindex' => true),
-                                       array('from'    => 'ifmac',
+                                             'noindex' => true],
+                                       ['from'    => 'ifmac',
                                              'to'      => 'mac',
-                                             'noindex' => true),
-                                       array('from'    => 'ifaddr',
+                                             'noindex' => true],
+                                       ['from'    => 'ifaddr',
                                              'to'      => 'ip',
-                                             'noindex' => true)),
+                                             'noindex' => true]],
 
-              'glpi_networkports'
-                              => array(array('from'    => 'ifmac',
+                              'glpi_networkports'
+                              => [['from'    => 'ifmac',
                                              'to'      => 'mac',
-                                             'noindex' => true),
-                                       array('from'    => 'ifaddr',
+                                             'noindex' => true],
+                                       ['from'    => 'ifaddr',
                                              'to'      => 'ip',
-                                             'noindex' => true)),
+                                             'noindex' => true]],
 
-              'glpi_peripherals'
-                              => array(array('from'    => 'tplname',
+                              'glpi_peripherals'
+                              => [['from'    => 'tplname',
                                              'to'      => 'template_name',
-                                             'noindex' => true)),
+                                             'noindex' => true]],
 
-              'glpi_phones'   => array(array('from'    => 'tplname',
+                              'glpi_phones'   => [['from'    => 'tplname',
                                              'to'      => 'template_name',
-                                             'noindex' => true)),
+                                             'noindex' => true]],
 
-              'glpi_printers' => array(array('from'    => 'tplname',
+                              'glpi_printers' => [['from'    => 'tplname',
                                              'to'      => 'template_name',
-                                             'noindex' => true),
-                                       array('from'    => 'ramSize',
+                                             'noindex' => true],
+                                       ['from'    => 'ramSize',
                                              'to'      => 'memory_size',
-                                             'noindex' => true)),
+                                             'noindex' => true]],
 
-              'glpi_registrykeys'
-                              => array(array('from'    => 'registry_hive',
+                              'glpi_registrykeys'
+                              => [['from'    => 'registry_hive',
                                              'to'      => 'hive',
-                                             'noindex' => true),
-                                       array('from'    => 'registry_path',
+                                             'noindex' => true],
+                                       ['from'    => 'registry_path',
                                              'to'      => 'path',
-                                             'noindex' => true),
-                                       array('from'    => 'registry_value',
+                                             'noindex' => true],
+                                       ['from'    => 'registry_value',
                                              'to'      => 'value',
-                                             'noindex' => true),
-                                       array('from'    => 'registry_ocs_name',
+                                             'noindex' => true],
+                                       ['from'    => 'registry_ocs_name',
                                              'to'      => 'ocs_name',
-                                             'noindex' => true)),
+                                             'noindex' => true]],
 
-              'glpi_softwares'
-                              => array(array('from'    => 'tplname',
+                              'glpi_softwares'
+                              => [['from'    => 'tplname',
                                              'to'      => 'template_name',
-                                             'noindex' => true)),
+                                             'noindex' => true]],
 
-              'glpi_tickets'  => array(array('from'    => 'uemail',
+                              'glpi_tickets'  => [['from'    => 'uemail',
                                              'to'      => 'user_email',
-                                             'noindex' => true)));
+                                             'noindex' => true]]];
 
    foreach ($varcharfields as $table => $tab) {
       foreach ($tab as $update) {
@@ -1688,7 +1684,7 @@ function update0723to078() {
          }
 
          // Rename field
-         if (FieldExists($table, $oldname, false)) {
+         if ($DB->fieldExists($table, $oldname, false)) {
             $query = "ALTER TABLE `$table`
                       CHANGE `$oldname` `$newname` VARCHAR( 255 ) NULL $default ";
             $DB->queryOrDie($query, "0.78 rename $oldname to $newname in $table");
@@ -1699,7 +1695,7 @@ function update0723to078() {
          // If do index : delete old one / create new one
          if ($doindex) {
             if (!isIndex($table, $newname)) {
-            $changes[$table][] = "ADD INDEX `$newname` (`$newname`)";
+               $changes[$table][] = "ADD INDEX `$newname` (`$newname`)";
             }
             if ($newname!=$oldname && isIndex($table, $oldname)) {
                $changes[$table][] = "DROP INDEX `$oldname`";
@@ -1709,117 +1705,117 @@ function update0723to078() {
    }
 
    $charfields
-      = array('glpi_profiles' => array(array('from'    => 'user_auth_method',
+      = ['glpi_profiles' => [['from'    => 'user_auth_method',
                                              'to'      => 'user_authtype',
                                              'length'  => 1,
-                                             'default' => NULL,
-                                             'noindex' => true),
-                                       array('from'    => 'rule_tracking',
+                                             'default' => null,
+                                             'noindex' => true],
+                                       ['from'    => 'rule_tracking',
                                              'to'      => 'rule_ticket',
                                              'length'  => 1,
-                                             'default' => NULL,
-                                             'noindex' => true),
-                                       array('from'    => 'rule_softwarecategories',
+                                             'default' => null,
+                                             'noindex' => true],
+                                       ['from'    => 'rule_softwarecategories',
                                              'to'      => 'rule_softwarecategories',
                                              'length'  => 1,
-                                             'default' => NULL,
-                                             'noindex' => true),
-                                       array('from'    => 'rule_dictionnary_software',
+                                             'default' => null,
+                                             'noindex' => true],
+                                       ['from'    => 'rule_dictionnary_software',
                                              'to'      => 'rule_dictionnary_software',
                                              'length'  => 1,
-                                             'default' => NULL,
-                                             'noindex' => true),
-                                       array('from'    => 'rule_dictionnary_dropdown',
+                                             'default' => null,
+                                             'noindex' => true],
+                                       ['from'    => 'rule_dictionnary_dropdown',
                                              'to'      => 'rule_dictionnary_dropdown',
                                              'length'  => 1,
-                                             'default' => NULL,
-                                             'noindex' => true)),
+                                             'default' => null,
+                                             'noindex' => true]],
 
-              'glpi_configs'  => array(array('from'     => 'version',
+              'glpi_configs'  => [['from'     => 'version',
                                              'to'       => 'version',
                                              'length'   => 10,
-                                             'default'  => NULL,
-                                             'noindex'  => true),
-                                       array('from'     => 'version',
+                                             'default'  => null,
+                                             'noindex'  => true],
+                                       ['from'     => 'version',
                                              'to'       => 'version',
                                              'length'   => 10,
-                                             'default'  => NULL,
-                                             'noindex'  => true),
-                                       array('from'     => 'language',
+                                             'default'  => null,
+                                             'noindex'  => true],
+                                       ['from'     => 'language',
                                              'to'       => 'language',
                                              'length'   => 10,
                                              'default'  => 'en_GB',
                                              'noindex'  => true,
-                                             'comments' =>'see define.php CFG_GLPI[language] array'),
-                                       array('from'     => 'priority_1',
+                                             'comments' =>'see define.php CFG_GLPI[language] array'],
+                                       ['from'     => 'priority_1',
                                              'to'       => 'priority_1',
                                              'length'   => 20,
                                              'default'  => '#fff2f2',
-                                             'noindex'  => true),
-                                       array('from'     => 'priority_2',
+                                             'noindex'  => true],
+                                       ['from'     => 'priority_2',
                                              'to'       => 'priority_2',
                                              'length'   => 20,
                                              'default'  => '#ffe0e0',
-                                             'noindex'  => true),
-                                       array('from'     => 'priority_3',
+                                             'noindex'  => true],
+                                       ['from'     => 'priority_3',
                                              'to'       => 'priority_3',
                                              'length'   => 20,
                                              'default'  => '#ffcece',
-                                             'noindex'  => true),
-                                       array('from'     => 'priority_4',
+                                             'noindex'  => true],
+                                       ['from'     => 'priority_4',
                                              'to'       => 'priority_4',
                                              'length'   => 20,
                                              'default'  => '#ffbfbf',
-                                             'noindex'  => true),
-                                       array('from'     => 'priority_5',
+                                             'noindex'  => true],
+                                       ['from'     => 'priority_5',
                                              'to'       => 'priority_5',
                                              'length'   => 20,
                                              'default'  => '#ffadad',
-                                             'noindex'  => true),
-                                       array('from'     => 'founded_new_version',
+                                             'noindex'  => true],
+                                       ['from'     => 'founded_new_version',
                                              'to'       => 'founded_new_version',
                                              'length'   => 10,
-                                             'default'  => NULL,
-                                             'noindex'  => true)),
+                                             'default'  => null,
+                                             'noindex'  => true]],
 
-              'glpi_rules'    => array(array('from'     => 'match',
+              'glpi_rules'    => [['from'     => 'match',
                                              'to'       => 'match',
                                              'length'   => 10,
-                                             'default'  => NULL,
+                                             'default'  => null,
                                              'noindex'  => true,
-                                             'comments' => 'see define.php *_MATCHING constant')),
+                                             'comments' => 'see define.php *_MATCHING constant']],
 
-              'glpi_users'    => array(array('from'     => 'language',
+              'glpi_users'    => [['from'     => 'language',
                                              'to'       => 'language',
                                              'length'   => 10,
-                                             'default'  => NULL,
+                                             'default'  => null,
                                              'noindex'  => true,
-                                             'comments' => 'see define.php CFG_GLPI[language] array'),
-                                       array('from'     => 'priority_1',
+                                             'comments' => 'see define.php CFG_GLPI[language] array'],
+                                       ['from'     => 'priority_1',
                                              'to'       => 'priority_1',
                                              'length'   => 20,
-                                             'default'  => NULL,
-                                             'noindex'  => true),
-                                       array('from'     => 'priority_2',
+                                             'default'  => null,
+                                             'noindex'  => true],
+                                       ['from'     => 'priority_2',
                                              'to'       => 'priority_2',
                                              'length'   => 20,
-                                             'default'  => NULL,
-                                             'noindex'  => true),
-                                       array('from'     => 'priority_3',
+                                             'default'  => null,
+                                             'noindex'  => true],
+                                       ['from'     => 'priority_3',
                                              'to'       => 'priority_3',
                                              'length'   => 20,
-                                             'default'  => NULL,
-                                             'noindex'  => true),
-                                       array('from'     => 'priority_4',
+                                             'default'  => null,
+                                             'noindex'  => true],
+                                       ['from'     => 'priority_4',
                                              'to'       => 'priority_4',
                                              'length'   => 20,
-                                             'default'  => NULL,
-                                             'noindex'  => true),
-                                       array('from'     => 'priority_5',
+                                             'default'  => null,
+                                             'noindex'  => true],
+                                       ['from'     => 'priority_5',
                                              'to'       => 'priority_5',
                                              'length'   => 20,
-                                             'default'  => NULL,
-                                             'noindex'  => true)));
+                                             'default'  => null,
+                                             'noindex'  => true]]];
 
    foreach ($charfields as $table => $tab) {
       foreach ($tab as $update) {
@@ -1835,12 +1831,12 @@ function update0723to078() {
             $default = "DEFAULT '".$update['default']."'";
          }
          $addcomment = "";
-         if (isset($update['comments']) ) {
+         if (isset($update['comments'])) {
             $addcomment = "COMMENT '".$update['comments']."'";
          }
 
          // Rename field
-         if (FieldExists($table, $oldname, false)) {
+         if ($DB->fieldExists($table, $oldname, false)) {
             $query = "ALTER TABLE `$table`
                       CHANGE `$oldname` `$newname` CHAR( $length ) NULL $default $addcomment ";
             $DB->queryOrDie($query, "0.78 rename $oldname to $newname in $table");
@@ -1860,389 +1856,389 @@ function update0723to078() {
       }
    }
    $intfields
-      = array('glpi_authldaps'   => array(array('from'       => 'ldap_port',
+      = ['glpi_authldaps'   => [['from'       => 'ldap_port',
                                                 'to'         => 'port',
                                                 'default'    => 389,
                                                 'noindex'    => true,
-                                                'checkdatas' => true),
-                                          array('from'       => 'ldap_search_for_groups',
+                                                'checkdatas' => true],
+                                          ['from'       => 'ldap_search_for_groups',
                                                 'to'         => 'group_search_type',
                                                 'default'    => 0,
-                                                'noindex'    => true),
-                                          array('from'       => 'ldap_opt_deref',
+                                                'noindex'    => true],
+                                          ['from'       => 'ldap_opt_deref',
                                                 'to'         => 'deref_option',
                                                 'default'    => 0,
-                                                'noindex'    => true),
-                                          array('from'       => 'timezone',
+                                                'noindex'    => true],
+                                          ['from'       => 'timezone',
                                                 'to'         => 'time_offset',
                                                 'default'    => 0,
                                                 'noindex'    => true,
-                                                'comments'   => 'in seconds')),
+                                                'comments'   => 'in seconds']],
 
               'glpi_authldapreplicates'
-                                 => array(array('from'       => 'ldap_port',
+                                 => [['from'       => 'ldap_port',
                                                 'to'         => 'port',
                                                 'default'    => 389,
                                                 'noindex'    => true,
-                                                'checkdatas' => true)),
+                                                'checkdatas' => true]],
 
-              'glpi_bookmarks'   => array(array('from'      => 'type',
+                                 'glpi_bookmarks'   => [['from'      => 'type',
                                                 'to'        => 'type',
                                                 'default'   => 0,
                                                 'noindex'   => true,
-                                                'comments'  => 'see define.php BOOKMARK_* constant')),
+                                                'comments'  => 'see define.php BOOKMARK_* constant']],
 
-              'glpi_cartridgeitems'
-                                 => array(array('from'    => 'alarm',
+                                 'glpi_cartridgeitems'
+                                 => [['from'    => 'alarm',
                                                 'to'      => 'alarm_threshold',
-                                                'default' => 10)),
+                                                'default' => 10]],
 
-              'glpi_configs'     => array(array('from'       => 'glpi_timezone',
+                                 'glpi_configs'     => [['from'       => 'glpi_timezone',
                                                 'to'         => 'time_offset',
                                                 'default'    => 0,
                                                 'noindex'    => true,
-                                                'comments'   => 'in seconds'),
-                                          array('from'       => 'cartridges_alarm',
+                                                'comments'   => 'in seconds'],
+                                          ['from'       => 'cartridges_alarm',
                                                 'to'         => 'default_alarm_threshold',
                                                 'default'    => 10,
-                                                'noindex'    => true),
-                                          array('from'       => 'event_loglevel',
+                                                'noindex'    => true],
+                                          ['from'       => 'event_loglevel',
                                                 'to'         => 'event_loglevel',
                                                 'default'    => 5,
-                                                'noindex'    => true),
-                                          array('from'       => 'cas_port',
+                                                'noindex'    => true],
+                                          ['from'       => 'cas_port',
                                                 'to'         => 'cas_port',
                                                 'default'    => 443,
                                                 'noindex'    => true,
-                                                'checkdatas' => true),
-                                          array('from'       => 'auto_update_check',
+                                                'checkdatas' => true],
+                                          ['from'       => 'auto_update_check',
                                                 'to'         => 'auto_update_check',
                                                 'default'    => 0,
-                                                'noindex'    => true),
-                                          array('from'       => 'dateformat',
+                                                'noindex'    => true],
+                                          ['from'       => 'dateformat',
                                                 'to'         => 'date_format',
                                                 'default'    => 0,
-                                                'noindex'    => true),
-                                          array('from'       => 'numberformat',
+                                                'noindex'    => true],
+                                          ['from'       => 'numberformat',
                                                 'to'         => 'number_format',
                                                 'default'    => 0,
-                                                'noindex'    => true),
-                                          array('from'       => 'proxy_port',
+                                                'noindex'    => true],
+                                          ['from'       => 'proxy_port',
                                                 'to'         => 'proxy_port',
                                                 'default'    => 8080,
                                                 'noindex'    => true,
-                                                'checkdatas' => true),
-                                          array('from'       => 'contract_alerts',
+                                                'checkdatas' => true],
+                                          ['from'       => 'contract_alerts',
                                                 'to'         => 'default_contract_alert',
                                                 'default'    => 0,
-                                                'noindex'    => true),
-                                          array('from'       => 'infocom_alerts',
+                                                'noindex'    => true],
+                                          ['from'       => 'infocom_alerts',
                                                 'to'         => 'default_infocom_alert',
                                                 'default'    => 0,
-                                                'noindex'    => true),
-                                          array('from'       => 'cartridges_alert',
+                                                'noindex'    => true],
+                                          ['from'       => 'cartridges_alert',
                                                 'to'         => 'cartridges_alert_repeat',
                                                 'default'    => 0,
                                                 'noindex'    => true,
-                                                'comments'   => 'in seconds'),
-                                          array('from'       => 'consumables_alert',
+                                                'comments'   => 'in seconds'],
+                                          ['from'       => 'consumables_alert',
                                                 'to'         => 'consumables_alert_repeat',
                                                 'default'    => 0,
                                                 'noindex'    => true,
-                                                'comments'   => 'in seconds'),
-                                          array('from'       => 'monitors_management_restrict',
+                                                'comments'   => 'in seconds'],
+                                          ['from'       => 'monitors_management_restrict',
                                                 'to'         => 'monitors_management_restrict',
                                                 'default'    => 2,
-                                                'noindex'    => true),
-                                          array('from'       => 'phones_management_restrict',
+                                                'noindex'    => true],
+                                          ['from'       => 'phones_management_restrict',
                                                 'to'         => 'phones_management_restrict',
                                                 'default'    => 2,
-                                                'noindex'    => true),
-                                          array('from'       => 'peripherals_management_restrict',
+                                                'noindex'    => true],
+                                          ['from'       => 'peripherals_management_restrict',
                                                 'to'         => 'peripherals_management_restrict',
                                                 'default'    => 2,
-                                                'noindex'    => true),
-                                          array('from'       => 'printers_management_restrict',
+                                                'noindex'    => true],
+                                          ['from'       => 'printers_management_restrict',
                                                 'to'         => 'printers_management_restrict',
                                                 'default'    => 2,
-                                                'noindex'    => true),
-                                          array('from'       => 'autoupdate_link_state',
+                                                'noindex'    => true],
+                                          ['from'       => 'autoupdate_link_state',
                                                 'to'         => 'state_autoupdate_mode',
                                                 'default'    => 0,
-                                                'noindex'    => true),
-                                          array('from'       => 'autoclean_link_state',
+                                                'noindex'    => true],
+                                          ['from'       => 'autoclean_link_state',
                                                 'to'         => 'state_autoclean_mode',
                                                 'default'    => 0,
-                                                'noindex'    => true),
-                                          array('from'       => 'name_display_order',
+                                                'noindex'    => true],
+                                          ['from'       => 'name_display_order',
                                                 'to'         => 'names_format',
                                                 'default'    => 0,
                                                 'noindex'    => true,
-                                                'comments'   => 'see *NAME_BEFORE constant in define.php'),
-                                          array('from'       => 'dropdown_limit',
+                                                'comments'   => 'see *NAME_BEFORE constant in define.php'],
+                                          ['from'       => 'dropdown_limit',
                                                 'to'         => 'dropdown_chars_limit',
                                                 'default'    => 50,
-                                                'noindex'    => true),
-                                          array('from'       => 'smtp_mode',
+                                                'noindex'    => true],
+                                          ['from'       => 'smtp_mode',
                                                 'to'         => 'smtp_mode',
                                                 'default'    => 0,
                                                 'noindex'    => true,
-                                                'comments'   => 'see define.php MAIL_* constant'),
-                                          array('from'       => 'mailgate_filesize_max',
+                                                'comments'   => 'see define.php MAIL_* constant'],
+                                          ['from'       => 'mailgate_filesize_max',
                                                 'to'         => 'default_mailcollector_filesize_max',
                                                 'default'    => 2097152,
-                                                'noindex'    => true)),
+                                                'noindex'    => true]],
 
-              'glpi_consumableitems'
-                                 => array(array('from'    => 'alarm',
+                                 'glpi_consumableitems'
+                                 => [['from'    => 'alarm',
                                                 'to'      => 'alarm_threshold',
-                                                'default' => 10)),
+                                                'default' => 10]],
 
-              'glpi_contracts'   => array(array('from'    => 'duration',
+                                 'glpi_contracts'   => [['from'    => 'duration',
                                                 'to'      => 'duration',
                                                 'default' => 0,
-                                                'noindex' => true),
-                                          array('from'    => 'notice',
+                                                'noindex' => true],
+                                          ['from'    => 'notice',
                                                 'to'      => 'notice',
                                                 'default' => 0,
-                                                'noindex' => true),
-                                          array('from'    => 'periodicity',
+                                                'noindex' => true],
+                                          ['from'    => 'periodicity',
                                                 'to'      => 'periodicity',
                                                 'default' => 0,
-                                                'noindex' => true),
-                                          array('from'    => 'facturation',
+                                                'noindex' => true],
+                                          ['from'    => 'facturation',
                                                 'to'      => 'billing',
                                                 'default' => 0,
-                                                'noindex' => true),
-                                          array('from'    => 'device_countmax',
+                                                'noindex' => true],
+                                          ['from'    => 'device_countmax',
                                                 'to'      => 'max_links_allowed',
                                                 'default' => 0,
-                                                'noindex' => true),
-                                          array('from'    => 'alert',
+                                                'noindex' => true],
+                                          ['from'    => 'alert',
                                                 'to'      => 'alert',
-                                                'default' => 0),
-                                          array('from'    => 'renewal',
+                                                'default' => 0],
+                                          ['from'    => 'renewal',
                                                 'to'      => 'renewal',
                                                 'default' => 0,
-                                                'noindex' => true)),
+                                                'noindex' => true]],
 
-              'glpi_displaypreferences'
-                                 => array(array('from'    => 'num',
+                                 'glpi_displaypreferences'
+                                 => [['from'    => 'num',
                                                 'to'      => 'num',
-                                                'default' => 0),
-                                          array('from'    => 'rank',
+                                                'default' => 0],
+                                          ['from'    => 'rank',
                                                 'to'      => 'rank',
-                                                'default' => 0)),
+                                                'default' => 0]],
 
-              'glpi_events'      => array(array('from'    => 'level',
+                                 'glpi_events'      => [['from'    => 'level',
                                                 'to'      => 'level',
-                                                'default' => 0)),
+                                                'default' => 0]],
 
-              'glpi_infocoms'    => array(array('from'    => 'warranty_duration',
+                                 'glpi_infocoms'    => [['from'    => 'warranty_duration',
                                                 'to'      => 'warranty_duration',
                                                 'default' => 0,
-                                                'noindex' => true),
-                                          array('from'    => 'amort_time',
+                                                'noindex' => true],
+                                          ['from'    => 'amort_time',
                                                 'to'      => 'sink_time',
                                                 'default' => 0,
-                                                'noindex' => true),
-                                          array('from'    => 'amort_type',
+                                                'noindex' => true],
+                                          ['from'    => 'amort_type',
                                                 'to'      => 'sink_type',
                                                 'default' => 0,
-                                                'noindex' => true),
-                                          array('from'    => 'alert',
+                                                'noindex' => true],
+                                          ['from'    => 'alert',
                                                 'to'      => 'alert',
-                                                'default' => 0)),
+                                                'default' => 0]],
 
-              'glpi_mailingsettings'
-                                 => array(array('from'     => 'item_type',
+                                 'glpi_mailingsettings'
+                                 => [['from'     => 'item_type',
                                                 'to'       => 'mailingtype',
                                                 'default'  => 0,
                                                 'noindex'  => true,
-                                                'comments' => 'see define.php *_MAILING_TYPE constant')),//
+                                                'comments' => 'see define.php *_MAILING_TYPE constant']],//
 
-              'glpi_monitors'    => array(array('from'    => 'size',
+                                 'glpi_monitors'    => [['from'    => 'size',
                                                 'to'      => 'size',
                                                 'default' => 0,
-                                                'noindex' => true)),
+                                                'noindex' => true]],
 
-              'glpi_printers'    => array(array('from'       => 'initial_pages',
+                                 'glpi_printers'    => [['from'       => 'initial_pages',
                                                 'to'         => 'init_pages_counter',
                                                 'default'    => 0,
                                                 'noindex'    => true,
-                                                'checkdatas' => true)),
+                                                'checkdatas' => true]],
 
-              'glpi_profiles'    => array(array('from'    => 'helpdesk_hardware',
+                                 'glpi_profiles'    => [['from'    => 'helpdesk_hardware',
                                                 'to'      => 'helpdesk_hardware',
                                                 'default' => 0,
-                                                'noindex' => true)),
+                                                'noindex' => true]],
 
-              'glpi_plugins'     => array(array('from'     => 'state',
+                                 'glpi_plugins'     => [['from'     => 'state',
                                                 'to'       => 'state',
                                                 'default'  => 0,
-                                                'comments' => 'see define.php PLUGIN_* constant')),//
+                                                'comments' => 'see define.php PLUGIN_* constant']],//
 
-              'glpi_reminders'   => array(array('from'    => 'state',
+                                 'glpi_reminders'   => [['from'    => 'state',
                                                 'to'      => 'state',
-                                                'default' => 0)),
+                                                'default' => 0]],
 
-              'glpi_ticketplannings'
-                                 => array(array('from'    => 'state',
+                                 'glpi_ticketplannings'
+                                 => [['from'    => 'state',
                                                 'to'      => 'state',
-                                                'default' => 1)),
+                                                'default' => 1]],
 
-              'glpi_rulecriterias'
-                                 => array(array('from'     => 'condition',
+                                 'glpi_rulecriterias'
+                                 => [['from'     => 'condition',
                                                 'to'       => 'condition',
                                                 'default'  => 0,
-                                                'comments' => 'see define.php PATTERN_* and REGEX_* constant')),//
+                                                'comments' => 'see define.php PATTERN_* and REGEX_* constant']],//
 
-              'glpi_rules'       => array(array('from'     => 'sub_type',
+                                 'glpi_rules'       => [['from'     => 'sub_type',
                                                 'to'       => 'sub_type',
                                                 'default'  => 0,
-                                                'comments' => 'see define.php RULE_* constant')),//
+                                                'comments' => 'see define.php RULE_* constant']],//
 
-              'glpi_tickets'     => array(array('from'    => 'request_type',
+                                 'glpi_tickets'     => [['from'    => 'request_type',
                                                 'to'      => 'request_type',
                                                 'default' => 0,
-                                                'noindex' => true),
-                                          array('from'    => 'priority',
+                                                'noindex' => true],
+                                          ['from'    => 'priority',
                                                 'to'      => 'priority',
                                                 'default' => 1,
-                                                'noindex' => true)),
+                                                'noindex' => true]],
 
-              'glpi_transfers'   => array(array('from'    => 'keep_tickets',
+                                 'glpi_transfers'   => [['from'    => 'keep_tickets',
                                                 'to'      => 'keep_ticket',
                                                 'default' => 0,
-                                                'noindex' => true),
-                                          array('from'    => 'keep_networklinks',
+                                                'noindex' => true],
+                                          ['from'    => 'keep_networklinks',
                                                 'to'      => 'keep_networklink',
                                                 'default' => 0,
-                                                'noindex' => true),
-                                          array('from'    => 'keep_reservations',
+                                                'noindex' => true],
+                                          ['from'    => 'keep_reservations',
                                                 'to'      => 'keep_reservation',
                                                 'default' => 0,
-                                                'noindex' => true),
-                                          array('from'    => 'keep_history',
+                                                'noindex' => true],
+                                          ['from'    => 'keep_history',
                                                 'to'      => 'keep_history',
                                                 'default' => 0,
-                                                'noindex' => true),
-                                          array('from'    => 'keep_devices',
+                                                'noindex' => true],
+                                          ['from'    => 'keep_devices',
                                                 'to'      => 'keep_device',
                                                 'default' => 0,
-                                                'noindex' => true),
-                                          array('from'    => 'keep_infocoms',
+                                                'noindex' => true],
+                                          ['from'    => 'keep_infocoms',
                                                 'to'      => 'keep_infocom',
                                                 'default' => 0,
-                                                'noindex' => true),
-                                          array('from'    => 'keep_dc_monitor',
+                                                'noindex' => true],
+                                          ['from'    => 'keep_dc_monitor',
                                                 'to'      => 'keep_dc_monitor',
                                                 'default' => 0,
-                                                'noindex' => true),
-                                          array('from'    => 'clean_dc_monitor',
+                                                'noindex' => true],
+                                          ['from'    => 'clean_dc_monitor',
                                                 'to'      => 'clean_dc_monitor',
                                                 'default' => 0,
-                                                'noindex' => true),
-                                          array('from'    => 'keep_dc_phone',
+                                                'noindex' => true],
+                                          ['from'    => 'keep_dc_phone',
                                                 'to'      => 'keep_dc_phone',
                                                 'default' => 0,
-                                                'noindex' => true),
-                                          array('from'    => 'clean_dc_phone',
+                                                'noindex' => true],
+                                          ['from'    => 'clean_dc_phone',
                                                 'to'      => 'clean_dc_phone',
                                                 'default' => 0,
-                                                'noindex' => true),
-                                          array('from'    => 'keep_dc_peripheral',
+                                                'noindex' => true],
+                                          ['from'    => 'keep_dc_peripheral',
                                                 'to'      => 'keep_dc_peripheral',
                                                 'default' => 0,
-                                                'noindex' => true),
-                                          array('from'    => 'clean_dc_peripheral',
+                                                'noindex' => true],
+                                          ['from'    => 'clean_dc_peripheral',
                                                 'to'      => 'clean_dc_peripheral',
                                                 'default' => 0,
-                                                'noindex' => true),
-                                          array('from'    => 'keep_dc_printer',
+                                                'noindex' => true],
+                                          ['from'    => 'keep_dc_printer',
                                                 'to'      => 'keep_dc_printer',
                                                 'default' => 0,
-                                                'noindex' => true),
-                                          array('from'    => 'clean_dc_printer',
+                                                'noindex' => true],
+                                          ['from'    => 'clean_dc_printer',
                                                 'to'      => 'clean_dc_printer',
                                                 'default' => 0,
-                                                'noindex' => true),
-                                          array('from'    => 'keep_enterprises',
+                                                'noindex' => true],
+                                          ['from'    => 'keep_enterprises',
                                                 'to'      => 'keep_supplier',
                                                 'default' => 0,
-                                                'noindex' => true),
-                                          array('from'    => 'clean_enterprises',
+                                                'noindex' => true],
+                                          ['from'    => 'clean_enterprises',
                                                 'to'      => 'clean_supplier',
                                                 'default' => 0,
-                                                'noindex' => true),
-                                          array('from'    => 'keep_contacts',
+                                                'noindex' => true],
+                                          ['from'    => 'keep_contacts',
                                                 'to'      => 'keep_contact',
                                                 'default' => 0,
-                                                'noindex' => true),
-                                          array('from'    => 'clean_contacts',
+                                                'noindex' => true],
+                                          ['from'    => 'clean_contacts',
                                                 'to'      => 'clean_contact',
                                                 'default' => 0,
-                                                'noindex' => true),
-                                          array('from'    => 'keep_contracts',
+                                                'noindex' => true],
+                                          ['from'    => 'keep_contracts',
                                                 'to'      => 'keep_contract',
                                                 'default' => 0,
-                                                'noindex' => true),
-                                          array('from'    => 'clean_contracts',
+                                                'noindex' => true],
+                                          ['from'    => 'clean_contracts',
                                                 'to'      => 'clean_contract',
                                                 'default' => 0,
-                                                'noindex' => true),
-                                          array('from'    => 'keep_softwares',
+                                                'noindex' => true],
+                                          ['from'    => 'keep_softwares',
                                                 'to'      => 'keep_software',
                                                 'default' => 0,
-                                                'noindex' => true),
-                                          array('from'    => 'clean_softwares',
+                                                'noindex' => true],
+                                          ['from'    => 'clean_softwares',
                                                 'to'      => 'clean_software',
                                                 'default' => 0,
-                                                'noindex' => true),
-                                          array('from'    => 'keep_documents',
+                                                'noindex' => true],
+                                          ['from'    => 'keep_documents',
                                                 'to'      => 'keep_document',
                                                 'default' => 0,
-                                                'noindex' => true),
-                                          array('from'    => 'clean_documents',
+                                                'noindex' => true],
+                                          ['from'    => 'clean_documents',
                                                 'to'      => 'clean_document',
                                                 'default' => 0,
-                                                'noindex' => true),
-                                          array('from'    => 'keep_cartridges_type',
+                                                'noindex' => true],
+                                          ['from'    => 'keep_cartridges_type',
                                                 'to'      => 'keep_cartridgeitem',
                                                 'default' => 0,
-                                                'noindex' => true),
-                                          array('from'    => 'clean_cartridges_type',
+                                                'noindex' => true],
+                                          ['from'    => 'clean_cartridges_type',
                                                 'to'      => 'clean_cartridgeitem',
                                                 'default' => 0,
-                                                'noindex' => true),
-                                          array('from'    => 'keep_cartridges',
+                                                'noindex' => true],
+                                          ['from'    => 'keep_cartridges',
                                                 'to'      => 'keep_cartridge',
                                                 'default' => 0,
-                                                'noindex' => true),
-                                          array('from'    => 'keep_consumables',
+                                                'noindex' => true],
+                                          ['from'    => 'keep_consumables',
                                                 'to'      => 'keep_consumable',
                                                 'default' => 0,
-                                                'noindex' => true)),
+                                                'noindex' => true]],
 
-              'glpi_users'       => array(array('from'      => 'dateformat',
+                                 'glpi_users'       => [['from'      => 'dateformat',
                                                 'to'        => 'date_format',
-                                                'default'   => NULL,
+                                                'default'   => null,
                                                 'noindex'   => true,
-                                                'maybenull' => true),
-                                          array('from'      => 'numberformat',
+                                                'maybenull' => true],
+                                          ['from'      => 'numberformat',
                                                 'to'        => 'number_format',
-                                                'default'   => NULL,
+                                                'default'   => null,
                                                 'noindex'   => true,
-                                                'maybenull' => true),
-                                          array('from'      => 'use_mode',
+                                                'maybenull' => true],
+                                          ['from'      => 'use_mode',
                                                 'to'        => 'use_mode',
                                                 'default'   => 0,
-                                                'noindex'   => true),
-                                          array('from'      => 'dropdown_limit',
+                                                'noindex'   => true],
+                                          ['from'      => 'dropdown_limit',
                                                 'to'        => 'dropdown_chars_limit',
-                                                'default'   => NULL,
+                                                'default'   => null,
                                                 'maybenull' => true,
-                                                'noindex'   => true)));
+                                                'noindex'   => true]]];
 
    foreach ($intfields as $table => $tab) {
       foreach ($tab as $update) {
@@ -2263,16 +2259,16 @@ function update0723to078() {
             $NULL = "NULL";
          }
          $check_datas=false;
-         if (isset($update['checkdatas']) ) {
+         if (isset($update['checkdatas'])) {
             $check_datas=$update['checkdatas'];
          }
          $addcomment = "";
-         if (isset($update['comments']) ) {
+         if (isset($update['comments'])) {
             $addcomment = "COMMENT '".$update['comments']."'";
          }
 
          // Rename field
-         if (FieldExists($table, $oldname, false)) {
+         if ($DB->fieldExists($table, $oldname, false)) {
             if ($check_datas) {
                $query = "SELECT `id`, `$oldname`
                          FROM `$table`";
@@ -2311,83 +2307,82 @@ function update0723to078() {
    $migration->displayMessage(sprintf(__('Change of the database layout - %s'),
                                          'Clean DB: others field changes'));
 
-   if (FieldExists('glpi_alerts', 'date', false)) {
+   if ($DB->fieldExists('glpi_alerts', 'date', false)) {
       $changes['glpi_alerts'][] = "CHANGE `date` `date` DATETIME NOT NULL";
    }
-   if (FieldExists('glpi_configs', 'date_fiscale', false)) {
+   if ($DB->fieldExists('glpi_configs', 'date_fiscale', false)) {
       $changes['glpi_configs'][] = "CHANGE `date_fiscale` `date_tax` DATE NOT NULL
                                                                      DEFAULT '2005-12-31'";
    }
 
-   if (FieldExists('glpi_configs', 'sendexpire', false)) {
+   if ($DB->fieldExists('glpi_configs', 'sendexpire', false)) {
       $changes['glpi_configs'][] = "DROP `sendexpire`";
    }
-   if (FieldExists('glpi_configs', 'show_admin_doc', false)) {
+   if ($DB->fieldExists('glpi_configs', 'show_admin_doc', false)) {
       $changes['glpi_configs'][] = "DROP `show_admin_doc`";
    }
-   if (FieldExists('glpi_configs', 'licenses_management_restrict', false)) {
+   if ($DB->fieldExists('glpi_configs', 'licenses_management_restrict', false)) {
       $changes['glpi_configs'][] = "DROP `licenses_management_restrict`";
    }
-   if (FieldExists('glpi_configs', 'nextprev_item', false)) {
+   if ($DB->fieldExists('glpi_configs', 'nextprev_item', false)) {
       $changes['glpi_configs'][] = "DROP `nextprev_item`";
    }
 
-   if (FieldExists('glpi_configs', 'logotxt', false)) {
+   if ($DB->fieldExists('glpi_configs', 'logotxt', false)) {
       $changes['glpi_configs'][] = "DROP `logotxt`";
    }
 
-   if (FieldExists('glpi_configs', 'num_of_events', false)) {
+   if ($DB->fieldExists('glpi_configs', 'num_of_events', false)) {
       $changes['glpi_configs'][] = "DROP `num_of_events`";
    }
 
-   if (FieldExists('glpi_configs', 'tracking_order', false)) {
+   if ($DB->fieldExists('glpi_configs', 'tracking_order', false)) {
       $changes['glpi_configs'][] = "DROP `tracking_order`";
    }
 
-   if (FieldExists('glpi_contracts', 'bill_type', false)) {
+   if ($DB->fieldExists('glpi_contracts', 'bill_type', false)) {
       $changes['glpi_contracts'][] = "DROP `bill_type`";
    }
 
-   if (FieldExists('glpi_infocoms', 'amort_coeff', false)) {
+   if ($DB->fieldExists('glpi_infocoms', 'amort_coeff', false)) {
       $changes['glpi_infocoms'][] = "CHANGE `amort_coeff` `sink_coeff` FLOAT NOT NULL DEFAULT '0'";
    }
 
-   if (FieldExists('glpi_ocsservers', 'import_software_comments', false)) {
+   if ($DB->fieldExists('glpi_ocsservers', 'import_software_comments', false)) {
       $changes['glpi_ocsservers'][] = "DROP `import_software_comments`";
    }
 
-   if (FieldExists('glpi_users', 'nextprev_item', false)) {
+   if ($DB->fieldExists('glpi_users', 'nextprev_item', false)) {
       $changes['glpi_users'][] = "DROP `nextprev_item`";
    }
 
-   if (FieldExists('glpi_users', 'num_of_events', false)) {
+   if ($DB->fieldExists('glpi_users', 'num_of_events', false)) {
       $changes['glpi_users'][] = "DROP `num_of_events`";
    }
 
-   if (FieldExists('glpi_users', 'tracking_order', false)) {
+   if ($DB->fieldExists('glpi_users', 'tracking_order', false)) {
       $changes['glpi_users'][] = "DROP `tracking_order`";
    }
 
-   if (FieldExists('glpi_rulerightparameters', 'sub_type', false)) {
+   if ($DB->fieldExists('glpi_rulerightparameters', 'sub_type', false)) {
       $changes['glpi_rulerightparameters'][] = "DROP `sub_type`";
    }
 
-   if (FieldExists('glpi_softwares', 'oldstate', false)) {
+   if ($DB->fieldExists('glpi_softwares', 'oldstate', false)) {
       $changes['glpi_softwares'][] = "DROP `oldstate`";
    }
 
-   if (FieldExists('glpi_users', 'password', false)) {
+   if ($DB->fieldExists('glpi_users', 'password', false)) {
       $changes['glpi_users'][] = "DROP `password`";
    }
 
-   if (FieldExists('glpi_users', 'password_md5', false)) {
+   if ($DB->fieldExists('glpi_users', 'password_md5', false)) {
       $changes['glpi_users'][] = "CHANGE `password_md5` `password` CHAR( 40 )  NULL DEFAULT NULL";
    }
 
-   if (!FieldExists('glpi_mailcollectors', 'filesize_max', false)) {
+   if (!$DB->fieldExists('glpi_mailcollectors', 'filesize_max', false)) {
       $changes['glpi_mailcollectors'][] = "ADD `filesize_max` INT(11) NOT NULL DEFAULT 2097152";
    }
-
 
    $migration->displayMessage(sprintf(__('Change of the database layout - %s'),
                                          'Clean DB: index management'));
@@ -2404,11 +2399,11 @@ function update0723to078() {
    if (!isIndex('glpi_computers_items', 'unicity')) {
       $changes['glpi_computers_items'][] = "ADD UNIQUE `unicity` (`itemtype`, `items_id`,
                                                                   `computers_id`)";
-  }
+   }
 
    if (!isIndex('glpi_contacts_suppliers', 'unicity')) {
       $changes['glpi_contacts_suppliers'][] = "ADD UNIQUE `unicity` (`suppliers_id`, `contacts_id`)";
-  }
+   }
 
    if (!isIndex('glpi_contracts_items', 'unicity')) {
       $changes['glpi_contracts_items'][] = "ADD UNIQUE `unicity` (`contracts_id`, `itemtype`,
@@ -2557,39 +2552,39 @@ function update0723to078() {
       $changes['glpi_groups_users'][] = "ADD UNIQUE `unicity` (`users_id`, `groups_id`)";
    }
 
-   $indextodrop = array('glpi_alerts'                     => array('alert', 'FK_device'),
-                        'glpi_cartridges_printermodels'   => array('FK_glpi_type_printer'),
-                        'glpi_computers_items'            => array('connect', 'type', 'end1',
-                                                                   'end1_2'),
-                        'glpi_consumables'                => array('FK_glpi_cartridges_type'),
-                        'glpi_contacts_suppliers'         => array('FK_enterprise'),
-                        'glpi_contracts_items'            => array('FK_contract_device',
-                                                                   'device_type'),
-                        'glpi_contracts_suppliers'        => array('FK_enterprise'),
-                        'glpi_displaypreferences'         => array('display', 'FK_users'),
-                        'glpi_bookmarks_users'            => array('FK_users'),
-                        'glpi_documents_items'            => array('FK_doc_device', 'device_type',
-                                                                   'FK_device'),
-                        'glpi_knowbaseitemcategories'     => array('parentID_2', 'parentID'),
-                        'glpi_locations'                  => array('FK_entities'),
-                        'glpi_netpoints'                  => array('FK_entities', 'location'),
-                        'glpi_entities'                   => array('name'/*,'parentID'*/),
-                        'glpi_entitydatas'                => array('FK_entities'),
-                        'glpi_events'                     => array('comp', 'itemtype'),
-                        'glpi_infocoms'                   => array('FK_device'),
-                        'glpi_computers_softwareversions' => array('sID'),
-                        'glpi_links_itemtypes'            => array('link'),
-                        'glpi_mailingsettings'            => array('mailings', 'FK_item'),
-                        'glpi_networkports'               => array('device_type'),
-                        'glpi_networkports_vlans'         => array('portvlan'),
-                        'glpi_networkports_networkports'  => array('netwire', 'end1', 'end1_2'),
-                        'glpi_ocslinks'                   => array('ocs_server_id'),
-                        'glpi_plugins'                    => array('name'),
-                        'glpi_reservationitems'           => array('reservationitem'),
-                        'glpi_tickets'                    => array('computer', 'device_type'),
-                        'glpi_documenttypes'              => array('extension'),
-                        'glpi_users'                      => array('name'),
-                        'glpi_groups_users'               => array('usergroup'));
+   $indextodrop = ['glpi_alerts'                     => ['alert', 'FK_device'],
+                        'glpi_cartridges_printermodels'   => ['FK_glpi_type_printer'],
+                        'glpi_computers_items'            => ['connect', 'type', 'end1',
+                                                                   'end1_2'],
+                        'glpi_consumables'                => ['FK_glpi_cartridges_type'],
+                        'glpi_contacts_suppliers'         => ['FK_enterprise'],
+                        'glpi_contracts_items'            => ['FK_contract_device',
+                                                                   'device_type'],
+                        'glpi_contracts_suppliers'        => ['FK_enterprise'],
+                        'glpi_displaypreferences'         => ['display', 'FK_users'],
+                        'glpi_bookmarks_users'            => ['FK_users'],
+                        'glpi_documents_items'            => ['FK_doc_device', 'device_type',
+                                                                   'FK_device'],
+                        'glpi_knowbaseitemcategories'     => ['parentID_2', 'parentID'],
+                        'glpi_locations'                  => ['FK_entities'],
+                        'glpi_netpoints'                  => ['FK_entities', 'location'],
+                        'glpi_entities'                   => ['name'/*,'parentID'*/],
+                        'glpi_entitydatas'                => ['FK_entities'],
+                        'glpi_events'                     => ['comp', 'itemtype'],
+                        'glpi_infocoms'                   => ['FK_device'],
+                        'glpi_computers_softwareversions' => ['sID'],
+                        'glpi_links_itemtypes'            => ['link'],
+                        'glpi_mailingsettings'            => ['mailings', 'FK_item'],
+                        'glpi_networkports'               => ['device_type'],
+                        'glpi_networkports_vlans'         => ['portvlan'],
+                        'glpi_networkports_networkports'  => ['netwire', 'end1', 'end1_2'],
+                        'glpi_ocslinks'                   => ['ocs_server_id'],
+                        'glpi_plugins'                    => ['name'],
+                        'glpi_reservationitems'           => ['reservationitem'],
+                        'glpi_tickets'                    => ['computer', 'device_type'],
+                        'glpi_documenttypes'              => ['extension'],
+                        'glpi_users'                      => ['name'],
+                        'glpi_groups_users'               => ['usergroup']];
 
    foreach ($indextodrop as $table => $tab) {
       foreach ($tab as $indexname) {
@@ -2602,16 +2597,15 @@ function update0723to078() {
    foreach ($changes as $table => $tab) {
       $migration->displayMessage(sprintf(__('Change of the database layout - %s'), $table));
       $query = "ALTER TABLE `$table`
-                ".implode($tab," ,\n").";";
+                ".implode($tab, " ,\n").";";
       $DB->queryOrDie($query, "0.78 multiple alter in $table");
    }
-
 
    $migration->displayMessage(sprintf(__('Change of the database layout - %s'),
                                       'Update itemtype fields'));
 
    // Convert itemtype to Class names
-   $typetoname = array(GENERAL_TYPE          => "",// For tickets
+   $typetoname = [GENERAL_TYPE          => "",// For tickets
                        COMPUTER_TYPE         => "Computer",
                        NETWORKING_TYPE       => "NetworkEquipment",
                        PRINTER_TYPE          => "Printer",
@@ -2655,10 +2649,10 @@ function update0723to078() {
                        COMPUTERDISK_TYPE     => "ComputerDisk",
                        NETWORKING_PORT_TYPE  => "NetworkPort",
                        FOLLOWUP_TYPE         => "TicketFollowup",
-                       BUDGET_TYPE           => "Budget");
+                       BUDGET_TYPE           => "Budget"];
                         // End is not used in 0.72.x
 
-   $devtypetoname = array(MOBOARD_DEVICE     => 'DeviceMotherboard',
+   $devtypetoname = [MOBOARD_DEVICE     => 'DeviceMotherboard',
                           PROCESSOR_DEVICE   => 'DeviceProcessor',
                           RAM_DEVICE         => 'DeviceMemory',
                           HDD_DEVICE         => 'DeviceHardDrive',
@@ -2669,12 +2663,12 @@ function update0723to078() {
                           SND_DEVICE         => 'DeviceSoundCard',
                           PCI_DEVICE         => 'DevicePci',
                           CASE_DEVICE        => 'DeviceCase',
-                          POWER_DEVICE       => 'DevicePowerSupply');
+                          POWER_DEVICE       => 'DevicePowerSupply'];
 
-   $itemtype_tables = array("glpi_alerts", "glpi_bookmarks", "glpi_bookmarks_users",
+   $itemtype_tables = ["glpi_alerts", "glpi_bookmarks", "glpi_bookmarks_users",
                             "glpi_computers_items", "glpi_contracts_items", "glpi_displaypreferences",
                             "glpi_documents_items", "glpi_infocoms", "glpi_links_itemtypes",
-                            "glpi_networkports", "glpi_reservationitems", "glpi_tickets");
+                            "glpi_networkports", "glpi_reservationitems", "glpi_tickets"];
 
    foreach ($itemtype_tables as $table) {
       $migration->displayMessage(sprintf(__('Data migration - %s'), "$table")); // Updating data
@@ -2692,7 +2686,7 @@ function update0723to078() {
       }
    }
 
-   if (FieldExists('glpi_logs', 'device_type', false)) {
+   if ($DB->fieldExists('glpi_logs', 'device_type', false)) {
 
       // History migration, handled separatly for optimization
       $migration->displayMessage(sprintf(__('Change of the database layout - %s'), 'glpi_logs - 1'));
@@ -2768,7 +2762,6 @@ function update0723to078() {
       $DB->queryOrDie($query, "0.78 add name index in glpi_locations");
    }
 
-
    // Update values of mailcollectors
    $query = "SELECT `default_mailcollector_filesize_max`
              FROM `glpi_configs`
@@ -2776,11 +2769,10 @@ function update0723to078() {
    if ($result=$DB->query($query)) {
       if ($DB->numrows($result)>0) {
          $query = "UPDATE `glpi_mailcollectors`
-                   SET `filesize_max` = '".$DB->result($result,0,0)."';";
+                   SET `filesize_max` = '".$DB->result($result, 0, 0)."';";
          $DB->query($query);
       }
    }
-
 
    // For compatibility with updates from past versions
    regenerateTreeCompleteName("glpi_locations");
@@ -2788,35 +2780,34 @@ function update0723to078() {
    regenerateTreeCompleteName("glpi_ticketcategories");
 
    // Update timezone values
-   if (FieldExists('glpi_configs', 'time_offset', false)) {
+   if ($DB->fieldExists('glpi_configs', 'time_offset', false)) {
       $query = "UPDATE `glpi_configs`
                 SET `time_offset` = `time_offset`*3600";
       $DB->queryOrDie($query, "0.78 update time_offset value in glpi_configs");
    }
 
-   if (FieldExists('glpi_authldaps', 'time_offset', false)) {
+   if ($DB->fieldExists('glpi_authldaps', 'time_offset', false)) {
       $query = "UPDATE `glpi_authldaps`
                 SET `time_offset` = `time_offset`*3600";
       $DB->queryOrDie($query, "0.78 update time_offset value in glpi_authldaps");
    }
 
-
    // Change defaults store values :
-   if (FieldExists('glpi_softwares', 'sofwtares_id', false)) {
+   if ($DB->fieldExists('glpi_softwares', 'sofwtares_id', false)) {
       $query = "UPDATE `glpi_softwares`
                 SET `sofwtares_id` = 0
                 WHERE `sofwtares_id` < 0";
       $DB->queryOrDie($query, "0.78 update default value of sofwtares_id in glpi_softwares");
    }
 
-   if (FieldExists('glpi_users', 'authtype', false)) {
+   if ($DB->fieldExists('glpi_users', 'authtype', false)) {
       $query = "UPDATE `glpi_users`
                 SET `authtype` = 0
                 WHERE `authtype` < 0";
       $DB->queryOrDie($query, "0.78 update default value of authtype in glpi_users");
    }
 
-   if (FieldExists('glpi_users', 'auths_id', false)) {
+   if ($DB->fieldExists('glpi_users', 'auths_id', false)) {
       $query = "UPDATE `glpi_users`
                 SET `auths_id` = 0
                 WHERE `auths_id` < 0";
@@ -2824,7 +2815,7 @@ function update0723to078() {
    }
 
    // Update glpi_ocsadmininfoslinks table for new field name
-   if (FieldExists('glpi_ocsadmininfoslinks', 'glpi_column', false)) {
+   if ($DB->fieldExists('glpi_ocsadmininfoslinks', 'glpi_column', false)) {
       $query = "UPDATE `glpi_ocsadmininfoslinks`
                 SET `glpi_column` = 'locations_id'
                 WHERE `glpi_column` = 'location'";
@@ -2842,13 +2833,13 @@ function update0723to078() {
    }
 
    // Update bookmarks for new columns fields
-   if (FieldExists('glpi_bookmarks', 'is_private', false)) {
+   if ($DB->fieldExists('glpi_bookmarks', 'is_private', false)) {
       $query = "UPDATE `glpi_bookmarks`
                 SET `entities_id` = -1
                 WHERE `is_private` = 1";
       $DB->queryOrDie($query, "0.78 update value of entities_id in glpi_bookmarks");
    }
-   if (FieldExists('glpi_reminders', 'is_private', false)) {
+   if ($DB->fieldExists('glpi_reminders', 'is_private', false)) {
       $query = "UPDATE `glpi_reminders`
                 SET `entities_id` = -1
                 WHERE `is_private` = 1";
@@ -2856,11 +2847,11 @@ function update0723to078() {
    }
 
    // Update bookmarks for new columns fields
-   if (FieldExists('glpi_bookmarks', 'query', false)) {
+   if ($DB->fieldExists('glpi_bookmarks', 'query', false)) {
       // All search
-      $olds = array("deleted");
+      $olds = ["deleted"];
 
-      $news = array("is_deleted");
+      $news = ["is_deleted"];
       foreach ($olds as $key => $val) {
          $olds[$key] = "/&$val=/";
       }
@@ -2900,7 +2891,6 @@ function update0723to078() {
                  WHERE `path` = 'front/consumable.php'";
       $DB->queryOrDie($query2, "0.78 update consumable bookmarks");
 
-
       $query2 = "UPDATE `glpi_bookmarks`
                  SET `path` = 'front/cartridgeitem.php'
                  WHERE `path` = 'front/cartridge.php'";
@@ -2921,7 +2911,6 @@ function update0723to078() {
                  WHERE `path` = 'front/setup.ocsng.php'";
       $DB->queryOrDie($query2, "0.78 update ocsserver bookmarks");
 
-
       $query2 = "UPDATE `glpi_bookmarks`
                  SET `path` = 'front/supplier.php'
                  WHERE `path` = 'front/enterprise.php'";
@@ -2939,21 +2928,21 @@ function update0723to078() {
    }
 
    //// Upgrade rules datas
-   $changes = array();
+   $changes = [];
    // For Rule::RULE_AFFECT_RIGHTS
-   $changes[1] = array('FK_entities' => 'entities_id',
+   $changes[1] = ['FK_entities' => 'entities_id',
                        'FK_profiles' => 'profiles_id',
                        'recursive'   => 'is_recursive',
-                       'active'      => 'is_active');
+                       'active'      => 'is_active'];
    // For Rule::RULE_DICTIONNARY_SOFTWARE
-   $changes[4] = array('helpdesk_visible '=> 'is_helpdesk_visible');
+   $changes[4] = ['helpdesk_visible '=> 'is_helpdesk_visible'];
    // For Rule::RULE_OCS_AFFECT_COMPUTER
-   $changes[0] = array('FK_entities' => 'entities_id');
+   $changes[0] = ['FK_entities' => 'entities_id'];
    // For Rule::RULE_SOFTWARE_CATEGORY
-   $changes[3] = array('category' => 'softwarecategories_id',
-                       'comment'  => 'comment');
+   $changes[3] = ['category' => 'softwarecategories_id',
+                       'comment'  => 'comment'];
    // For Rule::RULE_TRACKING_AUTO_ACTION
-   $changes[2] = array('category'        => 'ticketcategories_id',
+   $changes[2] = ['category'        => 'ticketcategories_id',
                        'author'          => 'users_id',
                        'author_location' => 'users_locations',
                        'FK_group'        => 'groups_id',
@@ -2962,7 +2951,7 @@ function update0723to078() {
                        'device_type'     => 'itemtype',
                        'FK_entities'     => 'entities_id',
                        'contents'        => 'content',
-                       'request_type'    => 'requesttypes_id');
+                       'request_type'    => 'requesttypes_id'];
 
    $DB->query("SET SESSION group_concat_max_len = 9999999;");
    foreach ($changes as $ruletype => $tab) {
@@ -2974,7 +2963,7 @@ function update0723to078() {
       if ($result = $DB->query($query)) {
          if ($DB->numrows($result)>0) {
             // Get rule string
-            $rules=$DB->result($result,0,0);
+            $rules=$DB->result($result, 0, 0);
             // Update actions
             foreach ($tab as $old => $new) {
                $query = "UPDATE `glpi_ruleactions`
@@ -3002,7 +2991,7 @@ function update0723to078() {
              CHANGE `sub_type` `sub_type` VARCHAR( 255 ) NOT NULL DEFAULT ''";
    $DB->queryOrDie($query, "0.78 change subtype from INT(11) to VARCHAR(255) in glpi_rules");
 
-   $subtypes  = array(0  => 'RuleOcs',
+   $subtypes  = [0  => 'RuleOcs',
                       1  => 'RuleRight',
                       2  => 'RuleTicket',
                       3  => 'RuleSoftwareCategory',
@@ -3023,7 +3012,7 @@ function update0723to078() {
                       18 => 'RuleDictionnaryOperatingSystem',
                       19 => 'RuleDictionnaryOperatingSystemServicePack',
                       20 => 'RuleDictionnaryOperatingSystemVersion',
-                      21 => 'RuleMailCollector');
+                      21 => 'RuleMailCollector'];
 
    foreach ($subtypes as $old_subtype => $new_subtype) {
       $query = "UPDATE `glpi_rules`
@@ -3044,13 +3033,13 @@ function update0723to078() {
       }
    }
 
-   if (FieldExists("glpi_rulecachesoftwares","ignore_ocs_import", false)) {
+   if ($DB->fieldExists("glpi_rulecachesoftwares", "ignore_ocs_import", false)) {
       $query = "ALTER TABLE `glpi_rulecachesoftwares`
                 CHANGE `ignore_ocs_import` `ignore_ocs_import` CHAR( 1 ) NULL DEFAULT NULL ";
       $DB->queryOrDie($query, "0.78 alter table glpi_rulecachesoftwares");
    }
 
-   if (!FieldExists("glpi_rulecachesoftwares","is_helpdesk_visible", false)) {
+   if (!$DB->fieldExists("glpi_rulecachesoftwares", "is_helpdesk_visible", false)) {
       $query = "ALTER TABLE `glpi_rulecachesoftwares`
                 ADD `is_helpdesk_visible` CHAR( 1 ) NULL ";
       $DB->queryOrDie($query, "0.78 add is_helpdesk_visible in glpi_rulecachesoftwares");
@@ -3058,13 +3047,13 @@ function update0723to078() {
 
    $migration->displayMessage(sprintf(__('Change of the database layout - %s'), 'glpi_entities'));
 
-   if (!FieldExists("glpi_entities","sons_cache", false)) {
+   if (!$DB->fieldExists("glpi_entities", "sons_cache", false)) {
       $query = "ALTER TABLE `glpi_entities`
                 ADD `sons_cache` LONGTEXT NULL ; ";
       $DB->queryOrDie($query, "0.78 add sons_cache field in glpi_entities");
    }
 
-   if (!FieldExists("glpi_entities","ancestors_cache", false)) {
+   if (!$DB->fieldExists("glpi_entities", "ancestors_cache", false)) {
       $query = "ALTER TABLE `glpi_entities`
                 ADD `ancestors_cache` LONGTEXT NULL ; ";
       $DB->queryOrDie($query, "0.78 add ancestors_cache field in glpi_entities");
@@ -3072,44 +3061,43 @@ function update0723to078() {
 
    $migration->displayMessage(sprintf(__('Change of the database layout - %s'), 'glpi_configs'));
 
-
-   if (!FieldExists("glpi_configs","default_graphtype", false)) {
+   if (!$DB->fieldExists("glpi_configs", "default_graphtype", false)) {
       $query = "ALTER TABLE `glpi_configs`
                 ADD `default_graphtype` char( 3 ) NOT NULL DEFAULT 'svg'";
       $DB->queryOrDie($query, "0.78 add default_graphtype in glpi_configs");
    }
 
-   if (FieldExists('glpi_configs', 'license_deglobalisation', false)) {
+   if ($DB->fieldExists('glpi_configs', 'license_deglobalisation', false)) {
       $query = "ALTER TABLE `glpi_configs`
                 DROP `license_deglobalisation`;";
       $DB->queryOrDie($query, "0.78 alter clean glpi_configs table");
    }
 
-   if (FieldExists("glpi_configs","use_cache", false)) {
+   if ($DB->fieldExists("glpi_configs", "use_cache", false)) {
       $query = "ALTER TABLE `glpi_configs`
                 DROP `use_cache`;";
       $DB->queryOrDie($query, "0.78 drop use_cache in glpi_configs");
    }
 
-   if (FieldExists("glpi_configs","cache_max_size", false)) {
+   if ($DB->fieldExists("glpi_configs", "cache_max_size", false)) {
       $query = "ALTER TABLE `glpi_configs`
                 DROP `cache_max_size`;";
       $DB->queryOrDie($query, "0.78 drop cache_max_size in glpi_configs");
    }
 
-   if (!FieldExists("glpi_configs","default_request_type", false)) {
+   if (!$DB->fieldExists("glpi_configs", "default_request_type", false)) {
       $query = "ALTER TABLE `glpi_configs`
                 ADD `default_request_type` INT( 11 ) NOT NULL DEFAULT 1";
       $DB->queryOrDie($query, "0.78 add default_request_type in glpi_configs");
    }
 
-   if (!FieldExists("glpi_users","default_request_type", false)) {
+   if (!$DB->fieldExists("glpi_users", "default_request_type", false)) {
       $query = "ALTER TABLE `glpi_users`
                 ADD `default_request_type` INT( 11 ) NULL";
       $DB->queryOrDie($query, "0.78 add default_request_type in glpi_users");
    }
 
-   if (!FieldExists("glpi_configs","use_noright_users_add", false)) {
+   if (!$DB->fieldExists("glpi_configs", "use_noright_users_add", false)) {
       $query = "ALTER TABLE `glpi_configs`
                 ADD `use_noright_users_add` tinyint( 1 ) NOT NULL DEFAULT '1'";
       $DB->queryOrDie($query, "0.78 add use_noright_users_add in glpi_configs");
@@ -3117,7 +3105,7 @@ function update0723to078() {
 
    $migration->displayMessage(sprintf(__('Change of the database layout - %s'), 'glpi_budgets'));
 
-   if (!FieldExists("glpi_profiles","budget", false)) {
+   if (!$DB->fieldExists("glpi_profiles", "budget", false)) {
       $query = "ALTER TABLE `glpi_profiles`
                 ADD `budget` CHAR( 1 ) NULL ";
       $DB->queryOrDie($query, "0.78 add budget in glpi_profiles");
@@ -3128,8 +3116,7 @@ function update0723to078() {
 
    }
 
-
-   if (!FieldExists("glpi_budgets","is_recursive", false)) {
+   if (!$DB->fieldExists("glpi_budgets", "is_recursive", false)) {
       $query = "ALTER TABLE `glpi_budgets`
                 ADD `is_recursive` tinyint(1) NOT NULL DEFAULT '0' AFTER `name`,
                 ADD INDEX `is_recursive` (`is_recursive`)";
@@ -3141,71 +3128,68 @@ function update0723to078() {
       $DB->queryOrDie($query, "0.78 set is_recursive to true in glpi_budgets");
    }
 
-   if (!FieldExists("glpi_budgets","entities_id", false)) {
+   if (!$DB->fieldExists("glpi_budgets", "entities_id", false)) {
          $query = "ALTER TABLE `glpi_budgets`
                    ADD `entities_id` int(11) NOT NULL default '0' AFTER `name`,
                    ADD INDEX `entities_id` (`entities_id`);";
          $DB->queryOrDie($query, "0.78 add entities_id field in glpi_budgets");
    }
 
-   if (!FieldExists("glpi_budgets","is_deleted", false)) {
+   if (!$DB->fieldExists("glpi_budgets", "is_deleted", false)) {
       $query = "ALTER TABLE `glpi_budgets`
                 ADD `is_deleted` tinyint(1) NOT NULL DEFAULT '0',
                 ADD INDEX `is_deleted` (`is_deleted`)";
       $DB->queryOrDie($query, "0.78 add is_deleted field in glpi_budgets");
    }
 
-   if (!FieldExists("glpi_budgets","begin_date", false)) {
+   if (!$DB->fieldExists("glpi_budgets", "begin_date", false)) {
       $query = "ALTER TABLE `glpi_budgets`
                 ADD `begin_date` DATE NULL,
                 ADD INDEX `begin_date` (`begin_date`)";
       $DB->queryOrDie($query, "0.78 add begin_date field in glpi_budgets");
    }
-   if (!FieldExists("glpi_budgets","end_date", false)) {
+   if (!$DB->fieldExists("glpi_budgets", "end_date", false)) {
       $query = "ALTER TABLE `glpi_budgets`
                 ADD `end_date` DATE NULL,
                 ADD INDEX `end_date` (`begin_date`)";
       $DB->queryOrDie($query, "0.78 add end_date field in glpi_budgets");
    }
-   if (!FieldExists("glpi_budgets","value", false)) {
+   if (!$DB->fieldExists("glpi_budgets", "value", false)) {
       $query = "ALTER TABLE `glpi_budgets`
                 ADD `value` DECIMAL( 20, 4 )  NOT NULL default '0.0000'";
       $DB->queryOrDie($query, "0.78 add value field in glpi_budgets");
    }
-   if (!FieldExists("glpi_budgets","is_template", false)) {
+   if (!$DB->fieldExists("glpi_budgets", "is_template", false)) {
       $query = "ALTER TABLE `glpi_budgets`
                 ADD `is_template` tinyint(1) NOT NULL default '0',
                 ADD INDEX `is_template` (`is_template`);";
       $DB->queryOrDie($query, "0.78 add is_template field in glpi_budgets");
    }
 
-   if (!FieldExists("glpi_budgets","template_name", false)) {
+   if (!$DB->fieldExists("glpi_budgets", "template_name", false)) {
       $query = "ALTER TABLE `glpi_budgets`
                 ADD `template_name` varchar(255) default NULL";
       $DB->queryOrDie($query, "0.78 add template_name field in glpi_budgets");
    }
 
-   if (!FieldExists("glpi_budgets","date_mod", false)) {
+   if (!$DB->fieldExists("glpi_budgets", "date_mod", false)) {
       $query = "ALTER TABLE `glpi_budgets`
                 ADD `date_mod`  DATETIME NULL, ADD INDEX `date_mod` (`date_mod`)";
       $DB->queryOrDie($query, "0.78 add date_mod field in glpi_budgets");
    }
 
-
-   if (!FieldExists("glpi_budgets","notepad", false)) {
+   if (!$DB->fieldExists("glpi_budgets", "notepad", false)) {
       $query = "ALTER TABLE `glpi_budgets`
                 ADD `notepad` LONGTEXT NULL collate utf8_unicode_ci";
       $DB->queryOrDie($query, "0.78 add notepad field in glpi_budgets");
    }
 
-
    // Change budget search pref : date_mod
-   $ADDTODISPLAYPREF['Budget']=array(2,3,4,19);
-
+   $ADDTODISPLAYPREF['Budget']=[2,3,4,19];
 
    $migration->displayMessage(sprintf(__('Change of the database layout - %s'),
                                       __('Automatic action')));
-   if (!TableExists('glpi_crontasks')) {
+   if (!$DB->tableExists('glpi_crontasks')) {
       $query = "CREATE TABLE `glpi_crontasks` (
                  `id` int(11) NOT NULL AUTO_INCREMENT,
                  `itemtype` varchar(100) COLLATE utf8_unicode_ci NOT NULL,
@@ -3256,9 +3240,9 @@ function update0723to078() {
       $DB->queryOrDie($query, "0.78 populate glpi_crontasks");
 
    }
-   $ADDTODISPLAYPREF['Crontask'] = array(8, 3, 4, 7);
+   $ADDTODISPLAYPREF['Crontask'] = [8, 3, 4, 7];
 
-   if (!TableExists('glpi_crontasklogs')) {
+   if (!$DB->tableExists('glpi_crontasklogs')) {
       $query = "CREATE TABLE `glpi_crontasklogs` (
                  `id` int(11) NOT NULL AUTO_INCREMENT,
                  `crontasks_id` int(11) NOT NULL,
@@ -3276,13 +3260,13 @@ function update0723to078() {
       $DB->queryOrDie($query, "0.78 create glpi_crontasklogs");
    }
    // Retrieve core task lastrun date
-   $tasks = array('ocsng', 'cartridge', 'consumable', 'software', 'contract', 'infocom', 'logs',
-                  'optimize', 'mailgate', 'DBConnection', 'check_update', 'session');
+   $tasks = ['ocsng', 'cartridge', 'consumable', 'software', 'contract', 'infocom', 'logs',
+                  'optimize', 'mailgate', 'DBConnection', 'check_update', 'session'];
    foreach ($tasks as $task) {
       $lock=GLPI_CRON_DIR. '/' . $task . '.lock';
       if (is_readable($lock) && $stat=stat($lock)) {
          $DB->query("UPDATE `glpi_crontasks`
-                     SET `lastrun` = '".date('Y-m-d H:i:s',$stat['mtime'])."'
+                     SET `lastrun` = '".date('Y-m-d H:i:s', $stat['mtime'])."'
                      WHERE `name` = '$task'");
          unlink($lock);
       }
@@ -3293,13 +3277,13 @@ function update0723to078() {
    }
 
    // disable ocsng cron if not activate
-   if (FieldExists('glpi_configs','use_ocs_mode', false)) {
+   if ($DB->fieldExists('glpi_configs', 'use_ocs_mode', false)) {
       $query = "SELECT `use_ocs_mode`
                 FROM `glpi_configs`
                 WHERE `id` = 1";
       if ($result=$DB->query($query)) {
          if ($DB->numrows($result)>0) {
-            $value = $DB->result($result,0,0);
+            $value = $DB->result($result, 0, 0);
             if ($value==0) {
                $query = "UPDATE `glpi_crontasks`
                          SET `state`='0'
@@ -3310,15 +3294,14 @@ function update0723to078() {
       }
    }
 
-
    // Move glpi_config.expire_events to glpi_crontasks.param
-   if (FieldExists('glpi_configs','expire_events', false)) {
+   if ($DB->fieldExists('glpi_configs', 'expire_events', false)) {
       $query = "SELECT `expire_events`
                 FROM `glpi_configs`
                 WHERE `id` = 1";
       if ($result=$DB->query($query)) {
          if ($DB->numrows($result)>0) {
-            $value = $DB->result($result,0,0);
+            $value = $DB->result($result, 0, 0);
             if ($value>0) {
                $query = "UPDATE `glpi_crontasks`
                          SET `state` = '1',
@@ -3338,13 +3321,13 @@ function update0723to078() {
    }
 
    // Move glpi_config.auto_update_check to glpi_crontasks.state
-   if (FieldExists('glpi_configs','auto_update_check', false)) {
+   if ($DB->fieldExists('glpi_configs', 'auto_update_check', false)) {
       $query = "SELECT `auto_update_check`
                 FROM `glpi_configs`
                 WHERE `id` = 1";
       if ($result=$DB->query($query)) {
          if ($DB->numrows($result)>0) {
-            $value = $DB->result($result,0,0);
+            $value = $DB->result($result, 0, 0);
             if ($value>0) {
                $value *= DAY_TIMESTAMP;
                $query = "UPDATE `glpi_crontasks`
@@ -3364,13 +3347,13 @@ function update0723to078() {
       $DB->queryOrDie($query, "0.78 drop auto_update_check in check_update");
    }
 
-   if (FieldExists('glpi_configs','dbreplicate_maxdelay', false)) {
+   if ($DB->fieldExists('glpi_configs', 'dbreplicate_maxdelay', false)) {
       $query = "SELECT `dbreplicate_maxdelay`
                 FROM `glpi_configs`
                 WHERE `id` = 1";
       if ($result=$DB->query($query)) {
          if ($DB->numrows($result)>0) {
-            $value = $DB->result($result,0,0);
+            $value = $DB->result($result, 0, 0);
             $value = intval($value/60);
             $query = "UPDATE `glpi_crontasks`
                       SET `state` = '1',
@@ -3384,34 +3367,34 @@ function update0723to078() {
       $DB->queryOrDie($query, "0.78 drop dbreplicate_maxdelay in check_update");
    }
 
-   if (FieldExists('glpi_configs','dbreplicate_notify_desynchronization', false)) {
+   if ($DB->fieldExists('glpi_configs', 'dbreplicate_notify_desynchronization', false)) {
       $query = "ALTER TABLE `glpi_configs`
                 DROP `dbreplicate_notify_desynchronization`";
       $DB->queryOrDie($query, "0.78 drop dbreplicate_notify_desynchronization in check_update");
    }
 
-   if (!FieldExists('glpi_configs','cron_limit', false)) {
+   if (!$DB->fieldExists('glpi_configs', 'cron_limit', false)) {
       $query = "ALTER TABLE `glpi_configs`
                 ADD `cron_limit` TINYINT NOT NULL DEFAULT '1'
                                  COMMENT 'Number of tasks execute by external cron'";
       $DB->queryOrDie($query, "0.78 add cron_limit in glpi_configs");
    }
 
-   if (!FieldExists('glpi_documents','sha1sum', false)) {
+   if (!$DB->fieldExists('glpi_documents', 'sha1sum', false)) {
       $query = "ALTER TABLE `glpi_documents`
                 ADD `sha1sum` CHAR(40) NULL DEFAULT NULL ,
                 ADD INDEX `sha1sum` (`sha1sum`)";
       $DB->queryOrDie($query, "0.78 add sha1sum in glpi_documents");
    }
 
-   if (FieldExists('glpi_documents','filename', false)) {
+   if ($DB->fieldExists('glpi_documents', 'filename', false)) {
         $query = "ALTER TABLE `glpi_documents`
                   CHANGE `filename` `filename` VARCHAR( 255 ) NULL DEFAULT NULL
                   COMMENT 'for display and transfert'";
         $DB->queryOrDie($query, "0.78 alter filename in glpi_documents");
    }
 
-   if (!FieldExists('glpi_documents','filepath', false)) {
+   if (!$DB->fieldExists('glpi_documents', 'filepath', false)) {
       $query = "ALTER TABLE `glpi_documents`
                 ADD `filepath` VARCHAR( 255 ) NULL
                 COMMENT 'file storage path' AFTER `filename`";
@@ -3424,7 +3407,7 @@ function update0723to078() {
 
    $migration->displayMessage(sprintf(__('Change of the database layout - %s'), 'Category of tickets'));
 
-   if (!FieldExists('glpi_tickets','solvedate', false)) {
+   if (!$DB->fieldExists('glpi_tickets', 'solvedate', false)) {
       $query = "ALTER TABLE `glpi_tickets`
                 ADD `solvedate` datetime default NULL AFTER `closedate`,
                 ADD INDEX `solvedate` (`solvedate`)";
@@ -3435,7 +3418,7 @@ function update0723to078() {
       $DB->queryOrDie($query, "0.78 update solvedate values in glpi_tickets");
    }
 
-   if (!FieldExists('glpi_ticketcategories','entities_id', false)) {
+   if (!$DB->fieldExists('glpi_ticketcategories', 'entities_id', false)) {
       $query = "ALTER TABLE `glpi_ticketcategories`
                 ADD `entities_id` INT NOT NULL DEFAULT '0' AFTER `id`,
                 ADD `is_recursive` TINYINT( 1 ) NOT NULL DEFAULT '0' AFTER `entities_id`,
@@ -3449,7 +3432,7 @@ function update0723to078() {
       $DB->queryOrDie($query, "0.78 set value of is_recursive in glpi_ticketcategories");
    }
 
-   if (!FieldExists('glpi_ticketcategories','knowbaseitemcategories_id', false)) {
+   if (!$DB->fieldExists('glpi_ticketcategories', 'knowbaseitemcategories_id', false)) {
       $query = "ALTER TABLE `glpi_ticketcategories`
                 ADD `knowbaseitemcategories_id` INT NOT NULL DEFAULT '0',
                 ADD INDEX `knowbaseitemcategories_id` ( `knowbaseitemcategories_id` )";
@@ -3457,7 +3440,7 @@ function update0723to078() {
       $DB->queryOrDie($query, "0.78 add knowbaseitemcategories_id in glpi_ticketcategories");
    }
 
-   if (!FieldExists('glpi_ticketcategories','users_id', false)) {
+   if (!$DB->fieldExists('glpi_ticketcategories', 'users_id', false)) {
       $query = "ALTER TABLE `glpi_ticketcategories`
                 ADD `users_id` INT NOT NULL DEFAULT '0',
                 ADD INDEX `users_id` ( `users_id` ) ";
@@ -3465,7 +3448,7 @@ function update0723to078() {
       $DB->queryOrDie($query, "0.78 add users_id in glpi_ticketcategories");
    }
 
-   if (!FieldExists('glpi_ticketcategories','groups_id', false)) {
+   if (!$DB->fieldExists('glpi_ticketcategories', 'groups_id', false)) {
       $query = "ALTER TABLE `glpi_ticketcategories`
                 ADD `groups_id` INT NOT NULL DEFAULT '0',
                 ADD INDEX `groups_id` ( `groups_id` ) ";
@@ -3473,7 +3456,7 @@ function update0723to078() {
       $DB->queryOrDie($query, "0.78 add groups_id in glpi_ticketcategories");
    }
 
-   if (!FieldExists('glpi_ticketcategories','ancestors_cache', false)) {
+   if (!$DB->fieldExists('glpi_ticketcategories', 'ancestors_cache', false)) {
       $query = "ALTER TABLE `glpi_ticketcategories`
                 ADD `ancestors_cache` LONGTEXT NULL,
                 ADD `sons_cache` LONGTEXT NULL";
@@ -3481,7 +3464,7 @@ function update0723to078() {
       $DB->queryOrDie($query, "0.78 add cache in glpi_ticketcategories");
    }
 
-   if (!FieldExists('glpi_ticketcategories','is_helpdeskvisible', false)) {
+   if (!$DB->fieldExists('glpi_ticketcategories', 'is_helpdeskvisible', false)) {
       $query = "ALTER TABLE `glpi_ticketcategories`
                 ADD `is_helpdeskvisible` TINYINT( 1 ) NOT NULL DEFAULT '1',
                 ADD INDEX `is_helpdeskvisible` (`is_helpdeskvisible`)";
@@ -3489,9 +3472,8 @@ function update0723to078() {
       $DB->queryOrDie($query, "0.78 add cache in glpi_ticketcategories");
    }
 
-
    // change item type management for helpdesk
-   if (FieldExists('glpi_profiles','helpdesk_hardware_type', false)) {
+   if ($DB->fieldExists('glpi_profiles', 'helpdesk_hardware_type', false)) {
       $query = "ALTER TABLE `glpi_profiles`
                 ADD `helpdesk_item_type` TEXT NULL DEFAULT NULL AFTER `helpdesk_hardware_type`";
       $DB->queryOrDie($query, "0.78 add  helpdesk_item_type in glpi_profiles");
@@ -3502,13 +3484,13 @@ function update0723to078() {
          if ($DB->numrows($result)>0) {
             while ($data=$DB->fetch_assoc($result)) {
                $types                    = $data['helpdesk_hardware_type'];
-               $CFG_GLPI["ticket_types"] = array(COMPUTER_TYPE, NETWORKING_TYPE, PRINTER_TYPE,
+               $CFG_GLPI["ticket_types"] = [COMPUTER_TYPE, NETWORKING_TYPE, PRINTER_TYPE,
                                                  MONITOR_TYPE, PERIPHERAL_TYPE, SOFTWARE_TYPE,
-                                                 PHONE_TYPE);
-               $tostore = array();
+                                                 PHONE_TYPE];
+               $tostore = [];
 
                foreach ($CFG_GLPI["ticket_types"] as $itemtype) {
-                  if (pow(2,$itemtype)&$types) {
+                  if (pow(2, $itemtype)&$types) {
                      $tostore[] = $typetoname[$itemtype];
                   }
                }
@@ -3526,8 +3508,7 @@ function update0723to078() {
 
    }
 
-
-   if (!FieldExists('glpi_profiles','helpdesk_status', false)) {
+   if (!$DB->fieldExists('glpi_profiles', 'helpdesk_status', false)) {
       $query = "ALTER TABLE `glpi_profiles`
                 ADD `helpdesk_status` TEXT NULL
                                       COMMENT 'json encoded array of from/dest allowed status change'
@@ -3535,8 +3516,7 @@ function update0723to078() {
       $DB->queryOrDie($query, "0.78 add helpdesk_status in glpi_profiles");
    }
 
-
-   if (!FieldExists('glpi_profiles','update_priority', false)) {
+   if (!$DB->fieldExists('glpi_profiles', 'update_priority', false)) {
       $query = "ALTER TABLE `glpi_profiles`
                 ADD `update_priority` CHAR( 1 ) NULL DEFAULT NULL AFTER `update_ticket`";
       $DB->queryOrDie($query, "0.78 add update_priority in glpi_profiles");
@@ -3547,24 +3527,21 @@ function update0723to078() {
       $DB->queryOrDie($query, "0.78 set update_priority in glpi_profiles");
    }
 
-
-   if (FieldExists('glpi_profiles','comment_ticket', false)) {
+   if ($DB->fieldExists('glpi_profiles', 'comment_ticket', false)) {
       $query = "ALTER TABLE `glpi_profiles`
                 CHANGE `comment_ticket` `add_followups` CHAR(1) NULL DEFAULT NULL";
 
       $DB->queryOrDie($query, "0.78 add add_followups in glpi_profiles");
    }
 
-
-   if (FieldExists('glpi_profiles','comment_all_ticket', false)) {
+   if ($DB->fieldExists('glpi_profiles', 'comment_all_ticket', false)) {
       $query = "ALTER TABLE `glpi_profiles`
                 CHANGE `comment_all_ticket` `global_add_followups`  CHAR(1) NULL DEFAULT NULL";
 
       $DB->queryOrDie($query, "0.78 add add_followups in glpi_profiles");
    }
 
-
-   if (!FieldExists('glpi_profiles','update_tasks', false)) {
+   if (!$DB->fieldExists('glpi_profiles', 'update_tasks', false)) {
       $query = "ALTER TABLE `glpi_profiles`
                 ADD `global_add_tasks` CHAR( 1 ) NULL AFTER `global_add_followups`,
                 ADD `update_tasks` CHAR( 1 ) NULL AFTER `update_followups`";
@@ -3578,8 +3555,7 @@ function update0723to078() {
       $DB->queryOrDie($query, "0.78 set update_tasks, global_add_tasks in glpi_profiles");
    }
 
-
-   if (!TableExists('glpi_taskcategories')) {
+   if (!$DB->tableExists('glpi_taskcategories')) {
       $query = "CREATE TABLE `glpi_taskcategories` (
                   `id` int(11) NOT NULL auto_increment,
                   `entities_id` int(11) NOT NULL default '0',
@@ -3602,7 +3578,7 @@ function update0723to078() {
       $DB->queryOrDie($query, "0.78 create glpi_taskcategories");
    }
 
-   if (!TableExists('glpi_ticketsolutiontypes')) {
+   if (!$DB->tableExists('glpi_ticketsolutiontypes')) {
       $query = "CREATE TABLE `glpi_ticketsolutiontypes` (
                   `id` int(11) NOT NULL auto_increment,
                   `name` varchar(255) default NULL,
@@ -3620,7 +3596,7 @@ function update0723to078() {
       $DB->queryOrDie($query, "0.78 populate glpi_ticketsolutiontypes");
    }
 
-   if (!FieldExists('glpi_tickets', 'solution', false)) {
+   if (!$DB->fieldExists('glpi_tickets', 'solution', false)) {
       $query = "ALTER TABLE `glpi_tickets`
                 ADD `ticketsolutiontypes_id` INT( 11 ) NOT NULL DEFAULT '0',
                 ADD `solution` TEXT NULL";
@@ -3645,14 +3621,14 @@ function update0723to078() {
       $DB->queryOrDie($query, "0.78 migration of glpi_tickets status");
    }
 
-   if (!FieldExists('glpi_documenttypes','comment', false)) {
+   if (!$DB->fieldExists('glpi_documenttypes', 'comment', false)) {
       $query = "ALTER TABLE `glpi_documenttypes`
                 ADD `comment` TEXT NULL ";
 
       $DB->queryOrDie($query, "0.78 add comment in glpi_documenttypes");
    }
 
-   if (!FieldExists('glpi_locations','is_recursive', false)) {
+   if (!$DB->fieldExists('glpi_locations', 'is_recursive', false)) {
       $query = "ALTER TABLE `glpi_locations`
                 ADD `is_recursive` TINYINT( 1 ) NOT NULL DEFAULT '0' AFTER `entities_id`,
                 ADD `ancestors_cache` LONGTEXT NULL,
@@ -3661,7 +3637,7 @@ function update0723to078() {
 
       $DB->queryOrDie($query, "0.78 add recursive, cache in glpi_locations");
    }
-   if (!FieldExists('glpi_locations','building', false)) {
+   if (!$DB->fieldExists('glpi_locations', 'building', false)) {
       $query = "ALTER TABLE `glpi_locations`
                 ADD `building` VARCHAR( 255 ) NULL ,
                 ADD `room` VARCHAR( 255 ) NULL ";
@@ -3669,7 +3645,7 @@ function update0723to078() {
       $DB->queryOrDie($query, "0.78 add building, room in glpi_locations");
    }
 
-   if (!TableExists('glpi_requesttypes')) {
+   if (!$DB->tableExists('glpi_requesttypes')) {
       $query="CREATE TABLE `glpi_requesttypes` (
               `id` int(11) NOT NULL AUTO_INCREMENT,
               `name` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
@@ -3697,71 +3673,71 @@ function update0723to078() {
                   VALUES(6, '".addslashes(__('Other'))."', 0, 0, NULL)");
    }
    // Add default display
-   $ADDTODISPLAYPREF['RequestType'] = array(14, 15);
+   $ADDTODISPLAYPREF['RequestType'] = [14, 15];
 
-   if (FieldExists('glpi_tickets','request_type', false)) {
+   if ($DB->fieldExists('glpi_tickets', 'request_type', false)) {
       $query = "ALTER TABLE `glpi_tickets`
                 CHANGE `request_type` `requesttypes_id` INT( 11 ) NOT NULL DEFAULT '0'";
 
       $DB->queryOrDie($query, "0.78 change requesttypes_id in glpi_tickets");
    }
-   if (FieldExists('glpi_configs','default_request_type', false)) {
+   if ($DB->fieldExists('glpi_configs', 'default_request_type', false)) {
       $query = "ALTER TABLE `glpi_configs`
                 CHANGE `default_request_type` `default_requesttypes_id` INT( 11 ) NOT NULL
                                                                         DEFAULT '1'";
 
       $DB->queryOrDie($query, "0.78 change requesttypes_id in glpi_configs");
    }
-   if (FieldExists('glpi_users','default_request_type', false)) {
+   if ($DB->fieldExists('glpi_users', 'default_request_type', false)) {
       $query = "ALTER TABLE `glpi_users`
                 CHANGE `default_request_type` `default_requesttypes_id` INT( 11 ) NULL DEFAULT NULL";
 
       $DB->queryOrDie($query, "0.78 change requesttypes_id in glpi_users");
    }
 
-   if (!FieldExists('glpi_groups','date_mod', false)) {
+   if (!$DB->fieldExists('glpi_groups', 'date_mod', false)) {
       $query = "ALTER TABLE `glpi_groups`
                 ADD `date_mod` DATETIME NULL, ADD INDEX `date_mod` (`date_mod`)";
 
       $DB->queryOrDie($query, "0.78 add date_mod to glpi_groups");
    }
 
-   if (!FieldExists("glpi_configs","priority_matrix", false)) {
+   if (!$DB->fieldExists("glpi_configs", "priority_matrix", false)) {
       $query = "ALTER TABLE `glpi_configs`
                 ADD `priority_matrix` VARCHAR( 255 ) NULL
                                       COMMENT 'json encoded array for Urgence / Impact to Protority'";
       $DB->queryOrDie($query, "0.78 add priority_matrix  in glpi_configs");
 
-      $matrix = array(1 => array(1 => 1,
+      $matrix = [1 => [1 => 1,
                                  2 => 1,
                                  3 => 2,
                                  4 => 2,
                                  4 => 2,
-                                 5 => 2),
-                      2 => array(1 => 1,
+                                 5 => 2],
+                      2 => [1 => 1,
                                  2 => 2,
                                  3 => 2,
                                  4 => 3,
                                  4 => 3,
-                                 5 => 3),
-                      3 => array(1 => 2,
+                                 5 => 3],
+                      3 => [1 => 2,
                                  2 => 2,
                                  3 => 3,
                                  4 => 4,
                                  4 => 4,
-                                 5 => 4),
-                      4 => array(1 => 2,
+                                 5 => 4],
+                      4 => [1 => 2,
                                  2 => 3,
                                  3 => 4,
                                  4 => 4,
                                  4 => 4,
-                                 5 => 5),
-                      5 => array(1 => 2,
+                                 5 => 5],
+                      5 => [1 => 2,
                                  2 => 3,
                                  3 => 4,
                                  4 => 5,
                                  4 => 5,
-                                 5 => 5));
+                                 5 => 5]];
       $matrix = exportArrayToDB($matrix);
       $query = "UPDATE `glpi_configs`
                 SET `priority_matrix` = '$matrix'
@@ -3769,26 +3745,26 @@ function update0723to078() {
       $DB->queryOrDie($query, "0.78 set default priority_matrix  in glpi_configs");
    }
 
-   if (!FieldExists("glpi_configs","urgency_mask", false)) {
+   if (!$DB->fieldExists("glpi_configs", "urgency_mask", false)) {
       $query = "ALTER TABLE `glpi_configs`
                 ADD `urgency_mask` INT( 11 ) NOT NULL DEFAULT '62',
                 ADD `impact_mask` INT( 11 ) NOT NULL DEFAULT '62'";
       $DB->queryOrDie($query, "0.78 add urgency/impact_mask  in glpi_configs");
    }
 
-   if (!FieldExists("glpi_users","priority_6", false)) {
+   if (!$DB->fieldExists("glpi_users", "priority_6", false)) {
       $query = "ALTER TABLE `glpi_users`
                 ADD `priority_6` CHAR( 20 ) NULL DEFAULT NULL AFTER `priority_5`";
       $DB->queryOrDie($query, "0.78 add priority_6  in glpi_users");
    }
 
-   if (!FieldExists("glpi_configs","priority_6", false)) {
+   if (!$DB->fieldExists("glpi_configs", "priority_6", false)) {
       $query = "ALTER TABLE `glpi_configs`
                 ADD `priority_6` CHAR( 20 ) NOT NULL DEFAULT '#ff5555' AFTER `priority_5`";
       $DB->queryOrDie($query, "0.78 add priority_6  in glpi_configs");
    }
 
-   if (!FieldExists('glpi_tickets','urgency', false)) {
+   if (!$DB->fieldExists('glpi_tickets', 'urgency', false)) {
       $query = "ALTER TABLE `glpi_tickets`
                 ADD `urgency` INT NOT NULL DEFAULT '1' AFTER `content`,
                 ADD `impact` INT NOT NULL DEFAULT '1' AFTER `urgency`,
@@ -3813,7 +3789,7 @@ function update0723to078() {
       $DB->queryOrDie($query, "0.78 fix priority/urgency in business rules");
    }
 
-   if (!TableExists('glpi_tickettasks')) {
+   if (!$DB->tableExists('glpi_tickettasks')) {
       $query = "CREATE TABLE `glpi_tickettasks` (
                   `id` int(11) NOT NULL auto_increment,
                   `tickets_id` int(11) NOT NULL default '0',
@@ -3886,9 +3862,8 @@ function update0723to078() {
       $DB->queryOrDie($query, "0.78 alter glpi_ticketplannings");
    }
 
-
    // Migrate devices
-   if (TableExists('glpi_computer_device')) {
+   if ($DB->tableExists('glpi_computer_device')) {
       $migration->displayMessage(sprintf(__('Change of the database layout - %s'),
                                          _n('Component', 'Components', 2)));
 
@@ -3899,7 +3874,7 @@ function update0723to078() {
          $linktable     = getTableForItemType($linktype);
          $itemtable     = getTableForItemType($itemtype);
          $fkname        = getForeignKeyFieldForTable($itemtable);
-         $withspecifity = array(MOBOARD_DEVICE     => false,
+         $withspecifity = [MOBOARD_DEVICE     => false,
                                 PROCESSOR_DEVICE   => 'int',
                                 RAM_DEVICE         => 'int',
                                 HDD_DEVICE         => 'int',
@@ -3910,9 +3885,9 @@ function update0723to078() {
                                 SND_DEVICE         => false,
                                 PCI_DEVICE         => false,
                                 CASE_DEVICE        => false,
-                                POWER_DEVICE       => false);
+                                POWER_DEVICE       => false];
 
-         if (FieldExists($itemtable,'specif_default', false)) {
+         if ($DB->fieldExists($itemtable, 'specif_default', false)) {
             // Convert default specifity
             if ($withspecifity[$key]) {
                // Convert data to int
@@ -3936,7 +3911,7 @@ function update0723to078() {
             }
          }
 
-         if (!TableExists($linktable)) {
+         if (!$DB->tableExists($linktable)) {
             // create table
             $query = "CREATE TABLE `$linktable` (
                         `id` int(11) NOT NULL auto_increment,
@@ -3987,21 +3962,21 @@ function update0723to078() {
       $DB->queryOrDie($query, "0.78 drop glpi_computer_device");
    }
 
-   if (!FieldExists('glpi_users','task_private', false)) {
+   if (!$DB->fieldExists('glpi_users', 'task_private', false)) {
       $query = "ALTER TABLE `glpi_users`
                 ADD `task_private` TINYINT(1) DEFAULT NULL AFTER `followup_private`";
 
       $DB->queryOrDie($query, "0.78 add task_private to glpi_users");
    }
 
-   if (!FieldExists('glpi_configs','task_private', false)) {
+   if (!$DB->fieldExists('glpi_configs', 'task_private', false)) {
       $query = "ALTER TABLE `glpi_configs`
                 ADD `task_private` TINYINT(1) NOT NULL DEFAULT '0' AFTER `followup_private`";
 
       $DB->queryOrDie($query, "0.78 add task_private to glpi_users");
    }
 
-   if (!FieldExists('glpi_rules','date_mod', false)) {
+   if (!$DB->fieldExists('glpi_rules', 'date_mod', false)) {
       $query = "ALTER TABLE `glpi_rules`
                 ADD `date_mod` DATETIME NULL,
                 ADD INDEX `date_mod` (`date_mod`)";
@@ -4009,42 +3984,42 @@ function update0723to078() {
       $DB->queryOrDie($query, "0.78 add date_mod to glpi_rules");
    }
 
-   if (!FieldExists('glpi_authldaps','entity_field', false)) {
+   if (!$DB->fieldExists('glpi_authldaps', 'entity_field', false)) {
       $query = "ALTER TABLE `glpi_authldaps`
                 ADD `entity_field` VARCHAR( 255 ) DEFAULT NULL";
 
       $DB->queryOrDie($query, "0.78 add entity_field to glpi_authldaps");
    }
 
-   if (!FieldExists('glpi_authldaps','entity_condition', false)) {
+   if (!$DB->fieldExists('glpi_authldaps', 'entity_condition', false)) {
       $query = "ALTER TABLE `glpi_authldaps`
                ADD `entity_condition`  TEXT NULL collate utf8_unicode_ci";
 
       $DB->queryOrDie($query, "0.78 add entity_condition to glpi_authldaps");
    }
 
-   if (!FieldExists('glpi_entitydatas','ldapservers_id', false)) {
+   if (!$DB->fieldExists('glpi_entitydatas', 'ldapservers_id', false)) {
       $query = "ALTER TABLE `glpi_entitydatas`
                ADD `ldapservers_id` INT( 11 ) NOT NULL DEFAULT '0'";
 
       $DB->queryOrDie($query, "0.78 add ldapservers_id to glpi_entitydatas");
    }
 
-   if (!FieldExists('glpi_entitydatas','mail_domain', false)) {
+   if (!$DB->fieldExists('glpi_entitydatas', 'mail_domain', false)) {
       $query = "ALTER TABLE `glpi_entitydatas`
                 ADD `mail_domain` VARCHAR( 255 ) DEFAULT NULL";
 
       $DB->queryOrDie($query, "0.78 add mail_domain to glpi_entitydatas");
    }
 
-   if (!FieldExists('glpi_entitydatas','entity_ldapfilter', false)) {
+   if (!$DB->fieldExists('glpi_entitydatas', 'entity_ldapfilter', false)) {
       $query = "ALTER TABLE `glpi_entitydatas`
                 ADD `entity_ldapfilter` TEXT NULL collate utf8_unicode_ci";
 
       $DB->queryOrDie($query, "0.78 add entity_ldapfilter to glpi_entitydatas");
    }
 
-   if (!FieldExists('glpi_profiles','import_externalauth_users', false)) {
+   if (!$DB->fieldExists('glpi_profiles', 'import_externalauth_users', false)) {
       $query = "ALTER TABLE `glpi_profiles`
                 ADD `import_externalauth_users` CHAR( 1 ) NULL";
 
@@ -4058,8 +4033,8 @@ function update0723to078() {
    }
 
    $migration->displayMessage(sprintf(__('Change of the database layout - %s'), 'Notifications'));
-   $templates = array();
-   if (!TableExists('glpi_notificationtemplates')) {
+   $templates = [];
+   if (!$DB->tableExists('glpi_notificationtemplates')) {
       $query = "CREATE TABLE `glpi_notificationtemplates` (
                  `id` INT( 11 ) NOT NULL AUTO_INCREMENT ,
                  `name` VARCHAR( 255 ) default NULL ,
@@ -4104,16 +4079,16 @@ function update0723to078() {
          $templates[$itemtype] = $DB->insert_id();
       }
 
-      $ADDTODISPLAYPREF['NotificationTemplate']=array(4,16);
+      $ADDTODISPLAYPREF['NotificationTemplate']=[4,16];
 
       //There was a problem with GLPI < 0.78 : smtp_port field wans'nt used : migrate it
       $query = "SELECT `smtp_host`
                 FROM `glpi_configs`
                 WHERE `id` = '1'";
       $result  = $DB->query($query);
-      $host    = $DB->result($result,0,'smtp_host');
-      $results = array();
-      preg_match("/(.*):([0-9]*)/",$host,$results);
+      $host    = $DB->result($result, 0, 'smtp_host');
+      $results = [];
+      preg_match("/(.*):([0-9]*)/", $host, $results);
       if (!empty($results)) {
          $query = "UPDATE `glpi_configs`
                    SET `smtp_host` = '".$results[1]."' ,
@@ -4123,7 +4098,7 @@ function update0723to078() {
       }
    }
 
-   if (!TableExists('glpi_notificationtemplatetranslations')) {
+   if (!$DB->tableExists('glpi_notificationtemplatetranslations')) {
       $query = "CREATE TABLE `glpi_notificationtemplatetranslations` (
                   `id` INT( 11 ) NOT NULL AUTO_INCREMENT ,
                   `notificationtemplates_id` INT( 11 ) NOT NULL DEFAULT '0',
@@ -4136,7 +4111,7 @@ function update0723to078() {
                  )ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci";
       $DB->queryOrDie($query, "0.78 create glpi_notificationtemplatetranslations");
 
-      $queries = array();
+      $queries = [];
       $queries['DBConnection'] = "INSERT INTO `glpi_notificationtemplatetranslations`
                                   VALUES(NULL, ".$templates['DBConnection'].", '','##lang.dbconnection.title##',
                         '##lang.dbconnection.delay## : ##dbconnection.delay##\r\n',
@@ -4459,8 +4434,8 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
       unset($queries);
    }
 
-   $notifications = array();
-   if (!TableExists('glpi_notifications')) {
+   $notifications = [];
+   if (!$DB->tableExists('glpi_notifications')) {
       $query = "CREATE TABLE `glpi_notifications` (
                  `id` INT( 11 ) NOT NULL AUTO_INCREMENT ,
                  `name` VARCHAR( 255 ) DEFAULT NULL ,
@@ -4484,7 +4459,7 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
                   ) ENGINE = MYISAM CHARSET utf8 COLLATE utf8_unicode_ci;";
       $DB->queryOrDie($query, "0.78 create glpi_notifications");
 
-      $queries = array();
+      $queries = [];
       $queries[] = "INSERT INTO `glpi_notifications`
                     VALUES (NULL, 'Alert Tickets not closed', 0, 'Ticket', 'alertnotclosed',
                             'mail',".$templates['Ticket3'].", '', 1, 1, NOW())";
@@ -4581,13 +4556,11 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
          $DB->queryOrDie($query, "0.78 insert notification");
       }
 
-
-      $ADDTODISPLAYPREF['Notification'] = array(5, 6, 2, 4, 80, 86);
+      $ADDTODISPLAYPREF['Notification'] = [5, 6, 2, 4, 80, 86];
       unset($queries);
    }
 
-
-   if (!TableExists('glpi_notificationtargets') && TableExists('glpi_mailingsettings')) {
+   if (!$DB->tableExists('glpi_notificationtargets') && $DB->tableExists('glpi_mailingsettings')) {
       $query = "RENAME TABLE `glpi_mailingsettings` TO `glpi_notificationtargets`;";
       $DB->queryOrDie($query, "0.78 rename table glpi_mailingsettings in glpi_notificationtargets");
 
@@ -4605,26 +4578,26 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
                 CHANGE `mailingtype` `type` INT( 11 ) NOT NULL DEFAULT '0'";
       $DB->queryOrDie($query, "0.78 change field mailingtype in type");
 
-      $fields  = array('new'              => array('itemtype'  => 'Ticket',
-                                                   'newaction' => 'new'),
-                       'update'           => array('itemtype'  => 'Ticket',
-                                                   'newaction' => 'update'),
-                       'finish'           => array('itemtype'  => 'Ticket',
-                                                   'newaction' => 'closed'),
-                       'resa'             => array('itemtype'  => 'Reservation',
-                                                   'newaction' => 'new'),
-                       'followup'         => array('itemtype'  => 'Ticket',
-                                                   'newaction' => 'add_followup'),
-                       'alertconsumable'  => array('itemtype'  => 'Consumable',
-                                                   'newaction' => 'alert'),
-                       'alertcartridge'   => array('itemtype'  => 'Cartridge',
-                                                   'newaction' => 'alert'),
-                       'alertlicense'     => array('itemtype'  => 'SoftwareLicense',
-                                                   'newaction' => 'alert'),
-                       'alertinfocom'     => array('itemtype'  => 'Infocom',
-                                                   'newaction' => 'alert'),
-                       'alertcontract'    => array('itemtype'  => 'Contract',
-                                                   'newaction' => 'end'));
+      $fields  = ['new'              => ['itemtype'  => 'Ticket',
+                                                   'newaction' => 'new'],
+                       'update'           => ['itemtype'  => 'Ticket',
+                                                   'newaction' => 'update'],
+                       'finish'           => ['itemtype'  => 'Ticket',
+                                                   'newaction' => 'closed'],
+                       'resa'             => ['itemtype'  => 'Reservation',
+                                                   'newaction' => 'new'],
+                       'followup'         => ['itemtype'  => 'Ticket',
+                                                   'newaction' => 'add_followup'],
+                       'alertconsumable'  => ['itemtype'  => 'Consumable',
+                                                   'newaction' => 'alert'],
+                       'alertcartridge'   => ['itemtype'  => 'Cartridge',
+                                                   'newaction' => 'alert'],
+                       'alertlicense'     => ['itemtype'  => 'SoftwareLicense',
+                                                   'newaction' => 'alert'],
+                       'alertinfocom'     => ['itemtype'  => 'Infocom',
+                                                   'newaction' => 'alert'],
+                       'alertcontract'    => ['itemtype'  => 'Contract',
+                                                   'newaction' => 'end']];
 
       $query = "SELECT `oldtype`
                 FROM `glpi_notificationtargets`
@@ -4639,7 +4612,7 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
          $result = $DB->queryOrDie($query_type, "0.78 get notificationtargets_id");
 
          if ($DB->numrows($result)) {
-            $id = $DB->result($result,0,'id');
+            $id = $DB->result($result, 0, 'id');
             $query_update = "UPDATE `glpi_notificationtargets`
                              SET `notifications_id` = '$id'
                              WHERE `oldtype` = '".$data['oldtype']."'";
@@ -4661,13 +4634,12 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
       $result = $DB->queryOrDie($query_type, "0.78 get notificationtargets_id");
 
       if ($DB->numrows($result)) {
-         $id = $DB->result($result,0,'id');
+         $id = $DB->result($result, 0, 'id');
          $query = "INSERT INTO `glpi_notificationtargets`
                           (`id`, `notifications_id`, `type`, `items_id`)
                    VALUES (NULL, ".$id.", 1, 1)";
           $DB->queryOrDie($query, "0.78 add target for dbsynchronization");
       }
-
 
       //Add validator as target for Ticket Validation
       $query_type = "SELECT `id`
@@ -4677,7 +4649,7 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
       $result = $DB->queryOrDie($query_type, "0.78 get notificationtargets_id");
 
       if ($DB->numrows($result)) {
-         $id = $DB->result($result,0,'id');
+         $id = $DB->result($result, 0, 'id');
          $query = "INSERT INTO `glpi_notificationtargets`
                           (`id`, `notifications_id`, `type`, `items_id`)
                      VALUES (NULL, ".$id.", 1, 14);";
@@ -4691,7 +4663,7 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
                            AND `event` IN ('update', 'delete')";
       foreach ($DB->request($query_type) as $data_resa) {
 
-        $query_targets = "SELECT `glpi_notificationtargets` . *
+         $query_targets = "SELECT `glpi_notificationtargets` . *
                           FROM `glpi_notifications` ,
                                `glpi_notificationtargets`
                           WHERE `glpi_notifications`.`itemtype` = 'Reservation'
@@ -4715,7 +4687,7 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
                            AND `event` = 'notice'";
       foreach ($DB->request($query_type) as $data_contract) {
 
-        $query_targets = "SELECT `glpi_notificationtargets`.*
+         $query_targets = "SELECT `glpi_notificationtargets`.*
                           FROM `glpi_notifications` , `glpi_notificationtargets`
                           WHERE `glpi_notifications`.`itemtype` = 'Contract'
                                AND `glpi_notifications`.`event` = 'end'
@@ -4739,7 +4711,7 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
                                            'delete_task', 'delete_followup')";
       foreach ($DB->request($query_type) as $data_ticket) {
 
-        $query_targets = "SELECT `glpi_notificationtargets`.*
+         $query_targets = "SELECT `glpi_notificationtargets`.*
                           FROM `glpi_notifications` ,
                                `glpi_notificationtargets`
                           WHERE `glpi_notifications`.`itemtype` = 'Ticket'
@@ -4763,7 +4735,7 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
                            AND `event` = 'solved'";
       foreach ($DB->request($query_type) as $data_ticket) {
 
-        $query_targets = "SELECT `glpi_notificationtargets`.*
+         $query_targets = "SELECT `glpi_notificationtargets`.*
                           FROM `glpi_notifications` ,
                                `glpi_notificationtargets`
                           WHERE `glpi_notifications`.`itemtype` = 'Ticket'
@@ -4782,7 +4754,7 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
 
    }
 
-   if (!FieldExists('glpi_profiles','notification', false)) {
+   if (!$DB->fieldExists('glpi_profiles', 'notification', false)) {
       $query = "ALTER TABLE `glpi_profiles`
                 ADD `notification` CHAR( 1 ) NULL";
       $DB->queryOrDie($query, "0.78 add notification in glpi_profiles");
@@ -4794,7 +4766,7 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
       $DB->queryOrDie($query, "0.78 add notification write right user which have config right");
    }
 
-   if (!FieldExists('glpi_entitydatas','mailing_signature', false)) {
+   if (!$DB->fieldExists('glpi_entitydatas', 'mailing_signature', false)) {
       $query = "ALTER TABLE `glpi_entitydatas` ADD `mailing_signature` TEXT DEFAULT NULL ,
                 ADD `cartridges_alert_repeat` INT( 11 ) NOT NULL DEFAULT '-1',
                 ADD `consumables_alert_repeat` INT( 11 ) NOT NULL DEFAULT '-1',
@@ -4808,7 +4780,7 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
       $DB->queryOrDie($query, "0.78 add notifications fields in glpi_entitydatas");
    }
 
-   if (!FieldExists('glpi_configs','use_reservations_alert', false)) {
+   if (!$DB->fieldExists('glpi_configs', 'use_reservations_alert', false)) {
       $query = "ALTER TABLE `glpi_configs`
                 ADD `use_infocoms_alert` TINYINT( 1 ) NOT NULL DEFAULT '0',
                 ADD `use_contracts_alert` TINYINT( 1 ) NOT NULL DEFAULT '0',
@@ -4819,17 +4791,17 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
       $DB->queryOrDie($query, "0.78 add notifications fields in glpi_configs");
    }
 
-   if (TableExists('glpi_mailingsettings')) {
+   if ($DB->tableExists('glpi_mailingsettings')) {
       $query = "DROP TABLE `glpi_mailingsettings`;";
       $DB->queryOrDie($query, "0.78 drop table glpi_mailingsettings");
    }
 
-   $tables = array('glpi_infocoms'           => __('Financial and administrative information'),
+   $tables = ['glpi_infocoms'           => __('Financial and administrative information'),
                    'glpi_reservationitems'   => _n('Reservation', 'Reservations', 2),
-                   'glpi_networkports'       => _n('Network port', 'Network ports', 2));
+                   'glpi_networkports'       => _n('Network port', 'Network ports', 2)];
    foreach ($tables as $table => $label) {
       // Migrate infocoms entity information
-      if (!FieldExists($table,'entities_id', false)) {
+      if (!$DB->fieldExists($table, 'entities_id', false)) {
          $migration->displayMessage(sprintf(__('Change of the database layout - %s'), $label));
 
          $query = "ALTER TABLE `$table`
@@ -4839,7 +4811,6 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
                    ADD INDEX `is_recursive` (`is_recursive`)";
 
          $DB->queryOrDie($query, "0.78 add entities_id and is_recursive in $table");
-
 
          $entities    = getAllDatasFromTable('glpi_entities');
          $entities[0] = "Root";
@@ -4854,13 +4825,13 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
                                                              $data['itemtype'])));
 
                   $itemtable = getTableForItemType($data['itemtype']);
-                  // ajout d'un contrôle pour voir si la table existe ( cas migration plugin non fait)
-                  if (!TableExists($itemtable)) {
+                  // ajout d'un contr??le pour voir si la table existe ( cas migration plugin non fait)
+                  if (!$DB->tableExists($itemtable)) {
                      $migration->displayWarning("*** Skip : no table $itemtable ***", true);
                      continue;
                   }
                   $do_recursive = false;
-                  if (FieldExists($itemtable,'is_recursive', false)) {
+                  if ($DB->fieldExists($itemtable, 'is_recursive', false)) {
                      $do_recursive = true;
                   }
                   // This is duplicated in Plugin::migrateItemType() for plugin object
@@ -4906,11 +4877,11 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
    }
 
    // Migrate consumable and cartridge and computerdisks entity information
-   $items = array('glpi_cartridges'    => 'glpi_cartridgeitems',
+   $items = ['glpi_cartridges'    => 'glpi_cartridgeitems',
                   'glpi_consumables'   => 'glpi_consumableitems',
-                  'glpi_computerdisks' => 'glpi_computers');
+                  'glpi_computerdisks' => 'glpi_computers'];
    foreach ($items as $linkitem => $sourceitem) {
-      if (!FieldExists($linkitem,'entities_id', false)) {
+      if (!$DB->fieldExists($linkitem, 'entities_id', false)) {
          $migration->displayMessage(sprintf(__('Change of the database layout - %s'), $linkitem));
 
          $query = "ALTER TABLE `$linkitem`
@@ -4918,7 +4889,6 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
                    ADD INDEX `entities_id` ( `entities_id` )";
 
          $DB->queryOrDie($query, "0.78 add entities_id in $linkitem");
-
 
          $entities    = getAllDatasFromTable('glpi_entities');
          $entities[0] = "Root";
@@ -4936,7 +4906,7 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
    }
 
    // Migrate softwareversions entity information
-   if (!FieldExists('glpi_softwareversions','entities_id', false)) {
+   if (!$DB->fieldExists('glpi_softwareversions', 'entities_id', false)) {
       $migration->displayMessage(sprintf(__('Change of the database layout - %s'),
                                          'glpi_softwareversions'));
 
@@ -4947,7 +4917,6 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
                 ADD INDEX `is_recursive` ( `is_recursive` )";
 
       $DB->queryOrDie($query, "0.78 add entities_id in glpi_softwareversion");
-
 
       $entities    = getAllDatasFromTable('glpi_entities');
       $entities[0] = "Root";
@@ -4978,7 +4947,7 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
    $migration->displayMessage(sprintf(__('Change of the database layout - %s'),
                                       'glpi_mailcollectors'));
 
-   if (!FieldExists("glpi_mailcollectors", "is_active", false)) {
+   if (!$DB->fieldExists("glpi_mailcollectors", "is_active", false)) {
       $query = "ALTER TABLE `glpi_mailcollectors`
                 ADD `is_active` tinyint( 1 ) NOT NULL DEFAULT '1',
                 ADD INDEX `is_active` (`is_active`) ";
@@ -4986,21 +4955,21 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
       $DB->queryOrDie($query, "0.78 add is_active in glpi_mailcollectors");
    }
 
-   if (!FieldExists('glpi_mailcollectors','date_mod', false)) {
+   if (!$DB->fieldExists('glpi_mailcollectors', 'date_mod', false)) {
       $query = "ALTER TABLE `glpi_mailcollectors`
                 ADD `date_mod` DATETIME NULL, ADD INDEX `date_mod` (`date_mod`)";
 
       $DB->queryOrDie($query, "0.78 add date_mod to glpi_mailcollectors");
    }
 
-   if (!FieldExists('glpi_mailcollectors','comment', false)) {
+   if (!$DB->fieldExists('glpi_mailcollectors', 'comment', false)) {
       $query = "ALTER TABLE `glpi_mailcollectors`
                 ADD `comment` text collate utf8_unicode_ci";
 
       $DB->queryOrDie($query, "0.78 add comment to glpi_mailcollectors");
    }
 
-   if (!FieldExists('glpi_profiles','rule_mailcollector', false)) {
+   if (!$DB->fieldExists('glpi_profiles', 'rule_mailcollector', false)) {
       $query = "ALTER TABLE `glpi_profiles`
                 ADD `rule_mailcollector` CHAR( 1 ) NULL ";
 
@@ -5013,14 +4982,11 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
    }
 
    // Change search pref : add active / date_mod
-   $ADDTODISPLAYPREF['MailCollector'] = array(2, 19);
-
-
-
+   $ADDTODISPLAYPREF['MailCollector'] = [2, 19];
 
    $migration->displayMessage(sprintf(__('Change of the database layout - %s'), 'glpi_authldaps'));
 
-   if (!FieldExists('glpi_authldaps','date_mod', false)) {
+   if (!$DB->fieldExists('glpi_authldaps', 'date_mod', false)) {
       $query = "ALTER TABLE `glpi_authldaps`
                 ADD `date_mod` DATETIME NULL,
                 ADD INDEX `date_mod` (`date_mod`)";
@@ -5028,7 +4994,7 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
       $DB->queryOrDie($query, "0.78 add date_mod to glpi_authldaps");
    }
 
-   if (!FieldExists('glpi_authldaps','comment', false)) {
+   if (!$DB->fieldExists('glpi_authldaps', 'comment', false)) {
       $query = "ALTER TABLE `glpi_authldaps`
                 ADD `comment` text collate utf8_unicode_ci";
 
@@ -5036,12 +5002,11 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
    }
 
    // Change search pref : host, date_mod
-   $ADDTODISPLAYPREF['AuthLDAP'] = array(3, 19);
-
+   $ADDTODISPLAYPREF['AuthLDAP'] = [3, 19];
 
    $migration->displayMessage(sprintf(__('Change of the database layout - %s'), 'glpi_authldaps'));
 
-   if (!FieldExists('glpi_authmails','date_mod', false)) {
+   if (!$DB->fieldExists('glpi_authmails', 'date_mod', false)) {
       $query = "ALTER TABLE `glpi_authmails`
                 ADD `date_mod` DATETIME NULL,
                 ADD INDEX `date_mod` (`date_mod`)";
@@ -5049,7 +5014,7 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
       $DB->queryOrDie($query, "0.78 add date_mod to glpi_authmails");
    }
 
-   if (!FieldExists('glpi_authmails','comment', false)) {
+   if (!$DB->fieldExists('glpi_authmails', 'comment', false)) {
       $query = "ALTER TABLE `glpi_authmails`
                 ADD `comment` text collate utf8_unicode_ci";
 
@@ -5057,11 +5022,11 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
    }
 
    // Change search pref : host, date_mod
-   $ADDTODISPLAYPREF['AuthMail'] = array(3, 19);
+   $ADDTODISPLAYPREF['AuthMail'] = [3, 19];
 
    $migration->displayMessage(sprintf(__('Change of the database layout - %s'), 'glpi_ocsservers'));
 
-   if (!FieldExists('glpi_ocsservers','date_mod', false)) {
+   if (!$DB->fieldExists('glpi_ocsservers', 'date_mod', false)) {
       $query = "ALTER TABLE `glpi_ocsservers`
                 ADD `date_mod` DATETIME NULL,
                 ADD INDEX `date_mod` (`date_mod`)";
@@ -5069,19 +5034,18 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
       $DB->queryOrDie($query, "0.78 add date_mod to glpi_ocsservers");
    }
 
-   if (!FieldExists('glpi_ocsservers','comment', false)) {
+   if (!$DB->fieldExists('glpi_ocsservers', 'comment', false)) {
       $query = "ALTER TABLE `glpi_ocsservers`
                 ADD `comment` text collate utf8_unicode_ci";
 
       $DB->queryOrDie($query, "0.78 add comment to glpi_ocsservers");
    }
    // Change search pref : date_mod / host
-   $ADDTODISPLAYPREF['OcsServer'] = array(3, 19);
-
+   $ADDTODISPLAYPREF['OcsServer'] = [3, 19];
 
    $migration->displayMessage(sprintf(__('Change of the database layout - %s'), 'glpi_profiles'));
 
-   if (!FieldExists('glpi_profiles','date_mod', false)) {
+   if (!$DB->fieldExists('glpi_profiles', 'date_mod', false)) {
       $query = "ALTER TABLE `glpi_profiles`
                 ADD `date_mod` DATETIME NULL,
                 ADD INDEX `date_mod` (`date_mod`)";
@@ -5089,7 +5053,7 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
       $DB->queryOrDie($query, "0.78 add date_mod to glpi_profiles");
    }
 
-   if (!FieldExists('glpi_profiles','comment', false)) {
+   if (!$DB->fieldExists('glpi_profiles', 'comment', false)) {
       $query = "ALTER TABLE `glpi_profiles`
                 ADD `comment` text collate utf8_unicode_ci";
 
@@ -5097,19 +5061,18 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
    }
 
    // Change search pref : date_mod / host
-   $ADDTODISPLAYPREF['Profile'] = array(2, 3, 19);
-
+   $ADDTODISPLAYPREF['Profile'] = [2, 3, 19];
 
    $migration->displayMessage(sprintf(__('Change of the database layout - %s'), 'glpi_printers'));
 
-   if (!FieldExists('glpi_printers','have_ethernet', false)) {
+   if (!$DB->fieldExists('glpi_printers', 'have_ethernet', false)) {
       $query = "ALTER TABLE `glpi_printers`
                 ADD `have_ethernet` TINYINT( 1 ) NOT NULL DEFAULT '0' AFTER `have_usb`";
 
       $DB->queryOrDie($query, "0.78 add have_ethernet to glpi_printers");
    }
 
-   if (!FieldExists('glpi_printers','have_wifi', false)) {
+   if (!$DB->fieldExists('glpi_printers', 'have_wifi', false)) {
       $query = "ALTER TABLE `glpi_printers`
                 ADD `have_wifi` TINYINT( 1 ) NOT NULL DEFAULT '0' AFTER `have_usb`";
 
@@ -5118,7 +5081,7 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
 
    $migration->displayMessage(sprintf(__('Change of the database layout - %s'), 'glpi_profiles'));
 
-   if (!FieldExists('glpi_transfers','date_mod', false)) {
+   if (!$DB->fieldExists('glpi_transfers', 'date_mod', false)) {
       $query = "ALTER TABLE `glpi_transfers`
                 ADD `date_mod` DATETIME NULL,
                 ADD INDEX `date_mod` (`date_mod`)";
@@ -5126,23 +5089,23 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
       $DB->queryOrDie($query, "0.78 add date_mod to glpi_transfers");
    }
 
-   if (!FieldExists('glpi_transfers','comment', false)) {
+   if (!$DB->fieldExists('glpi_transfers', 'comment', false)) {
       $query = "ALTER TABLE `glpi_transfers`
                 ADD `comment` text collate utf8_unicode_ci";
 
       $DB->queryOrDie($query, "0.78 add comment to glpi_transfers");
    }
    // Change search pref : date_mod
-   $ADDTODISPLAYPREF['Transfer']=array(19);
+   $ADDTODISPLAYPREF['Transfer']=[19];
 
    // Convert events
    $migration->displayMessage(sprintf(__('Data migration - %s'), 'glpi_events'));
 
-   $convert_types = array('tracking'   => 'ticket',
+   $convert_types = ['tracking'   => 'ticket',
                           'networking' => 'networkequipment',
                           'knowbase'   =>  'knowbaseitem',
                           'typedocs'   => 'documenttype',
-                          'mailgate'   => 'mailcollector');
+                          'mailgate'   => 'mailcollector'];
 
    foreach ($convert_types as $from =>$to) {
       $query2 = "UPDATE `glpi_events`
@@ -5164,9 +5127,9 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
          while ($data = $DB->fetch_assoc($result)) {
             $num     = 0;
             $num2    = 0;
-            $options = array();
+            $options = [];
             parse_str($data["query"], $options);
-            $newoptions = array();
+            $newoptions = [];
 
             foreach ($options as $key => $val) {
                switch ($key) {
@@ -5213,7 +5176,7 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
                      break;
 
                   case "type" :
-                     if ($val>0 && isset($data['item']) && $data['item']>0)  {
+                     if ($val>0 && isset($data['item']) && $data['item']>0) {
                         $newoptions['itemtype2'][$num2]  = $typetoname[$val];
                         $newoptions['field2'][$num2]      = 1;
                         $newoptions['searchtype2'][$num2] = 'equals';
@@ -5348,7 +5311,7 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
                         $search=trim($data['search']);
                         if (strlen($search) > 0) {
                            $first=false;
-                           if (strstr($data['search'],'name')) {
+                           if (strstr($data['search'], 'name')) {
                               $newoptions['field'][$num]       = 1;
                               $newoptions['searchtype'][$num]  = 'contains';
                               $newoptions['contains'][$num]    = $val;
@@ -5356,7 +5319,7 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
                               $first=false;
                               $num++;
                            }
-                           if (strstr($data['search'],'contents')) {
+                           if (strstr($data['search'], 'contents')) {
                               $newoptions['field'][$num]       = 21;
                               $newoptions['searchtype'][$num]  = 'contains';
                               $newoptions['contains'][$num]    = $val;
@@ -5364,7 +5327,7 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
                               $first=false;
                               $num++;
                            }
-                           if (strstr($data['search'],'followup')) {
+                           if (strstr($data['search'], 'followup')) {
                               $newoptions['field'][$num]       = 25;
                               $newoptions['searchtype'][$num]  = 'contains';
                               $newoptions['contains'][$num]    = $val;
@@ -5372,7 +5335,7 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
                               $first=false;
                               $num++;
                            }
-                           if (strstr($data['search'],'ID')) {
+                           if (strstr($data['search'], 'ID')) {
                               $newoptions['field'][$num]       = 2;
                               $newoptions['searchtype'][$num]  = 'contains';
                               $newoptions['contains'][$num]    = $val;
@@ -5409,8 +5372,7 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
       }
    }
 
-
-   if (!TableExists('glpi_ticketvalidations')) {
+   if (!$DB->tableExists('glpi_ticketvalidations')) {
       $query = "CREATE TABLE `glpi_ticketvalidations` (
                   `id` int(11) NOT NULL auto_increment,
                   `entities_id` int(11) NOT NULL default '0',
@@ -5434,10 +5396,10 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
 
       $DB->queryOrDie($query, "0.78 create glpi_ticketvalidations");
 
-      $ADDTODISPLAYPREF['TicketValidation'] = array(3, 2, 8, 4, 9, 7);
+      $ADDTODISPLAYPREF['TicketValidation'] = [3, 2, 8, 4, 9, 7];
    }
 
-   if (!FieldExists('glpi_tickets','global_validation', false)) {
+   if (!$DB->fieldExists('glpi_tickets', 'global_validation', false)) {
       $query = "ALTER TABLE `glpi_tickets`
                 ADD `global_validation` varchar(255) collate utf8_unicode_ci default 'accepted',
                 ADD INDEX `global_validation` (`global_validation`)";
@@ -5445,7 +5407,7 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
       $DB->queryOrDie($query, "0.78 add global_validation to glpi_tickets");
    }
 
-   if (!FieldExists('glpi_profiles','validate_ticket', false)) {
+   if (!$DB->fieldExists('glpi_profiles', 'validate_ticket', false)) {
       $query = "ALTER TABLE `glpi_profiles`
                 ADD `validate_ticket` char(1) collate utf8_unicode_ci default NULL";
 
@@ -5468,7 +5430,7 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
       $DB->queryOrDie($query, "0.78 add create_validation right if can own ticket");
    }
 
-   if (FieldExists('glpi_mailcollectors','entities_id', false)) {
+   if ($DB->fieldExists('glpi_mailcollectors', 'entities_id', false)) {
       $ranking = 1;
 
       // No mailcollector : set a default rule
@@ -5479,17 +5441,17 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
 
             $DB->queryOrDie($query, "0.78 error inserting new default maigate rule");
 
-            if ($newID = $DB->insert_id()) {
-               $query = "INSERT INTO `glpi_rulecriterias`
+         if ($newID = $DB->insert_id()) {
+            $query = "INSERT INTO `glpi_rulecriterias`
                          VALUES (NULL, $newID, 'subject', 6, '/.*/')";
 
-               $DB->queryOrDie($query, "0.78 error getting new criteria for rule");
+            $DB->queryOrDie($query, "0.78 error getting new criteria for rule");
 
-               $query = "INSERT INTO `glpi_ruleactions`
+            $query = "INSERT INTO `glpi_ruleactions`
                          VALUES (NULL, $newID, 'assign', 'entities_id', '0')";
 
-               $DB->queryOrDie($query, "0.78 error getting new action for rule");
-            }
+            $DB->queryOrDie($query, "0.78 error getting new action for rule");
+         }
 
       } else {
          foreach (getAllDatasFromTable('glpi_mailcollectors') as $collector) {
@@ -5534,7 +5496,7 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
       $DB->queryOrDie($query, "0.78 drop entities_id from collectors display preferences");
    }
 
-   if (!TableExists('glpi_notimportedemails')) {
+   if (!$DB->tableExists('glpi_notimportedemails')) {
       $query = "CREATE TABLE `glpi_notimportedemails` (
                   `id` int(11) NOT NULL AUTO_INCREMENT,
                   `from` varchar(255) NOT NULL,
@@ -5552,11 +5514,10 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
 
       $DB->queryOrDie($query, "0.78 add table glpi_notimportedemails");
 
-      $ADDTODISPLAYPREF['NotImportedEmail'] = array(2, 5, 4, 6, 16, 19);
+      $ADDTODISPLAYPREF['NotImportedEmail'] = [2, 5, 4, 6, 16, 19];
    }
 
-
-   if (!FieldExists("glpi_profiles","entity_rule_ticket", false)) {
+   if (!$DB->fieldExists("glpi_profiles", "entity_rule_ticket", false)) {
       $query = "ALTER TABLE `glpi_profiles`
                 ADD `entity_rule_ticket` CHAR( 1 ) NULL AFTER `rule_ticket`";
 
@@ -5574,7 +5535,7 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
       $DB->queryOrDie($query, "0.78 update rule_ticket rights");
    }
 
-   if (!FieldExists('glpi_authldaps','is_default', false)) {
+   if (!$DB->fieldExists('glpi_authldaps', 'is_default', false)) {
       $query = "ALTER TABLE `glpi_authldaps`
                 ADD `is_default` TINYINT( 1 ) NOT NULL DEFAULT '0',
                 ADD INDEX `is_default` (`is_default`)";
@@ -5584,7 +5545,7 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
       $query = "SELECT COUNT(*) AS cpt
                 FROM `glpi_authldaps`";
       $result = $DB->query($query);
-      $number_servers = $DB->result($result,0,'cpt');
+      $number_servers = $DB->result($result, 0, 'cpt');
 
       if ($number_servers >= 1) {
          //If only one server defined
@@ -5592,9 +5553,8 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
             $query  = "SELECT `id`
                        FROM `glpi_authldaps`";
             $result         = $DB->query($query);
-            $ldapservers_id = $DB->result($result,0,'id');
-         }
-         //If more than one server defined, get the most used
+            $ldapservers_id = $DB->result($result, 0, 'id');
+         } //If more than one server defined, get the most used
          else {
             $query = "SELECT `auths_id`, COUNT(`auths_id`) AS cpt
                       FROM `glpi_users`
@@ -5602,7 +5562,7 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
                       GROUP BY `auths_id`
                       ORDER BY `cpt` DESC";
             $result         = $DB->query($query);
-            $ldapservers_id = $DB->result($result,0,'auths_id');
+            $ldapservers_id = $DB->result($result, 0, 'auths_id');
          }
          $query = "UPDATE `glpi_authldaps`
                    SET `is_default` = '1'
@@ -5613,16 +5573,15 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
 
    }
 
-   if (TableExists('glpi_rulerightparameters')) {
+   if ($DB->tableExists('glpi_rulerightparameters')) {
       $query = "ALTER TABLE `glpi_rulerightparameters`
                 ADD `comment` TEXT NOT NULL ";
 
       $DB->queryOrDie($query, "0.78 add comment to glpi_rulerightparameters");
-      $ADDTODISPLAYPREF['RuleRightParameter']=array(11);
+      $ADDTODISPLAYPREF['RuleRightParameter']=[11];
    }
 
-
-   if (!FieldExists('glpi_rules','is_recursive', false)) {
+   if (!$DB->fieldExists('glpi_rules', 'is_recursive', false)) {
       $query = "ALTER TABLE `glpi_rules`
                 ADD `is_recursive` TINYINT( 1 ) NOT NULL DEFAULT '0',
                 ADD INDEX `is_recursive` (`is_recursive`)";
@@ -5642,15 +5601,14 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
       $DB->queryOrDie($query, "0.78 set is_recursive to 1 for RuleTicket in glpi_rules");
    }
 
-   if (!FieldExists('glpi_configs','user_deleted_ldap', false)) {
+   if (!$DB->fieldExists('glpi_configs', 'user_deleted_ldap', false)) {
       $query = "ALTER TABLE `glpi_configs`
                 ADD `user_deleted_ldap` TINYINT( 1 ) NOT NULL DEFAULT '0'";
 
       $DB->queryOrDie($query, "0.78 add user_deleted_ldap to glpi_configs");
    }
 
-
-   if (!FieldExists("glpi_profiles","group_add_followup", false)) {
+   if (!$DB->fieldExists("glpi_profiles", "group_add_followup", false)) {
       $query = "ALTER TABLE `glpi_profiles`
                 ADD `group_add_followups` CHAR(1) NULL AFTER `add_followups`";
 
@@ -5663,7 +5621,7 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
 
    }
 
-   if (!FieldExists("glpi_groups_users","is_dynamic", false)) {
+   if (!$DB->fieldExists("glpi_groups_users", "is_dynamic", false)) {
       $query = "ALTER TABLE `glpi_groups_users`
                ADD `is_dynamic` TINYINT( 1 ) NOT NULL DEFAULT '0'";
 
@@ -5680,13 +5638,10 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
       $DB->queryOrDie($query, "0.78 update is_dynamic in glpi_groups_users");
    }
 
-
-
    $migration->displayMessage(sprintf(__('Data migration - %s'), 'glpi_displaypreferences'));
 
    // Add search values for tickets
-   $ADDTODISPLAYPREF['Ticket'] = array(12, 19, 15, 3, 4, 5, 7);
-
+   $ADDTODISPLAYPREF['Ticket'] = [12, 19, 15, 3, 4, 5, 7];
 
    foreach ($ADDTODISPLAYPREF as $type => $tab) {
 
@@ -5701,7 +5656,7 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
                          WHERE `users_id` = '".$data['users_id']."'
                                AND `itemtype` = '$type'";
                $result = $DB->query($query);
-               $rank   = $DB->result($result,0,0);
+               $rank   = $DB->result($result, 0, 0);
                $rank ++;
                foreach ($tab as $newval) {
                   $query = "SELECT *
@@ -5732,10 +5687,10 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
       }
    }
 
-
    // must always be at the end (only for end message)
    $migration->executeMigration();
 
    return $updateresult;
 }
-?>
+
+require_once __DIR__ .'/old_objects.php';

@@ -120,13 +120,6 @@ class PluginPositionsPosition extends CommonDBTM {
          }
       }
 
-      if (!isset($input['hideTooltip']) || empty($input['hideTooltip'])) {
-         $input['hideTooltip'] = 0;
-      }
-      if (!isset($input['hideLabel'])|| empty($input['hideLabel'])) {
-         $input['hideLabel'] = 0;
-      }
-
       return $input;
    }
 
@@ -162,7 +155,14 @@ class PluginPositionsPosition extends CommonDBTM {
          $input["x_coordinates"] = '-1000';
          $input["y_coordinates"] = '-225';
       }
-      
+
+      //default size
+      $config = new PluginPositionsConfig();
+      $config->getFromDB(1);
+
+      $input['width'] = $config->fields['default_width'];
+      $input['height'] = $config->fields['default_height'];
+
       $input = $this->checkValues($input);
       
       return $input;
@@ -253,14 +253,6 @@ class PluginPositionsPosition extends CommonDBTM {
 
             return __('See the map', 'positions');
 
-         } else if ($item->getType() == "Location") {
-
-            if ($_SESSION['glpishow_count_on_tabs']) {
-               return self::createTabEntry(Document::getTypeName(Session::getPluralNumber()),
-                                                  Document_Item::countForItem($item));
-            }
-            return Document::getTypeName(Session::getPluralNumber());
-
          } else if (in_array($item->getType(), self::getTypes(true))
              && Session::haveRight('plugin_positions', READ)) {
 
@@ -291,11 +283,7 @@ class PluginPositionsPosition extends CommonDBTM {
 
          self::showAddPosition($item);
 
-      } else if ($item->getType() == "Location") {
-
-         Document_Item::showForItem($item, $withtemplate);
-
-      } else if (in_array($item->getType(), self::getTypes(true))) {
+      }  else if (in_array($item->getType(), self::getTypes(true))) {
 
          $self->showPluginFromItems(get_class($item), $item->getField('id'));
 
@@ -334,16 +322,18 @@ class PluginPositionsPosition extends CommonDBTM {
 
       if (!Session::haveRight('plugin_positions', READ)) return false;
 
+      Html::requireJs('positions');
+
       $alert = __('Select an area and click on OK', 'positions');
-      echo "<script type='text/javascript'>
+
+      echo Html::scriptBlock('$(document).ready(function() {
          jQuery(function($){
-         $('#target').Jcrop({
+         $(\'#target\').Jcrop({
             onChange:   showCoords,
             onSelect:   showCoords,
             onRelease:  clearCoords
             });
-         });
-      </script>";
+         });});');
 
       echo "<script type='text/javascript'>
          function showCoords(c) {
@@ -402,14 +392,14 @@ class PluginPositionsPosition extends CommonDBTM {
             //Liste des lieux existants
             echo "<table class='tab_cadre_fixe'>";
             echo "<tr class='tab_bg_1'><th colspan='2'>";
-            _e('Creation of sub-areas on the map', 'positions');
+            echo __('Creation of sub-areas on the map', 'positions');
             echo "</th></tr>";
 
             echo "<tr class='tab_bg_1'>";
             echo "<td>";
             echo "<input type=\"radio\" name=\"choice\" value=\"existLocation\" 
                      onclick=\"showlist('existLocation','visible')\">";
-            _e('Choose an existing location', 'positions');
+            echo __('Choose an existing location', 'positions');
             echo "</td>";
 
             echo "<td id=\"existLocation\" class='left' style=\"visibility:hidden\">";
@@ -421,7 +411,7 @@ class PluginPositionsPosition extends CommonDBTM {
                                  )
                                 ";
             $result = $DB->query($query);
-            $number = $DB->numrows($result);
+            $DB->numrows($result);
 
             $locations = array();
             while ($data = $DB->fetch_assoc($result)) {
@@ -437,7 +427,7 @@ class PluginPositionsPosition extends CommonDBTM {
                     'entity' => $_SESSION["glpiactive_entity"],
                     'condition' => $condition));
             } else {
-               _e('No sub-area found', 'positions');
+               echo __('No sub-area found', 'positions');
             }
             echo "</td>";
             echo "</tr>";
@@ -447,7 +437,7 @@ class PluginPositionsPosition extends CommonDBTM {
             echo "<td>";
             echo "<input type=\"radio\" checked name=\"choice\" value=\"newLocation\" 
                      onclick=\"showlist('newLocation','visible')\">";
-            _e('Create a new location', 'positions');
+            echo __('Create a new location', 'positions');
             echo "</td>";
 
             echo "<td id=\"newLocation\" class='left' style=\"visibility:hidden\">";
@@ -473,7 +463,7 @@ class PluginPositionsPosition extends CommonDBTM {
             
             //Case à cocher pour continuer l'ajout
             echo "<input type=\"checkbox\" id=\"continueAdd\" name=\"continueAdd\">&nbsp;";
-            _e('Add and continue', 'positions');
+            echo __('Add and continue', 'positions');
             echo "&nbsp;&nbsp;<input type=\"submit\" name=\"valid\" value='"._sx('button','Add')."' class='submit'>";
             echo "</td>";
             echo "</tr>";
@@ -506,8 +496,6 @@ class PluginPositionsPosition extends CommonDBTM {
 
       $x1            = $input['x1'];
       $y1            = $input['y1'];
-      $x2            = $input['x2'];
-      $y2            = $input['y2'];
       $width         = $input['w'];
       $height        = $input['h'];
       
@@ -744,14 +732,16 @@ class PluginPositionsPosition extends CommonDBTM {
       echo "<td>" . __('Associated element') . ": </td>";
       echo "<td>";
 
-      if ($ID < 0 
-         || (!$this->fields['itemtype'] 
-            && !$this->fields['items_id'])) {
+      if ($ID < 0
+          || (!$this->fields['itemtype']
+              && !$this->fields['items_id'])
+      ) {
          $types = self::getTypes();
 
-         Dropdown::showAllItems("items_id", 0, 0, (
-         $this->fields['is_recursive'] ? -1 :
-         $this->fields['entities_id']), self::getTypes());
+         Dropdown::showSelectItemFromItemtypes(['items_id_name'   => "items_id",
+                                                'entity_restrict' => ($this->fields['is_recursive'] ? -1 : $this->fields['entities_id']),
+                                                'itemtypes'       => $types
+                                               ]);
       } else {
          if ($this->fields['itemtype'] 
             && $this->fields['items_id']) {
@@ -816,13 +806,14 @@ class PluginPositionsPosition extends CommonDBTM {
 
       $items = array();
       foreach (self::getTypes() as $key => $item) {
-         $table = getTableForItemType($item);
+         $table     = getTableForItemType($item);
          $itemclass = new $item();
-         $restrict = "`is_template` = '0' AND `is_deleted` = '0'";
+         $restrict  = "`is_template` = '0' AND `is_deleted` = '0'";
          $restrict .= " AND `locations_id` = '" . $locations_id . "'";
          $restrict .= getEntitiesRestrictRequest(" AND ", $table, '', '',
-             $itemclass->maybeRecursive());
-         $datas = getAllDatasFromTable($table, $restrict);
+                                                 $itemclass->maybeRecursive());
+         $dbu   = new DbUtils();
+         $datas = $dbu->getAllDataFromTable($table, $restrict);
          if (!empty($datas)) {
             foreach ($datas as $data) {
                $items[$item][] = $data["id"];
@@ -836,8 +827,9 @@ class PluginPositionsPosition extends CommonDBTM {
 
       $itemsMap = array();
       $restrict = getEntitiesRestrictRequest(" ", "glpi_plugin_positions_positions", '', '',
-         true);
-      $datas = getAllDatasFromTable("glpi_plugin_positions_positions", $restrict);
+                                             true);
+      $dbu      = new DbUtils();
+      $datas    = $dbu->getAllDataFromTable("glpi_plugin_positions_positions", $restrict);
       if (!empty($datas)) {
          foreach ($datas as $data) {
             $itemsMap[$data['itemtype']][] = $data;
@@ -966,7 +958,7 @@ class PluginPositionsPosition extends CommonDBTM {
                }
             } else {
                echo "<div class='center'>";
-               _e('No location has a configured map', 'positions');
+               echo __('No location has a configured map', 'positions');
                echo "</div>";
             }
          } else {
@@ -977,7 +969,7 @@ class PluginPositionsPosition extends CommonDBTM {
          }
       } else {
          echo "<div class='center'>";
-         _e('No location selected', 'positions');
+         echo __('No location selected', 'positions');
          echo "</div>";
       }
    }
@@ -1007,7 +999,7 @@ class PluginPositionsPosition extends CommonDBTM {
                WHERE `itemtype` = 'Location' ";
 
       $result = $DB->query($query);
-      $number = $DB->numrows($result);
+      $DB->numrows($result);
 
       while ($data = $DB->fetch_assoc($result)) {
          $locations[] = $data['items_id'];
@@ -1033,7 +1025,7 @@ class PluginPositionsPosition extends CommonDBTM {
          echo "</table>";
          Html::closeForm();
       } else {
-         _e('No location has a configured map', 'positions');
+         echo __('No location has a configured map', 'positions');
          echo "</td></tr>";
          echo "</table>";
          Html::closeForm();
@@ -1053,15 +1045,20 @@ class PluginPositionsPosition extends CommonDBTM {
       $loc = new Location();
       if ($loc->getFromDB($locations_id)) {
          $entity = $loc->fields["entities_id"];
+            if($loc->isRecursive()) {
+               $entities = getSonsOf('glpi_entities', $loc->fields["entities_id"]);
+            } else {
+               $entities = $loc->fields["entities_id"];
+            }
       }
-      
+
       echo "<table class='tab_cadre' width='30%'>";
       echo "<tr><th colspan='3'>" . __('Create coordinates', 'positions'). " :</th></tr>";
 
       echo "<tr class='tab_bg_1'><td>";
       echo _n('Associated item', 'Associated items', 2) . "</td>";
       echo "<td>";
-      PluginPositionsImageItem::showAllItems("items_id", 0, 0, $entity, self::getTypes(), $locations_id);
+      PluginPositionsImageItem::showAllItems("items_id", 0, 0, $entities, self::getTypes(), $locations_id);
       echo "</td>";
 
       echo "<td>";
@@ -1077,9 +1074,7 @@ class PluginPositionsPosition extends CommonDBTM {
    }
 
    static function selectDisplay($params, $items) {
-      global $CFG_GLPI;
 
-      $colspan = count($items);
       if (!empty($items)) {
          $colspan = count($items);
          $colspan = ($colspan * 2) + 1;
@@ -1270,8 +1265,8 @@ class PluginPositionsPosition extends CommonDBTM {
         //création des noeuds
         foreach ($items as $node) {
             $node['imagePath'] = $node['img'];
-            $node['x']         = $node['x_coordinates'] + 1;
-            $node['y']         = $node['y_coordinates'] + 1;
+            $node['x']         = $node['x_coordinates'] + 0;
+            $node['y']         = $node['y_coordinates'] + 0;
             if(empty($node['hideTooltip'])) unset($node['hideTooltip']);
             if(empty($node['hideLabel']))   unset($node['hideLabel']);
             $node['testEvent'] = $eventless;
@@ -1303,7 +1298,7 @@ class PluginPositionsPosition extends CommonDBTM {
 
         //Création du canvas et des évènements
         echo "<script>
-         Ext.onReady(function(){
+         $(document).ready(function(){
             Ext.QuickTips.init();
                var panel = new Ext.canvasXpress({
                renderTo: 'Carte',
@@ -1423,30 +1418,31 @@ class PluginPositionsPosition extends CommonDBTM {
                 }
             }
             $height = $defaultheight + $height;
-            if ($itemclass->getType() == 'Phone') {
-                $height = $height + 80;
-            } else if ($itemclass->getType() == 'PluginResourcesResource') {
-                $resID = $itemclass->fields['id'];
-                $restrict = "`plugin_resources_resources_id` = $resID AND `itemtype` = 'User' ";
-                $datas = getAllDatasFromTable('glpi_plugin_resources_resources_items', $restrict);
-                if (!empty($datas)) {
-                    foreach ($datas as $data) {
-                        if (isset($data['items_id']) && ($data['items_id'] > 0)) {
-                            $userid = $data['items_id'];
-                            $entitiesID = $itemclass->fields['entities_id'];
-                            $condition = "`users_id` = '$userid'
+           if ($itemclass->getType() == 'Phone') {
+              $height = $height + 80;
+           } else if ($itemclass->getType() == 'PluginResourcesResource') {
+              $resID    = $itemclass->fields['id'];
+              $restrict = "`plugin_resources_resources_id` = $resID AND `itemtype` = 'User' ";
+              $dbu      = new DbUtils();
+              $datas    = $dbu->getAllDataFromTable('glpi_plugin_resources_resources_items', $restrict);
+              if (!empty($datas)) {
+                 foreach ($datas as $data) {
+                    if (isset($data['items_id']) && ($data['items_id'] > 0)) {
+                       $userid     = $data['items_id'];
+                       $entitiesID = $itemclass->fields['entities_id'];
+                       $condition  = "`users_id` = '$userid'
                                     AND `is_deleted` = '0' 
                                     AND `is_template` = '0' 
                                     AND `entities_id` = '$entitiesID'
                                     AND `contact_num` != 0 ";
-                            if (($number = countElementsInTable("glpi_phones", $condition)) > 1) {
-                                $addheight = 30 * $number;
-                            }
-                            $height = $height + $addheight;
-                        }
+                       if (($number = countElementsInTable("glpi_phones", $condition)) > 1) {
+                          $addheight = 30 * $number;
+                       }
+                       $height = $height + $addheight;
                     }
-                }
-            }
+                 }
+              }
+           }
         } else {
             $height = $defaultheight + 30;
         }
@@ -1678,17 +1674,18 @@ class PluginPositionsPosition extends CommonDBTM {
    }
    
    static function showGeolocInfos($itemtype,$id, $positions_id=0) {
-      global $CFG_GLPI;
-      
+
+      $dbu      = new DbUtils();
+
       if ($itemtype != 'User'
-            && $itemtype != 'PluginResourcesResource') {
+          && $itemtype != 'PluginResourcesResource') {
          $item = new $itemtype();
          $item->getFromDB($id);
-         
-         $restrict = "`items_id` = '".$id."'
+
+         $restrict = "`items_id` = '" . $id . "'
                      AND `is_deleted` = '0' 
-                     AND `itemtype` = '".$itemtype."'" ;
-         $datas = getAllDatasFromTable('glpi_plugin_positions_positions',$restrict);
+                     AND `itemtype` = '" . $itemtype . "'";
+         $datas    = $dbu->getAllDataFromTable('glpi_plugin_positions_positions', $restrict);
          if (!empty($datas)) {
             foreach ($datas as $data) {
                $positions_id = $data['id'];
@@ -1696,7 +1693,7 @@ class PluginPositionsPosition extends CommonDBTM {
          }
          $documents_id = self::getDocument($item->fields['locations_id']);
          $locations_id = $item->fields['locations_id'];
-         
+
       } else {
          
          //si plugin ressource active
@@ -1707,7 +1704,7 @@ class PluginPositionsPosition extends CommonDBTM {
             if ($itemtype != 'PluginResourcesResource') {
                $condition = "`items_id`= '".$id."' AND `itemtype` = 'User'";
             
-               $infos = getAllDatasFromTable('glpi_plugin_resources_resources_items',$condition);
+               $infos = $dbu->getAllDataFromTable('glpi_plugin_resources_resources_items',$condition);
                if (!empty($infos)) {
                   foreach ($infos as $info) {
                      $ressource     = new PluginResourcesResource();
@@ -1717,7 +1714,7 @@ class PluginPositionsPosition extends CommonDBTM {
                                  AND `is_deleted` = '0' 
                                  AND `entities_id` = '".$ressource->fields['entities_id']."'
                                  AND `itemtype` = 'PluginResourcesResource'" ;
-                     $datas = getAllDatasFromTable('glpi_plugin_positions_positions',$restrict);
+                     $datas = $dbu->getAllDataFromTable('glpi_plugin_positions_positions',$restrict);
                      if (!empty($datas)) {
                         foreach ($datas as $data) {
                            if (isset($data['id'])) {
@@ -1740,7 +1737,7 @@ class PluginPositionsPosition extends CommonDBTM {
                               AND `is_deleted` = '0' 
                               AND `entities_id` = '".$ressource->fields['entities_id']."'
                               AND `itemtype` = '".$ressource->getType()."'" ;
-                  $datas = getAllDatasFromTable('glpi_plugin_positions_positions',$restrict);
+                  $datas = $dbu->getAllDataFromTable('glpi_plugin_positions_positions',$restrict);
                   if (!empty($datas)) {
                      foreach ($datas as $data) {
                         if (isset($data['id'])) {
@@ -1774,6 +1771,7 @@ class PluginPositionsPosition extends CommonDBTM {
    static function showGeolocLink($itemtype,$id, $positions_id=0) {
       global $CFG_GLPI;
 
+      $dbu = new DbUtils();
       if ($itemtype != 'User'
             && $itemtype != 'PluginResourcesResource') {
          $position = new PluginPositionsPosition();
@@ -1791,7 +1789,7 @@ class PluginPositionsPosition extends CommonDBTM {
             if ($itemtype != 'PluginResourcesResource') {
                $condition = "`items_id`= '".$id."' AND `itemtype` = 'User'";
             
-               $infos = getAllDatasFromTable('glpi_plugin_resources_resources_items',$condition);
+               $infos = $dbu->getAllDataFromTable('glpi_plugin_resources_resources_items',$condition);
                if (!empty($infos)) {
                   foreach ($infos as $info) {
                      $ressource     = new PluginResourcesResource();
@@ -1801,7 +1799,7 @@ class PluginPositionsPosition extends CommonDBTM {
                                  AND `is_deleted` = '0' 
                                  AND `entities_id` = '".$ressource->fields['entities_id']."'
                                  AND `itemtype` = 'PluginResourcesResource'" ;
-                     $datas = getAllDatasFromTable('glpi_plugin_positions_positions',$restrict);
+                     $datas = $dbu->getAllDataFromTable('glpi_plugin_positions_positions',$restrict);
                      if (!empty($datas)) {
                         foreach ($datas as $data) {
                            if (isset($data['id'])) {
@@ -1824,7 +1822,7 @@ class PluginPositionsPosition extends CommonDBTM {
                               AND `is_deleted` = '0' 
                               AND `entities_id` = '".$ressource->fields['entities_id']."'
                               AND `itemtype` = '".$ressource->getType()."'" ;
-                  $datas = getAllDatasFromTable('glpi_plugin_positions_positions',$restrict);
+                  $datas = $dbu->getAllDataFromTable('glpi_plugin_positions_positions',$restrict);
                   if (!empty($datas)) {
                      foreach ($datas as $data) {
                         if (isset($data['id'])) {
@@ -1910,7 +1908,7 @@ class PluginPositionsPosition extends CommonDBTM {
       $location = $itemclass->fields["locations_id"];
       if (isset($location)
          && !empty($location)) {
-         
+         echo "<input type='hidden' name='locations_id' value='$location'>";
          echo Dropdown::getDropdownName("glpi_locations", $location);
       } else {
          echo "<div class='red'>" . __('No location selected', 'positions') . "</div>";

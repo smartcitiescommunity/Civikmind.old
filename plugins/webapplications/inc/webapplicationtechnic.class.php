@@ -31,14 +31,21 @@ if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access directly to this file");
 }
 
+/**
+ * Class PluginWebapplicationsWebapplicationTechnic
+ */
 class PluginWebapplicationsWebapplicationTechnic extends CommonDropdown {
-   
-   static $rightname = "plugin_webapplications";
-   var $can_be_translated  = true;
-   
-   static function getTypeName($nb=0) {
+
+   static $rightname         = "dropdown";
+   var    $can_be_translated = true;
+
+   /**
+    * @param int $nb
+    *
+    * @return translated
+    */
+   static function getTypeName($nb = 0) {
 
       return _n('Language of treatment', 'Languages of treatment', $nb, 'webapplications');
    }
 }
-?>

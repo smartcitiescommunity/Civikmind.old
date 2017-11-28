@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: tickettypecriteria.class.php 336 2017-01-20 16:59:36Z yllen $
+ * @version $Id: tickettypecriteria.class.php 345 2017-10-23 17:33:07Z yllen $
  -------------------------------------------------------------------------
    LICENSE
 
@@ -43,7 +43,7 @@ class PluginReportsTicketTypeCriteria extends PluginReportsArrayCriteria {
    **/
    function __construct($report, $name='type', $label='') {
 
-      $options = array('all' => Dropdown::EMPTY_VALUE);
+      $options = ['all' => Dropdown::EMPTY_VALUE];
       foreach (Ticket::getTypes() as $k => $v) {
          $options[$k] = $v;
       }

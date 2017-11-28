@@ -1,7 +1,7 @@
 <?php
 
 include ("../../../../inc/includes.php");
-include ("../../../../config/config.php");
+include ("../../../../inc/config.php");
 include "../inc/functions.php";
 
 global $DB;
@@ -119,7 +119,7 @@ $tec = $DB->fetch_assoc($result_tec);
 
 ?>
 <div id='content' >
-<div id='container-fluid' style="margin: 0px 2% 0px 2%;">
+<div id='container-fluid' style="margin: <?php echo margins(); ?> ;">
 <div id="charts" class="fluid chart" >
 <div id="pad-wrapper" >
 <div id="head-rel" class="fluid">
@@ -499,15 +499,15 @@ while($row = $DB->fetch_assoc($result_cham)){
 	$row_tec = $DB->fetch_assoc($result_tec);
 
 		echo "
-		<tr>
-		<td style='vertical-align:middle; text-align:center;'><a href=".$CFG_GLPI['url_base']."/front/ticket.form.php?id=". $row['id'] ." target=_blank >" . $row['id'] . "</a></td>
-		<td style='vertical-align:middle;'><img src=".$CFG_GLPI['url_base']."/pics/".$status1.".png title='".Ticket::getStatus($row['status'])."' style=' cursor: pointer; cursor: hand;'/>&nbsp; ".Ticket::getStatus($row['status'])." </td>
-		<td style='vertical-align:middle;'> ". substr($row['name'],0,75) ." </td>
-		<td style='vertical-align:middle;'> ". $row_tec['name'] ." ". $row_tec['sname'] ." </td>
-		<td style='vertical-align:middle; text-align:center;'> ". conv_data_hora($row['date']) ." </td>
-		<td style='vertical-align:middle; text-align:center;'> ". conv_data_hora($row['closedate']) ." </td>
-		<td style='vertical-align:middle; text-align:right;'> ". time_ext($row['time']) ."</td>
-		<td style='vertical-align:middle; text-align:right;'> ". number_format($cost, 2, ',', ' ') ."</td>
+		<tr style='font-weight:normal;'>
+			<td style='vertical-align:middle; text-align:center; font-weight:bold'><a href=".$CFG_GLPI['url_base']."/front/ticket.form.php?id=". $row['id'] ." target=_blank >" . $row['id'] . "</a></td>
+			<td style='vertical-align:middle;'><img src=".$CFG_GLPI['url_base']."/pics/".$status1.".png title='".Ticket::getStatus($row['status'])."' style=' cursor: pointer; cursor: hand;'/>&nbsp; ".Ticket::getStatus($row['status'])." </td>
+			<td style='vertical-align:middle;'> ". substr($row['name'],0,75) ." </td>
+			<td style='vertical-align:middle;'> ". $row_tec['name'] ." ". $row_tec['sname'] ." </td>
+			<td style='vertical-align:middle; text-align:center;'> ". conv_data_hora($row['date']) ." </td>
+			<td style='vertical-align:middle; text-align:center;'> ". conv_data_hora($row['closedate']) ." </td>
+			<td style='vertical-align:middle; text-align:right;'> ". time_ext($row['time']) ."</td>
+			<td style='vertical-align:middle; text-align:right;'> ". number_format($cost, 2, ',', ' ') ."</td>
 		</tr>";
 
 }
@@ -532,7 +532,7 @@ var table =  $('#tec').DataTable( {
         pagingType: "full_numbers",
         sorting: [[0,'desc'],[1,'desc'],[2,'desc'],[3,'desc'],[4,'desc'],[5,'desc'],[6,'desc']],
 		  displayLength: 25,
-        lengthMenu: [[25, 50, 100, -1], [25, 50, 100, "All"]],
+        lengthMenu: [[25, 50, 75, 100], [25, 50, 75, 100]],
         buttons: [
         	    {
                  extend: "copyHtml5",

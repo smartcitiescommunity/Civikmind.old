@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
-
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -37,7 +36,7 @@
 */
 
 // Direct access to file
-if (strpos($_SERVER['PHP_SELF'],"getDropdownNetpoint.php")) {
+if (strpos($_SERVER['PHP_SELF'], "getDropdownNetpoint.php")) {
    $AJAX_INCLUDE = 1;
    include ('../inc/includes.php');
    header("Content-Type: text/html; charset=UTF-8");
@@ -49,7 +48,7 @@ if (strpos($_SERVER['PHP_SELF'],"getDropdownNetpoint.php")) {
 Session::checkLoginUser();
 
 // Make a select box with preselected values
-$datas             = array();
+$datas             = [];
 $location_restrict = false;
 
 
@@ -132,8 +131,8 @@ $result = $DB->query($query);
 // Display first if no search
 if (empty($_POST['searchText']) && ($one_item < 0) || ($one_item == 0)) {
    if ($_POST['page'] == 1) {
-      array_push($datas, array('id'   => 0,
-                              'text' => Dropdown::EMPTY_VALUE));
+      array_push($datas, ['id'   => 0,
+                              'text' => Dropdown::EMPTY_VALUE]);
    }
 }
 
@@ -153,9 +152,9 @@ if ($DB->numrows($result)) {
          $output = sprintf(__('%1$s (%2$s)'), $output, $loc);
       }
 
-      array_push($datas, array('id'    => $ID,
+      array_push($datas, ['id'    => $ID,
                                'text'  => $output,
-                               'title' => $title));
+                               'title' => $title]);
       $count++;
    }
 }
@@ -168,4 +167,3 @@ if (($one_item >= 0) && isset($datas[0])) {
    $ret['results'] = $datas;
    echo json_encode($ret);
 }
-?>

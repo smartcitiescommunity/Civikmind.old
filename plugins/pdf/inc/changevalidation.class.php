@@ -45,6 +45,8 @@ class PluginPdfChangeValidation extends PluginPdfCommon {
    static function pdfForChange(PluginPdfSimplePDF $pdf, Change $change) {
       global $CFG_GLPI, $DB;
 
+      $dbu = new DbUtils();
+
       $pdf->setColumnsSize(100);
       $pdf->displayTitle("<b>".__('Approvals for the change', 'pdf')."</b>");
 
@@ -54,32 +56,35 @@ class PluginPdfChangeValidation extends PluginPdfCommon {
                                              CommonITILValidation::getPurgeRights()))) {
          return false;
       }
-     $ID = $change->getField('id');
+      $ID = $change->getField('id');
 
-      $query = "SELECT *
-                FROM `glpi_changevalidations`
-                WHERE `changes_id` = '".$change->getField('id')."'
-                ORDER BY submission_date DESC";
-      $result = $DB->query($query);
-      $number = $DB->numrows($result);
+      $result = $DB->request(['FROM'   => 'glpi_changevalidations',
+                              'WHERE'  => ['changes_id' => $change->getField('id')],
+                              'ORDER'  => 'submission_date DESC']);
+      $number = count($result);
 
-      if ($number) {
+      $pdf->setColumnsSize(100);
+      $title = '<b>'.ChangeValidation::getTypeName(2).'</b>';
+      if (!$number) {
+          $pdf->displayTitle(sprintf(__('%1$s: %2$s'), $title, __('No item to display')));
+      } else {
+         $title = sprintf(__('%1$s: %2$s'), $title, $number);
+         $pdf->displayTitle($title);
+
          $pdf->setColumnsSize(10,10,15,20,10,15,20);
          $pdf->displayTitle(_x('item', 'State'), __('Request date'), __('Approval requester'),
                             __('Request comments'), __('Approval status'), __('Approver'),
                             __('Approval comments'));
 
-         while ($row = $DB->fetch_assoc($result)) {
+         while ($row = $result->next()) {
             $pdf->displayLine(TicketValidation::getStatus($row['status']),
                               Html::convDateTime($row["submission_date"]),
-                              getUserName($row["users_id"]),
+                              $dbu->getUserName($row["users_id"]),
                               trim($row["comment_submission"]),
                               Html::convDateTime($row["validation_date"]),
-                              getUserName($row["users_id_validate"]),
+                              $dbu->getUserName($row["users_id_validate"]),
                               trim($row["comment_validation"]));
          }
-      } else {
-         $pdf->displayLine(__('No item found'));
       }
       $pdf->displaySpace();
    }

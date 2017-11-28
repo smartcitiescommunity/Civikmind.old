@@ -1,39 +1,40 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
-
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
 * @brief
 */
+
+use Glpi\Event;
 
 include ('../inc/includes.php');
 
@@ -65,7 +66,7 @@ if (isset($_POST["add"])) {
 
    if ($id = $track->add($_POST)) {
       if ($_SESSION['glpibackcreated']) {
-         Html::redirect($track->getFormURL()."?id=".$id);
+         Html::redirect($track->getLinkURL());
       }
    }
    Html::back();
@@ -74,6 +75,24 @@ if (isset($_POST["add"])) {
    $track->check($_POST['id'], UPDATE);
 
    $track->update($_POST);
+
+   if (isset($_POST['kb_linked_id'])) {
+      //if solution should be linked to selected KB entry
+      $params = [
+         'knowbaseitems_id' => $_POST['kb_linked_id'],
+         'itemtype'         => $track->getType(),
+         'items_id'         => $track->getID()
+      ];
+      $existing = $DB->request(
+         'glpi_knowbaseitems_items',
+         $params
+      );
+      if ($existing->numrows() == 0) {
+         $kb_item_item = new KnowbaseItem_Item();
+         $kb_item_item->add($params);
+      }
+   }
+
    Event::log($_POST["id"], "ticket", 4, "tracking",
               //TRANS: %s is the user login
               sprintf(__('%s updates an item'), $_SESSION["glpiname"]));
@@ -119,10 +138,20 @@ if (isset($_POST["add"])) {
    }
    $track->redirectToList();
 
-} else if (isset($_POST['slt_delete'])) {
+} else if (isset($_POST['sla_delete'])) {
    $track->check($_POST["id"], UPDATE);
 
-   $track->deleteSLT($_POST["id"], $_POST['type'], $_POST['delete_date']);
+   $track->deleteLevelAgreement("SLA", $_POST["id"], $_POST['type'], $_POST['delete_date']);
+   Event::log($_POST["id"], "ticket", 4, "tracking",
+              //TRANS: %s is the user login
+              sprintf(__('%s updates an item'), $_SESSION["glpiname"]));
+
+   Html::redirect($CFG_GLPI["root_doc"]."/front/ticket.form.php?id=".$_POST["id"]);
+
+} else if (isset($_POST['ola_delete'])) {
+   $track->check($_POST["id"], UPDATE);
+
+   $track->deleteLevelAgreement("OLA", $_POST["id"], $_POST['type'], $_POST['delete_date']);
    Event::log($_POST["id"], "ticket", 4, "tracking",
               //TRANS: %s is the user login
               sprintf(__('%s updates an item'), $_SESSION["glpiname"]));
@@ -132,10 +161,10 @@ if (isset($_POST["add"])) {
 } else if (isset($_POST['addme_observer'])) {
    $ticket_user = new Ticket_User();
    $track->check($_POST['tickets_id'], READ);
-   $input = array('tickets_id'       => $_POST['tickets_id'],
+   $input = ['tickets_id'       => $_POST['tickets_id'],
                   'users_id'         => Session::getLoginUserID(),
                   'use_notification' => 1,
-                  'type'             => CommonITILActor::OBSERVER);
+                  'type'             => CommonITILActor::OBSERVER];
    $ticket_user->add($input);
 
    Event::log($_POST['tickets_id'], "ticket", 4, "tracking",
@@ -147,10 +176,10 @@ if (isset($_POST["add"])) {
    $ticket_user = new Ticket_User();
 
    $track->check($_POST['tickets_id'], READ);
-   $input = array('tickets_id'       => $_POST['tickets_id'],
+   $input = ['tickets_id'       => $_POST['tickets_id'],
                   'users_id'         => Session::getLoginUserID(),
                   'use_notification' => 1,
-                  'type'             => CommonITILActor::ASSIGN);
+                  'type'             => CommonITILActor::ASSIGN];
    $ticket_user->add($input);
    Event::log($_POST['tickets_id'], "ticket", 4, "tracking",
               //TRANS: %s is the user login
@@ -178,8 +207,8 @@ if (isset($_GET["id"]) && ($_GET["id"] > 0)) {
       Html::header(Ticket::getTypeName(Session::getPluralNumber()), '', "helpdesk", "ticket");
    }
 
-   $available_options = array('load_kb_sol', '_openfollowup');
-   $options           = array();
+   $available_options = ['load_kb_sol', '_openfollowup'];
+   $options           = [];
    foreach ($available_options as $key) {
       if (isset($_GET[$key])) {
          $options[$key] = $_GET[$key];
@@ -195,14 +224,17 @@ if (isset($_GET["id"]) && ($_GET["id"] > 0)) {
                                     $CFG_GLPI["root_doc"].
                                      "/front/knowbaseitem.form.php?_in_modal=1&item_itemtype=Ticket&item_items_id=".
                                      $_GET["id"],
-                                    array('title'         => __('Save solution to the knowledge base'),
-                                          'reloadonclose' => false));
-      echo Html::scriptBlock(Html::jsGetElementbyID('savetokb').".dialog('open');");
+                                    ['title'         => __('Save solution to the knowledge base'),
+                                          'reloadonclose' => false]);
+      echo Html::scriptBlock('$(function() {' .Html::jsGetElementbyID('savetokb').".dialog('open'); });");
    }
 
 } else {
-   Html::header(__('New ticket'),'',"helpdesk","ticket");
+   Html::header(__('New ticket'), '', "helpdesk", "ticket");
    unset($_REQUEST['id']);
+   unset($_GET['id']);
+   unset($_POST['id']);
+
    // alternative email must be empty for create ticket
    unset($_REQUEST['_users_id_requester_notif']['alternative_email']);
    unset($_REQUEST['_users_id_observer_notif']['alternative_email']);
@@ -212,7 +244,7 @@ if (isset($_GET["id"]) && ($_GET["id"] > 0)) {
    if (isset($_REQUEST['_add_fromitem'])
        && isset($_REQUEST['itemtype'])
        && isset($_REQUEST['items_id'])) {
-      $_REQUEST['items_id'] = array($_REQUEST['itemtype'] => array($_REQUEST['items_id']));
+      $_REQUEST['items_id'] = [$_REQUEST['itemtype'] => [$_REQUEST['items_id']]];
    }
    $track->display($_REQUEST);
 }
@@ -223,4 +255,3 @@ if ($_SESSION["glpiactiveprofile"]["interface"] == "helpdesk") {
 } else {
    Html::footer();
 }
-?>

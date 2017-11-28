@@ -1,33 +1,33 @@
 <?php
-/*
--------------------------------------------------------------------------
-GLPI - Gestionnaire Libre de Parc Informatique
-Copyright (C) 2015-2016 Teclib'.
-
-http://glpi-project.org
-
-based on GLPI - Gestionnaire Libre de Parc Informatique
-Copyright (C) 2003-2014 by the INDEPNET Development Team.
-
--------------------------------------------------------------------------
-
-LICENSE
-
-This file is part of GLPI.
-
-GLPI is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
-
-GLPI is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with GLPI. If not, see <http://www.gnu.org/licenses/>.
---------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 
@@ -51,13 +51,13 @@ class NotificationTargetObjectLock extends NotificationTarget {
 
 
    function getEvents() {
-      return array('unlock'               => __('Unlock Item Request'));
+      return ['unlock'               => __('Unlock Item Request')];
    }
 
 
    function getTags() {
 
-      $tags = array('objectlock.action'               => _n('Event', 'Events', 1),
+      $tags = ['objectlock.action'               => _n('Event', 'Events', 1),
                     'objectlock.name'                 => __('Item Name'),
                     'objectlock.id'                   => __('Item ID'),
                     'objectlock.type'                 => __('Item Type'),
@@ -66,45 +66,39 @@ class NotificationTargetObjectLock extends NotificationTarget {
                     'objectlock.lockedby.firstname'   => __('Firstname of locking user'),
                     'objectlock.requester.lastname'   => __('Requester Lastname'),
                     'objectlock.requester.firstname'  => __('Requester Firstname'),
-                    'objectlock.url'                  => __('Item URL'));
+                    'objectlock.url'                  => __('Item URL')];
 
       foreach ($tags as $tag => $label) {
-         $this->addTagToList(array('tag'   => $tag,
+         $this->addTagToList(['tag'   => $tag,
                                    'label' => $label,
-                                   'value' => true));
+                                   'value' => true]);
       }
       asort($this->tag_descriptions);
    }
 
 
    /**
-    * @see NotificationTarget::getNotificationTargets()
+    * @see NotificationTarget::addNotificationTargets()
    **/
-   function getNotificationTargets($entity) {
+   function addNotificationTargets($entity) {
       $this->addTarget(Notification::USER, __('Locking User'));
    }
 
 
    /**
-    * @see NotificationTarget::getSpecificTargets()
+    * @see NotificationTarget::addSpecificTargets()
     **/
-   function getSpecificTargets($data, $options) {
+   function addSpecificTargets($data, $options) {
 
       $user = new User();
       if ($user->getFromDB($this->obj->fields['users_id'])) {
-         $this->addToAddressesList(array('language' => $user->getField('language'),
-                                         'users_id' => $user->getID()));
+         $this->addToRecipientsList(['language' => $user->getField('language'),
+                                         'users_id' => $user->getID()]);
       }
    }
 
 
-   /**
-    * Get all data needed for template processing
-    *
-    * @param $event
-    * @param $options   array
-   **/
-   function getDatasForTemplate($event, $options=array()) {
+   function addDataForTemplate($event, $options = []) {
       global $CFG_GLPI;
 
       $events = $this->getEvents();
@@ -114,34 +108,34 @@ class NotificationTargetObjectLock extends NotificationTarget {
       $user = new User();
       $user->getFromDB($options['item']->fields['users_id']);
 
-      $this->datas['##objectlock.action##']   = $events[$event];
-      $this->datas['##objectlock.name##']     = $object->fields['name'];
-      $this->datas['##objectlock.id##']       = $options['item']->fields['items_id'];
-      $this->datas['##objectlock.type##']     = $options['item']->fields['itemtype'];
-      $this->datas['##objectlock.date_mod##'] = Html::convDateTime($options['item']->fields['date_mod'],
-                                                                   $user->fields['date_format'] ) ;
-      $this->datas['##objectlock.lockedby.lastname##']
+      $this->data['##objectlock.action##']   = $events[$event];
+      $this->data['##objectlock.name##']     = $object->fields['name'];
+      $this->data['##objectlock.id##']       = $options['item']->fields['items_id'];
+      $this->data['##objectlock.type##']     = $options['item']->fields['itemtype'];
+      $this->data['##objectlock.date_mod##'] = Html::convDateTime($options['item']->fields['date_mod'],
+                                                                   $user->fields['date_format']);
+      $this->data['##objectlock.lockedby.lastname##']
                                               = $user->fields['realname'];
-      $this->datas['##objectlock.lockedby.firstname##']
+      $this->data['##objectlock.lockedby.firstname##']
                                               = $user->fields['firstname'];
-      $this->datas['##objectlock.requester.lastname##']
+      $this->data['##objectlock.requester.lastname##']
                                               = $_SESSION['glpirealname'];
-      $this->datas['##objectlock.requester.firstname##']
+      $this->data['##objectlock.requester.firstname##']
                                               = $_SESSION['glpifirstname'];
-      $this->datas['##objectlock.url##']      = $CFG_GLPI['url_base']."/?redirect=".
+      $this->data['##objectlock.url##']      = $CFG_GLPI['url_base']."/?redirect=".
                                                    $options['item']->fields['itemtype']. "_".
-                                                   $options['item']->fields['items_id'] ;
+                                                   $options['item']->fields['items_id'];
 
       $this->getTags();
       foreach ($this->tag_descriptions[NotificationTarget::TAG_LANGUAGE] as $tag => $values) {
-         if (!isset($this->datas[$tag])) {
-            $this->datas[$tag] = $values['label'];
+         if (!isset($this->data[$tag])) {
+            $this->data[$tag] = $values['label'];
          }
       }
    }
 
 
-   function getSender($options=array()) {
+   function getSender() {
 
       $mails = new UserEmail();
       if (isset( $_SESSION['glpiID']) && ($_SESSION['glpiID'] > 0)
@@ -150,14 +144,20 @@ class NotificationTargetObjectLock extends NotificationTarget {
           && $mails->getFromDBByQuery(" WHERE users_id = ".$_SESSION['glpiID']."
                                               AND is_default = 1 " )) {
 
-            $ret = array('email' => $mails->fields['email'],
-                         'name'  => formatUserName(0, $_SESSION["glpiname"], $_SESSION["glpirealname"],
-                                                   $_SESSION["glpifirstname"]));
+            $ret = ['email' => $mails->fields['email'],
+                    'name'  => formatUserName(0, $_SESSION["glpiname"], $_SESSION["glpirealname"],
+                                              $_SESSION["glpifirstname"])];
       } else {
-         $ret = parent::getSender( $options ) ;
+         $ret = parent::getSender();
       }
 
-      return $ret ;
+      return $ret;
+   }
+
+
+   function getReplyTo($options = []) {
+
+      return $this->getSender();
    }
 
 }

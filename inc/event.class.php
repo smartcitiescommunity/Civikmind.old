@@ -1,35 +1,42 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
- 
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
+
+namespace Glpi;
+
+use \Ajax;
+use \CommonDBTM;
+use \Html;
+use \Session;
+use \Toolbox;
 
 /** @file
 * @brief
@@ -49,7 +56,7 @@ class Event extends CommonDBTM {
 
 
 
-   static function getTypeName($nb=0) {
+   static function getTypeName($nb = 0) {
       return _n('Log', 'Logs', $nb);
    }
 
@@ -96,12 +103,12 @@ class Event extends CommonDBTM {
    static function log($items_id, $type, $level, $service, $event) {
       global $DB;
 
-      $input = array('items_id' => intval($items_id),
+      $input = ['items_id' => intval($items_id),
                      'type'     => $DB->escape($type),
                      'date'     => $_SESSION["glpi_currenttime"],
                      'service'  => $DB->escape($service),
                      'level'    => intval($level),
-                     'message'  => $DB->escape($event));
+                     'message'  => $DB->escape($event)];
       $tmp = new self();
       return $tmp->add($input);
    }
@@ -133,21 +140,21 @@ class Event extends CommonDBTM {
    **/
    static function logArray() {
 
-      static $logItemtype = array();
-      static $logService  = array();
+      static $logItemtype = [];
+      static $logService  = [];
 
       if (count($logItemtype)) {
-         return array($logItemtype, $logService);
+         return [$logItemtype, $logService];
       }
 
-      $logItemtype = array('system'      => __('System'),
+      $logItemtype = ['system'      => __('System'),
                            'devices'     => _n('Component', 'Components', Session::getPluralNumber()),
                            'planning'    => __('Planning'),
                            'reservation' => _n('Reservation', 'Reservations', Session::getPluralNumber()),
                            'dropdown'    => _n('Dropdown', 'Dropdowns', Session::getPluralNumber()),
-                           'rules'       => _n('Rule', 'Rules', Session::getPluralNumber()));
+                           'rules'       => _n('Rule', 'Rules', Session::getPluralNumber())];
 
-      $logService = array('inventory'    => __('Assets'),
+      $logService = ['inventory'    => __('Assets'),
                           'tracking'     => _n('Ticket', 'Tickets', Session::getPluralNumber()),
                           'maintain'     => __('Assistance'),
                           'planning'     => __('Planning'),
@@ -160,9 +167,9 @@ class Event extends CommonDBTM {
                           'cron'         => _n('Automatic action', 'Automatic actions', Session::getPluralNumber()),
                           'document'     => _n('Document', 'Documents', Session::getPluralNumber()),
                           'notification' => _n('Notification', 'Notifications', Session::getPluralNumber()),
-                          'plugin'       => _n('Plugin', 'Plugins', Session::getPluralNumber()));
+                          'plugin'       => _n('Plugin', 'Plugins', Session::getPluralNumber())];
 
-      return array($logItemtype, $logService);
+      return [$logItemtype, $logService];
    }
 
 
@@ -189,7 +196,7 @@ class Event extends CommonDBTM {
                Ajax::createIframeModalWindow('infocom'.$rand,
                                              $CFG_GLPI["root_doc"]."/front/infocom.form.php".
                                                 "?id=".$items_id,
-                                             array('height' => 600));
+                                             ['height' => 600]);
 
             case "devices" :
                echo $items_id;
@@ -224,7 +231,7 @@ class Event extends CommonDBTM {
     *
     * @param $user   string  name user to search on message (default '')
     **/
-   static function showForUser($user="") {
+   static function showForUser($user = "") {
       global $DB, $CFG_GLPI;
 
       // Show events from $result in table form
@@ -313,19 +320,19 @@ class Event extends CommonDBTM {
     * @param $sort      order by clause occurences (eg: date) (defaut 'date')
     * @param $start     (default 0)
    **/
-   static function showList($target, $order='DESC', $sort='date', $start=0) {
+   static function showList($target, $order = 'DESC', $sort = 'date', $start = 0) {
       global $DB, $CFG_GLPI;
 
       // Show events from $result in table form
       list($logItemtype, $logService) = self::logArray();
 
       // Columns of the Table
-      $items = array("type"     => array(__('Source'), ""),
-                     "items_id" => array(__('ID'), ""),
-                     "date"     => array(__('Date'), ""),
-                     "service"  => array(__('Service'), "width='8%'"),
-                     "level"    => array(__('Level'), "width='8%'"),
-                     "message"  => array(__('Message'), "width='50%'"));
+      $items = ["type"     => [__('Source'), ""],
+                     "items_id" => [__('ID'), ""],
+                     "date"     => [__('Date'), ""],
+                     "service"  => [__('Service'), "width='8%'"],
+                     "level"    => [__('Level'), "width='8%'"],
+                     "message"  => [__('Message'), "width='50%'"]];
 
       // define default sorting
       if (!isset($items[$sort])) {
@@ -406,29 +413,34 @@ class Event extends CommonDBTM {
    }
 
 
-    /** Display how many logins since
-     *
-     * @return  nothing
-    **/
-    static function getCountLogin() {
-       global $DB;
+   /** Display how many logins since
+    *
+    * @return  nothing
+   **/
+   static function getCountLogin() {
+      global $DB;
 
-       $query = "SELECT COUNT(*)
+      $query = "SELECT COUNT(*)
+                FROM `glpi_events`
+                WHERE `message` LIKE '%logged in%'";
+
+      $query2 = "SELECT `date`
                  FROM `glpi_events`
-                 WHERE `message` LIKE '%logged in%'";
+                 ORDER BY `date` ASC
+                 LIMIT 1";
 
-       $query2 = "SELECT `date`
-                  FROM `glpi_events`
-                  ORDER BY `date` ASC
-                  LIMIT 1";
+      $result   = $DB->query($query);
+      $result2  = $DB->query($query2);
+      $nb_login = $DB->result($result, 0, 0);
+      $date     = $DB->result($result2, 0, 0);
+      // Only for DEMO mode (not need to be translated)
+      printf(_n('%1$s login since %2$s', '%1$s logins since %2$s', $nb_login),
+             '<span class="b">'.$nb_login.'</span>', $date);
+   }
 
-       $result   = $DB->query($query);
-       $result2  = $DB->query($query2);
-       $nb_login = $DB->result($result, 0, 0);
-       $date     = $DB->result($result2, 0, 0);
-       // Only for DEMO mode (not need to be translated)
-       printf(_n('%1$s login since %2$s', '%1$s logins since %2$s', $nb_login),
-              '<span class="b">'.$nb_login.'</span>', $date);
-    }
+}
 
+// For compatibility
+if (!class_exists('Event', false)) {
+   class_alias('Glpi\\Event', 'Event');
 }

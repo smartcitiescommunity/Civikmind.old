@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: networkequipment.class.php 476 2017-01-09 15:53:05Z yllen $
+ * @version $Id: networkequipment.class.php 498 2017-11-03 13:33:40Z yllen $
  -------------------------------------------------------------------------
  LICENSE
 
@@ -42,17 +42,20 @@ class PluginPdfNetworkEquipment extends PluginPdfCommon {
    }
 
 
-   function defineAllTabs($options=array()) {
+   function defineAllTabs($options=[]) {
 
       $onglets = parent::defineAllTabs($options);
       unset($onglets['Item_Devices$1']); // TODO add method to print linked Devices
       unset($onglets['NetworkName$1']); // TODO add method to print networkName
-
+      unset($onglets['KnowbaseItem_Item$1']);
+      unset($onglets['Certificate_Item$1']);
       return $onglets;
    }
 
 
    static function pdfMain(PluginPdfSimplePDF $pdf, NetworkEquipment $item) {
+
+      $dbu = new DbUtils();
 
       PluginPdfCommon::mainTitle($pdf, $item);
 
@@ -67,7 +70,7 @@ class PluginPdfNetworkEquipment extends PluginPdfCommon {
 
       $pdf->displayLine(
          '<b><i>'.sprintf(__('%1$s: %2$s'), __('User').'</i></b>',
-                          getUserName($item->fields['users_id'])),
+                          $dbu->getUserName($item->fields['users_id'])),
          '<b><i>'.sprintf(__('%1$s: %2$s'), __('Network').'</i></b>',
                           Html::clean(Dropdown::getDropdownName('glpi_networks',
                                                                 $item->fields['networks_id']))));
@@ -79,12 +82,7 @@ class PluginPdfNetworkEquipment extends PluginPdfCommon {
                           Html::clean(Dropdown::getDropdownName('glpi_domains',
                                                                 $item->fields['domains_id']))));
 
-      $pdf->displayLine(__('The MAC address and the IP of the equipment are included in an aggregated network port'));
-
-      $pdf->displayLine(
-         '<b><i>'.sprintf(__('%1$s: %2$s'), _n('Firmware', 'Firmwares', 1).'</i></b>',
-                          Html::clean(Dropdown::getDropdownName('glpi_networkequipmentfirmwares',
-                                                                $item->fields['networkequipmentfirmwares_id']))),
+      $pdf->displayLine(__('The MAC address and the IP of the equipment are included in an aggregated network port'),
          '<b><i>'.sprintf(__('%1$s: %2$s'),
                           sprintf(__('%1$s (%2$s)'), __('Memory'),__('Mio')).'</i></b>',
                                   $item->fields['ram']));

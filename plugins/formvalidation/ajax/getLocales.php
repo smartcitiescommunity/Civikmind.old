@@ -35,7 +35,7 @@ Html::header_nocache();
 
 Session::checkLoginUser();
 
-if( !isset($LANG['plugin_formvalidation'])){
+if (!isset($LANG['plugin_formvalidation'])) {
    $dir = GLPI_ROOT . "/plugins/formvalidation/locales/";
    // try to load en_GB default language
    // to be sure that it will default to english if user's language
@@ -43,7 +43,7 @@ if( !isset($LANG['plugin_formvalidation'])){
    if (file_exists($dir . "en_GB.php")) {
       include ($dir . "en_GB.php");
    }
-   // and then try to load user's own language   
+   // and then try to load user's own language
    if (file_exists($dir.$_SESSION["glpilanguage"].'.php')) {
       include ($dir.$_SESSION["glpilanguage"].'.php');
    }
@@ -57,7 +57,7 @@ $localization = array(
                      );
 
 // add plugin own language strings to $localization
-$localization['plugin_formvalidation'] = $LANG['plugin_formvalidation'] ;
+$localization['plugin_formvalidation'] = $LANG['plugin_formvalidation'];
 
-echo json_encode( $localization, JSON_HEX_APOS | JSON_HEX_QUOT ) ;
+echo json_encode( $localization, JSON_HEX_APOS | JSON_HEX_QUOT );
 

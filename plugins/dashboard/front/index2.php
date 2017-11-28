@@ -1,7 +1,7 @@
 <?php
 
 include ("../../../inc/includes.php");
-include ("../../../config/config.php");
+include ("../../../inc/config.php");
 
 global $DB;
 
@@ -13,7 +13,6 @@ $result_e = $DB->query($sql_e);
 $sel_ent = $DB->result($result_e,0,'value');
 
 if($sel_ent == '' OR strstr($sel_ent,",")) { 
-	//$sel_ent = 0;
 	$ent_name = __('Tickets Statistics','dashboard');
 }
 
@@ -22,7 +21,7 @@ else {
 	$result = $DB->query($query);
 	$ent_name1 = $DB->result($result,0,'name');
 	$ent_name = __('Tickets Statistics','dashboard')." :  ". $ent_name1 ;
-	}
+}
 
 # years in index
 $sql_y = "SELECT value FROM glpi_plugin_dashboard_config WHERE name = 'num_years' AND users_id = ".$_SESSION['glpiID']."";
@@ -64,8 +63,9 @@ $result_colors = $DB->query($sql_colors);
 $colors = $DB->result($result_colors,0,'value');
 
 if($colors == '') {
-	$colors = 'grid-light.js';	
+	$colors = 'default.js';	
 }
+
 $_SESSION['charts_colors'] = $colors;
 
     switch (date("m")) {
@@ -102,29 +102,13 @@ $res_photo = $DB->query($sql_photo);
 $pic = $DB->result($res_photo,0,'picture');
 $photo_url = User::getURLForPicture($pic);
 
-
-# charts colors 
-$sql_colors = "SELECT value FROM glpi_plugin_dashboard_config WHERE name = 'charts_colors' AND users_id = ".$_SESSION['glpiID']."";
-$result_colors = $DB->query($sql_colors);
-$colors = $DB->result($result_colors,0,'value');
-
-if($colors == '') {
-	$colors = 'grid-light.js';	
-}
-	
-$_SESSION['charts_colors'] = $colors;
-
-
 //redirect tech profile
-if(Session::haveRight("profile", READ))
-	{
-		//$redir = '<meta http-equiv="refresh" content= "120"/>';
-		$redir = '';
-	}
+if(Session::haveRight("profile", READ)) {		
+	$redir = '';
+}
 else {		
-		$redir = '<meta http-equiv="refresh" content="0; url=graphs/graf_tech.php?con=1" />'; 
-	}
-    
+	$redir = '<meta http-equiv="refresh" content="0; url=graphs/graf_tech.php?con=1" />'; 
+}   
 ?>
 
 <!DOCTYPE html>
@@ -183,9 +167,9 @@ else {
 		
 		$(function($) {
 			var options = {
-			timeNotation: '24h',
-			am_pm: true,
-			fontSize: '14px'
+				timeNotation: '24h',
+				am_pm: true,
+				fontSize: '14px'
 			}
 			$('#clock').jclock(options);
 		});	
@@ -197,10 +181,10 @@ else {
 	<?php
 	if($theme == 'trans.css') {		
    	echo "<body style=\"background: url('./img/".$back."') no-repeat top center fixed; \">";
-   	}
+   }
    else {
-   	echo "<body>";
-   	}	 
+   	echo "<body style='baclground-color:#E5E5E5;'>";
+   }	 
    ?>
 
             <div class="site-holder">
@@ -353,19 +337,30 @@ else {
                                         </span>
                                     </a>
 												<ul  class="animated fadeInDown">
-                                  
-                                       <li>
-                                            <a href="#" onclick="window.open('./reports/rel_tecnicos.php?con=1','iframe1'); scrollWin();" data-original-title=' Técnicos'>
+                                       <li>                                         
+                                            <a href="#" onclick="window.open('./reports/rel_assets.php','iframe1'); scrollWin();" data-original-title=' Ativos'>
                                                 <i class="fa fa-angle-right"></i>
-                                                <span class='hidden-minibar'> <?php echo _sn('Technician','Technicians',2,'dashboard'); ?> </span>
+                                                <span class='hidden-minibar'> <?php echo __('Assets'); ?></span>
                                             </a>
-                                        </li>
+                                       </li>  
+													<li>
+                                            <a href="#" onclick="window.open('./reports/rel_tickets.php','iframe1'); scrollWin();" data-original-title=' Tickets'>
+                                                <i class="fa fa-angle-right"></i>
+                                                <span class='hidden-minibar'> <?php echo _n('Ticket','Tickets',2); ?></span>
+                                            </a>
+                                       </li>                                                                       
                                        <li>
-                                            <a href="#" onclick="window.open('./reports/rel_categorias.php','iframe1'); scrollWin();" data-original-title=' Categorias'>
+                                            <a href="#" onclick="window.open('./reports/rel_categorias.php?con=1','iframe1'); scrollWin();" data-original-title=' Categorias'>
                                                 <i class="fa fa-angle-right"></i>
                                                 <span class='hidden-minibar'> <?php echo __('Category'); //echo _n('Category','Categories',2); ?> </span>
                                             </a>
                                         </li>
+                                       <li>
+                                            <a href="#" onclick="window.open('./reports/rel_grupos.php?con=1','iframe1'); scrollWin();" data-original-title=' Categorias'>
+                                                <i class="fa fa-angle-right"></i>
+                                                <span class='hidden-minibar'> <?php echo _sn('Group','Groups',2); ?> </span>
+                                            </a>
+                                        </li>                                        
                                         <li>
 	                                         <a href="#" onclick="window.open('./reports/rel_localidades.php?con=1','iframe1'); scrollWin();" data-original-title=' Location' >
                                                 <i class="fa fa-angle-right"></i>
@@ -373,11 +368,23 @@ else {
                                             </a>
                                         </li>
                                         <li>
+                                            <a href="#" onclick="window.open('./reports/rel_projects.php','iframe1'); scrollWin();" data-original-title=' Projetos'>
+                                                <i class="fa fa-angle-right"></i>
+                                                <span class='hidden-minibar'> <?php echo _n('Project','Projects',2); ?> </span>
+                                            </a>
+                                        </li>                                          
+                                        <li>
 	                                          <a href="#" onclick="window.open('./reports/rel_satisfacao.php','iframe1'); scrollWin();" data-original-title=' Satisfaction'>
                                                 <i class="fa fa-angle-right"></i>
                                                 <span class='hidden-minibar'> <?php echo __('Satisfaction'); ?></span>
                                             </a>
                                         </li>
+                                        <li>
+                                            <a href="#" onclick="window.open('./reports/rel_tecnicos.php?con=1','iframe1'); scrollWin();" data-original-title=' Técnicos'>
+                                                <i class="fa fa-angle-right"></i>
+                                                <span class='hidden-minibar'> <?php echo _sn('Technician','Technicians',2,'dashboard'); ?> </span>
+                                            </a>
+                                        </li>                                        
                              				 <?php
 					                        	// distinguish between 0.90.x and 9.1 version
 														if (GLPI_VERSION <= intval('9.1')){
@@ -389,24 +396,40 @@ else {
 	                                        </li>';
                                         	}
                                         ?>
-                                         <li>                                         
-                                            <a href="#" onclick="window.open('./reports/rel_assets.php','iframe1'); scrollWin();" data-original-title=' Ativos'>
-                                                <i class="fa fa-angle-right"></i>
-                                                <span class='hidden-minibar'> <?php echo __('Assets'); ?></span>
-                                            </a>
-                                        </li>
-													<li>
-                                            <a href="#" onclick="window.open('./reports/rel_tickets.php','iframe1'); scrollWin();" data-original-title=' Tickets'>
-                                                <i class="fa fa-angle-right"></i>
-                                                <span class='hidden-minibar'> <?php echo _n('Ticket','Tickets',2); ?></span>
-                                            </a>
-                                        </li>                                                                                 
-                                        <li>
-                                            <a href="#" onclick="window.open('./reports/rel_projects.php','iframe1'); scrollWin();" data-original-title=' Projetos'>
-                                                <i class="fa fa-angle-right"></i>
-                                                <span class='hidden-minibar'> <?php echo _n('Project','Projects',2); ?> </span>
-                                            </a>
-                                        </li>                                                                                  
+													<li class='submenu'>
+			                                    <a class='dropdown' onClick='return false;' href='#' data-original-title='Custos'>
+			                                        <i class='fa fa-angle-right'></i>
+			                                        <span class='hidden-minibar'><?php echo __('Cost');?>
+			                                            <i class='fa fa-angle-right  pull-right'></i>
+			                                        </span>
+			                                    </a>
+			                                   <ul  class="animated fadeInDown menu2">
+			                                      <li>
+		                                            <a href="#" onclick="window.open('./reports/rel_custo_ent.php','iframe1'); scrollWin();"  data-original-title=' Custos'>
+		                                                <i class="fa fa-angle-right"></i>
+		                                                <span class='hidden-minibar'> <?php echo __('by Entity','dashboard'); ?> </span>
+		                                            </a>
+		                                        </li>
+	   	                                     <li>
+		                                            <a href="#" onclick="window.open('./reports/rel_custo_loc.php','iframe1'); scrollWin();"  data-original-title=' Custos'>
+		                                                <i class="fa fa-angle-right"></i>
+		                                                <span class='hidden-minibar'> <?php echo __('by Location','dashboard'); ?> </span>
+		                                            </a>
+		                                        </li> 		                                         
+		                                        <li>
+		                                            <a href="#" onclick="window.open('./reports/rel_custo_req.php','iframe1'); scrollWin();"  data-original-title=' Custos'>
+		                                                <i class="fa fa-angle-right"></i>
+		                                                <span class='hidden-minibar'> <?php echo __('by Requester','dashboard'); ?> </span>
+		                                            </a>
+		                                         </li> 
+						        							 <li>
+		                                           <a href="#" onclick="window.open('./reports/rel_custo_tec.php','iframe1'); scrollWin();"  data-original-title=' Custos'>
+		                                                <i class="fa fa-angle-right"></i>
+		                                                <span class='hidden-minibar'> <?php echo __('by Technician','dashboard'); ?> </span>
+		                                            </a>
+		                                        </li> 		                                         
+		                                      </ul>
+		                                  </li>                                                                                                                                                                                                  
 		                                  
 		                                  <li class='submenu'>
 			                                    <a class='dropdown' onClick='return false;' href='#' data-original-title='Sintético'>
@@ -428,18 +451,18 @@ else {
 	                                                <span class='hidden-minibar'> <?php echo __('by Entity','dashboard'); ?> </span>
 	                                            </a>
 	                                         </li> 
+	                                         <li>
+	                                            <a href="#" onclick="window.open('./reports/rel_sint_req.php','iframe1'); scrollWin();"  data-original-title=' Sintético' >
+	                                                <i class="fa fa-angle-right"></i>
+	                                                <span class='hidden-minibar'> <?php echo __('by Requester','dashboard'); ?> </span>
+	                                            </a>
+	                                         </li> 	                                         
 					        							  <li>
 	                                            <a href="#" onclick="window.open('./reports/rel_sint_tec.php','iframe1'); scrollWin();" data-original-title=' Sintético'>
 	                                                <i class="fa fa-angle-right"></i>
 	                                                <span class='hidden-minibar'> <?php echo __('by Technician','dashboard'); ?> </span>
 	                                            </a>
 	                                         </li> 
-	                                         <li>
-	                                            <a href="#" onclick="window.open('./reports/rel_sint_req.php','iframe1'); scrollWin();"  data-original-title=' Sintético' >
-	                                                <i class="fa fa-angle-right"></i>
-	                                                <span class='hidden-minibar'> <?php echo __('by Requester','dashboard'); ?> </span>
-	                                            </a>
-	                                          </li> 
 		                                        </ul>
 		                                  </li>  
 		                                  
@@ -451,10 +474,10 @@ else {
 			                                        </span>
 			                                    </a>
 			                                    <ul  class="animated fadeInDown menu2">
-		                                      <li>
-	                                            <a href="#" onclick="window.open('./reports/rel_tarefa.php','iframe1'); scrollWin();" data-original-title=' Tarefas' >
+	                                        <li>
+	                                            <a href="#" onclick="window.open('./reports/rel_task_ent.php','iframe1'); scrollWin();" data-original-title=' Tarefas'>
 	                                                <i class="fa fa-angle-right"></i>
-	                                                <span class='hidden-minibar'> <?php echo __('Technician'); ?> </span>
+	                                                <span class='hidden-minibar'> <?php echo __('Entity','dashboard'); ?> </span>
 	                                            </a>
 	                                        </li>
 	                                        <li>
@@ -462,56 +485,21 @@ else {
 	                                                <i class="fa fa-angle-right"></i>
 	                                                <span class='hidden-minibar'> <?php echo __('Requester'); ?> </span>
 	                                            </a>
-	                                        </li> 
+	                                        </li> 	                                        			                                    
+		                                     <li>
+	                                            <a href="#" onclick="window.open('./reports/rel_tarefa.php','iframe1'); scrollWin();" data-original-title=' Tarefas' >
+	                                                <i class="fa fa-angle-right"></i>
+	                                                <span class='hidden-minibar'> <?php echo __('Technician'); ?> </span>
+	                                            </a>
+	                                        </li>
 					        							 <li>
 	                                            <a href="#" onclick="window.open('./reports/rel_tarefa_cham.php','iframe1'); scrollWin();" data-original-title=' Tarefas'>
 	                                                <i class="fa fa-angle-right"></i>
 	                                                <span class='hidden-minibar'> <?php echo __('Tickets','dashboard'); ?> </span>
 	                                            </a>
-	                                        </li> 
-	                                        <li>
-	                                            <a href="#" onclick="window.open('./reports/rel_task_ent.php','iframe1'); scrollWin();" data-original-title=' Tarefas'>
-	                                                <i class="fa fa-angle-right"></i>
-	                                                <span class='hidden-minibar'> <?php echo __('Entity','dashboard'); ?> </span>
-	                                            </a>
-	                                        </li> 
+	                                        </li>  
 		                                        </ul>
-		                                  </li>  
-		                                  
-		                                  <li class='submenu'>
-			                                    <a class='dropdown' onClick='return false;' href='#' data-original-title='Custos'>
-			                                        <i class='fa fa-angle-right'></i>
-			                                        <span class='hidden-minibar'><?php echo __('Cost');?>
-			                                            <i class='fa fa-angle-right  pull-right'></i>
-			                                        </span>
-			                                    </a>
-			                                   <ul  class="animated fadeInDown menu2">
-			                                      <li>
-		                                            <a href="#" onclick="window.open('./reports/rel_custo_ent.php','iframe1'); scrollWin();"  data-original-title=' Custos'>
-		                                                <i class="fa fa-angle-right"></i>
-		                                                <span class='hidden-minibar'> <?php echo __('by Entity','dashboard'); ?> </span>
-		                                            </a>
-		                                        </li> 
-						        							 <li>
-		                                           <a href="#" onclick="window.open('./reports/rel_custo_tec.php','iframe1'); scrollWin();"  data-original-title=' Custos'>
-		                                                <i class="fa fa-angle-right"></i>
-		                                                <span class='hidden-minibar'> <?php echo __('by Technician','dashboard'); ?> </span>
-		                                            </a>
-		                                        </li> 
-		                                        <li>
-		                                            <a href="#" onclick="window.open('./reports/rel_custo_req.php','iframe1'); scrollWin();"  data-original-title=' Custos'>
-		                                                <i class="fa fa-angle-right"></i>
-		                                                <span class='hidden-minibar'> <?php echo __('by Requester','dashboard'); ?> </span>
-		                                            </a>
-		                                         </li>
-	   	                                      <li>
-		                                            <a href="#" onclick="window.open('./reports/rel_custo_loc.php','iframe1'); scrollWin();"  data-original-title=' Custos'>
-		                                                <i class="fa fa-angle-right"></i>
-		                                                <span class='hidden-minibar'> <?php echo __('by Location','dashboard'); ?> </span>
-		                                            </a>
-		                                         </li>  
-		                                      </ul>
-		                                  </li>  
+		                                  </li>  		                                  		                                    
 		                                  
 		                     	          <?php
 						                        // distinguish between 0.90.x and 9.1 version
@@ -540,37 +528,31 @@ else {
 			                                  </li>';
 			                               }
 			                               ?>
-		                                      
+
+                                       <li>
+                                            <a href="#" onclick="window.open('./reports/rel_categoria.php','iframe1'); scrollWin();"  data-original-title=' por Categoria'>
+                                                <i class="fa fa-angle-right"></i>
+                                                <span class='hidden-minibar'> <?php echo __('by Category','dashboard'); ?> </span>
+                                            </a>
+                                       </li>		                                      
 													<li>
                                             <a href="#" onclick="window.open('./reports/rel_data.php','iframe1'); scrollWin();"  data-original-title=' por Data'>
                                                 <i class="fa fa-angle-right"></i>
                                                 <span class='hidden-minibar'> <?php echo __('by Date','dashboard'); ?> </span>
                                             </a>
-                                        </li>  
-                                        <li>
-                                            <a href="#" onclick="window.open('./reports/rel_tecnico.php','iframe1'); scrollWin();"  data-original-title=' por Técnico'>
-                                                <i class="fa fa-angle-right"></i>
-                                                <span class='hidden-minibar'> <?php echo __('by Technician','dashboard'); ?> </span>
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a href="#" onclick="window.open('./reports/rel_usuario.php','iframe1'); scrollWin();"  data-original-title=' por Usuário'>
-                                                <i class="fa fa-angle-right"></i>
-                                                <span class='hidden-minibar'> <?php echo __('by Requester','dashboard'); ?> </span>
-                                            </a>
-                                        </li>
+                                        </li> 
                                         <li>
                                             <a href="#" onclick="window.open('./reports/rel_entidade.php','iframe1'); scrollWin();"  data-original-title=' por Entidade' >
                                                 <i class="fa fa-angle-right"></i>
                                                 <span class='hidden-minibar'> <?php echo __('by Entity','dashboard'); ?> </span>
                                             </a>
-                                        </li>
+                                        </li>                                         
                                         <li>
                                             <a href="#" onclick="window.open('./reports/rel_grupo.php','iframe1'); scrollWin();"  data-original-title=' por Grupo'>
                                                 <i class="fa fa-angle-right"></i>
                                                 <span class='hidden-minibar'> <?php echo __('by Group','dashboard'); ?> </span>
                                             </a>
-                                        </li> 
+                                        </li>   
                                         <li>
                                               <a href="#" onclick="window.open('./reports/rel_localidade.php','iframe1'); scrollWin();"  data-original-title=' by Localization'>
                                                 <i class="fa fa-angle-right"></i>
@@ -578,9 +560,15 @@ else {
                                             </a>
                                         </li>
                                         <li>
-                                            <a href="#" onclick="window.open('./reports/rel_categoria.php','iframe1'); scrollWin();"  data-original-title=' por Categoria'>
+                                            <a href="#" onclick="window.open('./reports/rel_usuario.php','iframe1'); scrollWin();"  data-original-title=' por Usuário'>
                                                 <i class="fa fa-angle-right"></i>
-                                                <span class='hidden-minibar'> <?php echo __('by Category','dashboard'); ?> </span>
+                                                <span class='hidden-minibar'> <?php echo __('by Requester','dashboard'); ?> </span>
+                                            </a>
+                                        </li>                                                                                                                      
+                                        <li>
+                                            <a href="#" onclick="window.open('./reports/rel_tecnico.php','iframe1'); scrollWin();"  data-original-title=' por Técnico'>
+                                                <i class="fa fa-angle-right"></i>
+                                                <span class='hidden-minibar'> <?php echo __('by Technician','dashboard'); ?> </span>
                                             </a>
                                         </li> 
 
@@ -635,28 +623,10 @@ else {
                                         </span>
                                     </a>
                                     <ul  class="animated fadeInDown">
-                                         <li>
-                                            <a href="#" onclick="window.open('./graphs/geral.php','iframe1'); scrollWin();"  data-original-title=' Geral'>
-                                                <i class="fa fa-angle-right"></i>
-                                                <span class='hidden-minibar'> <?php echo __('Overall','dashboard'); ?></span>
-                                            </a>
-                                        </li>
-                                          <li>
-                                            <a href="#" onclick="window.open('./graphs/tecnicos.php','iframe1'); scrollWin();"  data-original-title=' Técnicos'>
-                                                <i class="fa fa-angle-right"></i>
-                                                <span class='hidden-minibar'> <?php echo __('Technician','dashboard'); ?></span>
-                                            </a>
-                                        </li>
                                         <li>
-                                            <a href="#" onclick="window.open('./graphs/usuarios.php','iframe1'); scrollWin();"  data-original-title=' Usuários'>
+                                            <a href="#" onclick="window.open('./graphs/ativos.php','iframe1'); scrollWin();" data-original-title=' Ativos'>
                                                 <i class="fa fa-angle-right"></i>
-                                                <span class='hidden-minibar'> <?php echo __('Requester','dashboard'); ?></span>
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a href="#" onclick="window.open('./graphs/entidades.php','iframe1'); scrollWin();"  data-original-title=' Entidades'>
-                                                <i class="fa fa-angle-right"></i>
-                                                <span class='hidden-minibar'> <?php echo __('Entity','dashboard'); ?></span>
+                                                <span class='hidden-minibar'> <?php echo __('Assets'); ?></span>
                                             </a>
                                         </li>
                                         <li>
@@ -664,25 +634,37 @@ else {
                                                 <i class="fa fa-angle-right"></i>
                                                 <span class='hidden-minibar'> <?php echo __('Category'); ?></span>
                                             </a>
+                                        </li> 
+                                        <li>
+                                            <a href="#" onclick="window.open('./graphs/entidades.php','iframe1'); scrollWin();"  data-original-title=' Entidades'>
+                                                <i class="fa fa-angle-right"></i>
+                                                <span class='hidden-minibar'> <?php echo __('Entity','dashboard'); ?></span>
+                                            </a>
+                                        </li>                                                                               
+                                        <li>
+                                            <a href="#" onclick="window.open('./graphs/geral.php','iframe1'); scrollWin();"  data-original-title=' Geral'>
+                                                <i class="fa fa-angle-right"></i>
+                                                <span class='hidden-minibar'> <?php echo __('Overall','dashboard'); ?></span>
+                                            </a>
                                         </li>
-                                          <li>
+                                        <li>
                                             <a href="#" onclick="window.open('./graphs/grupos.php','iframe1'); scrollWin();" data-original-title=' Grupos'>
                                                 <i class="fa fa-angle-right"></i>
                                                 <span class='hidden-minibar'> <?php echo __('Group','dashboard'); ?></span>
                                             </a>
-                                        </li>
+                                        </li>  
                                         <li class='menu_chart'>
 	                                            <a href="#" onclick="window.open('./graphs/local.php','iframe1'); scrollWin();" data-original-title=' Localização'>
 	                                                <i class="fa fa-angle-right"></i>
 	                                                <span class='hidden-minibar'> <?php echo __('Location'); ?></span>
 	                                            </a>
-                                        </li>
+                                        </li>                                                                              
                                         <li>
-                                            <a href="#" onclick="window.open('./graphs/ativos.php','iframe1'); scrollWin();" data-original-title=' Ativos'>
+                                            <a href="#" onclick="window.open('./graphs/usuarios.php','iframe1'); scrollWin();"  data-original-title=' Usuários'>
                                                 <i class="fa fa-angle-right"></i>
-                                                <span class='hidden-minibar'> <?php echo __('Assets'); ?></span>
+                                                <span class='hidden-minibar'> <?php echo __('Requester','dashboard'); ?></span>
                                             </a>
-                                        </li>
+                                        </li>        
                                          <li>
                                             <a href="#" onclick="window.open('./graphs/satisfacao.php','iframe1'); scrollWin();" data-original-title=' Satisfação'>
                                                 <i class="fa fa-angle-right"></i>
@@ -690,21 +672,27 @@ else {
                                             </a>
                                         </li>
                                         <li>
+                                            <a href="#" onclick="window.open('./graphs/tecnicos.php','iframe1'); scrollWin();"  data-original-title=' Técnicos'>
+                                                <i class="fa fa-angle-right"></i>
+                                                <span class='hidden-minibar'> <?php echo __('Technician','dashboard'); ?></span>
+                                            </a>
+                                        </li> 
+                                       <li>
+                                             <a href="#" onclick="window.open('./graphs/times.php','iframe1'); scrollWin();" data-original-title=' por Tempo'>
+                                                <i class="fa fa-angle-right"></i>
+                                                <span class='hidden-minibar'> <?php echo __('Time range'); ?></span>
+                                            </a>
+                                       </li>                                          
+                                        <li>
+                                             <a href="#" onclick="window.open('./graphs/graf_categoria.php','iframe1'); scrollWin();" data-original-title=' por Categoria'>
+                                                <i class="fa fa-angle-right"></i>
+                                                <span class='hidden-minibar'> <?php echo __('by Category','dashboard'); ?></span>
+                                            </a>
+                                        </li>                                                                             
+                                        <li>
                                             <a href="#" onclick="window.open('./graphs/geral_mes.php','iframe1'); scrollWin();" data-original-title=' por Data'>
                                                 <i class="fa fa-angle-right"></i>
                                                 <span class='hidden-minibar'> <?php echo __('by Date','dashboard'); ?></span>
-                                            </a>
-                                        </li>
-								 					 <li>
-                                            <a href="#" onclick="window.open('./graphs/graf_tecnico.php','iframe1'); scrollWin();" data-original-title=' por Técnico'>
-                                                <i class="fa fa-angle-right"></i>
-                                                <span class='hidden-minibar'> <?php echo __('by Technician','dashboard'); ?></span>
-                                            </a>
-                                        </li>
-                                         <li>
-                                            <a href="#" onclick="window.open('./graphs/graf_usuario.php','iframe1'); scrollWin();" data-original-title=' por Usuário'>
-                                                <i class="fa fa-angle-right"></i>
-                                                <span class='hidden-minibar'> <?php echo __('by Requester','dashboard'); ?></span>
                                             </a>
                                         </li>
   													 <li>
@@ -712,13 +700,7 @@ else {
                                                 <i class="fa fa-angle-right"></i>
                                                 <span class='hidden-minibar'> <?php echo __('by Entity','dashboard'); ?></span>
                                             </a>
-                                        </li>
-                                        <li>
-                                             <a href="#" onclick="window.open('./graphs/graf_categoria.php','iframe1'); scrollWin();" data-original-title=' por Categoria'>
-                                                <i class="fa fa-angle-right"></i>
-                                                <span class='hidden-minibar'> <?php echo __('by Category','dashboard'); ?></span>
-                                            </a>
-                                        </li>
+                                        </li>      
 													 <li>
                                              <a href="#" onclick="window.open('./graphs/graf_grupo.php','iframe1'); scrollWin();" data-original-title=' por Grupo'>
                                                 <i class="fa fa-angle-right"></i>
@@ -730,7 +712,25 @@ else {
                                                 <i class="fa fa-angle-right"></i>
                                                 <span class='hidden-minibar'> <?php echo __('by Location','dashboard'); ?></span>
                                             </a>
+                                        </li>                                                                          
+                                         <li>
+                                            <a href="#" onclick="window.open('./graphs/graf_usuario.php','iframe1'); scrollWin();" data-original-title=' por Usuário'>
+                                                <i class="fa fa-angle-right"></i>
+                                                <span class='hidden-minibar'> <?php echo __('by Requester','dashboard'); ?></span>
+                                            </a>
                                         </li>
+								 					 <li>
+                                            <a href="#" onclick="window.open('./graphs/graf_tecnico.php','iframe1'); scrollWin();" data-original-title=' por Técnico'>
+                                                <i class="fa fa-angle-right"></i>
+                                                <span class='hidden-minibar'> <?php echo __('by Technician','dashboard'); ?></span>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a href="#" onclick="window.open('./graphs/graf_tipo.php','iframe1'); scrollWin();" data-original-title=' por Tipo'>
+                                                <i class="fa fa-angle-right"></i>
+                                                <span class='hidden-minibar'> <?php echo __('by Type','dashboard'); ?></span>
+                                            </a>
+                                        </li>                                         
                                         
                                         <?php
 					                        	// distinguish between 0.90.x and 9.1 version
@@ -770,14 +770,7 @@ else {
 			                                      </ul>
 			                                  </li>'; 
                                		 		}
-                               		 	?>
-		                                  
-                                       <li>
-                                             <a href="#" onclick="window.open('./graphs/times.php','iframe1'); scrollWin();" data-original-title=' por Tempo'>
-                                                <i class="fa fa-angle-right"></i>
-                                                <span class='hidden-minibar'> <?php echo __('Time range'); ?></span>
-                                            </a>
-                                        </li>
+                               		 	?>		                                  
                            
                                     </ul>
                                 </li><!-- delighted pages -->  

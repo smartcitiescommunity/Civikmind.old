@@ -368,7 +368,7 @@ GROUP BY netid) non_ident on non_ident.RSX = inv.RSX )nonidentified order by IP 
 
          echo "</td></tr>";
          echo "<tr class='tab_bg_2'><td colspan='2' class ='center red'>";
-         _e('If you not find your OCSNG server in this dropdown, please check if your profile can access it !', 'ocsinventoryng');
+         echo __('If you not find your OCSNG server in this dropdown, please check if your profile can access it !', 'ocsinventoryng');
          echo "</td></tr>";
          echo "</table></div>";
          Html::closeForm();
@@ -872,8 +872,8 @@ GROUP BY netid) non_ident on non_ident.RSX = inv.RSX )nonidentified order by IP 
             echo "<tr class='tab_bg_2'><td class='center'>" . __('IP address') . "</td>";
 
             echo "<td class=''>" . $ipAdress . "</td></tr>";
-            echo "<tr class='tab_bg_2'><td colspan='4' class='center'>" . __('Subnet mask') . "</td>";
-            echo "<td> <input type=\"text\" name=\"SubnetMask\" value=\"$m\" required></td></tr>";
+            echo "<tr class='tab_bg_2'><td class='center'>" . __('Subnet mask') . "</td>";
+            echo "<td><input type=\"text\" name=\"SubnetMask\" value=\"$m\" required></td></tr>";
             echo "<tr class='tab_bg_2' ><td class='center'><input type='submit' name='Modify' value=\"" . _sx('button', 'Update') . "\" class='submit'></td>";
             Html::closeForm();
             echo "<form name=\"idSelection\" action=\"" . $CFG_GLPI['root_doc'] . "/plugins/ocsinventoryng/front/ipdiscover.php?ip=?$ipAdress&ident=2\" method='post'>";

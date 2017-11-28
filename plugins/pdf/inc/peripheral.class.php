@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: peripheral.class.php 476 2017-01-09 15:53:05Z yllen $
+ * @version $Id: peripheral.class.php 498 2017-11-03 13:33:40Z yllen $
  -------------------------------------------------------------------------
  LICENSE
 
@@ -41,10 +41,12 @@ class PluginPdfPeripheral extends PluginPdfCommon {
    }
 
 
-   function defineAllTabs($options=array()) {
+   function defineAllTabs($options=[]) {
 
       $onglets = parent::defineAllTabs($options);
       unset($onglets['Item_Devices$1']); // TODO add method to print linked Devices
+      unset($onglets['KnowbaseItem_Item$1']);
+      unset($onglets['Certificate_Item$1']);
       return $onglets;
    }
 

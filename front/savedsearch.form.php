@@ -46,11 +46,11 @@ if (isset($_POST["add"])) {
    $savedsearch->check(-1, CREATE, $_POST);
    if ($newID = $savedsearch->add($_POST)) {
       if ($_SESSION['glpibackcreated']) {
-         Html::redirect($savedsearch->getFormURL()."?id=".$newID);
+         Html::redirect($savedsearch->getLinkURL());
       }
    }
    Html::back();
-} else if (isset($_POST["delete"])) {
+} else if (isset($_POST["purge"])) {
    // delete a saved search
    $savedsearch->check($_POST['id'], DELETE);
    $ok = $savedsearch->delete($_POST, 1);
@@ -59,6 +59,10 @@ if (isset($_POST["add"])) {
    //update a saved search
    $savedsearch->check($_POST['id'], UPDATE);
    $savedsearch->update($_POST);
+   Html::back();
+} else if (isset($_GET['create_notif'])) {
+   $savedsearch->check($_GET['id'], UPDATE);
+   $savedsearch->createNotif();
    Html::back();
 } else {//print computer information
    Html::header(SavedSearch::getTypeName(Session::getPluralNumber()), $_SERVER['PHP_SELF'], "tools", "savedsearch");

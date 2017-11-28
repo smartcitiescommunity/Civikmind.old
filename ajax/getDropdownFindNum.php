@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
-
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -44,7 +43,7 @@ Html::header_nocache();
 Session::checkLoginUser();
 
 // Security
-if (!TableExists($_POST['table'])) {
+if (!$DB->tableExists($_POST['table'])) {
    exit();
 }
 
@@ -69,8 +68,8 @@ if ($item->isEntityAssign()) {
    $where = "WHERE 1";
 }
 
-if(isset($_POST['used']) && !empty($_POST['used'])){
-   $where .= " AND `id` NOT IN ('".implode("','" ,$_POST['used'])."') ";
+if (isset($_POST['used']) && !empty($_POST['used'])) {
+   $where .= " AND `id` NOT IN ('".implode("','", $_POST['used'])."') ";
 }
 
 if ($item->maybeDeleted()) {
@@ -87,20 +86,20 @@ if ((strlen($_POST['searchText']) > 0)) {
    $where .= " AND (`name` ".$search."
                     OR `id` = '".$_POST['searchText']."'";
 
-   if (FieldExists($_POST['table'],"contact")) {
+   if ($DB->fieldExists($_POST['table'], "contact")) {
       $where .= " OR `contact` ".$search;
    }
-   if (FieldExists($_POST['table'],"serial")) {
+   if ($DB->fieldExists($_POST['table'], "serial")) {
       $where .= " OR `serial` ".$search;
    }
-   if (FieldExists($_POST['table'],"otherserial")) {
+   if ($DB->fieldExists($_POST['table'], "otherserial")) {
       $where .= " OR `otherserial` ".$search;
    }
    $where .= ")";
 }
 
 //If software or plugins : filter to display only the objects that are allowed to be visible in Helpdesk
-if (in_array($_POST['itemtype'],$CFG_GLPI["helpdesk_visible_types"])) {
+if (in_array($_POST['itemtype'], $CFG_GLPI["helpdesk_visible_types"])) {
    $where .= " AND `is_helpdesk_visible` = '1' ";
 }
 
@@ -120,12 +119,12 @@ $query = "SELECT *
           $LIMIT";
 $result = $DB->query($query);
 
-$datas = array();
+$datas = [];
 
 // Display first if no search
 if ($_POST['page'] == 1 && empty($_POST['searchText'])) {
-   array_push($datas, array('id'   => 0,
-                            'text' => Dropdown::EMPTY_VALUE));
+   array_push($datas, ['id'   => 0,
+                            'text' => Dropdown::EMPTY_VALUE]);
 }
 $count = 0;
 if ($DB->numrows($result)) {
@@ -147,8 +146,8 @@ if ($DB->numrows($result)) {
          $output = sprintf(__('%1$s (%2$s)'), $output, $data['id']);
       }
 
-      array_push($datas, array('id'   => $data['id'],
-                               'text' => $output));
+      array_push($datas, ['id'   => $data['id'],
+                               'text' => $output]);
       $count++;
    }
 }
@@ -156,4 +155,3 @@ if ($DB->numrows($result)) {
 $ret['count']   = $count;
 $ret['results'] = $datas;
 echo json_encode($ret);
-?>

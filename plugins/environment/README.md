@@ -12,9 +12,8 @@ Ce plugin vous permet de regrouper 7 plugins dans un seul pour une meilleure vis
 
 > * Plugin "appliances":https://forge.glpi-project.org/projects/show/appliances
 > * Plugin "webapplications":https://github.com/InfotelGLPI/webapplications
-> * Plugin "certificates":https://github.com/InfotelGLPI/certificates
 > * Plugin "accounts":https://github.com/InfotelGLPI/accounts
-> * Plugin "domains":https://forge.glpi-project.org/projects/show/domains
+> * Plugin "domains":https://github.com/InfotelGLPI/domains
 > * Plugin "databases":https://github.com/InfotelGLPI/databases
 > * Plugin "badges":https://github.com/InfotelGLPI/badges
 
@@ -23,8 +22,7 @@ This plugin enables you to group 7 plugins to one for more visibility of plugins
 
 > * "appliances":https://forge.glpi-project.org/projects/show/appliances Plugin
 > * "webapplications":https://github.com/InfotelGLPI/webapplications Plugin
-> * "certificates":https://github.com/InfotelGLPI/certificates Plugin
 > * "accounts":https://github.com/InfotelGLPI/accounts Plugin
-> * "domains":https://forge.glpi-project.org/projects/show/domains Plugin
+> * "domains":https://github.com/InfotelGLPI/domains Plugin
 > * "databases":https://github.com/InfotelGLPI/databases Plugin
 > * "badges":https://github.com/InfotelGLPI/badges Plugin

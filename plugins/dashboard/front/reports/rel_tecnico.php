@@ -1,7 +1,7 @@
 <?php
 
 include ("../../../../inc/includes.php");
-include ("../../../../config/config.php");
+include ("../../../../inc/config.php");
 include "../inc/functions.php";
 
 global $DB;
@@ -16,7 +16,7 @@ if(!empty($_POST['submit']))
 }
 
 else {
-    $data_ini = date("Y-m-01");
+    $data_ini = date("Y-01-01");
     $data_fin = date("Y-m-d");
 }
 
@@ -81,10 +81,10 @@ else {
 </style>
 
 </head>
+
 <body style="background-color: #e5e5e5; margin-left:0%;">
 
 <?php
-
 # entity
 $sql_e = "SELECT value FROM glpi_plugin_dashboard_config WHERE name = 'entity' AND users_id = ".$_SESSION['glpiID']."";
 $result_e = $DB->query($sql_e);
@@ -98,11 +98,13 @@ if($sel_ent == '' || $sel_ent == -1) {
 
 	$entidade = "AND glpi_tickets.entities_id IN (".$ent.") ";
 	$entidade_u = "AND glpi_profiles_users.entities_id IN (".$ent.") ";
+	$entidade_age = "AND glpi_tickets.entities_id IN (".$ent.")";
 }
 
 else {
 	$entidade = "AND glpi_tickets.entities_id IN (".$sel_ent.") ";
 	$entidade_u = "AND glpi_profiles_users.entities_id IN (".$sel_ent.") ";
+	$entidade_age = "AND glpi_tickets.entities_id IN (".$sel_ent.")";
 }
 
 //list techs
@@ -125,7 +127,7 @@ $result_tec = $DB->query($sql_tec);
 
 ?>
 <div id='content' >
-<div id='container-fluid' style="margin: 0px 2% 0px 2%;">
+<div id='container-fluid' style="margin: <?php echo margins(); ?> ;">
 <div id="charts" class="fluid chart" >
 <div id="pad-wrapper" >
 <div id="head-rel" class="fluid">
@@ -185,10 +187,10 @@ a:hover { color: #000099; }
 		$DB->data_seek($result_tec, 0) ;
 		
 		while ($row_result = $DB->fetch_assoc($result_tec))
-		    {
-			    $v_row_result = $row_result['id'];
-		   	 $arr_tec[$v_row_result] = $row_result['name']." ".$row_result['sname']." (".$row_result['id'].")" ;
-		    }
+	    {
+		    $v_row_result = $row_result['id'];
+	   	 $arr_tec[$v_row_result] = $row_result['name']." ".$row_result['sname']." (".$row_result['id'].")" ;
+	    }
 		
 		$name = 'sel_tec';
 		$options = $arr_tec;
@@ -439,6 +441,7 @@ if($con == "1") {
 	AND glpi_tickets.date ".$datas2."
 	AND glpi_tickets_users.users_id = ".$id_tec."
 	AND glpi_tickets_users.type = 2
+	".$entidade_age."
 	AND glpi_tickets_users.tickets_id = glpi_tickets.id ";
 
     $result_stat = $DB->query($query_stat);
@@ -493,11 +496,11 @@ if($con == "1") {
 	</tr>
 	</table>
 
-	<table id='tec' class='display' style='font-size: 13px; font-weight:bold;' cellpadding = 2px >
+	<table id='tec' class='display' style='font-size: 12px; font-weight:bold;' cellpadding = 2px >
 		<thead>
 			<tr>
 				<th style='text-align:center; cursor:pointer;'> ". __('Tickets','dashboard') ." </th>
-				<th style='text-align:center; cursor:pointer; font-size: 12px; font-weight:bold;'> ".__('Status')." </th>
+				<th style='text-align:center; cursor:pointer;'> ".__('Status')." </th>
 				<th style='text-align:center; cursor:pointer;'> ". __('Type') ."</th>
 				<th style='text-align:center; cursor:pointer;'> ". __('Title') ."</th>
 				<th style='text-align:center; cursor:pointer; vertical-align:middle;'> ". __('Requester') ."</th>
@@ -536,11 +539,11 @@ if($con == "1") {
 	<tr><td>&nbsp;</td></tr>
 </table>
 
-	<table id='tec' class='display' style='font-size: 13px; font-weight:bold;' cellpadding = 2px >
+	<table id='tec' class='display' style='font-size: 13px;' cellpadding = 2px >
 		<thead>
 			<tr>
-				<th style='text-align:center; cursor:pointer; vertical-align:middle;'> ". __('Tickets','dashboard') ." </th>
-				<th style='text-align:center; cursor:pointer; font-size: 12px; font-weight:bold; vertical-align:middle;'> ".__('Status')." </th>
+				<th style='text-align:center; cursor:pointer; vertical-align:middle; font-weight:bold;'> ". __('Tickets','dashboard') ." </th>
+				<th style='text-align:center; cursor:pointer; font-size: 12px; vertical-align:middle;'> ".__('Status')." </th>
 				<th style='text-align:center; cursor:pointer; vertical-align:middle;'> ". __('Type') ."</th>
 				<th style='text-align:center; cursor:pointer; vertical-align:middle;'> ". __('Title') ."</th>
 				<th style='text-align:center; cursor:pointer; vertical-align:middle;'> ". __('Requester') ."</th>
@@ -594,36 +597,35 @@ while($row = $DB->fetch_assoc($result_cham)){
 		$nota1 = round(($satc1['sat1']/5)*100,1);
 
 		echo "
-		<tr>
-		<td style='vertical-align:middle; text-align:center;'><a href=".$CFG_GLPI['url_base']."/front/ticket.form.php?id=". $row['id'] ." target=_blank >" . $row['id'] . "</a></td>
-		<td style='vertical-align:middle;'><img src=".$CFG_GLPI['url_base']."/pics/".$status1.".png title='".Ticket::getStatus($row['status'])."' style=' cursor: pointer; cursor: hand;'/>&nbsp; ".Ticket::getStatus($row['status'])." </td>
-		<td style='vertical-align:middle;'> ". $type ." </td>
-		<td style='vertical-align:middle;'> ". substr($row['name'],0,70) ." </td>
-		<td style='vertical-align:middle;'> ". $row_user['name'] ." ".$row_user['sname'] ." </td>
-		<td style='vertical-align:middle; text-align:center;'> ". conv_data_hora($row['date']) ." </td>
-		<td style='vertical-align:middle; text-align:center;'> ". conv_data_hora($row['closedate']) ." </td>
-		<td style='vertical-align:middle; text-align:right;'> ". time_ext($row['time']) ."</td>
-		<td style='vertical-align:middle; text-align:center;'>		
-			<span class='label' style=\"background:url('../img/stars/star". $satc1."_22.png') no-repeat;  
-			color:#000 !important; padding-left: 8px !important; padding-top: 4px; font-size:11px; \">".$satc1. "</span> 
-		</td>
-		
+		<tr style='font-size:11px;'>
+			<td style='vertical-align:middle; text-align:center; font-weight:bold;'><a href=".$CFG_GLPI['url_base']."/front/ticket.form.php?id=". $row['id'] ." target=_blank >" . $row['id'] . "</a></td>
+			<td style='vertical-align:middle; font-weight:normal;'><img src=".$CFG_GLPI['url_base']."/pics/".$status1.".png title='".Ticket::getStatus($row['status'])."' style=' cursor: pointer; cursor: hand;'/>&nbsp; ".Ticket::getStatus($row['status'])." </td>
+			<td style='vertical-align:middle; font-weight:normal;'> ". $type ." </td>
+			<td style='vertical-align:middle; font-weight:normal;'> ". substr($row['name'],0,70) ." </td>
+			<td style='vertical-align:middle; font-weight:normal;'> ". $row_user['name'] ." ".$row_user['sname'] ." </td>
+			<td style='vertical-align:middle; font-weight:normal; text-align:center;'> ". conv_data_hora($row['date']) ." </td>
+			<td style='vertical-align:middle; font-weight:normal; text-align:center;'> ". conv_data_hora($row['closedate']) ." </td>
+			<td style='vertical-align:middle; font-weight:normal; text-align:right;'> ". time_ext($row['time']) ."</td>
+			<td style='vertical-align:middle; text-align:center;'>		
+				<span class='label' style=\"background:url('../img/stars/star". $satc1."_22.png') no-repeat;  
+				color:#000 !important; padding-left: 8px !important; padding-top: 4px; font-size:11px; \">".$satc1. "</span> 
+			</td>
+			
 		</tr>";
 	    }
-	//}   <td style='vertical-align:middle;'  align='center' > <img src='../img/s". $satc1 .".png' alt='".$nota1." %' title='".$nota1." %'> </td>
 
 	else {
 
 		echo "
-		<tr>
-		<td style='vertical-align:middle; text-align:center;'><a href=".$CFG_GLPI['url_base']."/front/ticket.form.php?id=". $row['id'] ." target=_blank >" . $row['id'] . "</a></td>
-		<td style='vertical-align:middle;'><img src=".$CFG_GLPI['url_base']."/pics/".$status1.".png title='".Ticket::getStatus($row['status'])."' style=' cursor: pointer; cursor: hand;'/>&nbsp; ".Ticket::getStatus($row['status'])." </td>
-		<td style='vertical-align:middle;'> ". $type ." </td>
-		<td style='vertical-align:middle;'> ". substr($row['name'],0,70) ." </td>
-		<td style='vertical-align:middle;'> ". $row_user['name'] ." ".$row_user['sname'] ." </td>
-		<td style='vertical-align:middle; text-align:center;'> ". conv_data_hora($row['date']) ." </td>
-		<td style='vertical-align:middle; text-align:center;'> ". conv_data_hora($row['closedate']) ." </td>
-		<td style='vertical-align:middle; text-align:right;'> ". time_ext($row['time']) ."</td>
+		<tr style='font-size:11px;'>
+			<td style='vertical-align:middle; text-align:center; font-weight:bold;'><a href=".$CFG_GLPI['url_base']."/front/ticket.form.php?id=". $row['id'] ." target=_blank >" . $row['id'] . "</a></td>
+			<td style='vertical-align:middle; font-weight:normal;'><img src=".$CFG_GLPI['url_base']."/pics/".$status1.".png title='".Ticket::getStatus($row['status'])."' style=' cursor: pointer; cursor: hand;'/>&nbsp; ".Ticket::getStatus($row['status'])." </td>
+			<td style='vertical-align:middle; font-weight:normal;'> ". $type ." </td>
+			<td style='vertical-align:middle; font-weight:normal;'> ". substr($row['name'],0,70) ." </td>
+			<td style='vertical-align:middle; font-weight:normal;'> ". $row_user['name'] ." ".$row_user['sname'] ." </td>
+			<td style='vertical-align:middle; font-weight:normal; text-align:center;'> ". conv_data_hora($row['date']) ." </td>
+			<td style='vertical-align:middle; font-weight:normal; text-align:center;'> ". conv_data_hora($row['closedate']) ." </td>
+			<td style='vertical-align:middle; font-weight:normal; text-align:right;'> ". time_ext($row['time']) ."</td>
 		</tr>";
 	    }
 }
@@ -637,7 +639,6 @@ $('#tec')
 	.removeClass( 'display' )
 	.addClass('table table-striped table-bordered dataTable');
 
-
 $(document).ready(function() {
 
 var table =  $('#tec').DataTable( {    	
@@ -647,9 +648,14 @@ var table =  $('#tec').DataTable( {
         filter: false,        
         pagingType: "full_numbers",
         deferRender: true,
+       // "scrollY":   "70vh",
+       // "scrollCollapse": true,
+ 
+        responsive: true,
         sorting: [[0,'desc'],[1,'desc'],[2,'desc'],[3,'desc'],[4,'desc'],[5,'desc'],[6,'desc'],[7,'desc']],
 		  displayLength: 25,
-        lengthMenu: [[25, 50, 100, -1], [25, 50, 100, "All"]],        
+        //lengthMenu: [[25, 50, 75, 100, -1], [25, 50, 75, 100, "All"]],        
+        lengthMenu: [[25, 50, 75, 100], [25, 50, 75, 100]],        
         buttons: [
         	    {
                  extend: "copyHtml5",
@@ -705,10 +711,12 @@ else {
 
 			echo "
 			<div id='nada_rel' class='well info_box fluid col-md-12'>
-			<table class='table' style='font-size: 18px; font-weight:bold;' cellpadding = 1px>
-			<tr><td style='vertical-align:middle; text-align:center;'> <span style='color: #000;'>" . __('No ticket found', 'dashboard') . "</td></tr>
-			<tr></tr>
-			</table></div>";
+				<table class='table' style='font-size: 18px; font-weight:bold;' cellpadding = 1px>
+					<tr>
+						<td style='vertical-align:middle; text-align:center;'> <span style='color: #000;'>" . __('No ticket found', 'dashboard') . "</td></tr>
+					<tr></tr>
+				</table>
+			</div>\n";
 		}
 }
 }

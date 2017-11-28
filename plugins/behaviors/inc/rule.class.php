@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: rule.class.php 204 2017-03-02 18:31:42Z yllen $
+ * @version $Id: rule.class.php 234 2017-10-18 12:40:59Z yllen $
  -------------------------------------------------------------------------
 
  LICENSE
@@ -37,8 +37,9 @@ class PluginBehaviorsRule extends PluginBehaviorsCommon {
    static function postClone(Rule $clone, $oldid) {
       global $DB;
 
-      $fkey = getForeignKeyFieldForTable($clone->getTable());
-      $crit = array($fkey => $oldid);
+      $dbu  = new DbUtils();
+      $fkey = $dbu->getForeignKeyFieldForTable($clone->getTable());
+      $crit = [$fkey => $oldid];
 
       $criteria = new RuleCriteria();
       foreach ($DB->request($criteria->getTable(), $crit) as $data) {

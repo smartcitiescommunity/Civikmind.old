@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: requesttypecriteria.class.php 336 2017-01-20 16:59:36Z yllen $
+ * @version $Id: requesttypecriteria.class.php 345 2017-10-23 17:33:07Z yllen $
  -------------------------------------------------------------------------
    LICENSE
 
@@ -52,8 +52,8 @@ class PluginReportsRequestTypeCriteria extends PluginReportsDropdownCriteria {
    //Dropdown priorities is not a generic dropdown, so the function needs to be overwritten
    public function displayDropdownCriteria() {
 
-      Dropdown::show('RequestType', array('name'  => $this->getName(),
-                                          'value' => $this->getParameterValue()));
+      Dropdown::show('RequestType', ['name'  => $this->getName(),
+                                     'value' => $this->getParameterValue()]);
    }
 
 

@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
-
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -46,14 +45,14 @@ class Contract extends CommonDBTM {
 
    // From CommonDBTM
    public $dohistory                   = true;
-   static protected $forward_entity_to = array('ContractCost');
+   static protected $forward_entity_to = ['ContractCost'];
 
    static $rightname                   = 'contract';
    protected $usenotepad               = true;
 
 
 
-   static function getTypeName($nb=0) {
+   static function getTypeName($nb = 0) {
       return _n('Contract', 'Contracts', $nb);
    }
 
@@ -83,9 +82,9 @@ class Contract extends CommonDBTM {
    }
 
 
-   function defineTabs($options=array()) {
+   function defineTabs($options = []) {
 
-      $ong = array();
+      $ong = [];
       $this->addDefaultFormTab($ong);
       $this->addStandardTab('ContractCost', $ong, $options);
       $this->addStandardTab('Contract_Supplier', $ong, $options);
@@ -93,11 +92,35 @@ class Contract extends CommonDBTM {
       $this->addStandardTab('Document_Item', $ong, $options);
       $this->addStandardTab('Link', $ong, $options);
       $this->addStandardTab('Notepad', $ong, $options);
+      $this->addStandardTab('KnowbaseItem_Item', $ong, $options);
       $this->addStandardTab('Log', $ong, $options);
 
       return $ong;
    }
 
+   /**
+    * Duplicate all contracts from a item template to his clone
+    *
+    * @since version 9.2
+    *
+    * @param string $itemtype      itemtype of the item
+    * @param integer $oldid        ID of the item to clone
+    * @param integer $newid        ID of the item cloned
+    **/
+   static function cloneItem ($itemtype, $oldid, $newid) {
+      global $DB;
+
+      foreach ($DB->request('glpi_contracts_items',
+                            ['WHERE'  => "`items_id` = '$oldid'
+                                          AND `itemtype` = '$itemtype'"]) as $data) {
+         $cd = new Contract_Item();
+         unset($data['id']);
+         $data['items_id'] = $newid;
+         $data             = Toolbox::addslashes_deep($data);
+
+         $cd->add($data);
+      }
+   }
 
    /**
     * @since version 0.83.3
@@ -169,7 +192,7 @@ class Contract extends CommonDBTM {
     *
     *@return boolean item found
    **/
-   function showForm($ID,$options=array()) {
+   function showForm($ID, $options = []) {
 
       $this->initForm($ID, $options);
       $this->showFormHeader($options);
@@ -179,7 +202,7 @@ class Contract extends CommonDBTM {
       Html::autocompletionTextField($this, "name");
       echo "</td>";
       echo "<td>".__('Contract type')."</td><td >";
-      ContractType::dropdown(array('value' => $this->fields["contracttypes_id"]));
+      ContractType::dropdown(['value' => $this->fields["contracttypes_id"]]);
       echo "</td></tr>";
 
       echo "<tr class='tab_bg_1'>";
@@ -192,15 +215,15 @@ class Contract extends CommonDBTM {
       echo "<tr class='tab_bg_1'>";
       echo "<td>".__('Start date')."</td>";
       echo "<td>";
-      Html::showDateField("begin_date", array('value' => $this->fields["begin_date"]));
+      Html::showDateField("begin_date", ['value' => $this->fields["begin_date"]]);
       echo "</td>";
       echo "<td>".__('Initial contract period')."</td><td>";
-      Dropdown::showNumber("duration", array('value' => $this->fields["duration"],
+      Dropdown::showNumber("duration", ['value' => $this->fields["duration"],
                                              'min'   => 1,
                                              'max'   => 120,
                                              'step'  => 1,
-                                             'toadd' => array(0 => Dropdown::EMPTY_VALUE),
-                                             'unit'  => 'month'));
+                                             'toadd' => [0 => Dropdown::EMPTY_VALUE],
+                                             'unit'  => 'month']);
       if (!empty($this->fields["begin_date"])) {
          echo " -> ".Infocom::getWarrantyExpir($this->fields["begin_date"],
                                                $this->fields["duration"], 0, true);
@@ -209,12 +232,12 @@ class Contract extends CommonDBTM {
 
       echo "<tr class='tab_bg_1'>";
       echo "<td>".__('Notice')."</td><td>";
-      Dropdown::showNumber("notice", array('value' => $this->fields["notice"],
+      Dropdown::showNumber("notice", ['value' => $this->fields["notice"],
                                            'min'   => 0,
                                            'max'   => 120,
                                            'step'  => 1,
-                                           'toadd' => array(),
-                                           'unit'  => 'month'));
+                                           'toadd' => [],
+                                           'unit'  => 'month']);
       if (!empty($this->fields["begin_date"])
           && ($this->fields["notice"] > 0)) {
          echo " -> ".Infocom::getWarrantyExpir($this->fields["begin_date"],
@@ -229,50 +252,49 @@ class Contract extends CommonDBTM {
       echo "<tr class='tab_bg_1'>";
       echo "<td>".__('Contract renewal period')."</td><td>";
       Dropdown::showNumber("periodicity",
-                           array('value' => $this->fields["periodicity"],
+                           ['value' => $this->fields["periodicity"],
                                  'min'   => 12,
                                  'max'   => 60,
                                  'step'  => 12,
-                                 'toadd' => array(0 => Dropdown::EMPTY_VALUE,
+                                 'toadd' => [0 => Dropdown::EMPTY_VALUE,
                                                   1 => sprintf(_n('%d month', '%d months', 1), 1),
                                                   2 => sprintf(_n('%d month', '%d months', 2), 2),
                                                   3 => sprintf(_n('%d month', '%d months', 3), 3),
-                                                  6 => sprintf(_n('%d month', '%d months', 6), 6)),
-                                 'unit'  => 'month'));
+                                                  6 => sprintf(_n('%d month', '%d months', 6), 6)],
+                                 'unit'  => 'month']);
       echo "</td>";
       echo "<td>".__('Invoice period')."</td>";
       echo "<td>";
       Dropdown::showNumber("billing",
-                           array('value' => $this->fields["billing"],
+                           ['value' => $this->fields["billing"],
                                  'min'   => 12,
                                  'max'   => 60,
                                  'step'  => 12,
-                                 'toadd' => array(0 => Dropdown::EMPTY_VALUE,
+                                 'toadd' => [0 => Dropdown::EMPTY_VALUE,
                                                   1 => sprintf(_n('%d month', '%d months', 1), 1),
                                                   2 => sprintf(_n('%d month', '%d months', 2), 2),
                                                   3 => sprintf(_n('%d month', '%d months', 3), 3),
-                                                  6 => sprintf(_n('%d month', '%d months', 6), 6)),
-                                 'unit'  => 'month'));
+                                                  6 => sprintf(_n('%d month', '%d months', 6), 6)],
+                                 'unit'  => 'month']);
       echo "</td></tr>";
 
       echo "<tr class='tab_bg_1'><td>".__('Renewal')."</td><td>";
       self::dropdownContractRenewal("renewal", $this->fields["renewal"]);
       echo "</td>";
       echo "<td>".__('Max number of items')."</td><td>";
-      Dropdown::showNumber("max_links_allowed", array('value' => $this->fields["max_links_allowed"],
+      Dropdown::showNumber("max_links_allowed", ['value' => $this->fields["max_links_allowed"],
                                                       'min'   => 1,
                                                       'max'   => 200,
                                                       'step'  => 1,
-                                                      'toadd' => array(0 => __('Unlimited'))));
+                                                      'toadd' => [0 => __('Unlimited')]]);
       echo "</td></tr>";
-
 
       if (Entity::getUsedConfig("use_contracts_alert", $this->fields["entities_id"])) {
          echo "<tr class='tab_bg_1'>";
          echo "<td>".__('Email alarms')."</td>";
          echo "<td>";
-         self::dropdownAlert(array('name'  => "alert",
-                                   'value' => $this->fields["alert"]));
+         self::dropdownAlert(['name'  => "alert",
+                                   'value' => $this->fields["alert"]]);
          Alert::displayLastAlert(__CLASS__, $ID);
          echo "</td>";
          echo "<td colspan='2'>&nbsp;</td>";
@@ -293,10 +315,10 @@ class Contract extends CommonDBTM {
       echo "<td width='20%'>";
       echo "<span class='small_space'>".__('Start')."</span>";
       echo "</td><td width='20%'>";
-      Dropdown::showHours("week_begin_hour", array('value' => $this->fields["week_begin_hour"]));
+      Dropdown::showHours("week_begin_hour", ['value' => $this->fields["week_begin_hour"]]);
       echo "</td><td width='20%'>";
       echo "<span class='small_space'>".__('End')."</span></td><td width='20%'>";
-      Dropdown::showHours("week_end_hour", array('value' => $this->fields["week_end_hour"]));
+      Dropdown::showHours("week_end_hour", ['value' => $this->fields["week_end_hour"]]);
       echo "</td></tr></table>";
       echo "</td></tr>";
 
@@ -309,12 +331,12 @@ class Contract extends CommonDBTM {
       echo "<span class='small_space'>".__('Start')."</span>";
       echo "</td><td width='20%'>";
       Dropdown::showHours("saturday_begin_hour",
-                          array('value' => $this->fields["saturday_begin_hour"]));
+                          ['value' => $this->fields["saturday_begin_hour"]]);
       echo "</td><td width='20%'>";
       echo "<span class='small_space'>".__('End')."</span>";
       echo "</td><td width='20%'>";
       Dropdown::showHours("saturday_end_hour",
-                          array('value' => $this->fields["saturday_end_hour"]));
+                          ['value' => $this->fields["saturday_end_hour"]]);
       echo "</td></tr></table>";
       echo "</td></tr>";
 
@@ -326,11 +348,11 @@ class Contract extends CommonDBTM {
       echo "</td><td width='20%'>";
       echo "<span class='small_space'>".__('Start')."</span>";
       echo "</td><td width='20%'>";
-      Dropdown::showHours("monday_begin_hour", array('value' => $this->fields["monday_begin_hour"]));
+      Dropdown::showHours("monday_begin_hour", ['value' => $this->fields["monday_begin_hour"]]);
       echo "</td><td width='20%'>";
       echo "<span class='small_space'>".__('End')."</span>";
       echo "</td><td width='20%'>";
-      Dropdown::showHours("monday_end_hour", array('value' => $this->fields["monday_end_hour"]));
+      Dropdown::showHours("monday_end_hour", ['value' => $this->fields["monday_end_hour"]]);
       echo "</td></tr></table>";
       echo "</td></tr>";
 
@@ -340,154 +362,215 @@ class Contract extends CommonDBTM {
    }
 
 
-   static function getSearchOptionsToAdd() {
+   static function getSearchOptionsToAddNew() {
+      $tab = [];
 
-      $tab                       = array();
-      $tab['contract']           = self::getTypeName(Session::getPluralNumber());
+      $joinparams = [
+         'beforejoin' => [
+            'table'      => 'glpi_contracts_items',
+            'joinparams' => [
+               'jointype' => 'itemtype_item'
+            ]
+         ]
+      ];
 
-      $joinparams                = array('beforejoin'
-                                          => array('table'      => 'glpi_contracts_items',
-                                                   'joinparams' => array('jointype'
-                                                                            => 'itemtype_item')));
+      $joinparamscost = [
+         'jointype'   => 'child',
+         'beforejoin' => [
+            'table'      => 'glpi_contracts',
+            'joinparams' => $joinparams
+         ]
+      ];
 
-      $joinparamscost            = array('jointype'   => 'child',
-                                         'beforejoin' => array('table'      => 'glpi_contracts',
-                                                               'joinparams' => $joinparams));
+      $tab[] = [
+         'id'                 => 'contract',
+         'name'               => self::getTypeName(Session::getPluralNumber())
+      ];
 
-      $tab[139]['table']         = 'glpi_contracts_items';
-      $tab[139]['field']         = 'id';
-      $tab[139]['name']          = _x('quantity', 'Number of contracts');
-      $tab[139]['forcegroupby']  = true;
-      $tab[139]['usehaving']     = true;
-      $tab[139]['datatype']      = 'count';
-      $tab[139]['massiveaction'] = false;
-      $tab[139]['joinparams']    = array('jointype' => 'itemtype_item');
+      $tab[] = [
+         'id'                 => '139',
+         'table'              => 'glpi_contracts_items',
+         'field'              => 'id',
+         'name'               => _x('quantity', 'Number of contracts'),
+         'forcegroupby'       => true,
+         'usehaving'          => true,
+         'datatype'           => 'count',
+         'massiveaction'      => false,
+         'joinparams'         => [
+            'jointype'           => 'itemtype_item'
+         ]
+      ];
 
-      $tab[29]['table']          = 'glpi_contracts';
-      $tab[29]['field']          = 'name';
-      $tab[29]['name']           = self::getTypeName(1);
-      $tab[29]['forcegroupby']   = true;
-      $tab[29]['datatype']       = 'itemlink';
-      $tab[29]['massiveaction']  = false;
-      $tab[29]['joinparams']     = $joinparams;
+      $tab[] = [
+         'id'                 => '29',
+         'table'              => 'glpi_contracts',
+         'field'              => 'name',
+         'name'               => self::getTypeName(1),
+         'forcegroupby'       => true,
+         'datatype'           => 'itemlink',
+         'massiveaction'      => false,
+         'joinparams'         => $joinparams
+      ];
 
-      $tab[30]['table']          = 'glpi_contracts';
-      $tab[30]['field']          = 'num';
-      $tab[30]['name']           = __('Contract number');
-      $tab[30]['forcegroupby']   = true;
-      $tab[30]['massiveaction']  = false;
-      $tab[30]['joinparams']     = $joinparams;
-      $tab[30]['datatype']       = 'string';
+      $tab[] = [
+         'id'                 => '30',
+         'table'              => 'glpi_contracts',
+         'field'              => 'num',
+         'name'               => __('Contract number'),
+         'forcegroupby'       => true,
+         'massiveaction'      => false,
+         'joinparams'         => $joinparams,
+         'datatype'           => 'string'
+      ];
 
-      $tab[129]['table']         = 'glpi_contracttypes';
-      $tab[129]['field']         = 'name';
-      $tab[129]['name']          = sprintf(__('%1$s - %2$s'), __('Contract'), __('Type'));
-      $tab[129]['datatype']      = 'dropdown';
-      $tab[129]['massiveaction'] = false;
-      $tab[129]['joinparams']    = array('beforejoin' => array('table' => 'glpi_contracts',
-                                         'joinparams' => $joinparams));
+      $tab[] = [
+         'id'                 => '129',
+         'table'              => 'glpi_contracttypes',
+         'field'              => 'name',
+         'name'               => sprintf(__('%1$s - %2$s'), __('Contract'), __('Type')),
+         'datatype'           => 'dropdown',
+         'massiveaction'      => false,
+         'joinparams'         => [
+            'beforejoin'         => [
+               'table'              => 'glpi_contracts',
+               'joinparams'         => $joinparams
+            ]
+         ]
+      ];
 
-      $tab[130]['table']         = 'glpi_contracts';
-      $tab[130]['field']         = 'duration';
-      $tab[130]['name']          = sprintf(__('%1$s - %2$s'), __('Contract'),__('Duration'));
-      $tab[130]['datatype']      = 'number';
-      $tab[130]['max']           = 120;
-      $tab[130]['unit']          = 'month';
-      $tab[130]['forcegroupby']  = true;
-      $tab[130]['massiveaction'] = false;
-      $tab[130]['joinparams']    = $joinparams;
+      $tab[] = [
+         'id'                 => '130',
+         'table'              => 'glpi_contracts',
+         'field'              => 'duration',
+         'name'               => sprintf(__('%1$s - %2$s'), __('Contract'), __('Duration')),
+         'datatype'           => 'number',
+         'max'                => '120',
+         'unit'               => 'month',
+         'forcegroupby'       => true,
+         'massiveaction'      => false,
+         'joinparams'         => $joinparams
+      ];
 
-      $tab[131]['table']         = 'glpi_contracts';
-      $tab[131]['field']         = 'periodicity';
-                                    //TRANS: %1$s is Contract, %2$s is field name
-      $tab[131]['name']          = sprintf(__('%1$s - %2$s'), __('Contract'), __('Periodicity'));
-      $tab[131]['forcegroupby']  = true;
-      $tab[131]['massiveaction'] = false;
-      $tab[131]['joinparams']    = $joinparams;
-      $tab[131]['datatype']      = 'number';
-      $tab[131]['min']           = 12;
-      $tab[131]['max']           = 60;
-      $tab[131]['step']          = 12;
-      $tab[131]['toadd']         = array(0 => Dropdown::EMPTY_VALUE,
-                                         1 => sprintf(_n('%d month', '%d months', 1), 1),
-                                         2 => sprintf(_n('%d month', '%d months', 2), 2),
-                                         3 => sprintf(_n('%d month', '%d months', 3), 3),
-                                         6 => sprintf(_n('%d month', '%d months', 6), 6));
-      $tab[131]['unit']          = 'month';
+      $tab[] = [
+         'id'                 => '131',
+         'table'              => 'glpi_contracts',
+         'field'              => 'periodicity',
+                                 //TRANS: %1$s is Contract, %2$s is field name
+         'name'               => sprintf(__('%1$s - %2$s'), __('Contract'), __('Periodicity')),
+         'forcegroupby'       => true,
+         'massiveaction'      => false,
+         'joinparams'         => $joinparams,
+         'datatype'           => 'number',
+         'min'                => '12',
+         'max'                => '60',
+         'step'               => '12',
+         'toadd'              => [
+            0 => Dropdown::EMPTY_VALUE,
+            1 => sprintf(_n('%d month', '%d months', 1), 1),
+            2 => sprintf(_n('%d month', '%d months', 2), 2),
+            3 => sprintf(_n('%d month', '%d months', 3), 3),
+            6 => sprintf(_n('%d month', '%d months', 6), 6)
+         ],
+         'unit'               => 'month'
+      ];
 
-      $tab[132]['table']         = 'glpi_contracts';
-      $tab[132]['field']         = 'begin_date';
-      $tab[132]['name']          = sprintf(__('%1$s - %2$s'), __('Contract'), __('Start date'));
-      $tab[132]['forcegroupby']  = true;
-      $tab[132]['datatype']      = 'date';
-      $tab[132]['massiveaction'] = false;
-      $tab[132]['joinparams']    = $joinparams;
+      $tab[] = [
+         'id'                 => '132',
+         'table'              => 'glpi_contracts',
+         'field'              => 'begin_date',
+         'name'               => sprintf(__('%1$s - %2$s'), __('Contract'), __('Start date')),
+         'forcegroupby'       => true,
+         'datatype'           => 'date',
+         'massiveaction'      => false,
+         'joinparams'         => $joinparams
+      ];
 
-      $tab[133]['table']         = 'glpi_contracts';
-      $tab[133]['field']         = 'accounting_number';
-      $tab[133]['name']          = sprintf(__('%1$s - %2$s'), __('Contract'), __('Account number'));
-      $tab[133]['forcegroupby']  = true;
-      $tab[133]['massiveaction'] = false;
-      $tab[133]['datatype']      = 'string';
-      $tab[133]['joinparams']    = $joinparams;
+      $tab[] = [
+         'id'                 => '133',
+         'table'              => 'glpi_contracts',
+         'field'              => 'accounting_number',
+         'name'               => sprintf(__('%1$s - %2$s'), __('Contract'), __('Account number')),
+         'forcegroupby'       => true,
+         'massiveaction'      => false,
+         'datatype'           => 'string',
+         'joinparams'         => $joinparams
+      ];
 
-      $tab[134]['table']         = 'glpi_contracts';
-      $tab[134]['field']         = 'end_date';
-      $tab[134]['name']          = sprintf(__('%1$s - %2$s'), __('Contract'), __('End date'));
-      $tab[134]['forcegroupby']  = true;
-      $tab[134]['datatype']      = 'date_delay';
-      $tab[134]['datafields'][1] = 'begin_date';
-      $tab[134]['datafields'][2] = 'duration';
-      $tab[134]['searchunit']    = 'MONTH';
-      $tab[134]['delayunit']     = 'MONTH';
-      $tab[134]['massiveaction'] = false;
-      $tab[134]['joinparams']    = $joinparams;
+      $tab[] = [
+         'id'                 => '134',
+         'table'              => 'glpi_contracts',
+         'field'              => 'end_date',
+         'name'               => sprintf(__('%1$s - %2$s'), __('Contract'), __('End date')),
+         'forcegroupby'       => true,
+         'datatype'           => 'date_delay',
+         'datafields'         => [
+            '1'                  => 'begin_date',
+            '2'                  => 'duration'
+         ],
+         'searchunit'         => 'MONTH',
+         'delayunit'          => 'MONTH',
+         'massiveaction'      => false,
+         'joinparams'         => $joinparams
+      ];
 
-      $tab[135]['table']         = 'glpi_contracts';
-      $tab[135]['field']         = 'notice';
-      $tab[135]['name']          = sprintf(__('%1$s - %2$s'), __('Contract'), __('Notice'));
-      $tab[135]['datatype']      = 'number';
-      $tab[135]['max']           = 120;
-      $tab[135]['unit']          = 'month';
-      $tab[135]['forcegroupby']  = true;
-      $tab[135]['massiveaction'] = false;
-      $tab[135]['joinparams']    = $joinparams;
+      $tab[] = [
+         'id'                 => '135',
+         'table'              => 'glpi_contracts',
+         'field'              => 'notice',
+         'name'               => sprintf(__('%1$s - %2$s'), __('Contract'), __('Notice')),
+         'datatype'           => 'number',
+         'max'                => '120',
+         'unit'               => 'month',
+         'forcegroupby'       => true,
+         'massiveaction'      => false,
+         'joinparams'         => $joinparams
+      ];
 
-      $tab[136]['table']         = 'glpi_contractcosts';
-      $tab[136]['field']         = 'totalcost';
-      $tab[136]['name']          = sprintf(__('%1$s - %2$s'), __('Contract'), __('Cost'));
-      $tab[136]['forcegroupby']  = true;
-      $tab[136]['usehaving']     = true;
-      $tab[136]['datatype']      = 'decimal';
-      $tab[136]['massiveaction'] = false;
-      $tab[136]['joinparams']    = $joinparamscost;
-      $tab[136]['computation']   = "(SUM(TABLE.`cost`) / COUNT(TABLE.`id`)) * COUNT(DISTINCT TABLE.`id`)";
+      $tab[] = [
+         'id'                 => '136',
+         'table'              => 'glpi_contractcosts',
+         'field'              => 'totalcost',
+         'name'               => sprintf(__('%1$s - %2$s'), __('Contract'), __('Cost')),
+         'forcegroupby'       => true,
+         'usehaving'          => true,
+         'datatype'           => 'decimal',
+         'massiveaction'      => false,
+         'joinparams'         => $joinparamscost,
+         'computation'        => '(SUM(TABLE.`cost`) / COUNT(TABLE.`id`)) * COUNT(DISTINCT TABLE.`id`)'
+      ];
 
-      $tab[137]['table']         = 'glpi_contracts';
-      $tab[137]['field']         = 'billing';
-      $tab[137]['name']          = sprintf(__('%1$s - %2$s'), __('Contract'), __('Invoice period'));
-      $tab[137]['forcegroupby']  = true;
-      $tab[137]['massiveaction'] = false;
-      $tab[137]['joinparams']    = $joinparams;
-      $tab[137]['datatype']      = 'number';
-      $tab[137]['min']           = 12;
-      $tab[137]['max']           = 60;
-      $tab[137]['step']          = 12;
-      $tab[137]['toadd']         = array(0 => Dropdown::EMPTY_VALUE,
-                                         1 => sprintf(_n('%d month', '%d months', 1), 1),
-                                         2 => sprintf(_n('%d month', '%d months', 2), 2),
-                                         3 => sprintf(_n('%d month', '%d months', 3), 3),
-                                         6 => sprintf(_n('%d month', '%d months', 6), 6));
-      $tab[137]['unit']          = 'month';
+      $tab[] = [
+         'id'                 => '137',
+         'table'              => 'glpi_contracts',
+         'field'              => 'billing',
+         'name'               => sprintf(__('%1$s - %2$s'), __('Contract'), __('Invoice period')),
+         'forcegroupby'       => true,
+         'massiveaction'      => false,
+         'joinparams'         => $joinparams,
+         'datatype'           => 'number',
+         'min'                => '12',
+         'max'                => '60',
+         'step'               => '12',
+         'toadd'              => [
+            0 => Dropdown::EMPTY_VALUE,
+            1 => sprintf(_n('%d month', '%d months', 1), 1),
+            2 => sprintf(_n('%d month', '%d months', 2), 2),
+            3 => sprintf(_n('%d month', '%d months', 3), 3),
+            6 => sprintf(_n('%d month', '%d months', 6), 6)
+         ],
+         'unit'               => 'month'
+      ];
 
-      $tab[138]['table']         = 'glpi_contracts';
-      $tab[138]['field']         = 'renewal';
-      $tab[138]['name']          = sprintf(__('%1$s - %2$s'), __('Contract'), __('Renewal'));
-      $tab[138]['forcegroupby']  = true;
-      $tab[138]['massiveaction'] = false;
-      $tab[138]['joinparams']    = $joinparams;
-      $tab[138]['datatype']      = 'specific';
-
+      $tab[] = [
+         'id'                 => '138',
+         'table'              => 'glpi_contracts',
+         'field'              => 'renewal',
+         'name'               => sprintf(__('%1$s - %2$s'), __('Contract'), __('Renewal')),
+         'forcegroupby'       => true,
+         'massiveaction'      => false,
+         'joinparams'         => $joinparams,
+         'datatype'           => 'specific'
+      ];
 
       return $tab;
    }
@@ -496,7 +579,7 @@ class Contract extends CommonDBTM {
    /**
     * @see CommonDBTM::getSpecificMassiveActions()
     **/
-   function getSpecificMassiveActions($checkitem=NULL) {
+   function getSpecificMassiveActions($checkitem = null) {
 
       $isadmin = static::canUpdate();
       $actions = parent::getSpecificMassiveActions($checkitem);
@@ -523,10 +606,10 @@ class Contract extends CommonDBTM {
     * @param $values          (default '')
     * @param $options   array
    **/
-   static function getSpecificValueToSelect($field, $name='', $values='', array $options=array()) {
+   static function getSpecificValueToSelect($field, $name = '', $values = '', array $options = []) {
 
       if (!is_array($values)) {
-         $values = array($field => $values);
+         $values = [$field => $values];
       }
       $options['display'] = false;
       switch ($field) {
@@ -550,10 +633,10 @@ class Contract extends CommonDBTM {
     * @param $values
     * @param $options   array
    **/
-   static function getSpecificValueToDisplay($field, $values, array $options=array()) {
+   static function getSpecificValueToDisplay($field, $values, array $options = []) {
 
       if (!is_array($values)) {
-         $values = array($field => $values);
+         $values = [$field => $values];
       }
       switch ($field) {
          case 'alert' :
@@ -566,244 +649,364 @@ class Contract extends CommonDBTM {
    }
 
 
-   function getSearchOptions() {
+   function getSearchOptionsNew() {
+      $tab = [];
 
-      $tab                          = array();
-      $tab['common']                = __('Characteristics');
+      $tab[] = [
+         'id'                 => 'common',
+         'name'               => __('Characteristics')
+      ];
 
-      $tab[1]['table']              = $this->getTable();
-      $tab[1]['field']              = 'name';
-      $tab[1]['name']               = __('Name');
-      $tab[1]['datatype']           = 'itemlink';
-      $tab[1]['massiveaction']      = false;
+      $tab[] = [
+         'id'                 => '1',
+         'table'              => $this->getTable(),
+         'field'              => 'name',
+         'name'               => __('Name'),
+         'datatype'           => 'itemlink',
+         'massiveaction'      => false
+      ];
 
-      $tab[2]['table']              = $this->getTable();
-      $tab[2]['field']              = 'id';
-      $tab[2]['name']               = __('ID');
-      $tab[2]['massiveaction']      = false;
-      $tab[2]['datatype']           = 'number';
+      $tab[] = [
+         'id'                 => '2',
+         'table'              => $this->getTable(),
+         'field'              => 'id',
+         'name'               => __('ID'),
+         'massiveaction'      => false,
+         'datatype'           => 'number'
+      ];
 
-      $tab[3]['table']              = $this->getTable();
-      $tab[3]['field']              = 'num';
-      $tab[3]['name']               = _x('phone', 'Number');
-      $tab[3]['datatype']           = 'string';
+      $tab[] = [
+         'id'                 => '3',
+         'table'              => $this->getTable(),
+         'field'              => 'num',
+         'name'               => _x('phone', 'Number'),
+         'datatype'           => 'string'
+      ];
 
-      $tab[4]['table']              = 'glpi_contracttypes';
-      $tab[4]['field']              = 'name';
-      $tab[4]['name']               = __('Type');
-      $tab[4]['datatype']           = 'dropdown';
+      $tab[] = [
+         'id'                 => '4',
+         'table'              => 'glpi_contracttypes',
+         'field'              => 'name',
+         'name'               => __('Type'),
+         'datatype'           => 'dropdown'
+      ];
 
-      $tab[5]['table']              = $this->getTable();
-      $tab[5]['field']              = 'begin_date';
-      $tab[5]['name']               = __('Start date');
-      $tab[5]['datatype']           = 'date';
-      $tab[5]['maybefuture']        = true;
+      $tab[] = [
+         'id'                 => '5',
+         'table'              => $this->getTable(),
+         'field'              => 'begin_date',
+         'name'               => __('Start date'),
+         'datatype'           => 'date',
+         'maybefuture'        => true
+      ];
 
-      $tab[6]['table']              = $this->getTable();
-      $tab[6]['field']              = 'duration';
-      $tab[6]['name']               = __('Duration');
-      $tab[6]['datatype']           = 'number';
-      $tab[6]['max']                = 120;
-      $tab[6]['unit']               = 'month';
+      $tab[] = [
+         'id'                 => '6',
+         'table'              => $this->getTable(),
+         'field'              => 'duration',
+         'name'               => __('Duration'),
+         'datatype'           => 'number',
+         'max'                => 120,
+         'unit'               => 'month'
+      ];
 
-      $tab[19]['table']          = $this->getTable();
-      $tab[19]['field']          = 'date_mod';
-      $tab[19]['name']           = __('Last update');
-      $tab[19]['datatype']       = 'datetime';
-      $tab[19]['massiveaction']  = false;
+      $tab[] = [
+         'id'                 => '19',
+         'table'              => $this->getTable(),
+         'field'              => 'date_mod',
+         'name'               => __('Last update'),
+         'datatype'           => 'datetime',
+         'massiveaction'      => false
+      ];
 
-      $tab[121]['table']          = $this->getTable();
-      $tab[121]['field']          = 'date_creation';
-      $tab[121]['name']           = __('Creation date');
-      $tab[121]['datatype']       = 'datetime';
-      $tab[121]['massiveaction']  = false;
+      $tab[] = [
+         'id'                 => '121',
+         'table'              => $this->getTable(),
+         'field'              => 'date_creation',
+         'name'               => __('Creation date'),
+         'datatype'           => 'datetime',
+         'massiveaction'      => false
+      ];
 
-      $tab[20]['table']             = $this->getTable();
-      $tab[20]['field']             = 'end_date';
-      $tab[20]['name']              = __('End date');
-      $tab[20]['datatype']          = 'date_delay';
-      $tab[20]['datafields'][1]     = 'begin_date';
-      $tab[20]['datafields'][2]     = 'duration';
-      $tab[20]['searchunit']        = 'MONTH';
-      $tab[20]['delayunit']         = 'MONTH';
-      $tab[20]['maybefuture']       = true;
-      $tab[20]['massiveaction']     = false;
+      $tab[] = [
+         'id'                 => '20',
+         'table'              => $this->getTable(),
+         'field'              => 'end_date',
+         'name'               => __('End date'),
+         'datatype'           => 'date_delay',
+         'datafields'         => [
+            '1'                  => 'begin_date',
+            '2'                  => 'duration'
+         ],
+         'searchunit'         => 'MONTH',
+         'delayunit'          => 'MONTH',
+         'maybefuture'        => true,
+         'massiveaction'      => false
+      ];
 
-      $tab[7]['table']              = $this->getTable();
-      $tab[7]['field']              = 'notice';
-      $tab[7]['name']               = __('Notice');
-      $tab[7]['datatype']           = 'number';
-      $tab[7]['max']                = 120;
-      $tab[7]['unit']               = 'month';
+      $tab[] = [
+         'id'                 => '7',
+         'table'              => $this->getTable(),
+         'field'              => 'notice',
+         'name'               => __('Notice'),
+         'datatype'           => 'number',
+         'max'                => 120,
+         'unit'               => 'month'
+      ];
 
-      $tab[21]['table']             = $this->getTable();
-      $tab[21]['field']             = 'periodicity';
-      $tab[21]['name']              = __('Periodicity');
-      $tab[21]['massiveaction']     = false;
-      $tab[21]['datatype']          = 'number';
-      $tab[21]['min']               = 12;
-      $tab[21]['max']               = 60;
-      $tab[21]['step']              = 12;
-      $tab[21]['toadd']             = array(0 => Dropdown::EMPTY_VALUE,
-                                            1 => sprintf(_n('%d month', '%d months', 1), 1),
-                                            2 => sprintf(_n('%d month', '%d months', 2), 2),
-                                            3 => sprintf(_n('%d month', '%d months', 3), 3),
-                                            6 => sprintf(_n('%d month', '%d months', 6), 6));
-      $tab[21]['unit']              = 'month';
+      $tab[] = [
+         'id'                 => '21',
+         'table'              => $this->getTable(),
+         'field'              => 'periodicity',
+         'name'               => __('Periodicity'),
+         'massiveaction'      => false,
+         'datatype'           => 'number',
+         'min'                => 12,
+         'max'                => 60,
+         'step'               => 12,
+         'toadd'              => [
+            0 => Dropdown::EMPTY_VALUE,
+            1 => sprintf(_n('%d month', '%d months', 1), 1),
+            2 => sprintf(_n('%d month', '%d months', 2), 2),
+            3 => sprintf(_n('%d month', '%d months', 3), 3),
+            6 => sprintf(_n('%d month', '%d months', 6), 6)
+         ],
+         'unit'               => 'month'
+      ];
 
-      $tab[22]['table']             = $this->getTable();
-      $tab[22]['field']             = 'billing';
-      $tab[22]['name']              = __('Invoice period');
-      $tab[22]['massiveaction']     = false;
-      $tab[22]['datatype']          = 'number';
-      $tab[22]['min']               = 12;
-      $tab[22]['max']               = 60;
-      $tab[22]['step']              = 12;
-      $tab[22]['toadd']             = array(0 => Dropdown::EMPTY_VALUE,
-                                            1 => sprintf(_n('%d month', '%d months', 1), 1),
-                                            2 => sprintf(_n('%d month', '%d months', 2), 2),
-                                            3 => sprintf(_n('%d month', '%d months', 3), 3),
-                                            6 => sprintf(_n('%d month', '%d months', 6), 6));
-      $tab[22]['unit']              = 'month';
+      $tab[] = [
+         'id'                 => '22',
+         'table'              => $this->getTable(),
+         'field'              => 'billing',
+         'name'               => __('Invoice period'),
+         'massiveaction'      => false,
+         'datatype'           => 'number',
+         'min'                => 12,
+         'max'                => 60,
+         'step'               => 12,
+         'toadd'              => [
+            0 => Dropdown::EMPTY_VALUE,
+            1 => sprintf(_n('%d month', '%d months', 1), 1),
+            2 => sprintf(_n('%d month', '%d months', 2), 2),
+            3 => sprintf(_n('%d month', '%d months', 3), 3),
+            6 => sprintf(_n('%d month', '%d months', 6), 6)
+         ],
+         'unit'               => 'month'
+      ];
 
-      $tab[10]['table']             = $this->getTable();
-      $tab[10]['field']             = 'accounting_number';
-      $tab[10]['name']              = __('Account number');
-      $tab[10]['datatype']          = 'string';
+      $tab[] = [
+         'id'                 => '10',
+         'table'              => $this->getTable(),
+         'field'              => 'accounting_number',
+         'name'               => __('Account number'),
+         'datatype'           => 'string'
+      ];
 
-      $tab[23]['table']             = $this->getTable();
-      $tab[23]['field']             = 'renewal';
-      $tab[23]['name']              = __('Renewal');
-      $tab[23]['massiveaction']     = false;
-      $tab[23]['datatype']          = 'specific';
-      $tab[23]['searchtype']        = array('equals', 'notequals');
+      $tab[] = [
+         'id'                 => '23',
+         'table'              => $this->getTable(),
+         'field'              => 'renewal',
+         'name'               => __('Renewal'),
+         'massiveaction'      => false,
+         'datatype'           => 'specific',
+         'searchtype'         => ['equals', 'notequals']
+      ];
 
-      $tab[12]['table']             = $this->getTable();
-      $tab[12]['field']             = 'expire';
-      $tab[12]['name']              = __('Expiration');
-      $tab[12]['datatype']          = 'date_delay';
-      $tab[12]['datafields'][1]     = 'begin_date';
-      $tab[12]['datafields'][2]     = 'duration';
-      $tab[12]['searchunit']        = 'DAY';
-      $tab[12]['delayunit']         = 'MONTH';
-      $tab[12]['maybefuture']       = true;
-      $tab[12]['massiveaction']     = false;
+      $tab[] = [
+         'id'                 => '12',
+         'table'              => $this->getTable(),
+         'field'              => 'expire',
+         'name'               => __('Expiration'),
+         'datatype'           => 'date_delay',
+         'datafields'         => [
+            '1'                  => 'begin_date',
+            '2'                  => 'duration'
+         ],
+         'searchunit'         => 'DAY',
+         'delayunit'          => 'MONTH',
+         'maybefuture'        => true,
+         'massiveaction'      => false
+      ];
 
-      $tab[13]['table']             = $this->getTable();
-      $tab[13]['field']             = 'expire_notice';
-      $tab[13]['name']              = __('Expiration date + notice');
-      $tab[13]['datatype']          = 'date_delay';
-      $tab[13]['datafields'][1]     = 'begin_date';
-      $tab[13]['datafields'][2]     = 'duration';
-      $tab[13]['datafields'][3]     = 'notice';
-      $tab[13]['searchunit']        = 'DAY';
-      $tab[13]['delayunit']         = 'MONTH';
-      $tab[13]['maybefuture']       = true;
-      $tab[13]['massiveaction']     = false;
+      $tab[] = [
+         'id'                 => '13',
+         'table'              => $this->getTable(),
+         'field'              => 'expire_notice',
+         'name'               => __('Expiration date + notice'),
+         'datatype'           => 'date_delay',
+         'datafields'         => [
+            '1'                  => 'begin_date',
+            '2'                  => 'duration',
+            '3'                  => 'notice'
+         ],
+         'searchunit'         => 'DAY',
+         'delayunit'          => 'MONTH',
+         'maybefuture'        => true,
+         'massiveaction'      => false
+      ];
 
-      $tab[16]['table']             = $this->getTable();
-      $tab[16]['field']             = 'comment';
-      $tab[16]['name']              = __('Comments');
-      $tab[16]['datatype']          = 'text';
+      $tab[] = [
+         'id'                 => '16',
+         'table'              => $this->getTable(),
+         'field'              => 'comment',
+         'name'               => __('Comments'),
+         'datatype'           => 'text'
+      ];
 
-      $tab[80]['table']             = 'glpi_entities';
-      $tab[80]['field']             = 'completename';
-      $tab[80]['name']              = __('Entity');
-      $tab[80]['massiveaction']     = false;
-      $tab[80]['datatype']          = 'dropdown';
+      $tab[] = [
+         'id'                 => '80',
+         'table'              => 'glpi_entities',
+         'field'              => 'completename',
+         'name'               => __('Entity'),
+         'massiveaction'      => false,
+         'datatype'           => 'dropdown'
+      ];
 
-      $tab[59]['table']             = $this->getTable();
-      $tab[59]['field']             = 'alert';
-      $tab[59]['name']              = __('Email alarms');
-      $tab[59]['datatype']          = 'specific';
-      $tab[59]['searchtype']        = array('equals', 'notequals');
+      $tab[] = [
+         'id'                 => '59',
+         'table'              => $this->getTable(),
+         'field'              => 'alert',
+         'name'               => __('Email alarms'),
+         'datatype'           => 'specific',
+         'searchtype'         => ['equals', 'notequals']
+      ];
 
-      $tab[86]['table']             = $this->getTable();
-      $tab[86]['field']             = 'is_recursive';
-      $tab[86]['name']              = __('Child entities');
-      $tab[86]['datatype']          = 'bool';
+      $tab[] = [
+         'id'                 => '86',
+         'table'              => $this->getTable(),
+         'field'              => 'is_recursive',
+         'name'               => __('Child entities'),
+         'datatype'           => 'bool'
+      ];
 
-      $tab[72]['table']             = 'glpi_contracts_items';
-      $tab[72]['field']             = 'id';
-      $tab[72]['name']              = _x('quantity', 'Number of items');
-      $tab[72]['forcegroupby']      = true;
-      $tab[72]['usehaving']         = true;
-      $tab[72]['datatype']          = 'count';
-      $tab[72]['massiveaction']     = false;
-      $tab[72]['joinparams']        = array('jointype' => 'child');
+      $tab[] = [
+         'id'                 => '72',
+         'table'              => 'glpi_contracts_items',
+         'field'              => 'id',
+         'name'               => _x('quantity', 'Number of items'),
+         'forcegroupby'       => true,
+         'usehaving'          => true,
+         'datatype'           => 'count',
+         'massiveaction'      => false,
+         'joinparams'         => [
+            'jointype'           => 'child'
+         ]
+      ];
 
-      $tab[29]['table']             = 'glpi_suppliers';
-      $tab[29]['field']             = 'name';
-      $tab[29]['name']              = _n('Associated supplier', 'Associated suppliers',
-                                         Session::getPluralNumber());
-      $tab[29]['forcegroupby']      = true;
-      $tab[29]['datatype']          = 'itemlink';
-      $tab[29]['massiveaction']     = false;
-      $tab[29]['joinparams']        = array('beforejoin'
-                                             => array('table'      => 'glpi_contracts_suppliers',
-                                                      'joinparams' => array('jointype' => 'child')));
-
+      $tab[] = [
+         'id'                 => '29',
+         'table'              => 'glpi_suppliers',
+         'field'              => 'name',
+         'name'               => _n('Associated supplier', 'Associated suppliers',
+                                     Session::getPluralNumber()),
+         'forcegroupby'       => true,
+         'datatype'           => 'itemlink',
+         'massiveaction'      => false,
+         'joinparams'         => [
+            'beforejoin'         => [
+               'table'              => 'glpi_contracts_suppliers',
+               'joinparams'         => [
+                  'jointype'           => 'child'
+               ]
+            ]
+         ]
+      ];
 
       // add objectlock search options
-      $tab += ObjectLock::getSearchOptionsToAdd( get_class($this) ) ;
+      $tab = array_merge($tab, ObjectLock::getSearchOptionsToAddNew(get_class($this)));
 
-      $tab += Notepad::getSearchOptionsToAdd();
+      $tab = array_merge($tab, Notepad::getSearchOptionsToAddNew());
 
-      $tab['cost']                  = __('Cost');
+      $tab[] = [
+         'id'                 => 'cost',
+         'name'               => __('Cost')
+      ];
 
-      $tab[11]['table']             = 'glpi_contractcosts';
-      $tab[11]['field']             = 'totalcost';
-      $tab[11]['name']              = __('Total cost');
-      $tab[11]['datatype']          = 'decimal';
-      $tab[11]['forcegroupby']      = true;
-      $tab[11]['usehaving']         = true;
-      $tab[11]['massiveaction']     = false;
-      $tab[11]['joinparams']        = array('jointype' => 'child');
-      $tab[11]['computation']       = "(SUM(TABLE.`cost`) / COUNT(TABLE.`id`))
-                                       * COUNT(DISTINCT TABLE.`id`)";
+      $tab[] = [
+         'id'                 => '11',
+         'table'              => 'glpi_contractcosts',
+         'field'              => 'totalcost',
+         'name'               => __('Total cost'),
+         'datatype'           => 'decimal',
+         'forcegroupby'       => true,
+         'usehaving'          => true,
+         'massiveaction'      => false,
+         'joinparams'         => [
+            'jointype'           => 'child'
+         ],
+         'computation'        => '(SUM(TABLE.`cost`) / COUNT(TABLE.`id`))
+                                       * COUNT(DISTINCT TABLE.`id`)'
+      ];
 
-      $tab[41]['table']             = 'glpi_contractcosts';
-      $tab[41]['field']             = 'cost';
-      $tab[41]['name']              = _n('Cost', 'Costs', Session::getPluralNumber());
-      $tab[41]['datatype']          = 'decimal';
-      $tab[41]['forcegroupby']      = true;
-      $tab[41]['massiveaction']     = false;
-      $tab[41]['joinparams']        = array('jointype' => 'child');
+      $tab[] = [
+         'id'                 => '41',
+         'table'              => 'glpi_contractcosts',
+         'field'              => 'cost',
+         'name'               => _n('Cost', 'Costs', Session::getPluralNumber()),
+         'datatype'           => 'decimal',
+         'forcegroupby'       => true,
+         'massiveaction'      => false,
+         'joinparams'         => [
+            'jointype'           => 'child'
+         ]
+      ];
 
-      $tab[42]['table']             = 'glpi_contractcosts';
-      $tab[42]['field']             = 'begin_date';
-      $tab[42]['name']              = sprintf(__('%1$s - %2$s'), __('Cost'), __('Begin date'));
-      $tab[42]['datatype']          = 'date';
-      $tab[42]['forcegroupby']      = true;
-      $tab[42]['massiveaction']     = false;
-      $tab[42]['joinparams']        = array('jointype' => 'child');
+      $tab[] = [
+         'id'                 => '42',
+         'table'              => 'glpi_contractcosts',
+         'field'              => 'begin_date',
+         'name'               => sprintf(__('%1$s - %2$s'), __('Cost'), __('Begin date')),
+         'datatype'           => 'date',
+         'forcegroupby'       => true,
+         'massiveaction'      => false,
+         'joinparams'         => [
+            'jointype'           => 'child'
+         ]
+      ];
 
-      $tab[43]['table']             = 'glpi_contractcosts';
-      $tab[43]['field']             = 'end_date';
-      $tab[43]['name']              = sprintf(__('%1$s - %2$s'), __('Cost'), __('End date'));
-      $tab[43]['datatype']          = 'date';
-      $tab[43]['forcegroupby']      = true;
-      $tab[43]['massiveaction']     = false;
-      $tab[43]['joinparams']        = array('jointype' => 'child');
+      $tab[] = [
+         'id'                 => '43',
+         'table'              => 'glpi_contractcosts',
+         'field'              => 'end_date',
+         'name'               => sprintf(__('%1$s - %2$s'), __('Cost'), __('End date')),
+         'datatype'           => 'date',
+         'forcegroupby'       => true,
+         'massiveaction'      => false,
+         'joinparams'         => [
+            'jointype'           => 'child'
+         ]
+      ];
 
-      $tab[44]['table']             = 'glpi_contractcosts';
-      $tab[44]['field']             = 'name';
-      $tab[44]['name']              = sprintf(__('%1$s - %2$s'), __('Cost'), __('Name'));
-      $tab[44]['forcegroupby']      = true;
-      $tab[44]['massiveaction']     = false;
-      $tab[44]['joinparams']        = array('jointype' => 'child');
-      $tab[44]['datatype']          = 'dropdown';
+      $tab[] = [
+         'id'                 => '44',
+         'table'              => 'glpi_contractcosts',
+         'field'              => 'name',
+         'name'               => sprintf(__('%1$s - %2$s'), __('Cost'), __('Name')),
+         'forcegroupby'       => true,
+         'massiveaction'      => false,
+         'joinparams'         => [
+            'jointype'           => 'child'
+         ],
+         'datatype'           => 'dropdown'
+      ];
 
-      $tab[45]['table']             = 'glpi_budgets';
-      $tab[45]['field']             = 'name';
-      $tab[45]['name']              = sprintf(__('%1$s - %2$s'), __('Cost'), __('Budget'));
-      $tab[45]['datatype']          = 'dropdown';
-      $tab[45]['forcegroupby']      = true;
-      $tab[45]['massiveaction']     = false;
-      $tab[45]['joinparams']        = array('beforejoin'
-                                             => array('table'      => 'glpi_contractcosts',
-                                                      'joinparams' => array('jointype' => 'child')));
-
+      $tab[] = [
+         'id'                 => '45',
+         'table'              => 'glpi_budgets',
+         'field'              => 'name',
+         'name'               => sprintf(__('%1$s - %2$s'), __('Cost'), __('Budget')),
+         'datatype'           => 'dropdown',
+         'forcegroupby'       => true,
+         'massiveaction'      => false,
+         'joinparams'         => [
+            'beforejoin'         => [
+               'table'              => 'glpi_contractcosts',
+               'joinparams'         => [
+                  'jointype'           => 'child'
+               ]
+            ]
+         ]
+      ];
 
       return $tab;
    }
@@ -827,19 +1030,19 @@ class Contract extends CommonDBTM {
       $query = "SELECT COUNT(*)
                 FROM `glpi_contracts`
                 WHERE `glpi_contracts`.`is_deleted`='0' ".
-                      getEntitiesRestrictRequest("AND","glpi_contracts")."
+                      getEntitiesRestrictRequest("AND", "glpi_contracts")."
                       AND DATEDIFF(ADDDATE(`glpi_contracts`.`begin_date`, INTERVAL
                                            `glpi_contracts`.`duration` MONTH),CURDATE() )>-30
                       AND DATEDIFF(ADDDATE(`glpi_contracts`.`begin_date`, INTERVAL
                                            `glpi_contracts`.`duration` MONTH),CURDATE() )<'0'";
       $result    = $DB->query($query);
-      $contract0 = $DB->result($result,0,0);
+      $contract0 = $DB->result($result, 0, 0);
 
       // contrats  echeance j-7
       $query = "SELECT COUNT(*)
                 FROM `glpi_contracts`
                 WHERE `glpi_contracts`.`is_deleted`='0' ".
-                      getEntitiesRestrictRequest("AND","glpi_contracts")."
+                      getEntitiesRestrictRequest("AND", "glpi_contracts")."
                       AND DATEDIFF(ADDDATE(`glpi_contracts`.`begin_date`, INTERVAL
                                            `glpi_contracts`.`duration` MONTH),CURDATE() )>'0'
                       AND DATEDIFF(ADDDATE(`glpi_contracts`.`begin_date`, INTERVAL
@@ -851,19 +1054,19 @@ class Contract extends CommonDBTM {
       $query = "SELECT COUNT(*)
                 FROM `glpi_contracts`
                 WHERE `glpi_contracts`.`is_deleted`='0' ".
-                      getEntitiesRestrictRequest("AND","glpi_contracts")."
+                      getEntitiesRestrictRequest("AND", "glpi_contracts")."
                       AND DATEDIFF(ADDDATE(`glpi_contracts`.`begin_date`, INTERVAL
                                            `glpi_contracts`.`duration` MONTH),CURDATE() )>'7'
                       AND DATEDIFF(ADDDATE(`glpi_contracts`.`begin_date`, INTERVAL
                                            `glpi_contracts`.`duration` MONTH),CURDATE() )<'30'";
       $result     = $DB->query($query);
-      $contract30 = $DB->result($result,0,0);
+      $contract30 = $DB->result($result, 0, 0);
 
-      // contrats avec préavis echeance j-7
+      // contrats avec pr??avis echeance j-7
       $query = "SELECT COUNT(*)
                 FROM `glpi_contracts`
                 WHERE `glpi_contracts`.`is_deleted`='0' ".
-                      getEntitiesRestrictRequest("AND","glpi_contracts")."
+                      getEntitiesRestrictRequest("AND", "glpi_contracts")."
                       AND `glpi_contracts`.`notice`<>'0'
                       AND DATEDIFF(ADDDATE(`glpi_contracts`.`begin_date`, INTERVAL
                                            (`glpi_contracts`.`duration`-`glpi_contracts`.`notice`)
@@ -872,13 +1075,13 @@ class Contract extends CommonDBTM {
                                            (`glpi_contracts`.`duration`-`glpi_contracts`.`notice`)
                                            MONTH),CURDATE() )<='7'";
       $result       = $DB->query($query);
-      $contractpre7 = $DB->result($result,0,0);
+      $contractpre7 = $DB->result($result, 0, 0);
 
-      // contrats avec préavis echeance j -30
+      // contrats avec pr??avis echeance j -30
       $query = "SELECT COUNT(*)
                 FROM `glpi_contracts`
                 WHERE `glpi_contracts`.`is_deleted`='0'".
-                      getEntitiesRestrictRequest("AND","glpi_contracts")."
+                      getEntitiesRestrictRequest("AND", "glpi_contracts")."
                       AND `glpi_contracts`.`notice`<>'0'
                       AND DATEDIFF(ADDDATE(`glpi_contracts`.`begin_date`, INTERVAL
                                            (`glpi_contracts`.`duration`-`glpi_contracts`.`notice`)
@@ -887,7 +1090,7 @@ class Contract extends CommonDBTM {
                                            (`glpi_contracts`.`duration`-`glpi_contracts`.`notice`)
                                            MONTH),CURDATE() )<'30'";
       $result        = $DB->query($query);
-      $contractpre30 = $DB->result($result,0,0);
+      $contractpre30 = $DB->result($result, 0, 0);
 
       echo "<table class='tab_cadrehov'>";
       echo "<tr class='noHover'><th colspan='2'>";
@@ -900,16 +1103,16 @@ class Contract extends CommonDBTM {
       $options['order'] = 'DESC';
       $options['start'] = 0;
 
-      $options['criteria'][0] = array('field'      => 12,
+      $options['criteria'][0] = ['field'      => 12,
                                       'value'      => '<0',
-                                      'searchtype' => 'contains');
-      $options['criteria'][1] = array('field'      => 12,
+                                      'searchtype' => 'contains'];
+      $options['criteria'][1] = ['field'      => 12,
                                       'link'       => 'AND',
                                       'value'      => '>-30',
-                                      'searchtype' => 'contains');
+                                      'searchtype' => 'contains'];
 
       echo "<td><a href=\"".$CFG_GLPI["root_doc"]."/front/contract.php?".
-                 Toolbox::append_params($options,'&amp;')."\">".
+                 Toolbox::append_params($options, '&amp;')."\">".
                  __('Contracts expired in the last 30 days')."</a> </td>";
       echo "<td class='numeric'>".$contract0."</td></tr>";
 
@@ -917,7 +1120,7 @@ class Contract extends CommonDBTM {
       $options['criteria'][0]['value'] = 0;
       $options['criteria'][1]['value'] = '<7';
       echo "<td><a href=\"".$CFG_GLPI["root_doc"]."/front/contract.php?".
-                 Toolbox::append_params($options,'&amp;')."\">".
+                 Toolbox::append_params($options, '&amp;')."\">".
                  __('Contracts expiring in less than 7 days')."</a></td>";
       echo "<td class='numeric'>".$contract7."</td></tr>";
 
@@ -925,7 +1128,7 @@ class Contract extends CommonDBTM {
       $options['criteria'][0]['value'] = '>6';
       $options['criteria'][1]['value'] = '<30';
       echo "<td><a href=\"".$CFG_GLPI["root_doc"]."/front/contract.php?".
-                 Toolbox::append_params($options,'&amp;')."\">".
+                 Toolbox::append_params($options, '&amp;')."\">".
                  __('Contracts expiring in less than 30 days')."</a></td>";
       echo "<td class='numeric'>".$contract30."</td></tr>";
 
@@ -936,7 +1139,7 @@ class Contract extends CommonDBTM {
       $options['criteria'][1]['value'] = '<7';
 
       echo "<td><a href=\"".$CFG_GLPI["root_doc"]."/front/contract.php?".
-                 Toolbox::append_params($options,'&amp;')."\">".
+                 Toolbox::append_params($options, '&amp;')."\">".
                  __('Contracts where notice begins in less than 7 days')."</a></td>";
       echo "<td class='numeric'>".$contractpre7."</td></tr>";
 
@@ -944,7 +1147,7 @@ class Contract extends CommonDBTM {
       $options['criteria'][0]['value'] = '>6';
       $options['criteria'][1]['value'] = '<30';
       echo "<td><a href=\"".$CFG_GLPI["root_doc"]."/front/contract.php?".
-                 Toolbox::append_params($options,'&amp;')."\">".
+                 Toolbox::append_params($options, '&amp;')."\">".
                  __('Contracts where notice begins in less than 30 days')."</a></td>";
       echo "<td class='numeric'>".$contractpre30."</td></tr>";
       echo "</table>";
@@ -974,7 +1177,7 @@ class Contract extends CommonDBTM {
 
 
    static function cronInfo($name) {
-      return array('description' => __('Send alarms on contracts'));
+      return ['description' => __('Send alarms on contracts')];
    }
 
 
@@ -983,21 +1186,21 @@ class Contract extends CommonDBTM {
     *
     * @param $task for log, if NULL display (default NULL)
    **/
-   static function cronContract($task=NULL) {
+   static function cronContract($task = null) {
       global $DB, $CFG_GLPI;
 
-      if (!$CFG_GLPI["use_mailing"]) {
+      if (!$CFG_GLPI["use_notifications"]) {
          return 0;
       }
 
-      $message       = array();
-      $items_notice  = array();
-      $items_end     = array();
+      $message       = [];
+      $items_notice  = [];
+      $items_end     = [];
       $cron_status   = 0;
 
-      $contract_infos[Alert::END]    = array();
-      $contract_infos[Alert::NOTICE] = array();
-      $contract_messages             = array();
+      $contract_infos[Alert::END]    = [];
+      $contract_infos[Alert::NOTICE] = [];
+      $contract_messages             = [];
 
       foreach (Entity::getEntitiesToNotify('use_contracts_alert') as $entity => $value) {
          $before       = Entity::getUsedConfig('send_contracts_alert_before_delay', $entity);
@@ -1007,7 +1210,7 @@ class Contract extends CommonDBTM {
                               ON (`glpi_contracts`.`id` = `glpi_alerts`.`items_id`
                                   AND `glpi_alerts`.`itemtype` = 'Contract'
                                   AND `glpi_alerts`.`type`='".Alert::NOTICE."')
-                          WHERE (`glpi_contracts`.`alert` & ".pow(2,Alert::NOTICE).") >'0'
+                          WHERE (`glpi_contracts`.`alert` & ".pow(2, Alert::NOTICE).") >'0'
                                 AND `glpi_contracts`.`is_deleted` = '0'
                                 AND `glpi_contracts`.`begin_date` IS NOT NULL
                                 AND `glpi_contracts`.`duration` <> '0'
@@ -1028,7 +1231,7 @@ class Contract extends CommonDBTM {
                            ON (`glpi_contracts`.`id` = `glpi_alerts`.`items_id`
                                AND `glpi_alerts`.`itemtype` = 'Contract'
                                AND `glpi_alerts`.`type`='".Alert::END."')
-                       WHERE (`glpi_contracts`.`alert` & ".pow(2,Alert::END).") > '0'
+                       WHERE (`glpi_contracts`.`alert` & ".pow(2, Alert::END).") > '0'
                              AND `glpi_contracts`.`is_deleted` = '0'
                              AND `glpi_contracts`.`begin_date` IS NOT NULL
                              AND `glpi_contracts`.`duration` <> '0'
@@ -1038,8 +1241,8 @@ class Contract extends CommonDBTM {
                              AND `glpi_alerts`.`date` IS NULL
                              AND `glpi_contracts`.`entities_id` = '".$entity."'";
 
-         $querys = array('notice' => $query_notice,
-                         'end'    => $query_end);
+         $querys = ['notice' => $query_notice,
+                         'end'    => $query_end];
 
          foreach ($querys as $type => $query) {
             foreach ($DB->request($query) as $data) {
@@ -1070,7 +1273,7 @@ class Contract extends CommonDBTM {
          // Get contrats with periodicity alerts
          $query_periodicity = "SELECT `glpi_contracts`.*
                                FROM `glpi_contracts`
-                               WHERE `glpi_contracts`.`alert` & ".pow(2,Alert::PERIODICITY)." > '0'
+                               WHERE `glpi_contracts`.`alert` & ".pow(2, Alert::PERIODICITY)." > '0'
                                      AND `glpi_contracts`.`entities_id` = '".$entity."' ";
 
          // Foreach ones :
@@ -1082,8 +1285,8 @@ class Contract extends CommonDBTM {
             if (!empty($data['begin_date'])
                 && $data['periodicity']
                 && ($end_alert > date('Y-m-d'))) {
-               $todo = array('periodicity' => Alert::PERIODICITY);
-               if ($data['alert']&pow(2,Alert::NOTICE)) {
+               $todo = ['periodicity' => Alert::PERIODICITY];
+               if ($data['alert']&pow(2, Alert::NOTICE)) {
                   $todo['periodicitynotice'] = Alert::NOTICE;
                }
 
@@ -1143,15 +1346,15 @@ class Contract extends CommonDBTM {
             }
          }
       }
-      foreach (array('notice'            => Alert::NOTICE,
+      foreach (['notice'            => Alert::NOTICE,
                      'end'               => Alert::END,
                      'periodicity'       => Alert::PERIODICITY,
-                     'periodicitynotice' => Alert::NOTICE) as $event => $type ) {
+                     'periodicitynotice' => Alert::NOTICE] as $event => $type ) {
          if (isset($contract_infos[$event]) && count($contract_infos[$event])) {
             foreach ($contract_infos[$event] as $entity => $contracts) {
                if (NotificationEvent::raiseEvent($event, new self(),
-                                                 array('entities_id' => $entity,
-                                                       'items'       => $contracts))) {
+                                                 ['entities_id' => $entity,
+                                                       'items'       => $contracts])) {
                   $message     = $contract_messages[$event][$entity];
                   $cron_status = 1;
                   $entityname  = Dropdown::getDropdownName("glpi_entities", $entity);
@@ -1211,7 +1414,7 @@ class Contract extends CommonDBTM {
     *
     * @return Nothing (display)
    **/
-   static function dropdown($options=array()) {
+   static function dropdown($options = []) {
       global $DB;
 
       //$name,$entity_restrict=-1,$alreadyused=array(),$nochecklimit=false
@@ -1220,7 +1423,7 @@ class Contract extends CommonDBTM {
       $p['entity']         = '';
       $p['rand']           = mt_rand();
       $p['entity_sons']    = false;
-      $p['used']           = array();
+      $p['used']           = [];
       $p['nochecklimit']   = false;
       $p['on_change']      = '';
       $p['display']        = true;
@@ -1238,7 +1441,7 @@ class Contract extends CommonDBTM {
             // no translation needed (only for dev)
             echo "entity_sons options is not available with array of entity";
          } else {
-            $p['entity'] = getSonsOf('glpi_entities',$p['entity']);
+            $p['entity'] = getSonsOf('glpi_entities', $p['entity']);
          }
       }
 
@@ -1250,7 +1453,7 @@ class Contract extends CommonDBTM {
                                                $p['entity'], true);
       }
       if (count($p['used'])) {
-          $idrest = " AND `glpi_contracts`.`id` NOT IN (".implode(",",$p['used']).") ";
+          $idrest = " AND `glpi_contracts`.`id` NOT IN (".implode(",", $p['used']).") ";
       }
       if (!$p['expired']) {
          $expired = " AND (DATEDIFF(ADDDATE(`glpi_contracts`.`begin_date`, INTERVAL
@@ -1259,7 +1462,6 @@ class Contract extends CommonDBTM {
                            OR (`glpi_contracts`.`duration` = 0
                                AND DATEDIFF(`glpi_contracts`.`begin_date`, CURDATE() ) < '0' ))";
       }
-
 
       $query = "SELECT `glpi_contracts`.*
                 FROM `glpi_contracts`
@@ -1271,16 +1473,14 @@ class Contract extends CommonDBTM {
                          `glpi_contracts`.`begin_date` DESC";
       $result = $DB->query($query);
 
-
       $group  = '';
       $prev   = -1;
-      $values = array();
+      $values = [];
       while ($data = $DB->fetch_assoc($result)) {
          if ($p['nochecklimit']
              || ($data["max_links_allowed"] == 0)
-             || ($data["max_links_allowed"] > countElementsInTable("glpi_contracts_items",
-                                                                   "contracts_id
-                                                                     = '".$data['id']."'" ))) {
+             || ($data["max_links_allowed"] > countElementsInTable('glpi_contracts_items',
+                                                                   ['contracts_id' => $data['id']]))) {
             if ($data["entities_id"] != $prev) {
                $group = Dropdown::getDropdownName("glpi_entities", $data["entities_id"]);
                $prev = $data["entities_id"];
@@ -1298,10 +1498,10 @@ class Contract extends CommonDBTM {
          }
       }
       return Dropdown::showFromArray($p['name'], $values,
-                                     array('value'               => $p['value'],
+                                     ['value'               => $p['value'],
                                            'on_change'           => $p['on_change'],
                                            'display'             => $p['display'],
-                                           'display_emptychoice' => true));
+                                           'display_emptychoice' => true]);
    }
 
 
@@ -1316,13 +1516,13 @@ class Contract extends CommonDBTM {
     *
     * @return Nothing (display)
    **/
-   static function dropdownContractRenewal($name, $value=0, $display=true) {
+   static function dropdownContractRenewal($name, $value = 0, $display = true) {
 
       $tmp[0] = __('Never');
       $tmp[1] = __('Tacit');
       $tmp[2] = __('Express');
-      return Dropdown::showFromArray($name, $tmp, array('value'   => $value,
-                                                        'display' => $display));
+      return Dropdown::showFromArray($name, $tmp, ['value'   => $value,
+                                                        'display' => $display]);
    }
 
 
@@ -1386,7 +1586,7 @@ class Contract extends CommonDBTM {
          }
       }
 
-      $tab = array();
+      $tab = [];
       if ($p['inherit_parent']) {
          $tab[Entity::CONFIG_PARENT] = __('Inheritance of the parent entity');
       }
@@ -1406,7 +1606,7 @@ class Contract extends CommonDBTM {
     *
     * @return array or string
    **/
-   static function getAlertName($val=NULL) {
+   static function getAlertName($val = null) {
 
       $tmp[0]                                                  = Dropdown::EMPTY_VALUE;
       $tmp[pow(2, Alert::END)]                                 = __('End');
@@ -1438,8 +1638,8 @@ class Contract extends CommonDBTM {
    function showDebug() {
 
       $options['entities_id'] = $this->getEntityID();
-      $options['contracts']   = array();
-      $options['items']       = array();
+      $options['contracts']   = [];
+      $options['items']       = [];
       NotificationEvent::debugEvent($this, $options);
    }
 
@@ -1447,9 +1647,9 @@ class Contract extends CommonDBTM {
    function getUnallowedFieldsForUnicity() {
 
       return array_merge(parent::getUnallowedFieldsForUnicity(),
-                         array('begin_date', 'duration', 'entities_id', 'monday_begin_hour',
+                         ['begin_date', 'duration', 'entities_id', 'monday_begin_hour',
                                'monday_end_hour', 'saturday_begin_hour', 'saturday_end_hour',
-                               'week_begin_hour', 'week_end_hour'));
+                               'week_begin_hour', 'week_end_hour']);
    }
 
 
@@ -1459,8 +1659,8 @@ class Contract extends CommonDBTM {
     *
     * @see CommonDBTM::getMassiveActionsForItemtype()
    **/
-   static function getMassiveActionsForItemtype(array &$actions, $itemtype, $is_deleted=0,
-                                                CommonDBTM $checkitem=NULL) {
+   static function getMassiveActionsForItemtype(array &$actions, $itemtype, $is_deleted = 0,
+                                                CommonDBTM $checkitem = null) {
       global $CFG_GLPI;
 
       if (in_array($itemtype, $CFG_GLPI["contract_types"])) {
@@ -1473,4 +1673,3 @@ class Contract extends CommonDBTM {
    }
 
 }
-?>

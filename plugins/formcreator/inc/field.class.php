@@ -1,51 +1,71 @@
 <?php
-require_once(realpath(dirname(__FILE__ ) . '/../../../inc/includes.php'));
-require_once('field.interface.php');
 
-abstract class PluginFormcreatorField implements Field
+if (!defined('GLPI_ROOT')) {
+   die("Sorry. You can't access this file directly");
+}
+
+require_once(realpath(dirname(__FILE__ ) . '/../../../inc/includes.php'));
+
+abstract class PluginFormcreatorField implements PluginFormcreatorFieldInterface
 {
    const IS_MULTIPLE = false;
 
-   protected $fields = array();
+   protected $fields = [];
 
-   public function __construct($fields, $datas = array())
-   {
+   public function __construct($fields, $data = []) {
       $this->fields           = $fields;
-      $this->fields['answer'] = $datas;
+      $this->fields['answer'] = $data;
    }
 
-   public function show($canEdit = true)
-   {
+   /**
+    * Transform input to properly save it in the database
+    *
+    * @param array $input data to transform before save
+    *
+    * @return array input data to save as is
+    */
+   public function prepareQuestionInputForSave($input) {
+      return  $input;
+   }
+
+   public function show($canEdit = true) {
       $required = ($canEdit && $this->fields['required']) ? ' required' : '';
 
       echo '<div class="form-group ' . $required . '" id="form-group-field' . $this->fields['id'] . '">';
       echo '<label for="formcreator_field_' . $this->fields['id'] . '">';
       echo $this->getLabel();
-      if($canEdit && $this->fields['required']) {
+      if ($canEdit && $this->fields['required']) {
          echo ' <span class="red">*</span>';
       }
       echo '</label>';
+      echo '<div class="help-block">' . html_entity_decode($this->fields['description']) . '</div>';
 
       echo '<div class="form_field">';
       $this->displayField($canEdit);
       echo '</div>';
 
-      echo '<div class="help-block">' . html_entity_decode($this->fields['description']) . '</div>';
       echo '</div>';
       $value = is_array($this->getAnswer()) ? json_encode($this->getAnswer()) : $this->getAnswer();
       // $value = json_encode($this->getAnswer());
       if ($this->fields['fieldtype'] == 'dropdown') {
-         echo '<script type="text/javascript">formcreatorAddValueOf(' . $this->fields['id'] . ', "'
-               . str_replace("\r\n", "\\r\\n", addslashes($this->fields['answer'])) . '");</script>';
-
+         echo Html::scriptBlock('$(function() {
+            formcreatorAddValueOf(' . $this->fields['id'] . ', "'
+            . str_replace("\r\n", "\\r\\n", addslashes($this->fields['answer'])) . '");
+         })');
       } else {
-         echo '<script type="text/javascript">formcreatorAddValueOf(' . $this->fields['id'] . ', "'
-            . str_replace("\r\n", "\\r\\n", addslashes($value)) . '");</script>';
+         echo Html::scriptBlock('$(function() {
+            formcreatorAddValueOf(' . $this->fields['id'] . ', "'
+               . str_replace("\r\n", "\\r\\n", addslashes(html_entity_decode($value))) . '");
+         })');
       }
    }
 
-   public function displayField($canEdit = true)
-   {
+   /**
+    * Outputs the HTML representing the field
+    *
+    * @param string $canEdit
+    */
+   public function displayField($canEdit = true) {
       if ($canEdit) {
          echo '<input type="text" class="form-control"
                   name="formcreator_field_' . $this->fields['id'] . '"
@@ -57,20 +77,17 @@ abstract class PluginFormcreatorField implements Field
       }
    }
 
-   public function getLabel()
-   {
+   public function getLabel() {
       return $this->fields['name'];
    }
 
-   public function getField()
-   {
+   public function getField() {
 
    }
 
-   public function getValue()
-   {
+   public function getValue() {
       if (isset($this->fields['answer'])) {
-         if(!is_array($this->fields['answer']) && is_array(json_decode($this->fields['answer']))) {
+         if (!is_array($this->fields['answer']) && is_array(json_decode($this->fields['answer']))) {
             return json_decode($this->fields['answer']);
          }
          return $this->fields['answer'];
@@ -86,18 +103,27 @@ abstract class PluginFormcreatorField implements Field
       }
    }
 
-   public function getAnswer()
-   {
+   public function getAnswer() {
       return $this->getValue();
    }
 
-   public function getAvailableValues()
-   {
+   /**
+    * Gets the available values for the field
+    *
+    * @return array
+    */
+   public function getAvailableValues() {
       return explode("\r\n", $this->fields['values']);
    }
 
-   public function isValid($value)
-   {
+   /**
+    * Is the field valid for thegiven value ?
+    *
+    * @param string $value
+    *
+    * @return boolean True if the field has a valid value, false otherwise
+    */
+   public function isValid($value) {
       // If the field is required it can't be empty
       if ($this->isRequired() && empty($value)) {
          Session::addMessageAfterRedirect(
@@ -111,9 +137,24 @@ abstract class PluginFormcreatorField implements Field
       return true;
    }
 
-   public function isRequired()
-   {
+   /**
+    * Is the field required ?
+    *
+    * @return boolean
+    */
+   public function isRequired() {
       return $this->fields['required'];
+   }
+
+   /**
+    * trim values separated by \r\n
+    * @param string $value a value or default value
+    * @return string
+    */
+   protected function trimValue($value) {
+      $value = explode('\\r\\n', $value);
+      $value = array_map('trim', $value);
+      return implode('\\r\\n', $value);
    }
 
 }

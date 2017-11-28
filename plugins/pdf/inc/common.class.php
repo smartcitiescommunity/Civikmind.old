@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: common.class.php 476 2017-01-09 15:53:05Z yllen $
+ * @version $Id: common.class.php 498 2017-11-03 13:33:40Z yllen $
  -------------------------------------------------------------------------
  LICENSE
 
@@ -21,7 +21,7 @@
 
  @package   pdf
  @authors   Nelly Mahu-Lasson, Remi Collet
- @copyright Copyright (c) 2009-2016 PDF plugin team
+ @copyright Copyright (c) 2009-2017 PDF plugin team
  @license   AGPL License 3.0 or (at your option) any later version
             http://www.gnu.org/licenses/agpl-3.0-standalone.html
  @link      https://forge.glpi-project.org/projects/pdf
@@ -67,7 +67,7 @@ abstract class PluginPdfCommon {
 
             $titles = $obj->getTabNameForItem($this->obj, $withtemplate);
             if (!is_array($titles)) {
-               $titles = array(1 => $titles);
+               $titles = [1 => $titles];
             }
 
             foreach ($titles as $key => $val) {
@@ -86,7 +86,7 @@ abstract class PluginPdfCommon {
     *
     * @param $options Array of options
    **/
-   function defineAllTabs($options=array()) {
+   function defineAllTabs($options=[]) {
 
       $onglets  = $this->obj->defineTabs();
 
@@ -119,7 +119,7 @@ abstract class PluginPdfCommon {
    function getTabNameForItem(CommonGLPI $item, $withtemplate=0) {
 
       if (Session::haveRight('plugin_pdf', READ)) {
-         if(!isset($withtemplate) || empty($withtemplate)) {
+         if (!isset($withtemplate) || empty($withtemplate)) {
             return __('Print to pdf', 'pdf');
          }
       }
@@ -289,19 +289,33 @@ abstract class PluginPdfCommon {
       $notes = Notepad::getAllForItem($item);
       $rand  = mt_rand();
 
-      $pdf->setColumnsSize(100);
+      $number = count($notes);
 
-      if (count($notes)) {
-         $pdf->displayTitle('<b>'.__('Notes').'</b>');
-         foreach ($notes as $note) {
-            $id      = 'note'.$note['id'].$rand;
-            if (empty($content)) {
-               $content = NOT_AVAILABLE;
-            }
-            $pdf->displayText('', $content, 5);
-         }
+      $pdf->setColumnsSize(100);
+      $title = '<b>'.__('Notes').'</b>';
+
+      if (!$number) {
+         $pdf->displayTitle(sprintf(__('%1$s: %2$s'), $title, __('No item to display')));
       } else {
-         $pdf->displayTitle('<b>'.__('No note found', 'pdf').'</b>');
+         if ($number > $_SESSION['glpilist_limit']) {
+            $title = sprintf(__('%1$s: %2$s'), $title, $_SESSION['glpilist_limit'].' / '.$number);
+         } else {
+            $title = sprintf(__('%1$s: %2$s'), $title, $number);
+         }
+         $pdf->displayTitle($title);
+
+         $tot = 0;
+         foreach ($notes as $note) {
+            if (!empty($note['content']) && ($tot < $_SESSION['glpilist_limit'])) {
+               $id      = 'note'.$note['id'].$rand;
+               $content = $note['content'];
+               if (empty($content)) {
+                  $content = NOT_AVAILABLE;
+               }
+               $pdf->displayText('', $content, 5);
+               $tot++;
+            }
+         }
       }
       $pdf->displaySpace();
 
@@ -385,6 +399,8 @@ abstract class PluginPdfCommon {
 
    static function mainLine(PluginPdfSimplePDF $pdf, $item, $field) {
 
+      $dbu  = new DbUtils();
+
       $type = Toolbox::strtolower($item->getType());
       switch($field) {
          case 'name-status' :
@@ -408,7 +424,7 @@ abstract class PluginPdfCommon {
             return $pdf->displayLine(
                      '<b><i>'.sprintf(__('%1$s: %2$s'),
                                       __('Technician in charge of the hardware').'</i></b>',
-                                      getUserName($item->fields['users_id_tech'])),
+                                      $dbu->getUserName($item->fields['users_id_tech'])),
                      '<b><i>'.sprintf(__('%1$s: %2$s'), __('Manufacturer').'</i></b>',
                                       Html::clean(Dropdown::getDropdownName('glpi_manufacturers',
                                                                             $item->fields['manufacturers_id']))));
@@ -439,7 +455,7 @@ abstract class PluginPdfCommon {
          case 'user-management' :
             return $pdf->displayLine(
                      '<b><i>'.sprintf(__('%1$s: %2$s'), __('User').'</i></b>',
-                                      getUserName($item->fields['users_id'])),
+                                      $dbu->getUserName($item->fields['users_id'])),
                      '<b><i>'.sprintf(__('%1$s: %2$s'), __('Management type').'</i></b>',
                                       ($item->fields['is_global']?__('Global management')
                                                                  :__('Unit management'))));
@@ -462,10 +478,7 @@ abstract class PluginPdfCommon {
       switch ($ma->getAction()) {
          case 'DoIt':
             $cont = $ma->POST['container'];
-            $opt = array(
-               // 'onclick' => '$("#'.$cont.'").attr("target","_blank");'
-               'id' => 'pdfmassubmit'
-            );
+            $opt = ['id' => 'pdfmassubmit'];
             echo Html::submit(_sx('button', 'Post'), $opt);
             return true;
       }

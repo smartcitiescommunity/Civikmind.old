@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: document_item.class.php 204 2017-03-02 18:31:42Z yllen $
+ * @version $Id: document_item.class.php 203 2017-03-02 18:29:31Z yllen $
  -------------------------------------------------------------------------
 
  LICENSE

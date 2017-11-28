@@ -1,38 +1,37 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
- 
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
-* @brief 
+* @brief
 */
 
 /**
@@ -40,7 +39,7 @@
  *
  * @return bool for success (will die for most error)
  */
-function update0781to0782($output='HTML') {
+function update0781to0782($output = 'HTML') {
    global $DB, $migration;
 
    $updateresult = true;
@@ -52,12 +51,12 @@ function update0781to0782($output='HTML') {
    $migration->displayMessage(__('Data migration')); // Updating schema
 
    /// Add document types
-   $types = array('docx' => array('name' => 'Word XML',
-                                  'icon' => 'doc-dist.png'),
-                  'xlsx' => array('name' => 'Excel XML',
-                                  'icon' => 'xls-dist.png'),
-                  'pptx' => array('name' => 'PowerPoint XML',
-                                  'icon' => 'ppt-dist.png'));
+   $types = ['docx' => ['name' => 'Word XML',
+                                  'icon' => 'doc-dist.png'],
+                  'xlsx' => ['name' => 'Excel XML',
+                                  'icon' => 'xls-dist.png'],
+                  'pptx' => ['name' => 'PowerPoint XML',
+                                  'icon' => 'ppt-dist.png']];
 
    foreach ($types as $ext => $data) {
 
@@ -73,7 +72,6 @@ function update0781to0782($output='HTML') {
          }
       }
    }
-
 
    // Drop nl_be langage
    $query = "UPDATE `glpi_configs`
@@ -105,9 +103,8 @@ function update0781to0782($output='HTML') {
       $DB->queryOrDie($query, "0.78.2 add index for glpi_computers_items");
    }
 
-
    // For Rule::RULE_TRACKING_AUTO_ACTION
-   $changes['RuleMailCollector'] = array('X-Priority' => 'x-priority');
+   $changes['RuleMailCollector'] = ['X-Priority' => 'x-priority'];
 
    $DB->query("SET SESSION group_concat_max_len = 9999999;");
    foreach ($changes as $ruletype => $tab) {
@@ -119,7 +116,7 @@ function update0781to0782($output='HTML') {
       if ($result = $DB->query($query)) {
          if ($DB->numrows($result)>0) {
             // Get rule string
-            $rules = $DB->result($result,0,0);
+            $rules = $DB->result($result, 0, 0);
             // Update actions
             foreach ($tab as $old => $new) {
                $query = "UPDATE `glpi_ruleactions`
@@ -185,7 +182,6 @@ function update0781to0782($output='HTML') {
                 VALUES ('$rule_id', 'assign', '_refuse_email_no_response', '1')";
       $DB->queryOrDie($query, "0.78.2 add new action RuleMailCollector");
 
-
       /// Insert new rule
       $query = "INSERT INTO `glpi_rules`
                        (`entities_id`, `sub_type`, `ranking`, `name`,
@@ -212,9 +208,7 @@ function update0781to0782($output='HTML') {
 
    }
 
-
-
-   if (!FieldExists('glpi_ocsservers','ocs_db_utf8', false)) {
+   if (!$DB->fieldExists('glpi_ocsservers', 'ocs_db_utf8', false)) {
       $query = "ALTER TABLE `glpi_ocsservers`
                 ADD `ocs_db_utf8` tinyint(1) NOT NULL default '0' AFTER `ocs_db_name`";
 
@@ -226,4 +220,3 @@ function update0781to0782($output='HTML') {
 
    return $updateresult;
 }
-?>

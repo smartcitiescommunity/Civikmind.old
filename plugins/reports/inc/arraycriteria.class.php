@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: arraycriteria.class.php 336 2017-01-20 16:59:36Z yllen $
+ * @version $Id: arraycriteria.class.php 345 2017-10-23 17:33:07Z yllen $
  -------------------------------------------------------------------------
    LICENSE
 
@@ -34,9 +34,9 @@
  * Ticket status selection criteria
  */
 class PluginReportsArrayCriteria extends PluginReportsDropdownCriteria {
-   private $choice = array();
+   private $choice = [];
 
-   function __construct($report, $name, $label='', $options=array()) {
+   function __construct($report, $name, $label='', $options=[]) {
 
       parent::__construct($report, $name, NOT_AVAILABLE,
                           ($label ? $label : _n('Criterion', 'Criteria', 2)));
@@ -57,7 +57,7 @@ class PluginReportsArrayCriteria extends PluginReportsDropdownCriteria {
    public function displayDropdownCriteria() {
 
       Dropdown::showFromArray($this->getName(), $this->choice,
-                              array('value' => $this->getParameterValue()));
+                              ['value' => $this->getParameterValue()]);
    }
 
 

@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: ticketsatisfaction.class.php 476 2017-01-09 15:53:05Z yllen $
+ * @version $Id: ticketsatisfaction.class.php 498 2017-11-03 13:33:40Z yllen $
  -------------------------------------------------------------------------
  LICENSE
 
@@ -57,12 +57,12 @@ class PluginPdfTicketSatisfaction extends PluginPdfCommon {
 
       } else if ($survey->getField('date_answered')){
          $sat = $survey->getField('satisfaction');
-         $tabsat = array(0 => __('None'),
-                      1 => __('1 star', 'pdf'),
-                      2 => __('2 stars', 'pdf'),
-                      3 => __('3 stars', 'pdf'),
-                      4 => __('4 stars', 'pdf'),
-                      5 => __('5 stars', 'pdf'));
+         $tabsat = [0 => __('None'),
+                    1 => __('1 star', 'pdf'),
+                    2 => __('2 stars', 'pdf'),
+                    3 => __('3 stars', 'pdf'),
+                    4 => __('4 stars', 'pdf'),
+                    5 => __('5 stars', 'pdf')];
          if (isset($tabsat[$sat])) {
             $sat = $tabsat[$sat]. "  ($sat/5)";
          }

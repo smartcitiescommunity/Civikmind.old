@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: ticketvalidation.class.php 476 2017-01-09 15:53:05Z yllen $
+ * @version $Id: ticketvalidation.class.php 498 2017-11-03 13:33:40Z yllen $
  -------------------------------------------------------------------------
  LICENSE
 
@@ -45,36 +45,37 @@ class PluginPdfTicketValidation extends PluginPdfCommon {
    static function pdfForTicket(PluginPdfSimplePDF $pdf, Ticket $ticket) {
       global $CFG_GLPI, $DB;
 
+      $dbu = new DbUtils();
+
       $pdf->setColumnsSize(100);
       $pdf->displayTitle("<b>".__('Approvals for the ticket','pdf')."</b>");
 
       if (!Session::haveRightsOr('ticketvalidation', TicketValidation::getValidateRights())) {
          return false;
       }
-     $ID = $ticket->getField('id');
+      $ID = $ticket->getField('id');
 
-      $query = "SELECT *
-                FROM `glpi_ticketvalidations`
-                WHERE `tickets_id` = '".$ticket->getField('id')."'
-                ORDER BY submission_date DESC";
-      $result = $DB->query($query);
-      $number = $DB->numrows($result);
+      $result = $DB->request(['FROM'   => 'glpi_ticketvalidations',
+                              'WHERE'  => ['tickets_id' => $ticket->getField('id')],
+                              'ORDER'  => 'submission_date DESC']);
+
+      $number = count($result);
 
       if ($number) {
          $pdf->setColumnsSize(20,19,21,19,21);
-         $pdf->displayTitle(_x('item', 'State'), __('Request date'),
-                            __('Approval requester'), __('Approval date'), __('Approver'));
+         $pdf->displayTitle(_x('item', 'State'), __('Request date'), __('Approval requester'),
+                             __('Approval date'),__('Approver'));
 
-         while ($row = $DB->fetch_assoc($result)) {
+         while ($row = $result->next()) {
             $pdf->setColumnsSize(20,19,21,19,21);
             $pdf->displayLine(TicketValidation::getStatus($row['status']),
                               Html::convDateTime($row["submission_date"]),
-                              getUserName($row["users_id"]),
+                              $dbu->getUserName($row["users_id"]),
                               Html::convDateTime($row["validation_date"]),
-                              getUserName($row["users_id_validate"]));
+                              $dbu->getUserName($row["users_id_validate"]));
             $tmp = trim($row["comment_submission"]);
             $pdf->displayText("<b><i>".sprintf(__('%1$s: %2$s'), __('Request comments')."</i></b>",
-                                               ''), (empty($tmp) ? __('None') : $tmp), 1);
+                              ''), (empty($tmp) ? __('None') : $tmp), 1);
 
             if ($row["validation_date"]) {
                $tmp = trim($row["comment_validation"]);

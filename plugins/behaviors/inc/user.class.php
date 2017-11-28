@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: user.class.php 204 2017-03-02 18:31:42Z yllen $
+ * @version $Id: user.class.php 234 2017-10-18 12:40:59Z yllen $
  -------------------------------------------------------------------------
 
  LICENSE
@@ -39,17 +39,21 @@ class PluginBehaviorsUser {
       global $DB;
 
       $config = PluginBehaviorsConfig::getInstance();
+      $dbu    = new DbUtils();
 
-      $query = "SELECT `glpi_groups`.`id`
-                FROM `glpi_groups_users`
-                INNER JOIN `glpi_groups` ON (`glpi_groups`.`id` = `glpi_groups_users`.`groups_id`)
-                WHERE `glpi_groups_users`.`users_id` = '".$userid."'".
-                getEntitiesRestrictRequest(' AND ', 'glpi_groups', '', $entity, true);
-
+      $where = '';
       if ($filter) {
-         $query .= "AND (".$filter.")";
+         $where = $filter;
       }
-      $rep = array();
+      $query = ['FIELDS'     => ['glpi_groups' => ['id']],
+                'FROM'       => 'glpi_groups_users',
+                'INNER JOIN' => ['glpi_groups' => ['FKEY' => ['glpi_groups' => 'id',
+                                                              'glpi_groups_users' => 'groups_id']]],
+                'WHERE'      => ['users_id' => $userid,
+                                 $dbu->getEntitiesRestrictCriteria('glpi_groups','', $entity, true),
+                                 $where]];
+
+      $rep = [];
       foreach ($DB->request($query) as $data) {
          if ($first) {
             return $data['id'];

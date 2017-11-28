@@ -1,33 +1,33 @@
 <?php
-/*
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
-
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -67,7 +67,7 @@ class RuleImportComputer extends Rule {
 
    function getCriterias() {
 
-      static $criterias = array();
+      static $criterias = [];
 
       if (count($criterias)) {
          return $criterias;
@@ -86,7 +86,7 @@ class RuleImportComputer extends Rule {
       $criterias['states_id']['type']            = 'dropdown';
       //Means that this criterion can only be used in a global search query
       $criterias['states_id']['is_global']       = true;
-      $criterias['states_id']['allow_condition'] = array(Rule::PATTERN_IS, Rule::PATTERN_IS_NOT);
+      $criterias['states_id']['allow_condition'] = [Rule::PATTERN_IS, Rule::PATTERN_IS_NOT];
 
       $criterias['DOMAIN']['name']               = __('Domain');
 
@@ -97,9 +97,9 @@ class RuleImportComputer extends Rule {
       $criterias['IPADDRESS']['name']            = __('IP address');
 
       $criterias['name']['name']                 = __("Computer's name");
-      $criterias['name']['allow_condition']      = array(Rule::PATTERN_IS, Rule::PATTERN_IS_NOT,
+      $criterias['name']['allow_condition']      = [Rule::PATTERN_IS, Rule::PATTERN_IS_NOT,
                                                          Rule::PATTERN_IS_EMPTY,
-                                                         Rule::PATTERN_FIND);
+                                                         Rule::PATTERN_FIND];
 
       $criterias['DESCRIPTION']['name']          = __('Description');
 
@@ -117,7 +117,7 @@ class RuleImportComputer extends Rule {
 
    function getActions() {
 
-      $actions                           = array();
+      $actions                           = [];
 
       $actions['_ignore_import']['name'] = __('To be unaware of import');
       $actions['_ignore_import']['type'] = 'yesonly';
@@ -128,10 +128,10 @@ class RuleImportComputer extends Rule {
 
    static function getRuleActionValues() {
 
-      return array(self::RULE_ACTION_LINK_OR_IMPORT
+      return [self::RULE_ACTION_LINK_OR_IMPORT
                                           => __('Link if possible'),
                    self::RULE_ACTION_LINK_OR_NO_IMPORT
-                                          => __('Link if possible, otherwise imports declined'));
+                                          => __('Link if possible, otherwise imports declined')];
    }
 
 
@@ -163,11 +163,11 @@ class RuleImportComputer extends Rule {
 
       switch ($criteria['type']) {
          case "state" :
-            $link_array = array("0" => __('No'),
+            $link_array = ["0" => __('No'),
                                 "1" => __('Yes if equal'),
-                                "2" => __('Yes if empty'));
+                                "2" => __('Yes if empty')];
 
-            Dropdown::showFromArray($name, $link_array, array('value' => $value));
+            Dropdown::showFromArray($name, $link_array, ['value' => $value]);
       }
       return false;
    }
@@ -178,8 +178,8 @@ class RuleImportComputer extends Rule {
    **/
    static function addMoreCriteria() {
 
-      return array(Rule::PATTERN_FIND     => __('is already present in GLPI'),
-                   Rule::PATTERN_IS_EMPTY => __('is empty in GLPI'));
+      return [Rule::PATTERN_FIND     => __('is already present in GLPI'),
+                   Rule::PATTERN_IS_EMPTY => __('is empty in GLPI')];
    }
 
 
@@ -198,7 +198,7 @@ class RuleImportComputer extends Rule {
    /**
     * @see Rule::displayAdditionalRuleCondition()
    **/
-   function displayAdditionalRuleCondition($condition, $criteria, $name, $value, $test=false) {
+   function displayAdditionalRuleCondition($condition, $criteria, $name, $value, $test = false) {
 
       if ($test) {
          return false;
@@ -234,7 +234,7 @@ class RuleImportComputer extends Rule {
    **/
    function getCriteriaByID($ID) {
 
-      $criteria = array();
+      $criteria = [];
       foreach ($this->criterias as $criterion) {
          if ($ID == $criterion->fields['criteria']) {
             $criteria[] = $criterion;
@@ -250,11 +250,11 @@ class RuleImportComputer extends Rule {
    function findWithGlobalCriteria($input) {
       global $DB, $PLUGIN_HOOKS;
 
-      $complex_criterias = array();
+      $complex_criterias = [];
       $sql_where         = '';
       $sql_from          = '';
       $continue          = true;
-      $global_criteria   = array('manufacturer', 'model', 'name', 'serial');
+      $global_criteria   = ['manufacturer', 'model', 'name', 'serial'];
 
       //Add plugin global criteria
       if (isset($PLUGIN_HOOKS['use_rules'])) {
@@ -275,7 +275,7 @@ class RuleImportComputer extends Rule {
                if ($crit->fields["condition"] == Rule::PATTERN_FIND) {
                   if (!isset($input[$criterion]) || ($input[$criterion] == '')) {
                      $continue = false;
-                  } else  {
+                  } else {
                      $complex_criterias[] = $crit;
                   }
                }
@@ -299,7 +299,7 @@ class RuleImportComputer extends Rule {
 
       //Build the request to check if the machine exists in GLPI
       if (is_array($input['entities_id'])) {
-         $where_entity = implode($input['entities_id'],',');
+         $where_entity = implode($input['entities_id'], ',');
       } else {
          $where_entity = $input['entities_id'];
       }
@@ -326,7 +326,7 @@ class RuleImportComputer extends Rule {
 
             case 'model' :
                // search for model, don't create it if not found
-               $options    = array('manufacturer' => addslashes($input['manufacturer']));
+               $options    = ['manufacturer' => addslashes($input['manufacturer'])];
                $mid        = Dropdown::importExternal('ComputerModel', addslashes($input['model']), -1,
                                                       $options, '', false);
                $sql_where .= " AND `glpi_computers`.`computermodels_id` = '$mid'";
@@ -335,7 +335,7 @@ class RuleImportComputer extends Rule {
             case 'manufacturer' :
                // search for manufacturer, don't create it if not found
                $mid        = Dropdown::importExternal('Manufacturer', addslashes($input['manufacturer']), -1,
-                                                      array(), '', false);
+                                                      [], '', false);
                $sql_where .= " AND `glpi_computers`.`manufacturers_id` = '$mid'";
                break;
 
@@ -354,11 +354,11 @@ class RuleImportComputer extends Rule {
       if (isset($PLUGIN_HOOKS['use_rules'])) {
          foreach ($PLUGIN_HOOKS['use_rules'] as $plugin => $val) {
             if (is_array($val) && in_array($this->getType(), $val)) {
-               $params      = array('where_entity' => $where_entity,
+               $params      = ['where_entity' => $where_entity,
                                     'input'        => $input,
                                     'criteria'     => $complex_criterias,
                                     'sql_where'    => $sql_where,
-                                    'sql_from'     => $sql_from);
+                                    'sql_from'     => $sql_from];
                $sql_results = Plugin::doOneHook($plugin, "ruleImportComputer_getSqlRestriction",
                                                 $params);
                $sql_where   = $sql_results['sql_where'];

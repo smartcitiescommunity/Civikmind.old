@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: columnitemcheckbox.class.php 336 2017-01-20 16:59:36Z yllen $
+ * @version $Id: columnitemcheckbox.class.php 345 2017-10-23 17:33:07Z yllen $
  -------------------------------------------------------------------------
   LICENSE
 
@@ -39,7 +39,7 @@ class PluginReportsColumnItemCheckbox extends PluginReportsColumn {
    private $with_comment = 0;
 
 
-   function __construct($name, $itemtype, $options=array()) {
+   function __construct($name, $itemtype, $options=[]) {
 
       parent::__construct($name, '&nbsp;', $options);
 

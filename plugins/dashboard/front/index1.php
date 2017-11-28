@@ -1,7 +1,7 @@
 <?php
 
 include ("../../../inc/includes.php");
-include ("../../../config/config.php");
+include ("../../../inc/config.php");
 
 global $DB;
 
@@ -64,7 +64,7 @@ $result_colors = $DB->query($sql_colors);
 $colors = $DB->result($result_colors,0,'value');
 
 if($colors == '') {
-	$colors = 'grid-light.js';	
+	$colors = 'default.js';	
 }
 
 $_SESSION['charts_colors'] = $colors;
@@ -105,14 +105,14 @@ $_SESSION['charts_colors'] = $colors;
 	$photo_url = User::getURLForPicture($pic);      
 
 //redirect tech profile
-if(Session::haveRight("profile", READ)){				
+if(Session::haveRight("profile", READ)){
+	//$redir = '<meta http-equiv="refresh" content= "180"/>';				
 	$redir = '';
 }
 else {		
 	$redir = '<meta http-equiv="refresh" content="0; url=graphs/graf_tech.php?con=1" />'; 
 }
-	
-	
+		
 //version check	              								              								
 	$query_up = "SELECT value FROM glpi_plugin_dashboard_config WHERE name = 'update'";																
 	$result_up = $DB->query($query_up);
@@ -126,11 +126,11 @@ else {
 		$headers = get_headers($urlv, 1);										
 		
 		if($headers[0] != '') {
-		//if ($headers[0] == 'HTTP/1.1 200 OK') { }
-		if ($headers[0] == 'HTTP/1.0 404 Not Found') {
-			$newversion = "<a href='https://forge.glpi-project.org/projects/dashboard/files' target='_blank' style='margin-right: 12px; color:#fff;' class='blink_me'><i class='fa fa-refresh'></i><span>&nbsp;&nbsp;".  __('New version','dashboard'). " ". __( 'avaliable','dashboard'). " </span></a>";		
-				}
-			}     
+			//if ($headers[0] == 'HTTP/1.1 200 OK') { }
+			if ($headers[0] == 'HTTP/1.0 404 Not Found') {
+				$newversion = "<a href='https://forge.glpi-project.org/projects/dashboard/files' target='_blank' style='margin-right: 12px; color:#fff;' class='blink_me'><i class='fa fa-refresh'></i><span>&nbsp;&nbsp;".  __('New version','dashboard'). " ". __( 'avaliable','dashboard'). " </span></a>";		
+			}
+		}     
 	}	
 	      
 ?>
@@ -179,7 +179,7 @@ else {
 	};
 	
 	$(window).load(function () {
-	    setIframeHeight(document.getElementById('iframe1'));
+		setIframeHeight(document.getElementById('iframe1'));
 	});	
 		
 
@@ -213,7 +213,7 @@ else {
 	   	echo "<body style=\"background: url('./img/".$back."') no-repeat top center fixed; \">";
    	}
 	else {
-   		echo "<body style='background-color: #FFF;'>";
+   		echo "<body style='background-color: #e5e5e5;'>";
    	}	 
    ?>
 
@@ -224,10 +224,8 @@ else {
            <div class="navbar-header" style="color:#fff;" >
                <a class="navbar-brand hidden-xs" href="<?php echo $CFG_GLPI['url_base'].'/front/ticket.php';?>" target="_blank" style="width: 290px; margin-left: -55px; margin-top:-2px;">
 						 
-                  <span style="font-size:18px;"><?php echo '<img src='. $photo_url .' alt="" title="Upload photo in user profile" class="avatar" style="height: 40px; margin-left: 0px; " />&nbsp;&nbsp;'; ?><?php echo $_SESSION["glpifirstname"];?></span>
-                  
-                	</a>
-             	
+                  <span style="font-size:18px;"><?php echo '<img src='. $photo_url .' alt="" title="Upload photo in user profile" class="avatar" style="height: 40px; margin-left: 0px; " />&nbsp;&nbsp;'; ?><?php echo $_SESSION["glpifirstname"];?></span>                  
+                	</a>          	
            </div>
 				<!-- NAVBAR LEFT  -->					
 				<div id="navbar-left" class="nav navbar-nav pull-left hidden-xs" style="margin-top: 20px;"> 					    
@@ -310,21 +308,30 @@ else {
                           <!-- <p><strong>Links Title</strong></p> -->
                         </li>
                          
-                        <li><a href="./reports/rel_tecnicos.php?con=1" target="iframe1" > <?php echo _n('Technician','Technicians',2,'dashboard'); ?> </a></li>
-                        <li><a href="./reports/rel_grupos.php?con=1" target="iframe1" > <?php echo _sn('Group','Groups',2); ?> </a></li>
+                        <li><a href="./reports/rel_assets.php" target="iframe1" > <?php echo __('Assets'); ?> </a></li>                        
                         <li><a href="./reports/rel_categorias.php?con=1" target="iframe1" > <?php echo __('Category'); ?> </a></li>
+                        <li><a href="./reports/rel_tickets.php" target="iframe1" > <?php echo _sn('Ticket','Tickets',2); ?> </a></li>                                                						                                                                                                                       
+                        <li><a href="./reports/rel_grupos.php?con=1" target="iframe1" > <?php echo _sn('Group','Groups',2); ?> </a></li>
                         <li><a href="./reports/rel_localidades.php?con=1" target="iframe1" > <?php echo _n('Location', 'Locations', 2); ?> </a></li>
+                        <li><a href="./reports/rel_projects.php?con=1" target="iframe1" > <?php echo _sn('Project','Projects',2); ?> </a></li>                       
                         <li><a href="./reports/rel_satisfacao.php" target="iframe1" > <?php echo __('Satisfaction'); ?> </a></li>
+                        <li><a href="./reports/rel_tecnicos.php?con=1" target="iframe1" > <?php echo _sn('Technician','Technicians',2,'dashboard'); ?> </a></li>
                         <?php
                         // distinguish between 0.90.x and 9.1 version
 								if (GLPI_VERSION <= intval('9.1')){
 									echo '<li><a href="./reports/rel_slas.php?con=1" target="iframe1" >'. __('SLA').'</a></li>';
 								}	
 								?>
-                        <li><a href="./reports/rel_projects.php?con=1" target="iframe1" > <?php echo _sn('Project','Projects',2); ?> </a></li>                       
-                        <li><a href="./reports/rel_assets.php" target="iframe1" > <?php echo __('Assets'); ?> </a></li>                        
-                        <li><a href="./reports/rel_tickets.php" target="iframe1" > <?php echo _sn('Ticket','Tickets',2); ?> </a></li>                                                						                                                                                                                       
                        
+								 <li class="dropdown-submenu">
+                				<a tabindex="-1" href="#"><?php echo __('Cost'); ?></a>
+				               <ul class="dropdown-menu">
+				                  <li><a href="./reports/rel_custo_ent.php" target="iframe1" style="color:#000;"> <?php echo __('by Entity','dashboard'); ?> </a></li>
+										<li><a href="./reports/rel_custo_tec.php" target="iframe1" style="color:#000;"> <?php echo __('by Technician','dashboard'); ?> </a></li>
+										<li><a href="./reports/rel_custo_req.php" target="iframe1" style="color:#000;"> <?php echo __('by Requester','dashboard'); ?> </a></li>   
+										<li><a href="./reports/rel_custo_loc.php" target="iframe1" style="color:#000;"> <?php echo __('by Location','dashboard'); ?> </a></li>
+				               </ul>
+				             </li> 
                        	<li class="dropdown-submenu">
                 				<a tabindex="-1" href="#"><?php echo __('Summary','dashboard'); ?></a>
 				               <ul class="dropdown-menu">
@@ -335,25 +342,6 @@ else {
 				               </ul>
 				             </li> 
                         
-                        <li class="dropdown-submenu">
-                				<a tabindex="-1" href="#"><?php echo _sn('Task','Tasks',2); ?></a>
-				               <ul class="dropdown-menu">
-				                  <li><a href="./reports/rel_tarefa.php" target="iframe1" style="color:#000;"> <?php echo __('Technician'); ?> </a></li>
-                        		<li><a href="./reports/rel_task_req.php" target="iframe1" style="color:#000;"> <?php echo  __('Requester'); ?> </a></li>   
-                        		<li><a href="./reports/rel_tarefa_cham.php" target="iframe1" style="color:#000;"> <?php echo  __('Tickets','dashboard'); ?> </a></li>   
-                        		<li><a href="./reports/rel_task_ent.php" target="iframe1" style="color:#000;"> <?php echo  __('Entity','dashboard'); ?> </a></li>   
-				               </ul>
-				             </li>
-				             
-								 <li class="dropdown-submenu">
-                				<a tabindex="-1" href="#"><?php echo __('Cost'); ?></a>
-				               <ul class="dropdown-menu">
-				                  <li><a href="./reports/rel_custo_ent.php" target="iframe1" style="color:#000;"> <?php echo __('by Entity','dashboard'); ?> </a></li>
-										<li><a href="./reports/rel_custo_tec.php" target="iframe1" style="color:#000;"> <?php echo __('by Technician','dashboard'); ?> </a></li>
-										<li><a href="./reports/rel_custo_req.php" target="iframe1" style="color:#000;"> <?php echo __('by Requester','dashboard'); ?> </a></li>   
-										<li><a href="./reports/rel_custo_loc.php" target="iframe1" style="color:#000;"> <?php echo __('by Location','dashboard'); ?> </a></li>
-				               </ul>
-				             </li> 
 
 				             <?php
 	                        // distinguish between 0.90.x and 9.1 version
@@ -367,19 +355,28 @@ else {
 					             </li> ';
 					          	} 
 					          ?>				             				                                
+                        <li class="dropdown-submenu">
+                				<a tabindex="-1" href="#"><?php echo _sn('Task','Tasks',2); ?></a>
+				               <ul class="dropdown-menu">
+				                  <li><a href="./reports/rel_tarefa.php" target="iframe1" style="color:#000;"> <?php echo __('Technician'); ?> </a></li>
+                        		<li><a href="./reports/rel_task_req.php" target="iframe1" style="color:#000;"> <?php echo  __('Requester'); ?> </a></li>   
+                        		<li><a href="./reports/rel_tarefa_cham.php" target="iframe1" style="color:#000;"> <?php echo  __('Tickets','dashboard'); ?> </a></li>   
+                        		<li><a href="./reports/rel_task_ent.php" target="iframe1" style="color:#000;"> <?php echo  __('Entity','dashboard'); ?> </a></li>   
+				               </ul>
+				             </li>				             
                       </ul>
                                            
 
                       <ul class="col-sm-2 list-unstyled menu1" style="width:180px;"> 
                         <li>
                           <!-- <p><strong>Links Title</strong></p> -->                        
+                        <li><a href="./reports/rel_categoria.php" target="iframe1" > <?php echo __('by Category','dashboard'); ?> </a></li>                        
                         <li><a href="./reports/rel_data.php" target="iframe1" > <?php echo __('by Date','dashboard'); ?> </a></li> 
-                        <li><a href="./reports/rel_tecnico.php" target="iframe1" > <?php echo __('by Technician','dashboard'); ?> </a></li>
-                        <li><a href="./reports/rel_usuario.php" target="iframe1" > <?php echo __('by Requester','dashboard'); ?> </a></li>
                         <li><a href="./reports/rel_entidade.php" target="iframe1" > <?php echo __('by Entity','dashboard'); ?> </a></li>
                         <li><a href="./reports/rel_grupo.php" target="iframe1" > <?php echo __('by Group','dashboard'); ?> </a></li>
                         <li><a href="./reports/rel_localidade.php" target="iframe1" > <?php echo __('by Location','dashboard'); ?> </a></li>
-                        <li><a href="./reports/rel_categoria.php" target="iframe1" > <?php echo __('by Category','dashboard'); ?> </a></li>                        
+                        <li><a href="./reports/rel_usuario.php" target="iframe1" > <?php echo __('by Requester','dashboard'); ?> </a></li>
+                        <li><a href="./reports/rel_tecnico.php" target="iframe1" > <?php echo __('by Technician','dashboard'); ?> </a></li>
 								<?php
                         	// distinguish between 0.90.x and 9.1 version
 									if (GLPI_VERSION <= intval('9.1')){
@@ -413,27 +410,28 @@ else {
                     <div class="row">
                       <ul class="col-sm-2 list-unstyled menu1" style="width:180px;">
                         <li><!-- <p><strong>Links Title</strong></p> --></li>
-                        <li><a href="./graphs/geral.php" target="iframe1" > <?php echo __('Overall','dashboard'); ?></a></li>
-                        <li><a href="./graphs/tecnicos.php" target="iframe1" > <?php echo __('Technician','dashboard'); ?> </a></li>
-                        <li><a href="./graphs/usuarios.php" target="iframe1" > <?php echo __('Requester','dashboard'); ?> </a></li>
-                        <li><a href="./graphs/entidades.php" target="iframe1" > <?php echo _n('Entity', 'Entities', 2); ?> </a></li>
+                        <li><a href="./graphs/ativos.php" target="iframe1" > <?php echo __('Assets'); ?> </a></li>
                         <li><a href="./graphs/categorias.php" target="iframe1" > <?php echo __('Category'); ?> </a></li>
+                        <li><a href="./graphs/entidades.php" target="iframe1" > <?php echo _n('Entity', 'Entities', 2); ?> </a></li>
+                        <li><a href="./graphs/geral.php" target="iframe1" > <?php echo __('Overall','dashboard'); ?></a></li>
                         <li><a href="./graphs/grupos.php" target="iframe1" > <?php echo _sn('Group','Groups',2); ?> </a></li>
                         <li><a href="./graphs/local.php" target="iframe1" > <?php echo _n('Location', 'Locations', 2); ?> </a></li>
-                        <li><a href="./graphs/ativos.php" target="iframe1" > <?php echo __('Assets'); ?> </a></li>
+                        <li><a href="./graphs/usuarios.php" target="iframe1" > <?php echo __('Requester','dashboard'); ?> </a></li>
                         <li><a href="./graphs/satisfacao.php" target="iframe1" > <?php echo __('Satisfaction','dashboard'); ?> </a></li>
+                        <li><a href="./graphs/tecnicos.php" target="iframe1" > <?php echo __('Technician','dashboard'); ?> </a></li>
                         <li><a href="./graphs/times.php" target="iframe1" > <?php echo __('Time range'); ?> </a></li>
                       </ul>
 
                       <ul class="col-sm-2 list-unstyled menu1" style="width:180px;">
                         <li><!-- <p><strong>Links Title</strong></p> --></li>                        
-                        <li><a href="./graphs/geral_mes.php" target="iframe1" > <?php echo __('by Date','dashboard'); ?> </a></li>
-                        <li><a href="./graphs/graf_tecnico.php" target="iframe1" > <?php echo __('by Technician','dashboard'); ?> </a></li>
-                        <li><a href="./graphs/graf_usuario.php" target="iframe1" > <?php echo __('by Requester','dashboard'); ?> </a></li>
-                        <li><a href="./graphs/graf_entidade.php" target="iframe1" > <?php echo __('by Entity','dashboard'); ?> </a></li>
 								<li><a href="./graphs/graf_categoria.php" target="iframe1" > <?php echo __('by Category','dashboard'); ?> </a></li>
+                        <li><a href="./graphs/geral_mes.php" target="iframe1" > <?php echo __('by Date','dashboard'); ?> </a></li>
+                        <li><a href="./graphs/graf_entidade.php" target="iframe1" > <?php echo __('by Entity','dashboard'); ?> </a></li>
 								<li><a href="./graphs/graf_grupo.php" target="iframe1" > <?php echo __('by Group','dashboard'); ?> </a></li>
 								<li><a href="./graphs/graf_localidade.php" target="iframe1" > <?php echo __('by Location','dashboard'); ?> </a></li>
+                        <li><a href="./graphs/graf_usuario.php" target="iframe1" > <?php echo __('by Requester','dashboard'); ?> </a></li>
+                        <li><a href="./graphs/graf_tecnico.php" target="iframe1" > <?php echo __('by Technician','dashboard'); ?> </a></li>
+                        <li><a href="./graphs/graf_tipo.php" target="iframe1" > <?php echo __('by Type','dashboard'); ?> </a></li>
 								
 								<?php
                         	// distinguish between 0.90.x and 9.1 version

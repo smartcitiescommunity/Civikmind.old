@@ -854,7 +854,7 @@ class PluginMydashboardTicket
 
          //TRANS: %d is the number of new tickets
          $output['title'] = sprintf(_n('%d new ticket', '%d new tickets', $number), $number);
-         $output['title'] .= "<a href=\"" . $CFG_GLPI["root_doc"] . "/front/ticket.php?" . Toolbox::append_params($options, '&amp;') . "\">" . __('Show all') . "</a>";
+         $output['title'] .= "&nbsp;(<a href=\"" . $CFG_GLPI["root_doc"] . "/front/ticket.php?" . Toolbox::append_params($options, '&amp;') . "\">" . __('Show all') . "</a>)";
 
          $output['header'] = self::commonListHeader();
 
@@ -880,7 +880,7 @@ class PluginMydashboardTicket
       $widget->setOption("bPaginate", false);
       $widget->setOption("bFilter", false);
       $widget->setOption("bInfo", false);
-
+      $widget->toggleWidgetRefresh();
       return $widget;
    }
 
@@ -893,15 +893,13 @@ class PluginMydashboardTicket
    static function commonListHeader($output_type = '', $mass_id = '')
    {
       $items[] = '';
-      $items[] = __('Status');
       $items[] = __('Date');
-      $items[] = __('Last update');
-      $items[] = __('Entity');
+      if (count($_SESSION["glpiactiveentities"]) > 1) {
+         $items[] = __('Entity');
+      }
       $items[] = __('Priority');
       $items[] = __('Requester');
-      $items[] = __('Assigned');
       $items[] = __('Associated element');
-      $items[] = __('Category');
       $items[] = __('Title');
 
       return $items;
@@ -954,17 +952,17 @@ class PluginMydashboardTicket
          $item_num = 1;
          $bgcolor = $_SESSION["glpipriority_" . $job->fields["priority"]];
 
-         $check_col = '';
-         if (($candelete || $canupdate)
-            && ($output_type == Search::HTML_OUTPUT)
-            && $id_for_massaction
-         ) {
-
-            $check_col = Html::getMassiveActionCheckBox(__CLASS__, $id_for_massaction);
-         }
-         $output[$colnum] = $check_col;
-
-         // First column
+//         $check_col = '';
+//         if (($candelete || $canupdate)
+//            && ($output_type == Search::HTML_OUTPUT)
+//            && $id_for_massaction
+//         ) {
+//
+//            $check_col = Html::getMassiveActionCheckBox(__CLASS__, $id_for_massaction);
+//         }
+//         $output[$colnum] = $check_col;
+//
+         // ID
          $first_col = sprintf(__('%1$s: %2$s'), __('ID'), $job->fields["id"]);
          if ($output_type == Search::HTML_OUTPUT) {
             $first_col .= "<br><img src='" . Ticket::getStatusIconURL($job->fields["status"]) . "'
@@ -978,7 +976,7 @@ class PluginMydashboardTicket
          $colnum++;
          $output[$colnum] = $first_col;
 
-         // Second column
+         // Date
          $colnum++;
          if ($job->fields['status'] == Ticket::CLOSED) {
             $output[$colnum] = sprintf(__('Closed on %s'),
@@ -993,7 +991,7 @@ class PluginMydashboardTicket
                ($output_type == Search::HTML_OUTPUT ? '<br>' : '') .
                Html::convDateTime($job->fields['begin_waiting_date']));
          } else if ($job->fields['due_date']) {
-            $output[$colnum] = sprintf(__('%1$s: %2$s'), __('Due date'),
+            $output[$colnum] = sprintf(__('%1$s: %2$s'), __('Time to resolve'),
                ($output_type == Search::HTML_OUTPUT ? '<br>' : '') .
                Html::convDateTime($job->fields['due_date']));
          } else {
@@ -1002,21 +1000,18 @@ class PluginMydashboardTicket
                Html::convDateTime($job->fields['date']));
          }
 
-         // Second BIS column
-         $colnum++;
-         $output[$colnum] = Html::convDateTime($job->fields["date_mod"]);
-
-         // Second TER column
+         // Entity
          if (count($_SESSION["glpiactiveentities"]) > 1) {
             $colnum++;
             $output[$colnum] = Dropdown::getDropdownName('glpi_entities', $job->fields['entities_id']);
          }
 
-         // Third Column
+         // Priority
          $colnum++;
-         $output[$colnum] = "<span class='b'>" . Ticket::getPriorityName($job->fields["priority"]) . "</span>";
+         $output[$colnum] = "<span class='b'><div class='center' style='background-color:$bgcolor; padding: 10px;'>"
+                            . Ticket::getPriorityName($job->fields["priority"]) . "</div></span>";
 
-         // Fourth Column
+         // Requester
          $fourth_col = "";
          $userrequesters = $job->getUsers(CommonITILActor::REQUESTER);
          if (isset($userrequesters)
@@ -1044,45 +1039,6 @@ class PluginMydashboardTicket
 
          $colnum++;
          $output[$colnum] = $fourth_col;
-
-         // Fifth column
-         $fifth_col = "";
-         $userassign = $job->getUsers(CommonITILActor::ASSIGN);
-         if (isset($userassign)
-            && count($userassign)
-         ) {
-            foreach ($userassign as $d) {
-               $userdata = getUserName($d["users_id"], 2);
-               $fifth_col .= sprintf(__('%1$s %2$s'),
-                  "<span class='b'>" . $userdata['name'] . "</span>",
-                  Html::showToolTip($userdata["comment"],
-                     array('link' => $userdata["link"],
-                        'display' => false)));
-               $fifth_col .= "<br>";
-            }
-         }
-         $groupassign = $job->getGroups(CommonITILActor::ASSIGN);
-         if (isset($groupassign)
-            && count($groupassign)
-         ) {
-            foreach ($groupassign as $d) {
-               $fifth_col .= Dropdown::getDropdownName("glpi_groups", $d["groups_id"]);
-               $fifth_col .= "<br>";
-            }
-         }
-
-         $suppliersassign = $job->getSuppliers(CommonITILActor::ASSIGN);
-         if (isset($suppliersassign)
-            && count($suppliersassign)
-         ) {
-            foreach ($suppliersassign as $d) {
-               $fifth_col .= Dropdown::getDropdownName("glpi_suppliers", $d["suppliers_id"]);
-               $fifth_col .= "<br>";
-            }
-         }
-
-         $colnum++;
-         $output[$colnum] = $fifth_col;
 
          // Sixth Colum
          $sixth_col = "";
@@ -1112,14 +1068,7 @@ class PluginMydashboardTicket
          $colnum++;
          $output[$colnum] = $sixth_col;
 
-         // Seventh column
-         $colnum++;
-         $output[$colnum] = "<span class='b'>" .
-            Dropdown::getDropdownName('glpi_itilcategories',
-               $job->fields["itilcategories_id"]) .
-            "</span>";
-
-         // Eigth column
+         // Name ticket
          $eigth_column = "<span class='b'>" . $job->fields["name"] . "</span>&nbsp;";
 
          // Add link

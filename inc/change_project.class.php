@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
-
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -65,25 +64,37 @@ class Change_Project extends CommonDBRelation{
    }
 
 
-   static function getTypeName($nb=0) {
-      return _n('Link Project/Change','Links Project/Change',$nb);
+   static function getTypeName($nb = 0) {
+      return _n('Link Project/Change', 'Links Project/Change', $nb);
    }
 
 
    /**
-    * Get search function for the class
+    * Duplicate all changes from a project template to his clone
     *
-    * @return array of search option
-   **/
-   function getSearchOptions() {
-      return parent::getSearchOptions();
+    * @since version 9.2
+    *
+    * @param integer $oldid        ID of the item to clone
+    * @param integer $newid        ID of the item cloned
+    **/
+   static function cloneChangeProject ($oldid, $newid) {
+      global $DB;
+
+      foreach ($DB->request('glpi_changes_projects',
+                            ['WHERE'  => "`projects_id` = '$oldid'"]) as $data) {
+         $cd                  = new Change_Project();
+         unset($data['id']);
+         $data['projects_id'] = $newid;
+         $data                = Toolbox::addslashes_deep($data);
+         $cd->add($data);
+      }
    }
 
 
    /**
     * @see CommonGLPI::getTabNameForItem()
    **/
-   function getTabNameForItem(CommonGLPI $item, $withtemplate=0) {
+   function getTabNameForItem(CommonGLPI $item, $withtemplate = 0) {
 
       if (static::canView()) {
          $nb = 0;
@@ -91,14 +102,14 @@ class Change_Project extends CommonDBRelation{
             case 'Change' :
                if ($_SESSION['glpishow_count_on_tabs']) {
                   $nb = countElementsInTable('glpi_changes_projects',
-                                             "`changes_id` = '".$item->getID()."'");
+                                            ['changes_id' => $item->getID()]);
                }
                return self::createTabEntry(Project::getTypeName(Session::getPluralNumber()), $nb);
 
             case 'Project' :
                if ($_SESSION['glpishow_count_on_tabs']) {
                   $nb = countElementsInTable('glpi_changes_projects',
-                                             "`projects_id` = '".$item->getID()."'");
+                                            ['projects_id' => $item->getID()]);
                }
                return self::createTabEntry(Change::getTypeName(Session::getPluralNumber()), $nb);
          }
@@ -107,7 +118,7 @@ class Change_Project extends CommonDBRelation{
    }
 
 
-   static function displayTabContentForItem(CommonGLPI $item, $tabnum=1, $withtemplate=0) {
+   static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0) {
 
       switch ($item->getType()) {
          case 'Change' :
@@ -148,8 +159,8 @@ class Change_Project extends CommonDBRelation{
                 ORDER BY `glpi_changes`.`name`";
       $result = $DB->query($query);
 
-      $changes = array();
-      $used    = array();
+      $changes = [];
+      $used    = [];
       if ($numrows = $DB->numrows($result)) {
          while ($data = $DB->fetch_assoc($result)) {
             $changes[$data['id']] = $data;
@@ -167,9 +178,9 @@ class Change_Project extends CommonDBRelation{
 
          echo "<tr class='tab_bg_2'><td>";
          echo "<input type='hidden' name='projects_id' value='$ID'>";
-         Change::dropdown(array('used'        => $used,
+         Change::dropdown(['used'        => $used,
                                 'entity'      => $project->getEntityID(),
-                                'entity_sons' => $project->isRecursive()));
+                                'entity_sons' => $project->isRecursive()]);
          echo "</td><td class='center'>";
          echo "<input type='submit' name='add' value=\""._sx('button', 'Add')."\" class='submit'>";
          echo "</td></tr></table>";
@@ -180,8 +191,8 @@ class Change_Project extends CommonDBRelation{
       echo "<div class='spaced'>";
       if ($canedit && $numrows) {
          Html::openMassiveActionsForm('mass'.__CLASS__.$rand);
-         $massiveactionparams = array('num_displayed' => min($_SESSION['glpilist_limit'], $numrows),
-                                      'container'     => 'mass'.__CLASS__.$rand);
+         $massiveactionparams = ['num_displayed' => min($_SESSION['glpilist_limit'], $numrows),
+                                      'container'     => 'mass'.__CLASS__.$rand];
          Html::showMassiveActions($massiveactionparams);
       }
 
@@ -198,9 +209,9 @@ class Change_Project extends CommonDBRelation{
          $i = 0;
          foreach ($changes as $data) {
             Session::addToNavigateListItems('Change', $data["id"]);
-            Change::showShort($data['id'], array('row_num'                => $i,
+            Change::showShort($data['id'], ['row_num'                => $i,
                                                  'type_for_massiveaction' => __CLASS__,
-                                                 'id_for_massiveaction'   => $data['linkID']));
+                                                 'id_for_massiveaction'   => $data['linkID']]);
             $i++;
          }
          Change::commonListHeader(Search::HTML_OUTPUT, 'mass'.__CLASS__.$rand);
@@ -243,8 +254,8 @@ class Change_Project extends CommonDBRelation{
                 ORDER BY `glpi_projects`.`name`";
       $result = $DB->query($query);
 
-      $projects = array();
-      $used     = array();
+      $projects = [];
+      $used     = [];
       if ($numrows = $DB->numrows($result)) {
          while ($data = $DB->fetch_assoc($result)) {
             $projects[$data['id']] = $data;
@@ -263,8 +274,8 @@ class Change_Project extends CommonDBRelation{
 
          echo "<tr class='tab_bg_2'><td>";
          echo "<input type='hidden' name='changes_id' value='$ID'>";
-         Project::dropdown(array('used'   => $used,
-                                 'entity' => $change->getEntityID()));
+         Project::dropdown(['used'   => $used,
+                                 'entity' => $change->getEntityID()]);
          echo "</td><td class='center'>";
          echo "<input type='submit' name='add' value=\""._sx('button', 'Add')."\" class='submit'>";
          echo "</td></tr></table>";
@@ -275,8 +286,8 @@ class Change_Project extends CommonDBRelation{
       echo "<div class='spaced'>";
       if ($canedit && $numrows) {
          Html::openMassiveActionsForm('mass'.__CLASS__.$rand);
-         $massiveactionparams = array('num_displayed' => min($_SESSION['glpilist_limit'], $numrows),
-                                      'container'     => 'mass'.__CLASS__.$rand);
+         $massiveactionparams = ['num_displayed' => min($_SESSION['glpilist_limit'], $numrows),
+                                      'container'     => 'mass'.__CLASS__.$rand];
          Html::showMassiveActions($massiveactionparams);
       }
 
@@ -293,9 +304,9 @@ class Change_Project extends CommonDBRelation{
          $i = 0;
          foreach ($projects as $data) {
             Session::addToNavigateListItems('Project', $data["id"]);
-            Project::showShort($data['id'], array('row_num'               => $i,
+            Project::showShort($data['id'], ['row_num'               => $i,
                                                  'type_for_massiveaction' => __CLASS__,
-                                                 'id_for_massiveaction'   => $data['linkID']));
+                                                 'id_for_massiveaction'   => $data['linkID']]);
             $i++;
          }
          Project::commonListHeader(Search::HTML_OUTPUT, 'mass'.__CLASS__.$rand);
@@ -313,4 +324,3 @@ class Change_Project extends CommonDBRelation{
 
 
 }
-?>

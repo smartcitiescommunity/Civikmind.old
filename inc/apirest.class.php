@@ -1,38 +1,38 @@
 <?php
-/*
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
-
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
-/** @file
-* @since version 9.1
-*/
+/**
+ * @since version 9.1
+ */
 
 class APIRest extends API {
 
@@ -43,17 +43,21 @@ class APIRest extends API {
    protected $debug           = 0;
    protected $format          = "json";
 
-
    /**
+    *
+    * @param integer $nb Unused value
+    *
+    * @return string
+    *
     * @see CommonGLPI::GetTypeName()
-   **/
-   public static function getTypeName($nb=0) {
+    */
+   public static function getTypeName($nb = 0) {
       return __('Rest API');
    }
 
 
    /**
-    * parse url and http body to retrieve :
+    * Parse url and http body to retrieve :
     *  - HTTP VERB (GET/POST/DELETE/PUT)
     *  - Resource : Rest endpoint
     *  - Identifier
@@ -61,16 +65,15 @@ class APIRest extends API {
     *
     *  And send to method corresponding identified resource
     *
-    * @return     json with response or error
-   **/
+    * @return mixed json with response or error
+    */
    public function call() {
 
       //parse http request and find parts
       $this->request_uri  = $_SERVER['REQUEST_URI'];
       $this->verb         = $_SERVER['REQUEST_METHOD'];
-      $path_info          = str_replace("api/", "", trim($_SERVER['PATH_INFO'], '/'));
+      $path_info          = (isset($_SERVER['PATH_INFO'])) ? str_replace("api/", "", trim($_SERVER['PATH_INFO'], '/')) : '';
       $this->url_elements = explode('/', $path_info);
-
 
       // retrieve requested resource
       $resource      = trim(strval($this->url_elements[0]));
@@ -81,7 +84,6 @@ class APIRest extends API {
 
       // retrieve paramaters (in body, query_string, headers)
       $this->parseIncomingParams($is_inline_doc);
-
 
       // show debug if required
       if (isset($this->parameters['debug'])) {
@@ -107,58 +109,62 @@ class APIRest extends API {
       if ($is_inline_doc) {
          return $this->inlineDocumentation("apirest.md");
 
-      ## DECLARE ALL ENDPOINTS ##
-      // login into glpi
       } else if ($resource === "initSession") {
+         // ## DECLARE ALL ENDPOINTS ##
+         // login into glpi
          $this->session_write = true;
          return $this->returnResponse($this->initSession($this->parameters));
 
-      // logout from glpi
       } else if ($resource === "killSession") {
+         // logout from glpi
          $this->session_write = true;
          return $this->returnResponse($this->killSession());
 
-      // change active entities
       } else if ($resource === "changeActiveEntities") {
+         // change active entities
          $this->session_write = true;
          return $this->returnResponse($this->changeActiveEntities($this->parameters));
 
-      // get all entities of logged user
       } else if ($resource === "getMyEntities") {
+         // get all entities of logged user
          return $this->returnResponse($this->getMyEntities($this->parameters));
 
-      // get curent active entity
       } else if ($resource === "getActiveEntities") {
+         // get curent active entity
          return $this->returnResponse($this->getActiveEntities($this->parameters));
 
-      // change active profile
       } else if ($resource === "changeActiveProfile") {
+         // change active profile
          $this->session_write = true;
          return $this->returnResponse($this->changeActiveProfile($this->parameters));
 
-      // get all profiles of current logged user
       } else if ($resource === "getMyProfiles") {
+         // get all profiles of current logged user
          return $this->returnResponse($this->getMyProfiles($this->parameters));
 
-      // get current active profile
       } else if ($resource === "getActiveProfile") {
+         // get current active profile
          return $this->returnResponse($this->getActiveProfile($this->parameters));
 
-      // get complete php session
       } else if ($resource === "getFullSession") {
+         // get complete php session
          return $this->returnResponse($this->getFullSession($this->parameters));
 
-      // list searchOptions of an itemtype
+      } else if ($resource === "getGlpiConfig") {
+         // get complete php var $CFG_GLPI
+         return $this->returnResponse($this->getGlpiConfig($this->parameters));
+
       } else if ($resource === "listSearchOptions") {
+         // list searchOptions of an itemtype
          $itemtype = $this->getItemtype(1);
          return $this->returnResponse($this->listSearchOptions($itemtype, $this->parameters));
 
-      // get multiple items (with various itemtype)
       } else if ($resource === "getMultipleItems") {
+         // get multiple items (with various itemtype)
          return $this->returnResponse($this->getMultipleItems($this->parameters));
 
-      // Search on itemtype
       } else if ($resource === "search") {
+         // Search on itemtype
          self::checkSessionToken();
 
          $itemtype = $this->getItemtype(1, true, true);
@@ -168,7 +174,7 @@ class APIRest extends API {
          $response =  $this->searchItems($itemtype, $params);
 
          //add pagination headers
-         $additionalheaders                  = array();
+         $additionalheaders                  = [];
          $additionalheaders["Accept-Range"]  = $itemtype." ".Toolbox::get_max_input_vars();
          if ($response['totalcount'] > 0) {
             $additionalheaders["Content-Range"] = $response['content-range'];
@@ -183,11 +189,18 @@ class APIRest extends API {
 
          return $this->returnResponse($response, $code, $additionalheaders);
 
-      // commonDBTM manipulation
+      } else if ($resource === "lostPassword") {
+         if ($this->verb != 'PUT') {
+            // forbid password reset when HTTP verb is not PUT
+            return $this->returnError(__("Only HTTP verb PUT is allowed"));
+         }
+         return $this->returnResponse($this->lostPassword($this->parameters));
+
       } else {
+         // commonDBTM manipulation
          $itemtype          = $this->getItemtype(0);
          $id                = $this->getId();
-         $additionalheaders = array();
+         $additionalheaders = [];
          $code              = 200;
          switch ($this->verb) {
             default:
@@ -209,10 +222,10 @@ class APIRest extends API {
                   if (isset($this->parameters['range'])) {
                      $range = explode("-", $this->parameters['range']);
                      // fix end range
-                     if($range[1] > $totalcount - 1){
+                     if ($range[1] > $totalcount - 1) {
                         $range[1] = $totalcount - 1;
                      }
-                     if($range[1] - $range[0] + 1 < $totalcount){
+                     if ($range[1] - $range[0] + 1 < $totalcount) {
                          $code = 206; // partial content
                      }
                   }
@@ -232,7 +245,7 @@ class APIRest extends API {
                } else {
                   // add a link header targetting created elements
                   $additionalheaders['link'] = "";
-                  foreach($response as $created_item) {
+                  foreach ($response as $created_item) {
                      if ($created_item['id']) {
                         $additionalheaders['link'] .= self::$api_url."/$itemtype/".
                                                      $created_item['id'].",";
@@ -276,17 +289,17 @@ class APIRest extends API {
    /**
     * Retrieve and check itemtype from $this->url_elements
     *
-    * @param $index       integer    we'll find itemtype in this index of $this->url_elements
-    *                                (default o)
-    * @param $recursive   boolean    can we go depper or we trigger an http error if we fail to find itemtype?
-    *                                (default true)
-    * @param $all_assets  boolean    if we can have allasset virtual type (default false)
+    * @param integer $index      we'll find itemtype in this index of $this->url_elements
+    *                            (default o)
+    * @param boolean $recursive  can we go depper or we trigger an http error if we fail to find itemtype?
+    *                            (default true)
+    * @param boolean $all_assets if we can have allasset virtual type (default false)
     *
     * @return boolean
-   **/
-   private function getItemtype($index=0, $recursive=true, $all_assets= false) {
+    */
+   private function getItemtype($index = 0, $recursive = true, $all_assets = false) {
 
-      if (isset($this->url_elements[$index]))  {
+      if (isset($this->url_elements[$index])) {
          if ((class_exists($this->url_elements[$index])
               && is_subclass_of($this->url_elements[$index], 'CommonDBTM'))
              || ($all_assets
@@ -317,8 +330,8 @@ class APIRest extends API {
     * Retrieve in url_element the current id. If we have a multiple id (ex /Ticket/1/TicketFollwup/2),
     * it always find the second
     *
-    * @return int id of current itemtype (or false if not found)
-   **/
+    * @return integer|boolean id of current itemtype (or false if not found)
+    */
    private function getId() {
 
       $id            = isset($this->url_elements[1]) && is_numeric($this->url_elements[1])
@@ -340,14 +353,14 @@ class APIRest extends API {
    /**
     * Construct this->parameters from query string and http body
     *
-    * @param $skip_check_content_type   (default false)
-    *
-    * @param bool $is_inline_doc    Is the current request asks to display inline documentation ?
+    * @param boolean $is_inline_doc Is the current request asks to display inline documentation
     *  This will remove the default behavior who set content-type to application/json
+    *
+    * @return void
     */
    public function parseIncomingParams($is_inline_doc = false) {
 
-      $parameters = array();
+      $parameters = [];
 
       // first of all, pull the GET vars
       if (isset($_SERVER['QUERY_STRING'])) {
@@ -355,7 +368,7 @@ class APIRest extends API {
       }
 
       // now how about PUT/POST bodies? These override what we got from GET
-      $body = trim($this->getHttpBodyStream());
+      $body = trim($this->getHttpBody());
       if (strlen($body) > 0 && $this->verb == "GET") {
          // GET method requires an empty body
          $this->returnError("GET Request should not have json payload (http body)", 400,
@@ -363,9 +376,9 @@ class APIRest extends API {
       }
 
       $content_type = "";
-      if(isset($_SERVER['CONTENT_TYPE'])) {
+      if (isset($_SERVER['CONTENT_TYPE'])) {
          $content_type = $_SERVER['CONTENT_TYPE'];
-      } else if(isset($_SERVER['HTTP_CONTENT_TYPE'])) {
+      } else if (isset($_SERVER['HTTP_CONTENT_TYPE'])) {
          $content_type = $_SERVER['HTTP_CONTENT_TYPE'];
       } else {
          if (!$is_inline_doc) {
@@ -374,8 +387,8 @@ class APIRest extends API {
       }
 
       if (strpos($content_type, "application/json") !== false) {
-         if($body_params = json_decode($body)) {
-            foreach($body_params as $param_name => $param_value) {
+         if ($body_params = json_decode($body)) {
+            foreach ($body_params as $param_name => $param_value) {
                $parameters[$param_name] = $param_value;
             }
          } else if (strlen($body) > 0) {
@@ -397,14 +410,29 @@ class APIRest extends API {
             $this->returnError("JSON payload seems not valid", 400, "ERROR_JSON_PAYLOAD_INVALID",
                                false);
          }
-         foreach($uploadManifest as $field => $value) {
+         foreach ($uploadManifest as $field => $value) {
             $parameters[$field] = $value;
          }
          $this->format = "json";
 
+         // move files into _tmp folder
+         $parameters['upload_result'] = [];
+         $parameters['input']->_filename = [];
+         $parameters['input']->_prefix_filename = [];
+         foreach ($_FILES as $filename => $files) {
+            $upload_result
+               = GLPIUploadHandler::uploadFiles(['name'           => $filename,
+                                                 'print_response' => false]);
+            foreach ($upload_result as $uresult) {
+               $parameters['input']->_filename[] = $uresult[0]->name;
+               $parameters['input']->_prefix_filename[] = $uresult[0]->prefix;
+            }
+            $parameters['upload_result'][] = $upload_result;
+         }
+
       } else if (strpos($content_type, "application/x-www-form-urlencoded") !== false) {
          parse_str($body, $postvars);
-         foreach($postvars as $field => $value) {
+         foreach ($postvars as $field => $value) {
             $parameters[$field] = $value;
          }
          $this->format = "html";
@@ -414,7 +442,7 @@ class APIRest extends API {
       }
 
       // retrieve HTTP headers
-      $headers = array();
+      $headers = [];
       if (function_exists('getallheaders')) {
          //apache specific
          $headers = getallheaders();
@@ -456,24 +484,28 @@ class APIRest extends API {
       }
 
       $this->parameters = $parameters;
+
+      return "";
    }
 
 
    /**
     * Generic function to send a message and an http code to client
     *
-    * @param $response           string    message or array of data to send
-    * @param $httpcode           integer   http code (default 200)
-    *                                      (see: https://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
-    * @param $aditionnalheaders  array     headers to send with http response (must be an array(key => value))
+    * @param string  $response          message or array of data to send
+    * @param integer $httpcode          http code (default 200)
+    *                                   (see: https://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
+    * @param array   $additionalheaders headers to send with http response (must be an array(key => value))
+    *
+    * @return void
     */
-   public function returnResponse($response, $httpcode=200, $aditionnalheaders=array()) {
+   public function returnResponse($response, $httpcode = 200, $additionalheaders = []) {
 
       if (empty($httpcode)) {
          $httpcode = 200;
       }
 
-      foreach($aditionnalheaders as $key => $value) {
+      foreach ($additionalheaders as $key => $value) {
          header("$key: $value");
       }
 
@@ -505,10 +537,11 @@ class APIRest extends API {
    /**
     * Display the APIRest Documentation in Html (parsed from markdown)
     *
-    * @param $file    string   relative path of documentation file (default 'apirest.md')
-   **/
+    * @param string $file relative path of documentation file (default 'apirest.md')
+    *
+    * @return void
+    */
    public function inlineDocumentation($file = "apirest.md") {
-      global $CFG_GLPI;
 
       if ($this->format == "html") {
          parent::inlineDocumentation($file);

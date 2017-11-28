@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
- 
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -53,24 +52,26 @@ class Item_DeviceProcessor extends Item_Devices {
    /**
     * @since version 0.85
     **/
-   static function getSpecificities($specif='') {
+   static function getSpecificities($specif = '') {
 
-      return array('frequency' => array('long name'  => sprintf(__('%1$s (%2$s)'), __('Frequency'),
+      return ['frequency' => ['long name'  => sprintf(__('%1$s (%2$s)'), __('Frequency'),
                                                                 __('MHz')),
                                         'short name' => __('Frequency'),
                                         'size'       => 10,
-                                        'id'         => 20),
+                                        'id'         => 20],
                    'serial'    => parent::getSpecificities('serial'),
-                   'nbcores'   => array('long name'  => __('Number of cores'),
+                   'otherserial' => parent::getSpecificities('otherserial'),
+                   'locations_id' => parent::getSpecificities('locations_id'),
+                   'states_id' => parent::getSpecificities('states_id'),
+                   'nbcores'   => ['long name'  => __('Number of cores'),
                                         'short name' => __('Cores'),
                                         'size'       => 2,
-                                        'id'         => 21),
-                   'nbthreads' => array('long name' => __('Number of threads'),
+                                        'id'         => 21],
+                   'nbthreads' => ['long name' => __('Number of threads'),
                                         'short name' => __('Threads'),
                                         'size'       => 2,
-                                        'id'         => 22),
-                   'busID'     => parent::getSpecificities('busID'));
+                                        'id'         => 22],
+                   'busID'     => parent::getSpecificities('busID')];
    }
 
 }
-?>

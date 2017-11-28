@@ -137,7 +137,7 @@ class PluginShellcommandsProfile extends Profile {
    static function migrateOneProfile($profiles_id) {
       global $DB;
       //Cannot launch migration if there's nothing to migrate...
-      if (!TableExists('glpi_plugin_shellcommands_profiles')) {
+      if (!$DB->tableExists('glpi_plugin_shellcommands_profiles')) {
          return true;
       }
       
@@ -163,10 +163,10 @@ class PluginShellcommandsProfile extends Profile {
    static function initProfile() {
       global $DB;
       $profile = new self();
-
+      $dbu     = new DbUtils();
       //Add new rights in glpi_profilerights table
       foreach ($profile->getAllRights(true) as $data) {
-         if (countElementsInTable("glpi_profilerights", 
+         if ($dbu->countElementsInTable("glpi_profilerights",
                                   "`name` = '".$data['field']."'") == 0) {
             ProfileRight::addProfileRights(array($data['field']));
          }
@@ -224,15 +224,14 @@ class PluginShellcommandsProfile extends Profile {
     * @param $profile
    **/
    static function addDefaultProfileInfos($profiles_id, $rights, $drop_existing = false) {
-      global $DB;
-      
+      $dbu          = new DbUtils();
       $profileRight = new ProfileRight();
       foreach ($rights as $right => $value) {
-         if (countElementsInTable('glpi_profilerights',
+         if ($dbu->countElementsInTable('glpi_profilerights',
                                    "`profiles_id`='$profiles_id' AND `name`='$right'") && $drop_existing) {
             $profileRight->deleteByCriteria(array('profiles_id' => $profiles_id, 'name' => $right));
          }
-         if (!countElementsInTable('glpi_profilerights',
+         if (!$dbu->countElementsInTable('glpi_profilerights',
                                    "`profiles_id`='$profiles_id' AND `name`='$right'")) {
             $myright['profiles_id'] = $profiles_id;
             $myright['name']        = $right;

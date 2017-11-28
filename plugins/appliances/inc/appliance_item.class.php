@@ -1,6 +1,6 @@
 <?php
 /*
- * @version $Id: appliance_item.class.php 250 2017-01-07 17:44:28Z remi $
+ * @version $Id: appliance_item.class.php 258 2017-10-10 13:21:54Z yllen $
  -------------------------------------------------------------------------
    LICENSE
 
@@ -21,7 +21,7 @@
 
  @package   appliances
  @author    Xavier CAILLAUD, Remi Collet, Nelly Mahu-Lasson
- @copyright Copyright (c) 2009-2016 Appliances plugin team
+ @copyright Copyright (c) 2009-2017 Appliances plugin team
  @license   AGPL License 3.0 or (at your option) any later version
             http://www.gnu.org/licenses/agpl-3.0-standalone.html
  @link      https://forge.glpi-project.org/projects/appliances
@@ -40,15 +40,16 @@ if (!defined('GLPI_ROOT')) {
 class PluginAppliancesAppliance_Item extends CommonDBRelation {
 
    // From CommonDBRelation
-   static public $itemtype_1 = 'PluginAppliancesAppliance';
-   static public $items_id_1 = 'plugin_appliances_appliances_id';
-   static public $take_entity_1 = false ;
+   static public $itemtype_1     = 'PluginAppliancesAppliance';
+   static public $items_id_1     = 'plugin_appliances_appliances_id';
+   static public $take_entity_1  = false ;
 
-   static public $itemtype_2 = 'itemtype';
-   static public $items_id_2 = 'items_id';
-   static public $take_entity_2 = true ;
+   static public $itemtype_2     = 'itemtype';
+   static public $items_id_2     = 'items_id';
+   static public $take_entity_2  = true ;
 
-   static $rightname = "plugin_appliances";
+   static public $checkItem_2_Rights  = self::HAVE_VIEW_RIGHT_ON_ITEM;
+
 
 
     /**
@@ -67,11 +68,11 @@ class PluginAppliancesAppliance_Item extends CommonDBRelation {
     function cleanDBonPurge() {
 
       $temp = new PluginAppliancesOptvalue_Item();
-      $temp->deleteByCriteria(array('itemtype' => $this->fields['itemtype'],
-                                    'items_id' => $this->fields['items_id']));
+      $temp->deleteByCriteria(['itemtype' => $this->fields['itemtype'],
+                               'items_id' => $this->fields['items_id']]);
 
       $temp = new PluginAppliancesRelation();
-      $temp->deleteByCriteria(array('plugin_appliances_appliances_items_id' => $this->fields['id']));
+      $temp->deleteByCriteria(['plugin_appliances_appliances_items_id' => $this->fields['id']]);
    }
 
 
@@ -83,10 +84,8 @@ class PluginAppliancesAppliance_Item extends CommonDBRelation {
    static function cleanForItem(CommonDBTM $item) {
 
       $temp = new self();
-      $temp->deleteByCriteria(
-         array('itemtype' => $item->getType(),
-               'items_id' => $item->getField('id'))
-      );
+      $temp->deleteByCriteria(['itemtype' => $item->getType(),
+                               'items_id' => $item->getField('id')]);
    }
 
 
@@ -148,13 +147,12 @@ class PluginAppliancesAppliance_Item extends CommonDBRelation {
                            = `glpi_plugin_appliances_appliances`.`id`".
                       getEntitiesRestrictRequest(" AND", "glpi_plugin_appliances_appliances",
                                                  'entities_id', $item->getEntityID(), true);
-      $result = $DB->query($query);
+      $result = $DB->request($query);
 
-      $query_app = "SELECT `ID`
-                    FROM `glpi_plugin_appliances_appliances_items`
-                    WHERE `items_id` = '".$ID."'";
-      $result_app = $DB->query($query_app);
-      $number_app = $DB->numrows($result_app);
+      $result_app = $DB->request(['SELECT' => 'ID',
+                                  'FROM'   => 'glpi_plugin_appliances_appliances_items',
+                                  'WHERE'  => ['items_id' => $ID]]);
+      $number_app = $result_app->numrows();
 
       if ($number_app >0) {
          $colsup = 1;
@@ -185,8 +183,8 @@ class PluginAppliancesAppliance_Item extends CommonDBRelation {
          }
       }
       echo "</tr>";
-      $used = array();
-      while ($data = $DB->fetch_array($result)) {
+      $used = [];
+      while ($data = $result_app->next()) {
          $appliancesID = $data["id"];
          $used[]       = $appliancesID;
 
@@ -200,15 +198,19 @@ class PluginAppliancesAppliance_Item extends CommonDBRelation {
             echo "<td class='center'>";
             echo "<a href='".
                    $CFG_GLPI["root_doc"]."/plugins/appliances/front/appliance.form.php?id=".
-                   $data["id"]."'>".$name;
+                   $data["id"]."'>";
             if ($_SESSION["glpiis_ids_visible"]) {
                printf(__('%1$s (%2$s)'), $name, $data["id"]);
+            } else {
+               echo $name;
             }
             echo "</a></td>";
          } else {
-            echo "<td class='center'>".$name;
+            echo "<td class='center'>";
             if ($_SESSION["glpiis_ids_visible"]) {
                printf(__('%1$s (%2$s)'), $name, $data["id"]);
+            } else {
+               echo $name;
             }
             echo "</td>";
          }
@@ -242,7 +244,7 @@ class PluginAppliancesAppliance_Item extends CommonDBRelation {
             echo "<td class='center tab_bg_2'>";
             Html::showSimpleForm($CFG_GLPI['root_doc'].'/plugins/appliances/front/appliance.form.php',
                                  'deleteappliance', __('Delete permanently'),
-                                 array('id' => $data['entID']));
+                                 ['id' => $data['entID']]);
             echo "</td>";
          }
          echo "</tr>";
@@ -257,13 +259,10 @@ class PluginAppliancesAppliance_Item extends CommonDBRelation {
          $limit = getEntitiesRestrictRequest(" AND", "glpi_plugin_appliances_appliances", '',
                                              $entities, true);
 
-         $q = "SELECT COUNT(*)
-               FROM `glpi_plugin_appliances_appliances`
-               WHERE `is_deleted` = '0' ".
-               $limit;
-
-         $result = $DB->query($q);
-         $nb     = $DB->result($result,0,0);
+         $req = $DB->request(['FROM'  => 'glpi_plugin_appliances_appliances',
+                              'COUNT' => 'cpt',
+                              'WHERE' => ['is_deleted' => 0]]);
+         $nb     = $req->numrows();
 
          if (($withtemplate < 2)
              && ($nb > count($used))) {
@@ -275,9 +274,9 @@ class PluginAppliancesAppliance_Item extends CommonDBRelation {
                   "/plugins/appliances/front/appliance.form.php\">";
             echo "<input type='hidden' name='item' value='".$ID."'>".
                  "<input type='hidden' name='itemtype' value='$itemtype'>";
-            Dropdown::show('PluginAppliancesAppliance', array('name'   => "conID",
-                                                              'entity' => $entities,
-                                                              'used'   => $used));
+            Dropdown::show('PluginAppliancesAppliance', ['name'   => "conID",
+                                                         'entity' => $entities,
+                                                         'used'   => $used]);
 
             echo "<input type='submit' name='additem' value='".__('Add')."' class='submit'>";
             Html::closeForm();
@@ -318,8 +317,8 @@ class PluginAppliancesAppliance_Item extends CommonDBRelation {
                            = `glpi_plugin_appliances_appliances`.`id`".
                       getEntitiesRestrictRequest(" AND", "glpi_plugin_appliances_appliances",
                                                  'entities_id', $item->getEntityID(), true);
-      $result = $DB->query($query);
-      $number = $DB->numrows($result);
+      $result = $DB->request($query);
+      $number = $result->numrows();
 
       if (!$number) {
          $pdf->displayLine(__('No item found'));
@@ -332,7 +331,7 @@ class PluginAppliancesAppliance_Item extends CommonDBRelation {
             $pdf->displayTitle('<b><i>'.__('Name'), __('Group'),__('Type').'</i></b>');
          }
 
-         while ($data = $DB->fetch_array($result)) {
+         while ($data = $result->next()) {
             $appliancesID = $data["id"];
             if (Session::isMultiEntitiesMode()) {
                $pdf->setColumnsSize(30,30,20,20);
@@ -380,12 +379,10 @@ class PluginAppliancesAppliance_Item extends CommonDBRelation {
       $pdf->setColumnsSize(100);
       $pdf->displayTitle('<b>'._n('Associated item', 'Associated items',2).'</b>');
 
-      $query = "SELECT DISTINCT `itemtype`
-                FROM `glpi_plugin_appliances_appliances_items`
-                WHERE `plugin_appliances_appliances_id` = '".$instID."'
-                ORDER BY `itemtype`";
-      $result = $DB->query($query);
-      $number = $DB->numrows($result);
+      $result = $DB->request(['SELECT DISTINCT' => 'itemtype',
+                              'FROM'            => 'glpi_plugin_appliances_appliances_items',
+                              'WHERE'           => ['plugin_appliances_appliances_id' => $instID]]);
+      $number = $result->numrows();
 
       if (Session::isMultiEntitiesMode()) {
          $pdf->setColumnsSize(12,27,25,18,18);
@@ -400,8 +397,8 @@ class PluginAppliancesAppliance_Item extends CommonDBRelation {
       if (!$number) {
          $pdf->displayLine(__('No item found'));
       } else {
-         for ($i=0 ; $i < $number ; $i++) {
-            $type = $DB->result($result, $i, "itemtype");
+         foreach ($result as $id => $row) {
+            $type = $row['itemtype'];
             if (!($item = getItemForItemtype($type))) {
                continue;
             }
@@ -433,10 +430,10 @@ class PluginAppliancesAppliance_Item extends CommonDBRelation {
                }
                $query.=" ORDER BY `glpi_entities`.`completename`, `".$item->getTable()."`.$column";
 
-               if ($result_linked = $DB->query($query)) {
-                  if ($DB->numrows($result_linked)) {
-                     while ($data = $DB->fetch_assoc($result_linked)) {
-                        if (!$item->getFromDB($data["id"])) {
+               if ($result_linked = $DB->request($query)) {
+                  if ($result_linked->numrows()) {
+                     foreach ($result_linked as $id => $data) {
+                        if (!$item->getFromDB($data['id'])) {
                            continue;
                         }
 
@@ -478,6 +475,38 @@ class PluginAppliancesAppliance_Item extends CommonDBRelation {
    }
 
 
+   static function showAddForm(PluginAppliancesAppliance $appli) {
+      global $CFG_GLPI;
+
+      $ID = $appli->getField('id');
+      if (!$appli->can($ID, UPDATE)) {
+         return false;
+      }
+      $rand = mt_rand();
+      if ($ID > 0) {
+         echo "<div class='firstbloc'>";
+         echo "<form method='post' name='appliances_form$rand' id='appliances_form$rand' action=\"".
+                $CFG_GLPI["root_doc"]."/plugins/appliances/front/appliance.form.php\">";
+         echo "<table class='tab_cadre_fixe'>";
+         echo "<tr><td class='center tab_bg_2' width='20%'>";
+         echo "<input type='hidden' name='conID' value='$ID'>\n";
+         Dropdown::showSelectItemFromItemtypes(['items_id_name'   => 'item',
+                                                'itemtypes'       => $appli->getTypes(true),
+                                                'entity_restrict' => ($appli->fields['is_recursive']
+                                                                      ? getSonsOf('glpi_entities',
+                                                                                  $appli->fields['entities_id'])
+                                                                      : $appli->fields['entities_id']),
+                                                'checkright'      => true]);
+         echo "</td>";
+         echo "<td class='center' class='tab_bg_2'>";
+         echo "<input type='submit' name='additem' value='".__('Add')."' class='submit'>";
+         echo "</td></tr></table>";
+         Html::closeForm();
+         echo "</div>";
+      }
+   }
+
+
    /**
     * Show the Device associated with an applicatif
     *
@@ -495,31 +524,36 @@ class PluginAppliancesAppliance_Item extends CommonDBRelation {
       if (!$appli->can($instID, READ)) {
          return false;
       }
-      $rand = mt_rand();
 
       $canedit = $appli->can($instID, UPDATE);
 
-      $query = "SELECT DISTINCT `itemtype`
-                FROM `glpi_plugin_appliances_appliances_items`
-                WHERE `plugin_appliances_appliances_id` = '".$instID."'
-                ORDER BY `itemtype`";
-      $result = $DB->query($query);
-      $number = $DB->numrows($result);
+      $result = $DB->request(['SELECT DISTINCT' => 'itemtype',
+                              'FROM'            => 'glpi_plugin_appliances_appliances_items',
+                              'WHERE'           => ['plugin_appliances_appliances_id' => $instID]]);
+      $number = $result->numrows();
 
       if (Session::isMultiEntitiesMode()) {
          $colsup = 1;
       } else {
          $colsup = 0;
       }
+      $rand = mt_rand();
 
-      echo "<form method='post' name='appliances_form$rand' id='appliances_form$rand' action=\"".
-            $CFG_GLPI["root_doc"]."/plugins/appliances/front/appliance.form.php\">";
-
-      echo "<div class='center'><table class='tab_cadre_fixehov'>";
-      echo "<tr><th colspan='".($canedit?(6+$colsup):(5+$colsup))."'>".
-            __('Associated items', 'appliances')."</th></tr><tr>";
+      echo "<div class='spaced'>";
       if ($canedit) {
-         echo "<th>&nbsp;</th>";
+         Html::openMassiveActionsForm('mass'.__CLASS__.$rand);
+         $massiveactionparams = ['num_displayed'    => $number,
+                                 'container'        => 'mass'.__CLASS__.$rand];
+         Html::showMassiveActions($massiveactionparams);
+         echo "<input type='hidden' name='conID' value='$instID'>\n";
+      }
+
+      echo "<table class='tab_cadre_fixehov'>";
+      echo "<tr class='tab_bg_1'>";
+      if ($canedit) {
+          echo "<th width='10'>";
+          Html::getCheckAllAsCheckbox('mass'.__CLASS__.$rand);
+          echo "</th>";
       }
       echo "<th>".__('Type')."</th>";
       echo "<th>".__('Name')."</th>";
@@ -533,24 +567,20 @@ class PluginAppliancesAppliance_Item extends CommonDBRelation {
       echo "<th>".__('Inventory number')."</th>";
       echo "</tr>";
 
-      for ($i=0 ; $i < $number ; $i++) {
-         $type = $DB->result($result, $i, "itemtype");
+      foreach ($result as $id => $row) {
+         $type = $row['itemtype'];
+
          if (!($item = getItemForItemtype($type))) {
             continue;
          }
          if ($item->canView()) {
+            // Ticket and knowbaseitem can't be associated to an appliance
             $column = "name";
-            if ($type == 'Ticket') {
-               $column = "id";
-            }
-            if ($type == 'KnowbaseItem') {
-               $column = "question";
-            }
 
             $query = "SELECT `".$item->getTable()."`.*,
                              `glpi_plugin_appliances_appliances_items`.`id` AS IDD,
                              `glpi_entities`.`id` AS entity
-                      FROM `glpi_plugin_appliances_appliances_items`, ".getTableForItemType($type)."
+                      FROM `glpi_plugin_appliances_appliances_items`, `".getTableForItemType($type)."`
                       LEFT JOIN `glpi_entities`
                            ON (`glpi_entities`.`id` = `".$item->getTable()."`.`entities_id`)
                       WHERE `".$item->getTable()."`.`id`
@@ -565,39 +595,25 @@ class PluginAppliancesAppliance_Item extends CommonDBRelation {
             }
             $query.=" ORDER BY `glpi_entities`.`completename`, `".$item->getTable()."`.$column";
 
-            if ($result_linked = $DB->query($query)) {
-               if ($DB->numrows($result_linked)) {
+            if ($result_linked = $DB->request($query)) {
+               if ($result_linked->numrows()) {
                   Session::initNavigateListItems($type,
                                                  _n('Appliance', 'Appliances', 2, 'appliances')."
                                                    = ".$appli->getNameID());
 
-                  while ($data = $DB->fetch_assoc($result_linked)) {
+                   foreach ($result_linked as $id => $data) {
                      $item->getFromDB($data["id"]);
-                     Session::addToNavigateListItems($type,$data["id"]);
-                     //TODO $ID never user - why this part ?
-                     $ID = "";
-                     if ($type == 'Ticket') {
-                        $data["name"] = sprintf(__('%1$s %2$s'), __('Ticket'), $data["id"]);
-                     }
-                     if ($type == 'KnowbaseItem') {
-                        $data["name"] = $data["question"];
-                     }
-                     if ($_SESSION["glpiis_ids_visible"] || empty($data["name"])) {
-                        $ID = " (".$data["id"].")";
-                     }
-
+                     Session::addToNavigateListItems($type, $data["id"]);
                      $name = $item->getLink();
 
                      echo "<tr class='tab_bg_1'>";
+                     echo "<td width='10'>";
                      if ($canedit) {
-                        echo "<td width='10'>";
-                        $sel = "";
-                        if (isset($_GET["select"]) && ($_GET["select"] == "all")) {
-                           $sel = "checked";
-                        }
-                        echo "<input type='checkbox' name='item[".$data["IDD"]."]' value='1' $sel>";
-                        echo "</td>";
+                        Html::showMassiveActionCheckBox(__CLASS__, $data["IDD"]);
+                     } else {
+                        echo "$nbsp;";
                      }
+                     echo "</td>";
                      echo "<td class='center'>".$item->getTypeName(1)."</td>";
                      echo "<td class='center' ".
                            (isset($data['deleted']) && $data['deleted']?"class='tab_bg_2_2'":"").">".
@@ -631,31 +647,13 @@ class PluginAppliancesAppliance_Item extends CommonDBRelation {
             }
          }
       }
-
-      if ($canedit) {
-         echo "<tr class='tab_bg_1'><td colspan='".(3+$colsup)."' class='center'>";
-
-         echo "<input type='hidden' name='conID' value='$instID'>";
-         Dropdown::showSelectItemFromItemtypes(array('items_id_name'   => 'item',
-                                                     'itemtypes'       => $appli->getTypes(true),
-                                                     'entity_restrict' => ($appli->fields['is_recursive']
-                                                                             ? getSonsOf('glpi_entities',
-                                                                                         $appli->fields['entities_id'])
-                                                                             : $appli->fields['entities_id']),
-                                                     'checkright'      => true));
-         echo "</td>";
-         echo "<td colspan='3' class='center' class='tab_bg_2'>";
-         echo "<input type='submit' name='additem' value='".__('Add')."' class='submit'>";
-         echo "</td></tr>";
-         echo "</table></div>" ;
-
-         Html::openArrowMassives("appliances_form$rand", true);
-         Html::closeArrowMassives(array('deleteitem' => __('Delete permanently')));
-
-      } else {
-         echo "</table></div>";
+      echo "</table>";
+      if ($canedit && $number) {
+         $massiveactionparams['ontop'] = false;
+         Html::showMassiveActions($massiveactionparams);
+         Html::closeForm();
       }
-      Html::closeForm();
+      echo "</div>";
    }
 
 
@@ -696,6 +694,7 @@ class PluginAppliancesAppliance_Item extends CommonDBRelation {
     static function displayTabContentForItem(CommonGLPI $item, $tabnum=1, $withtemplate=0) {
 
       if ($item->getType()=='PluginAppliancesAppliance') {
+         self::showAddForm($item);
          self::showForAppliance($item);
 
       } else if (in_array($item->getType(), PluginAppliancesAppliance::getTypes(true))) {
@@ -740,16 +739,17 @@ class PluginAppliancesAppliance_Item extends CommonDBRelation {
     function getFromDBbyAppliancesAndItem($plugin_appliances_appliances_id, $items_id, $itemtype) {
       global $DB;
 
-      $query = "SELECT *
-                FROM `".$this->getTable()."`
-                WHERE `plugin_appliances_appliances_id` = '" . $plugin_appliances_appliances_id . "'
-                      AND `itemtype` = '" . $items_id . "'
-                      AND `items_id` = '" . $itemtype . "'";
-      if ($result = $DB->query($query)) {
-         if ($DB->numrows($result) != 1) {
+      if ($result = $DB->request(['FROM'  => $this->getTable(),
+                                  'WHERE' => ['plugin_appliances_appliances_id'
+                                                         => $plugin_appliances_appliances_id,
+                                              'itemtype' => $items_id,
+                                              'items_id' => $itemtype]])) {
+         if ($result->numrows() != 1) {
             return false;
          }
-         $this->fields = $DB->fetch_assoc($result);
+         foreach ($result as $id => $row) {
+            $this->fields[$id] = $row;
+         }
          if (is_array($this->fields) && count($this->fields)) {
             return true;
          }
@@ -757,6 +757,7 @@ class PluginAppliancesAppliance_Item extends CommonDBRelation {
       }
       return false;
    }
+
 
     /**
      * @param $plugin_appliances_appliances_id    integer
@@ -766,7 +767,16 @@ class PluginAppliancesAppliance_Item extends CommonDBRelation {
     function deleteItemByAppliancesAndItem($plugin_appliances_appliances_id, $items_id, $itemtype) {
 
       if ($this->getFromDBbyAppliancesAndItem($plugin_appliances_appliances_id,$items_id,$itemtype)) {
-         $this->delete(array('id'=>$this->fields["id"]));
+         $this->delete(['id'=>$this->fields["id"]]);
       }
    }
+
+
+   function getForbiddenStandardMassiveAction() {
+
+      $forbidden   = parent::getForbiddenStandardMassiveAction();
+      $forbidden[] = 'update';
+      return $forbidden;
+   }
+
 }

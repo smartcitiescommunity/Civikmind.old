@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
-
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -47,13 +46,13 @@ if (!defined('GLPI_ROOT')) {
 */
 class ConsumableItem extends CommonDBTM {
    // From CommonDBTM
-   static protected $forward_entity_to = array('Consumable', 'Infocom');
+   static protected $forward_entity_to = ['Consumable', 'Infocom'];
    protected $usenotepad               = true;
 
    static $rightname                   = 'consumable';
 
 
-   static function getTypeName($nb=0) {
+   static function getTypeName($nb = 0) {
       return _n('Consumable model', 'Consumable models', $nb);
    }
 
@@ -76,7 +75,7 @@ class ConsumableItem extends CommonDBTM {
    static function getAdditionalMenuLinks() {
 
       if (static::canView()) {
-         return array('summary' => '/front/consumableitem.php?synthese=yes');
+         return ['summary' => '/front/consumableitem.php?synthese=yes'];
       }
       return false;
    }
@@ -108,19 +107,19 @@ class ConsumableItem extends CommonDBTM {
 
    function post_getEmpty() {
 
-     $this->fields["alarm_threshold"] = Entity::getUsedConfig("consumables_alert_repeat",
-                                                              $this->fields["entities_id"],
-                                                              "default_consumables_alarm_threshold", 10);
+      $this->fields["alarm_threshold"] = Entity::getUsedConfig(
+              "consumables_alert_repeat", $this->fields["entities_id"],
+              "default_consumables_alarm_threshold", 10);
    }
 
 
-   function defineTabs($options=array()) {
+   function defineTabs($options = []) {
 
-      $ong = array();
+      $ong = [];
       $this->addDefaultFormTab($ong);
       $this->addStandardTab('Consumable', $ong, $options);
       $this->addStandardTab('Infocom', $ong, $options);
-      $this->addStandardTab('Document_Item',$ong, $options);
+      $this->addStandardTab('Document_Item', $ong, $options);
       $this->addStandardTab('Link', $ong, $options);
       $this->addStandardTab('Notepad', $ong, $options);
 
@@ -139,7 +138,7 @@ class ConsumableItem extends CommonDBTM {
     * @return Nothing (display)
     *
     **/
-   function showForm($ID, $options=array()) {
+   function showForm($ID, $options = []) {
       global $CFG_GLPI;
 
       $this->initForm($ID, $options);
@@ -152,7 +151,7 @@ class ConsumableItem extends CommonDBTM {
       echo "</td>";
       echo "<td>".__('Type')."</td>";
       echo "<td>";
-      ConsumableItemType::dropdown(array('value' => $this->fields["consumableitemtypes_id"]));
+      ConsumableItemType::dropdown(['value' => $this->fields["consumableitemtypes_id"]]);
       echo "</td></tr>";
 
       echo "<tr class='tab_bg_1'>";
@@ -162,16 +161,16 @@ class ConsumableItem extends CommonDBTM {
       echo "</td>";
       echo "<td>".__('Manufacturer')."</td>";
       echo "<td>";
-      Manufacturer::dropdown(array('value' => $this->fields["manufacturers_id"]));
+      Manufacturer::dropdown(['value' => $this->fields["manufacturers_id"]]);
       echo "</td></tr>\n";
 
       echo "<tr class='tab_bg_1'>";
       echo "<td>".__('Technician in charge of the hardware')."</td>";
       echo "<td>";
-      User::dropdown(array('name'   => 'users_id_tech',
+      User::dropdown(['name'   => 'users_id_tech',
                            'value'  => $this->fields["users_id_tech"],
                            'right'  => 'own_ticket',
-                           'entity' => $this->fields["entities_id"]));
+                           'entity' => $this->fields["entities_id"]]);
       echo "</td>";
       echo "<td rowspan='4' class='middle'>".__('Comments')."</td>";
       echo "<td class='middle' rowspan='4'>
@@ -181,27 +180,27 @@ class ConsumableItem extends CommonDBTM {
       echo "<tr class='tab_bg_1'>";
       echo "<td>".__('Group in charge of the hardware')."</td>";
       echo "<td>";
-      Group::dropdown(array('name'      => 'groups_id_tech',
+      Group::dropdown(['name'      => 'groups_id_tech',
                             'value'     => $this->fields['groups_id_tech'],
                             'entity'    => $this->fields['entities_id'],
-                            'condition' => '`is_assign`'));
+                            'condition' => '`is_assign`']);
       echo "</td></tr>\n";
 
       echo "<tr class='tab_bg_1'>";
       echo "<td>".__('Stock location')."</td>";
       echo "<td>";
-      Location::dropdown(array('value'  => $this->fields["locations_id"],
-                               'entity' => $this->fields["entities_id"]));
+      Location::dropdown(['value'  => $this->fields["locations_id"],
+                               'entity' => $this->fields["entities_id"]]);
       echo "</td></tr>";
 
       echo "<tr class='tab_bg_1'>";
       echo "<td>".__('Alert threshold')."</td>";
       echo "<td>";
-      Dropdown::showNumber('alarm_threshold', array('value' => $this->fields["alarm_threshold"],
+      Dropdown::showNumber('alarm_threshold', ['value' => $this->fields["alarm_threshold"],
                                                     'min'   => 0,
                                                     'max'   => 100,
                                                     'step'  => 1,
-                                                    'toadd' => array('-1' => __('Never'))));
+                                                    'toadd' => ['-1' => __('Never')]]);
 
       Alert::displayLastAlert('ConsumableItem', $ID);
       echo "</td></tr>";
@@ -215,7 +214,7 @@ class ConsumableItem extends CommonDBTM {
    /**
     * @see CommonDBTM::getSpecificMassiveActions()
    **/
-   function getSpecificMassiveActions($checkitem=NULL) {
+   function getSpecificMassiveActions($checkitem = null) {
 
       $isadmin = static::canUpdate();
       $actions = parent::getSpecificMassiveActions($checkitem);
@@ -227,113 +226,160 @@ class ConsumableItem extends CommonDBTM {
       return $actions;
    }
 
+   function getSearchOptionsNew() {
+      $tab = [];
 
-   function getSearchOptions() {
+      $tab[] = [
+         'id'                 => 'common',
+         'name'               => __('Characteristics')
+      ];
 
-      $tab = array();
-      $tab['common']                = __('Characteristics');
+      $tab[] = [
+         'id'                 => '1',
+         'table'              => $this->getTable(),
+         'field'              => 'name',
+         'name'               => __('Name'),
+         'datatype'           => 'itemlink',
+         'massiveaction'      => false
+      ];
 
-      $tab[1]['table']              = $this->getTable();
-      $tab[1]['field']              = 'name';
-      $tab[1]['name']               = __('Name');
-      $tab[1]['datatype']           = 'itemlink';
-      $tab[1]['massiveaction']      = false;
+      $tab[] = [
+         'id'                 => '2',
+         'table'              => $this->getTable(),
+         'field'              => 'id',
+         'name'               => __('ID'),
+         'datatype'           => 'number',
+         'massiveaction'      => false
+      ];
 
-      $tab[2]['table']              = $this->getTable();
-      $tab[2]['field']              = 'id';
-      $tab[2]['name']               = __('ID');
-      $tab[2]['datatype']           = 'number';
-      $tab[2]['massiveaction']      = false;
+      $tab[] = [
+         'id'                 => '34',
+         'table'              => $this->getTable(),
+         'field'              => 'ref',
+         'name'               => __('Reference'),
+         'datatype'           => 'string'
+      ];
 
-      $tab[34]['table']             = $this->getTable();
-      $tab[34]['field']             = 'ref';
-      $tab[34]['name']              = __('Reference');
-      $tab[34]['datatype']          = 'string';
+      $tab[] = [
+         'id'                 => '4',
+         'table'              => 'glpi_consumableitemtypes',
+         'field'              => 'name',
+         'name'               => __('Type'),
+         'datatype'           => 'dropdown'
+      ];
 
-      $tab[4]['table']              = 'glpi_consumableitemtypes';
-      $tab[4]['field']              = 'name';
-      $tab[4]['name']               = __('Type');
-      $tab[4]['datatype']           = 'dropdown';
+      $tab[] = [
+         'id'                 => '23',
+         'table'              => 'glpi_manufacturers',
+         'field'              => 'name',
+         'name'               => __('Manufacturer'),
+         'datatype'           => 'dropdown'
+      ];
 
-      $tab[23]['table']             = 'glpi_manufacturers';
-      $tab[23]['field']             = 'name';
-      $tab[23]['name']              = __('Manufacturer');
-      $tab[23]['datatype']          = 'dropdown';
+      $tab[] = [
+         'id'                 => '9',
+         'table'              => $this->getTable(),
+         'field'              => '_virtual',
+         'linkfield'          => '_virtual',
+         'name'               => _n('Consumable', 'Consumables', Session::getPluralNumber()),
+         'datatype'           => 'specific',
+         'massiveaction'      => false,
+         'nosearch'           => true,
+         'nosort'             => true,
+         'additionalfields'   => ['alarm_threshold']
+      ];
 
-      $tab[9]['table']              = 'glpi_consumableitems';
-      $tab[9]['field']              = '_virtual';
-      $tab[9]['linkfield']          = '_virtual';
-      $tab[9]['name']               = _n('Consumable','Consumables', Session::getPluralNumber());
-      $tab[9]['datatype']           = 'specific';
-      $tab[9]['massiveaction']      = false;
-      $tab[9]['nosearch']           = true;
-      $tab[9]['nosort']             = true;
-      $tab[9]['additionalfields']   = array('alarm_threshold');
+      $tab[] = [
+         'id'                 => '17',
+         'table'              => 'glpi_consumables',
+         'field'              => 'id',
+         'name'               => __('Number of used consumables'),
+         'datatype'           => 'count',
+         'forcegroupby'       => true,
+         'usehaving'          => true,
+         'massiveaction'      => false,
+         'joinparams'         => [
+            'jointype'           => 'child',
+            'condition'          => 'AND NEWTABLE.`date_out` IS NOT NULL'
+         ]
+      ];
 
-      $tab[17]['table']             = 'glpi_consumables';
-      $tab[17]['field']             = 'id';
-      $tab[17]['name']              = __('Number of used consumables');
-      $tab[17]['datatype']          = 'count';
-      $tab[17]['forcegroupby']      = true;
-      $tab[17]['usehaving']         = true;
-      $tab[17]['massiveaction']     = false;
-      $tab[17]['joinparams']        = array('jointype' => 'child',
-                                            'condition' => "AND NEWTABLE.`date_out` IS NOT NULL");
+      $tab[] = [
+         'id'                 => '19',
+         'table'              => 'glpi_consumables',
+         'field'              => 'id',
+         'name'               => __('Number of new consumables'),
+         'datatype'           => 'count',
+         'forcegroupby'       => true,
+         'usehaving'          => true,
+         'massiveaction'      => false,
+         'joinparams'         => [
+            'jointype'           => 'child',
+            'condition'          => 'AND NEWTABLE.`date_out` IS NULL'
+         ]
+      ];
 
-      $tab[19]['table']             = 'glpi_consumables';
-      $tab[19]['field']             = 'id';
-      $tab[19]['name']              = __('Number of new consumables');
-      $tab[19]['datatype']          = 'count';
-      $tab[19]['forcegroupby']      = true;
-      $tab[19]['usehaving']         = true;
-      $tab[19]['massiveaction']     = false;
-      $tab[19]['joinparams']        = array('jointype' => 'child',
-                                            'condition' => "AND NEWTABLE.`date_out` IS NULL");
+      $tab = array_merge($tab, Location::getSearchOptionsToAddNew());
 
-      $tab += Location::getSearchOptionsToAdd();
+      $tab[] = [
+         'id'                 => '24',
+         'table'              => 'glpi_users',
+         'field'              => 'name',
+         'linkfield'          => 'users_id_tech',
+         'name'               => __('Technician in charge of the hardware'),
+         'datatype'           => 'dropdown',
+         'right'              => 'own_ticket'
+      ];
 
-      $tab[24]['table']             = 'glpi_users';
-      $tab[24]['field']             = 'name';
-      $tab[24]['linkfield']         = 'users_id_tech';
-      $tab[24]['name']              = __('Technician in charge of the hardware');
-      $tab[24]['datatype']          = 'dropdown';
-      $tab[24]['right']             = 'own_ticket';
+      $tab[] = [
+         'id'                 => '49',
+         'table'              => 'glpi_groups',
+         'field'              => 'completename',
+         'linkfield'          => 'groups_id_tech',
+         'name'               => __('Group in charge of the hardware'),
+         'condition'          => '`is_assign`',
+         'datatype'           => 'dropdown'
+      ];
 
-      $tab[49]['table']             = 'glpi_groups';
-      $tab[49]['field']             = 'completename';
-      $tab[49]['linkfield']         = 'groups_id_tech';
-      $tab[49]['name']              = __('Group in charge of the hardware');
-      $tab[49]['condition']         = '`is_assign`';
-      $tab[49]['datatype']          = 'dropdown';
+      $tab[] = [
+         'id'                 => '8',
+         'table'              => $this->getTable(),
+         'field'              => 'alarm_threshold',
+         'name'               => __('Alert threshold'),
+         'datatype'           => 'number',
+         'toadd'              => [
+            '-1'                 => 'Never'
+         ]
+      ];
 
-      $tab[8]['table']              = $this->getTable();
-      $tab[8]['field']              = 'alarm_threshold';
-      $tab[8]['name']               = __('Alert threshold');
-      $tab[8]['datatype']           = 'number';
-      $tab[8]['toadd']              = array('-1' => __('Never'));
+      $tab[] = [
+         'id'                 => '16',
+         'table'              => $this->getTable(),
+         'field'              => 'comment',
+         'name'               => __('Comments'),
+         'datatype'           => 'text'
+      ];
 
-      $tab[16]['table']             = $this->getTable();
-      $tab[16]['field']             = 'comment';
-      $tab[16]['name']              = __('Comments');
-      $tab[16]['datatype']          = 'text';
-
-      $tab[80]['table']             = 'glpi_entities';
-      $tab[80]['field']             = 'completename';
-      $tab[80]['name']              = __('Entity');
-      $tab[80]['massiveaction']     = false;
-      $tab[80]['datatype']          = 'dropdown';
+      $tab[] = [
+         'id'                 => '80',
+         'table'              => 'glpi_entities',
+         'field'              => 'completename',
+         'name'               => __('Entity'),
+         'massiveaction'      => false,
+         'datatype'           => 'dropdown'
+      ];
 
       // add objectlock search options
-      $tab += ObjectLock::getSearchOptionsToAdd( get_class($this) ) ;
+      $tab = array_merge($tab, ObjectLock::getSearchOptionsToAddNew(get_class($this)));
 
-      $tab += Notepad::getSearchOptionsToAdd();
+      $tab = array_merge($tab, Notepad::getSearchOptionsToAddNew());
 
       return $tab;
    }
 
 
    static function cronInfo($name) {
-      return array('description' => __('Send alarms on consumables'));
+      return ['description' => __('Send alarms on consumables')];
    }
 
 
@@ -344,14 +390,14 @@ class ConsumableItem extends CommonDBTM {
     *
     * @return 0 : nothing to do 1 : done with success
    **/
-   static function cronConsumable($task=NULL) {
+   static function cronConsumable($task = null) {
       global $DB, $CFG_GLPI;
 
       $cron_status = 1;
 
-      if ($CFG_GLPI["use_mailing"]) {
-         $message = array();
-         $items   = array();
+      if ($CFG_GLPI["use_notifications"]) {
+         $message = [];
+         $items   = [];
          $alert   = new Alert();
 
          foreach (Entity::getEntitiesToNotify('consumables_alert_repeat') as $entity => $repeat) {
@@ -373,7 +419,7 @@ class ConsumableItem extends CommonDBTM {
                                   AND (`glpi_alerts`.`date` IS NULL
                                        OR (`glpi_alerts`.date+$repeat) < CURRENT_TIMESTAMP());";
             $message = "";
-            $items   = array();
+            $items   = [];
 
             foreach ($DB->request($query_alert) as $consumable) {
                if (($unused=Consumable::getUnusedNumber($consumable["consID"]))
@@ -388,7 +434,7 @@ class ConsumableItem extends CommonDBTM {
 
                   // if alert exists -> delete
                   if (!empty($consumable["alertID"])) {
-                     $alert->delete(array("id" => $consumable["alertID"]));
+                     $alert->delete(["id" => $consumable["alertID"]]);
                   }
                }
             }
@@ -429,14 +475,14 @@ class ConsumableItem extends CommonDBTM {
                   }
                }
             }
-          }
+         }
       }
       return $cron_status;
    }
 
 
    function getEvents() {
-      return array('alert' => __('Send alarms on consumables'));
+      return ['alert' => __('Send alarms on consumables')];
    }
 
 
@@ -446,15 +492,15 @@ class ConsumableItem extends CommonDBTM {
    function showDebug() {
 
       // see query_alert in cronConsumable()
-      $item = array('consID'    => $this->fields['id'],
+      $item = ['consID'    => $this->fields['id'],
                     'entity'    => $this->fields['entities_id'],
                     'ref'       => $this->fields['ref'],
                     'name'      => $this->fields['name'],
-                    'threshold' => $this->fields['alarm_threshold']);
+                    'threshold' => $this->fields['alarm_threshold']];
 
-      $options = array();
+      $options = [];
       $options['entities_id'] = $this->getEntityID();
-      $options['items']       = array($item);
+      $options['items']       = [$item];
       NotificationEvent::debugEvent($this, $options);
    }
 
@@ -478,4 +524,3 @@ class ConsumableItem extends CommonDBTM {
       return true;
    }
 }
-

@@ -1,6 +1,6 @@
 <?php
 /*
- * @version $Id: appliance.form.php 221 2016-05-30 15:25:38Z yllen $
+ * @version $Id: appliance.form.php 258 2017-10-10 13:21:54Z yllen $
  -------------------------------------------------------------------------
  LICENSE
 
@@ -21,7 +21,7 @@
 
  @package   appliances
  @author    Xavier CAILLAUD, Remi Collet, Nelly Mahu-Lasson
- @copyright Copyright (c) 2009-2016 Appliances plugin team
+ @copyright Copyright (c) 2009-2017 Appliances plugin team
  @license   AGPL License 3.0 or (at your option) any later version
             http://www.gnu.org/licenses/agpl-3.0-standalone.html
  @link      https://forge.glpi-project.org/projects/appliances
@@ -31,7 +31,6 @@
 
 include ("../../../inc/includes.php");
 
-//Plugin::load('appliances',true);
 
 if (!isset($_GET["id"])) {
    $_GET["id"] = "";
@@ -88,8 +87,8 @@ if (isset($_POST["add"])) {
    if ($_POST['tablekey'] >0) {
       foreach($_POST["tablekey"] as $key => $val) {
          if ($val > 0) {
-            $relation->add(array('plugin_appliances_appliances_items_id' => $key,
-                                 'relations_id'                          => $val));
+            $relation->add(['plugin_appliances_appliances_items_id' => $key,
+                            'relations_id'                          => $val]);
          }
       }
    }
@@ -97,7 +96,6 @@ if (isset($_POST["add"])) {
 
 } else if (isset($_POST['update_optvalues'])) {
    $PluginAppliances->check($_POST['plugin_appliances_appliances_id'], UPDATE);
-
    $Optvalue = new PluginAppliancesOptvalue();
    $Optvalue->updateList($_POST);
    Html::back();
@@ -114,9 +112,9 @@ if (isset($_POST["add"])) {
 } else if (isset($_POST["additem"])) {
    if ($_POST['itemtype']
        && ($_POST['item'] > 0)) {
-      $input = array('plugin_appliances_appliances_id' => $_POST['conID'],
-                     'items_id'                        => $_POST['item'],
-                     'itemtype'                        => $_POST['itemtype']);
+      $input = ['plugin_appliances_appliances_id' => $_POST['conID'],
+                'items_id'                        => $_POST['item'],
+                'itemtype'                        => $_POST['itemtype']];
 
       $PluginItem->check(-1, UPDATE, $input);
       $newID = $PluginItem->add($input);
@@ -125,7 +123,7 @@ if (isset($_POST["add"])) {
 
 } else if (isset($_POST["deleteitem"])){
    foreach ($_POST["item"] as $key => $val) {
-      $input = array('id' => $key);
+      $input = ['id' => $key];
       if ($val == 1) {
          $PluginItem->check($key, UPDATE);
          $PluginItem->delete($input);
@@ -134,7 +132,7 @@ if (isset($_POST["add"])) {
    Html::back();
 
 } else if (isset($_POST["deleteappliance"])) {
-   $input = array('id' => $_POST["id"]);
+   $input = ['id' => $_POST["id"]];
    $PluginItem->check($_POST["id"], UPDATE);
    $PluginItem->delete($input);
    Html::back();
@@ -155,4 +153,3 @@ if (isset($_POST["add"])) {
 
    Html::footer();
 }
-?>

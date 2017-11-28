@@ -1,6 +1,6 @@
 <?php
 /*
- * @version $Id: optvalue_item.class.php 246 2016-12-05 17:14:42Z yllen $
+ * @version $Id: optvalue_item.class.php 258 2017-10-10 13:21:54Z yllen $
  -------------------------------------------------------------------------
   LICENSE
 
@@ -21,7 +21,7 @@
 
  @package   appliances
  @author    Xavier CAILLAUD, Remi Collet, Nelly Mahu-Lasson
- @copyright Copyright (c) 2009-2016 Appliances plugin team
+ @copyright Copyright (c) 2009-2017 Appliances plugin team
  @license   AGPL License 3.0 or (at your option) any later version
             http://www.gnu.org/licenses/agpl-3.0-standalone.html
  @link      https://forge.glpi-project.org/projects/appliances
@@ -53,31 +53,26 @@ class PluginAppliancesOptvalue_Item extends CommonDBTM {
    static function showList ($itemtype, $items_id, $appliances_id, $canedit) {
       global $DB, $CFG_GLPI;
 
-      $query_app_opt = "SELECT *
-                        FROM `glpi_plugin_appliances_optvalues`
-                        WHERE `plugin_appliances_appliances_id` = '".$appliances_id."'
-                        ORDER BY `vvalues`";
+      $result_app_opt = $DB->request(['FROM'  => 'glpi_plugin_appliances_optvalues',
+                                      'WHERE' => ['plugin_appliances_appliances_id' => $appliances_id],
+                                      'ORDER' => 'vvalues']);
+      $number  = $result_app_opt->numrows();
 
-      $result_app_opt = $DB->query($query_app_opt);
-      $number_champs  = $DB->numrows($result_app_opt);
-
-      if ($canedit)  {
+      if ($canedit) {
          echo "<form method='post' action='".$CFG_GLPI["root_doc"].
                "/plugins/appliances/front/appliance.form.php'>";
-         echo "<input type='hidden' name='number_champs' value='".$number_champs."'>";
+         echo "<input type='hidden' name='number_champs' value='".$number."'>";
       }
       echo "<table>";
 
-      for ($i=1 ; $i<=$number_champs ; $i++) {
-         if ($data_opt = $DB->fetch_array($result_app_opt)) {
-            $query_val = "SELECT `vvalue`
-                          FROM `glpi_plugin_appliances_optvalues_items`
-                          WHERE `plugin_appliances_optvalues_id` = '".$data_opt["id"]."'
-                                AND `items_id` = '".$items_id."'";
-
-            $result_val = $DB->query($query_val);
-            $data_val   = $DB->fetch_array($result_val);
-            $vvalue     = ($data_val ? $data_val['vvalue'] : "");
+      for ($i=1 ; $i<=$number ; $i++) {
+         if ($data_opt = $result_app_opt->next()) {
+            $query_val = $DB->request(['SELECT' => 'vvalue',
+                                        'FROM'   => 'glpi_plugin_appliances_optvalues_items',
+                                        'WHERE'  => ['plugin_appliances_optvalues_id' => $data_opt["id"],
+                                                     'items_id'                       => $items_id]]);
+            $data_val = $query_val->next();
+            $vvalue     = ($data_val? $data_val['vvalue'] : "");
             if (empty($vvalue) && !empty($data_opt['ddefault'])) {
                $vvalue = $data_opt['ddefault'];
             }
@@ -92,9 +87,8 @@ class PluginAppliancesOptvalue_Item extends CommonDBTM {
             }
             echo "</td></tr>";
 
-         } else {
-            echo "<input type='hidden' name='opt_id$i' value='-1'>";
          }
+         echo "<input type='hidden' name='opt_id$i' value='-1'>";
       } // For
 
       echo "</table>";
@@ -103,7 +97,7 @@ class PluginAppliancesOptvalue_Item extends CommonDBTM {
          echo "<input type='hidden' name='itemtype' value='".$itemtype."'>";
          echo "<input type='hidden' name='items_id' value='".$items_id."'>";
          echo "<input type='hidden' name='plugin_appliances_appliances_id' value='".$appliances_id."'>";
-         echo "<input type='hidden' name='number_champs' value='".$number_champs."'>";
+         echo "<input type='hidden' name='number_champs' value='".$number."'>";
          echo "<input type='submit' name='add_opt_val' value='"._sx('button', 'Update')."'
                 class='submit'>";
          Html::closeForm();
@@ -121,13 +115,11 @@ class PluginAppliancesOptvalue_Item extends CommonDBTM {
    static function showList_PDF($pdf, $ID, $appliancesID) {
       global $DB;
 
-      $query_app_opt = "SELECT `id`, `champ`, `ddefault`
-                        FROM `glpi_plugin_appliances_optvalues`
-                        WHERE `plugin_appliances_appliances_id` = '".$appliancesID."'
-                        ORDER BY `vvalues`";
-
-      $result_app_opt = $DB->query($query_app_opt);
-      $number_champs = $DB->numrows($result_app_opt);
+      $result_app_opt = $DB->request(['FIELDS' => ['id', 'champ', 'ddefault', 'vvalues'],
+                                      'FROM'   => 'glpi_plugin_appliances_optvalues',
+                                      'WHERE'  => ['plugin_appliances_appliances_id' => $appliancesID],
+                                      'ORDER'  => 'vvalues']);
+      $number_champs = $result_app_opt->numrows();
 
       if (!$number_champs) {
          return;
@@ -135,14 +127,12 @@ class PluginAppliancesOptvalue_Item extends CommonDBTM {
 
       $opts = array();
       for ($i=1 ; $i<=$number_champs ; $i++) {
-         if ($data_opt = $DB->fetch_array($result_app_opt)) {
-            $query_val = "SELECT `vvalue`
-                          FROM `glpi_plugin_appliances_optvalues_items`
-                          WHERE `plugin_appliances_optvalues_id` = '".$data_opt["id"]."'
-                                AND `items_id` = '".$ID."'";
-
-            $result_val = $DB->query($query_val);
-            $data_val = $DB->fetch_array($result_val);
+         if ($data_opt = $result_app_opt->next()) {
+            $query_val = $DB->request(['SELECT' => 'vvalue',
+                                       'FROM'   => 'glpi_plugin_appliances_optvalues_items',
+                                       'WHERE'  => ['plugin_appliances_optvalues_id' => $data_opt["id"],
+                                                    'items_id' => $ID]]);
+            $data_val = $query_val->next();
             $vvalue = ($data_val ? $data_val['vvalue'] : "");
             if (empty($vvalue) && !empty($data_opt['ddefault'])) {
                $vvalue = $data_opt['ddefault'];
@@ -170,14 +160,13 @@ class PluginAppliancesOptvalue_Item extends CommonDBTM {
          $vvalue   = "vvalue$i";
          $ddefault = "ddefault$i";
 
-         $query_app = "SELECT `id`
-                       FROM `glpi_plugin_appliances_optvalues_items`
-                       WHERE `plugin_appliances_optvalues_id` = '".$input[$opt_id]."'
-                             AND `itemtype` = '".$input['itemtype']."'
-                             AND `items_id` = '".$input['items_id']."'";
-         $result_app = $DB->query($query_app);
+         $query_app = $DB->request(['SELECT' => 'id',
+                                    'FROM'   => 'glpi_plugin_appliances_optvalues_items',
+                                    'WHERE'  => ['plugin_appliances_optvalues_id' => $input[$opt_id],
+                                                 'itemtype'                       => $input['itemtype'],
+                                                 'items_id'                       => $input['items_id']]]);
 
-         if ($data = $DB->fetch_array($result_app)) {
+         if ($data = $query_app->next()) {
             // l'entrée existe déjà, il faut faire un update ou un delete
             if (empty($input[$vvalue])
                 || ($input[$vvalue] == $input[$ddefault])) {
@@ -191,10 +180,10 @@ class PluginAppliancesOptvalue_Item extends CommonDBTM {
                     && ($input[$vvalue] != $input[$ddefault])) {
             // l'entrée n'existe pas
             // et la valeur saisie est non nulle -> on fait un insert
-            $data = array('plugin_appliances_optvalues_id' => $input[$opt_id],
-                          'itemtype'                       => $input['itemtype'],
-                          'items_id'                       => $input['items_id'],
-                          'vvalue'                         => $input[$vvalue]);
+            $data = ['plugin_appliances_optvalues_id' => $input[$opt_id],
+                     'itemtype'                       => $input['itemtype'],
+                     'items_id'                       => $input['items_id'],
+                     'vvalue'                         => $input[$vvalue]];
             $this->add($data);
          }
       } // For

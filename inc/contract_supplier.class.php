@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
-
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -72,7 +71,7 @@ class Contract_Supplier extends CommonDBRelation {
                     getEntitiesRestrictRequest(" AND ", "glpi_contracts", '',
                                                $_SESSION['glpiactiveentities']);
 
-      return countElementsInTable(array('glpi_contracts_suppliers', 'glpi_contracts'), $restrict);
+      return countElementsInTable(['glpi_contracts_suppliers', 'glpi_contracts'], $restrict);
    }
 
 
@@ -86,11 +85,11 @@ class Contract_Supplier extends CommonDBRelation {
                     getEntitiesRestrictRequest(" AND ", "glpi_suppliers", '',
                                                $_SESSION['glpiactiveentities'], true);
 
-      return countElementsInTable(array('glpi_contracts_suppliers', 'glpi_suppliers'), $restrict);
+      return countElementsInTable(['glpi_contracts_suppliers', 'glpi_suppliers'], $restrict);
    }
 
 
-   function getTabNameForItem(CommonGLPI $item, $withtemplate=0) {
+   function getTabNameForItem(CommonGLPI $item, $withtemplate = 0) {
 
       if (!$withtemplate) {
          $nb = 0;
@@ -119,7 +118,7 @@ class Contract_Supplier extends CommonDBRelation {
    }
 
 
-   static function displayTabContentForItem(CommonGLPI $item, $tabnum=1, $withtemplate=0) {
+   static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0) {
 
       switch ($item->getType()) {
          case 'Supplier' :
@@ -166,8 +165,8 @@ class Contract_Supplier extends CommonDBRelation {
                          `glpi_contracts`.`name`";
 
       $result    = $DB->query($query);
-      $contracts = array();
-      $used      = array();
+      $contracts = [];
+      $used      = [];
       if ($number = $DB->numrows($result)) {
          while ($data = $DB->fetch_assoc($result)) {
             $contracts[$data['assocID']] = $data;
@@ -185,10 +184,10 @@ class Contract_Supplier extends CommonDBRelation {
          echo "<tr class='tab_bg_2'><th colspan='2'>".__('Add a contract')."</th></tr>";
 
          echo "<tr class='tab_bg_1'><td class='right'>";
-         Contract::dropdown(array('used'         => $used,
+         Contract::dropdown(['used'         => $used,
                                   'entity'       => $supplier->fields["entities_id"],
                                   'entity_sons'  => $supplier->fields["is_recursive"],
-                                  'nochecklimit' => true));
+                                  'nochecklimit' => true]);
 
          echo "</td><td class='center'>";
          echo "<input type='submit' name='add' value=\""._sx('button', 'Add')."\" class='submit'>";
@@ -201,8 +200,8 @@ class Contract_Supplier extends CommonDBRelation {
       echo "<div class='spaced'>";
       if ($canedit && $number) {
          Html::openMassiveActionsForm('mass'.__CLASS__.$rand);
-         $massiveactionparams = array('container'     => 'mass'.__CLASS__.$rand,
-                                      'num_displayed' => min($_SESSION['glpilist_limit'], $number));
+         $massiveactionparams = ['container'     => 'mass'.__CLASS__.$rand,
+                                      'num_displayed' => min($_SESSION['glpilist_limit'], $number)];
          Html::showMassiveActions($massiveactionparams);
       }
       echo "<table class='tab_cadre_fixe'>";
@@ -226,7 +225,7 @@ class Contract_Supplier extends CommonDBRelation {
       $header_end .= "</tr>";
       echo $header_begin.$header_top.$header_end;
 
-      $used = array();
+      $used = [];
       foreach ($contracts as $data) {
          $cID        = $data["id"];
          $used[$cID] = $cID;
@@ -249,7 +248,7 @@ class Contract_Supplier extends CommonDBRelation {
          echo "<td class='center'>".Dropdown::getDropdownName("glpi_entities", $data["entity"]);
          echo "</td><td class='center'>".$data["num"]."</td>";
          echo "<td class='center'>".
-                Dropdown::getDropdownName("glpi_contracttypes",$data["contracttypes_id"])."</td>";
+                Dropdown::getDropdownName("glpi_contracttypes", $data["contracttypes_id"])."</td>";
          echo "<td class='center'>".Html::convDate($data["begin_date"])."</td>";
          echo "<td class='center'>";
          sprintf(_n('%d month', '%d months', $data["duration"]), $data["duration"]);
@@ -306,12 +305,12 @@ class Contract_Supplier extends CommonDBRelation {
                 LEFT JOIN `glpi_entities` ON (`glpi_entities`.`id`=`glpi_suppliers`.`entities_id`)
                 WHERE `glpi_contracts_suppliers`.`contracts_id` = '$instID'
                       AND `glpi_contracts_suppliers`.`suppliers_id`=`glpi_suppliers`.`id`".
-                      getEntitiesRestrictRequest(" AND","glpi_suppliers",'','',true). "
+                      getEntitiesRestrictRequest(" AND", "glpi_suppliers", '', '', true). "
                 ORDER BY `glpi_entities`.`completename`, `name`";
 
       $result    = $DB->query($query);
-      $suppliers = array();
-      $used      = array();
+      $suppliers = [];
+      $used      = [];
       if ($number = $DB->numrows($result)) {
          while ($data = $DB->fetch_assoc($result)) {
             $suppliers[$data['id']] = $data;
@@ -330,9 +329,9 @@ class Contract_Supplier extends CommonDBRelation {
 
          echo "<tr class='tab_bg_1'><td class='right'>";
 
-         Supplier::dropdown(array('used'         => $used,
+         Supplier::dropdown(['used'         => $used,
                                   'entity'       => $contract->fields["entities_id"],
-                                  'entity_sons'  => $contract->fields["is_recursive"]));
+                                  'entity_sons'  => $contract->fields["is_recursive"]]);
          echo "</td><td class='center'>";
          echo "<input type='submit' name='add' value=\""._sx('button', 'Add')."\" class='submit'>";
          echo "</td></tr>";
@@ -344,8 +343,8 @@ class Contract_Supplier extends CommonDBRelation {
       echo "<div class='spaced'>";
       if ($canedit && $number) {
          Html::openMassiveActionsForm('mass'.__CLASS__.$rand);
-         $massiveactionparams = array('num_displayed' => min($_SESSION['glpilist_limit'], $number),
-                                      'container'     => 'mass'.__CLASS__.$rand);
+         $massiveactionparams = ['num_displayed' => min($_SESSION['glpilist_limit'], $number),
+                                      'container'     => 'mass'.__CLASS__.$rand];
          Html::showMassiveActions($massiveactionparams);
       }
       echo "<table class='tab_cadre_fixe'>";
@@ -367,12 +366,12 @@ class Contract_Supplier extends CommonDBRelation {
       $header_end .= "</tr>";
       echo $header_begin.$header_top.$header_end;
 
-      $used = array();
+      $used = [];
       foreach ($suppliers as $data) {
          $ID      = $data['id'];
          $website = $data['website'];
          if (!empty($website)) {
-            if (!preg_match("?https*://?",$website)) {
+            if (!preg_match("?https*://?", $website)) {
                $website = "http://".$website;
             }
             $website = "<a target=_blank href='$website'>".$data['website']."</a>";
@@ -394,7 +393,7 @@ class Contract_Supplier extends CommonDBRelation {
          }
          echo "<a href='".$CFG_GLPI["root_doc"]."/front/supplier.form.php?id=$entID'>".$entname;
          echo "</a></td>";
-         echo "<td class='center'>".Dropdown::getDropdownName("glpi_entities",$entity)."</td>";
+         echo "<td class='center'>".Dropdown::getDropdownName("glpi_entities", $entity)."</td>";
          echo "<td class='center'>";
          echo Dropdown::getDropdownName("glpi_suppliertypes", $data['type'])."</td>";
          echo "<td class='center'>".$data['phone']."</td>";
@@ -414,4 +413,3 @@ class Contract_Supplier extends CommonDBRelation {
    }
 
 }
-?>

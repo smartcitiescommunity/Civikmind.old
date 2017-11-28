@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
- 
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -67,8 +66,8 @@ abstract class CommonDBChild extends CommonDBConnexity {
    **/
    static function getSQLRequestToSearchForItem($itemtype, $items_id) {
 
-      $conditions = array();
-      $fields     = array('`'.static::getIndexName().'`');
+      $conditions = [];
+      $fields     = ['`'.static::getIndexName().'`'];
 
       // Check item 1 type
       $condition_id = "`".static::$items_id."` = '$items_id'";
@@ -79,7 +78,7 @@ abstract class CommonDBChild extends CommonDBConnexity {
       } else {
          $fields[] = "'".static::$itemtype."' AS itemtype";
          if (($itemtype ==  static::$itemtype)
-             || is_subclass_of($itemtype,  static::$itemtype)) {
+             || is_subclass_of($itemtype, static::$itemtype)) {
             $condition = $condition_id;
          }
       }
@@ -221,7 +220,7 @@ abstract class CommonDBChild extends CommonDBConnexity {
     *
     * @return object of the concerned item or false on error
    **/
-   function getItem($getFromDB=true, $getEmpty=true) {
+   function getItem($getFromDB = true, $getEmpty = true) {
 
       return $this->getConnexityItem(static::$itemtype, static::$items_id,
                                      $getFromDB, $getEmpty);
@@ -237,30 +236,29 @@ abstract class CommonDBChild extends CommonDBConnexity {
    static function displayRecursiveItems(array $recursiveItems, $elementToDisplay) {
 
       if ((!is_array($recursiveItems)) || (count($recursiveItems) == 0)) {
-         _e('Item not linked to an object');
+         echo __('Item not linked to an object');
          return;
       }
 
       switch ($elementToDisplay) {
-      case 'Type' :
-         $masterItem = $recursiveItems[count($recursiveItems) - 1];
-         echo $masterItem->getTypeName(1);
-         break;
+         case 'Type' :
+            $masterItem = $recursiveItems[count($recursiveItems) - 1];
+            echo $masterItem->getTypeName(1);
+            break;
 
-      case 'Name' :
-      case 'Link' :
-         $items_elements  = array();
-         foreach ($recursiveItems as $item) {
-            if ($elementToDisplay == 'Name') {
-               $items_elements[] = $item->getName();
-            } else {
-               $items_elements[] = $item->getLink();
+         case 'Name' :
+         case 'Link' :
+            $items_elements  = [];
+            foreach ($recursiveItems as $item) {
+               if ($elementToDisplay == 'Name') {
+                  $items_elements[] = $item->getName();
+               } else {
+                  $items_elements[] = $item->getLink();
+               }
             }
-         }
-         echo implode(' &lt; ', $items_elements);
-         break;
+            echo implode(' &lt; ', $items_elements);
+            break;
       }
-
    }
 
 
@@ -276,11 +274,11 @@ abstract class CommonDBChild extends CommonDBConnexity {
       $item = $this->getItem();
       if ($item !== false) {
          if ($item instanceof CommonDBChild) {
-            return array_merge(array($item), $item->recursivelyGetItems());
+            return array_merge([$item], $item->recursivelyGetItems());
          }
-         return array($item);
+         return [$item];
       }
-      return array();
+      return [];
    }
 
 
@@ -407,7 +405,7 @@ abstract class CommonDBChild extends CommonDBConnexity {
 
       // Check item exists
       if (static::$mustBeAttached
-          && !$this->getItemFromArray(static::$itemtype, static::$items_id,$input)) {
+          && !$this->getItemFromArray(static::$itemtype, static::$items_id, $input)) {
          return false;
       }
 
@@ -425,8 +423,8 @@ abstract class CommonDBChild extends CommonDBConnexity {
       }
 
       // True if item changed
-      if (!parent::checkAttachedItemChangesAllowed($input, array(static::$itemtype,
-                                                                 static::$items_id))) {
+      if (!parent::checkAttachedItemChangesAllowed($input, [static::$itemtype,
+                                                                 static::$items_id])) {
          return false;
       }
 
@@ -448,8 +446,8 @@ abstract class CommonDBChild extends CommonDBConnexity {
    **/
    function getHistoryNameForItem(CommonDBTM $item, $case) {
 
-      return $this->getNameID(array('forceid'    => true,
-                                    'additional' => true));
+      return $this->getNameID(['forceid'    => true,
+                                    'additional' => true]);
    }
 
 
@@ -487,7 +485,7 @@ abstract class CommonDBChild extends CommonDBConnexity {
     *
     * @return nothing
    **/
-   function post_updateItem($history=1) {
+   function post_updateItem($history = 1) {
 
       if ((isset($this->input['_no_history']) && $this->input['_no_history'])
           || !static::$logs_for_parent) {
@@ -495,7 +493,6 @@ abstract class CommonDBChild extends CommonDBConnexity {
       }
 
       $items_for_log = $this->getItemsForLog(static::$itemtype, static::$items_id);
-
 
       // Whatever case : we log the changes
       $oldvalues = $this->oldvalues;
@@ -538,7 +535,7 @@ abstract class CommonDBChild extends CommonDBConnexity {
                          static::$log_history_add);
          }
       }
-  }
+   }
 
    /**
     * Actions done after the DELETE of the item in the database
@@ -589,7 +586,6 @@ abstract class CommonDBChild extends CommonDBConnexity {
           && $this->isDynamic()) {
          $item = $this->getItem();
 
-
          if (($item !== false)
              && $item->dohistory) {
             $changes[0] = '0';
@@ -619,7 +615,6 @@ abstract class CommonDBChild extends CommonDBConnexity {
       if ($this->useDeletedToLockIfDynamic()
           && $this->isDynamic()) {
          $item = $this->getItem();
-
 
          if (($item !== false)
              && $item->dohistory) {
@@ -676,7 +671,7 @@ abstract class CommonDBChild extends CommonDBConnexity {
       if ($canedit) {
          echo "<input type='text' size='40' name='$field_name' value='$value'>";
       } else {
-         echo "<input type='hidden' name='$field_name' value='$value'>$value" ;
+         echo "<input type='hidden' name='$field_name' value='$value'>$value";
       }
    }
 
@@ -699,8 +694,8 @@ abstract class CommonDBChild extends CommonDBConnexity {
     *
     * @return the button HTML code if $display is true
    **/
-   static function showAddChildButtonForItemForm(CommonDBTM $item, $field_name, $canedit=NULL,
-                                                 $display=true) {
+   static function showAddChildButtonForItemForm(CommonDBTM $item, $field_name, $canedit = null,
+                                                 $display = true) {
       global $CFG_GLPI;
 
       $items_id = $item->getID();
@@ -729,13 +724,13 @@ abstract class CommonDBChild extends CommonDBConnexity {
 
          // Beware : -1 is for the first element added ...
          $result = "&nbsp;<script type='text/javascript'>var $child_count_js_var=2; </script>";
-         $result .= "<span id='add".$lower_name."button'>".
-              "<img title=\"".__s('Add')."\" alt=\"". __s('Add').
+         $result .= "<span id='add".$lower_name."button' class='fa fa-plus pointer'".
+              " title=\"".__s('Add')."\"" .
                 "\" onClick=\"var row = ".Html::jsGetElementByID($div_id).";
                              row.append('<br>" .
                static::getJSCodeToAddForItemChild($field_name, $child_count_js_var)."');
                             $child_count_js_var++;\"
-               class='pointer' src='".$CFG_GLPI["root_doc"]."/pics/add_dropdown.png'></span>";
+               ><span class='sr-only'>" . __s('Add')  . "</span></span>";
       }
       if ($display) {
          echo $result;
@@ -761,7 +756,7 @@ abstract class CommonDBChild extends CommonDBConnexity {
     *
     * @return nothing (display only)
    **/
-   static function showChildsForItemForm(CommonDBTM $item, $field_name, $canedit=NULL) {
+   static function showChildsForItemForm(CommonDBTM $item, $field_name, $canedit = null) {
       global $DB, $CFG_GLPI;
 
       $items_id = $item->getID();
@@ -784,27 +779,31 @@ abstract class CommonDBChild extends CommonDBConnexity {
       $lower_name = strtolower(get_called_class());
       $div_id     = "add_".$lower_name."_to_".$item->getType()."_".$items_id;
 
-     // To be sure not to load bad datas from this table
+      // To be sure not to load bad datas from this table
       if ($items_id == 0) {
          $items_id = -99;
       }
 
-      $query = "SELECT *
-                FROM `" . static::getTable() . "`
-                WHERE `".static::$items_id."` = '".$item->getID()."'";
+      $query = [
+         'FROM'   => static::getTable(),
+         'WHERE'  => [
+            static::$items_id => $item->getID()
+         ]
+      ];
 
       if (preg_match('/^itemtype/', static::$itemtype)) {
-         $query .= " AND `itemtype` = '".$item->getType()."'";
+         $query['WHERE']['itemtype'] = $item->getType();
       }
 
       $current_item = new static();
 
       if ($current_item->maybeDeleted()) {
-         $query .= " AND `is_deleted` = '0'";
+         $query['WHERE']['is_deleted'] = 0;
       }
 
+      $iterator = $DB->request($query);
       $count = 0;
-      foreach ($DB->request($query) as $data) {
+      while ($data = $iterator->next()) {
 
          $current_item->fields = $data;
 
@@ -838,10 +837,10 @@ abstract class CommonDBChild extends CommonDBConnexity {
     *
     * @return boolean : true on success
    **/
-   function affectChild($id, $items_id=0, $itemtype='') {
+   function affectChild($id, $items_id = 0, $itemtype = '') {
 
-      $input = array(static::getIndexName() => $id,
-                     static::$items_id      => $items_id);
+      $input = [static::getIndexName() => $id,
+                     static::$items_id      => $items_id];
 
       if (preg_match('/^itemtype/', static::$itemtype)) {
          $input[static::$itemtype] = $itemtype;
@@ -850,4 +849,3 @@ abstract class CommonDBChild extends CommonDBConnexity {
       return $this->update($input);
    }
 }
-?>

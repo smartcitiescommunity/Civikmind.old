@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
-
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -52,15 +51,15 @@ class ComputerVirtualMachine extends CommonDBChild {
    public $dohistory       = true;
 
 
-   static function getTypeName($nb=0) {
-      return _n('Virtual machine', 'Virtual machines', $nb);
+   static function getTypeName($nb = 0) {
+      return __('Virtualization');
    }
 
 
    /**
     * @see CommonGLPI::getTabNameForItem()
    **/
-   function getTabNameForItem(CommonGLPI $item, $withtemplate=0) {
+   function getTabNameForItem(CommonGLPI $item, $withtemplate = 0) {
 
       if (!$withtemplate
           && ($item->getType() == 'Computer')
@@ -68,9 +67,9 @@ class ComputerVirtualMachine extends CommonDBChild {
          $nb = 0;
          if ($_SESSION['glpishow_count_on_tabs']) {
             $nb = countElementsInTable('glpi_computervirtualmachines',
-                                       "computers_id = '".$item->getID()."' AND `is_deleted`='0'");
+                                      ['computers_id' => $item->getID(), 'is_deleted' => 0 ]);
          }
-         return self::createTabEntry(self::getTypeName(Session::getPluralNumber()), $nb);
+         return self::createTabEntry(self::getTypeName(), $nb);
       }
       return '';
    }
@@ -81,9 +80,9 @@ class ComputerVirtualMachine extends CommonDBChild {
     *
     * @since version 0.85
    **/
-   function defineTabs($options=array()) {
+   function defineTabs($options = []) {
 
-      $ong = array();
+      $ong = [];
       $this->addDefaultFormTab($ong);
 
       return $ong;
@@ -95,7 +94,7 @@ class ComputerVirtualMachine extends CommonDBChild {
     * @param $tabnum       (default 1)
     * @param $withtemplate (default 0)
    **/
-   static function displayTabContentForItem(CommonGLPI $item, $tabnum=1, $withtemplate=0) {
+   static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0) {
 
       self::showForVirtualMachine($item);
       self::showForComputer($item);
@@ -120,11 +119,11 @@ class ComputerVirtualMachine extends CommonDBChild {
     *
     * @return true if displayed  false if item not found or not right to display
    **/
-   function showForm($ID, $options=array()) {
+   function showForm($ID, $options = []) {
       global $CFG_GLPI;
 
       if (!Session::haveRight("computer", UPDATE)) {
-        return false;
+         return false;
       }
 
       $comp = new Computer();
@@ -153,14 +152,13 @@ class ComputerVirtualMachine extends CommonDBChild {
          if ($ID && $this->fields['is_dynamic']) {
             Plugin::doHook("autoinventory_information", $this);
          } else {
-            _e('No');
+            echo __('No');
          }
          echo "</td>";
       } else {
          echo "<td colspan='2'></td>";
       }
       echo "</tr>\n";
-
 
       echo "<tr class='tab_bg_1'>";
       echo "<td>".__('Name')."</td>";
@@ -174,18 +172,18 @@ class ComputerVirtualMachine extends CommonDBChild {
       echo "<tr class='tab_bg_1'>";
       echo "<td>".__('Virtualization system')."</td>";
       echo "<td>";
-      VirtualMachineType::dropdown(array('value' => $this->fields['virtualmachinetypes_id']));
+      VirtualMachineType::dropdown(['value' => $this->fields['virtualmachinetypes_id']]);
       echo "</td></tr>";
 
       echo "<tr class='tab_bg_1'>";
       echo "<td>".__('Virtualization model')."</td>";
       echo "<td>";
-      VirtualMachineSystem::dropdown(array('value' => $this->fields['virtualmachinesystems_id']));
+      VirtualMachineSystem::dropdown(['value' => $this->fields['virtualmachinesystems_id']]);
       echo "</td></tr>";
 
       echo "<tr class='tab_bg_1'><td>".__('State of the virtual machine')."</td>";
       echo "<td>";
-      VirtualMachineState::dropdown(array('value' => $this->fields['virtualmachinestates_id']));
+      VirtualMachineState::dropdown(['value' => $this->fields['virtualmachinestates_id']]);
       echo "</td></tr>";
 
       echo "<tr class='tab_bg_1'>";
@@ -199,7 +197,7 @@ class ComputerVirtualMachine extends CommonDBChild {
       if ($link_computer = self::findVirtualMachine($this->fields)) {
          $computer = new Computer();
          if ($computer->getFromDB($link_computer)) {
-            echo $computer->getLink(array('comments' => true));
+            echo $computer->getLink(['comments' => true]);
          } else {
             echo NOT_AVAILABLE;
          }
@@ -208,16 +206,33 @@ class ComputerVirtualMachine extends CommonDBChild {
       echo "</tr>";
 
       echo "<tr class='tab_bg_1'>";
-      echo "<td>".sprintf(__('%1$s (%2$s)'),__('Memory'),__('Mio'))."</td>";
+      echo "<td>".sprintf(__('%1$s (%2$s)'), __('Memory'), __('Mio'))."</td>";
       echo "<td>";
-      Html::autocompletionTextField($this, "ram");
+      Html::autocompletionTextField(
+         $this,
+         'ram',
+         [
+            'type' => 'number',
+            'attrs' => [
+               'min'    => 0
+            ]
+         ]
+      );
       echo "</td>";
 
       echo "<td>"._x('quantity', 'Processors number')."</td>";
       echo "<td>";
-      Html::autocompletionTextField($this, "vcpu");
+      Html::autocompletionTextField(
+         $this,
+         'vcpu',
+         [
+            'type'   => 'number',
+            'attrs'  => [
+               'min' => 0
+            ]
+         ]
+      );
       echo "</td></tr>";
-
 
       $this->showFormButtons($options);
 
@@ -250,7 +265,7 @@ class ComputerVirtualMachine extends CommonDBChild {
 
          if (!empty($hosts)) {
             echo "<table class='tab_cadre_fixehov'>";
-            echo  "<tr class='noHover'><th colspan='2' >".__('List of host machines')."</th></tr>";
+            echo  "<tr class='noHover'><th colspan='2' >".__('List of virtualized environments')."</th></tr>";
 
             $header = "<tr><th>".__('Name')."</th>";
             $header .= "<th>".__('Entity')."</th>";
@@ -271,7 +286,7 @@ class ComputerVirtualMachine extends CommonDBChild {
                              '</td></tr>';
                   $tooltip.= "<tr><td>".__('Comments')."</td><td>".$computer->fields['comment'].
                              '</td></tr></table>';
-                  echo "&nbsp; ".Html::showToolTip($tooltip, array('display' => false));
+                  echo "&nbsp; ".Html::showToolTip($tooltip, ['display' => false]);
 
                } else {
                   echo $computer->fields['name'];
@@ -314,14 +329,14 @@ class ComputerVirtualMachine extends CommonDBChild {
       if ($canedit) {
          echo "<div class='center firstbloc'>".
                 "<a class='vsubmit' href='computervirtualmachine.form.php?computers_id=$ID'>";
-         _e('Add a virtual machine');
+         echo __('Add a virtual machine');
          echo "</a></div>\n";
       }
 
       echo "<div class='center'>";
 
       $virtualmachines = getAllDatasFromTable('glpi_computervirtualmachines',
-                                              "`computers_id` = '$ID' AND `is_deleted` = '0'");
+                                              "`computers_id` = '$ID' AND `is_deleted` = '0'", false, 'name');
 
       echo "<table class='tab_cadre_fixehov'>";
 
@@ -331,9 +346,9 @@ class ComputerVirtualMachine extends CommonDBChild {
                                                 ? "($ID)" : $comp->fields['name'])));
 
       if (empty($virtualmachines)) {
-         echo "<tr><th>".__('No virtual machine associated with the computer')."</th></tr>";
+         echo "<tr><th>".__('No virtualized environment associated with the computer')."</th></tr>";
       } else {
-         echo "<tr class='noHover'><th colspan='10'>".__('List of virtual machines')."</th></tr>";
+         echo "<tr class='noHover'><th colspan='10'>".__('List of virtualized environments')."</th></tr>";
 
          $header = "<tr><th>".__('Name')."</th>";
          if (Plugin::haveImport()) {
@@ -341,10 +356,10 @@ class ComputerVirtualMachine extends CommonDBChild {
          }
          $header .= "<th>".__('Virtualization system')."</th>";
          $header .= "<th>".__('Virtualization model')."</th>";
-         $header .= "<th>".__('State of the virtual machine')."</th>";
+         $header .= "<th>".__('State')."</th>";
          $header .= "<th>".__('UUID')."</th>";
          $header .= "<th>"._x('quantity', 'Processors number')."</th>";
-         $header .= "<th>".sprintf(__('%1$s (%2$s)'), __('Memory'),__('Mio'))."</th>";
+         $header .= "<th>".sprintf(__('%1$s (%2$s)'), __('Memory'), __('Mio'))."</th>";
          $header .= "<th>".__('Machine')."</th>";
          $header .= "</tr>";
          echo $header;
@@ -386,7 +401,7 @@ class ComputerVirtualMachine extends CommonDBChild {
                   $tooltip.= "<tr><td>".__('Comments')."</td><td>".$computer->fields['comment'].
                              '</td></tr></table>';
 
-                  $url .= "&nbsp; ".Html::showToolTip($tooltip, array('display' => false));
+                  $url .= "&nbsp; ".Html::showToolTip($tooltip, ['display' => false]);
                } else {
                   $url = $computer->fields['name'];
                }
@@ -399,9 +414,6 @@ class ComputerVirtualMachine extends CommonDBChild {
          }
          echo $header;
       }
-
-
-
       echo "</table>";
       echo "</div>";
    }
@@ -435,9 +447,9 @@ class ComputerVirtualMachine extends CommonDBChild {
       //Case two : why this code ? Because some dmidecode < 2.10 is buggy.
       //On unix is flips first block of uuid and on windows flips 3 first blocks...
       $in      = " IN ('".strtolower($uuid)."'";
-      $regexes = array("/([\w]{2})([\w]{2})([\w]{2})([\w]{2})(.*)/" => "$4$3$2$1$5",
+      $regexes = ["/([\w]{2})([\w]{2})([\w]{2})([\w]{2})(.*)/" => "$4$3$2$1$5",
                        "/([\w]{2})([\w]{2})([\w]{2})([\w]{2})-([\w]{2})([\w]{2})-([\w]{2})([\w]{2})(.*)/"
-                                                                    => "$4$3$2$1-$6$5-$8$7$9");
+                                                                    => "$4$3$2$1-$6$5-$8$7$9"];
       foreach ($regexes as $pattern => $replace) {
          $reverse_uuid = preg_replace($pattern, $replace, $uuid);
          if ($reverse_uuid) {
@@ -457,7 +469,7 @@ class ComputerVirtualMachine extends CommonDBChild {
     *
     * @return the ID of the computer that have this uuid or false otherwise
    **/
-   static function findVirtualMachine($fields=array()) {
+   static function findVirtualMachine($fields = []) {
       global $DB;
 
       if (!isset($fields['uuid']) || empty($fields['uuid'])) {
@@ -471,11 +483,10 @@ class ComputerVirtualMachine extends CommonDBChild {
 
       //Virtual machine found, return ID
       if ($DB->numrows($result)) {
-         return $DB->result($result,0,'id');
+         return $DB->result($result, 0, 'id');
       }
 
       return false;
    }
 
 }
-?>

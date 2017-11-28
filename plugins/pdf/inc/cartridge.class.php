@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: cartridge.class.php 433 2016-02-25 19:02:58Z yllen $
+ * @version $Id: cartridge.class.php 498 2017-11-03 13:33:40Z yllen $
  -------------------------------------------------------------------------
  LICENSE
 
@@ -21,7 +21,7 @@
 
  @package   pdf
  @authors   Nelly Mahu-Lasson, Remi Collet
- @copyright Copyright (c) 2009-2016 PDF plugin team
+ @copyright Copyright (c) 2009-2017 PDF plugin team
  @license   AGPL License 3.0 or (at your option) any later version
             http://www.gnu.org/licenses/agpl-3.0-standalone.html
  @link      https://forge.glpi-project.org/projects/pdf
@@ -82,17 +82,21 @@ class PluginPdfCartridge extends PluginPdfCommon {
                          `glpi_cartridges`.`date_use` DESC,
                          `glpi_cartridges`.`date_in`";
 
-      $result = $DB->query($query);
-      $number = $DB->numrows($result);
+      $result = $DB->request($query);
+      $number = count($result);
       $i      = 0;
       $pages  = $p->fields['init_pages_counter'];
 
       $pdf->setColumnsSize(100);
-      $pdf->displayTitle("<b>".($old ? __('Worn cartridges') : __('Used cartridges') )."</b>");
+      $title = "<b>".($old ? __('Worn cartridges') : __('Used cartridges') )."</b>";
 
       if (!$number) {
-         $pdf->displayLine(__('No item found'));
+         $pdf->displayTitle(sprintf(__('%1$s: %2$s'), $title, __('No item to display')));
       } else {
+         $title = sprintf(__('%1$s: %2$s'), $title, $number);
+
+         $pdf->displayTitle($title);
+
          if (!$old) {
             $pdf->setColumnsSize(5,35,30,15,15);
             $pdf->displayTitle('<b><i>'.__('ID'), __('Cartridge model'), __('Cartridge type'),
@@ -110,7 +114,7 @@ class PluginPdfCartridge extends PluginPdfCommon {
          $use_time         = 0;
          $pages_printed    = 0;
          $nb_pages_printed = 0;
-         while ($data = $DB->fetch_assoc($result)) {
+         while ($data = $result->next()) {
             $date_in  = Html::convDate($data["date_in"]);
             $date_use = Html::convDate($data["date_use"]);
             $date_out = Html::convDate($data["date_out"]);

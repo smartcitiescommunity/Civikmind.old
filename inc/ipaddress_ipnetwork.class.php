@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
- 
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -71,7 +70,7 @@ class IPAddress_IPNetwork extends CommonDBRelation {
                 FROM `$linkTable`
                 WHERE `ipnetworks_id` = '$ipnetworks_id'";
       foreach ($DB->request($query) as $link) {
-         $linkObject->delete(array('id' => $link['id']));
+         $linkObject->delete(['id' => $link['id']]);
       }
 
       // Then, look each IP address contained inside current Network
@@ -93,7 +92,7 @@ class IPAddress_IPNetwork extends CommonDBRelation {
    static function addIPAddress(IPAddress $ipaddress) {
 
       $linkObject = new self();
-      $input      = array('ipaddresses_id' => $ipaddress->getID());
+      $input      = ['ipaddresses_id' => $ipaddress->getID()];
 
       $entity         = $ipaddress->getEntityID();
       $ipnetworks_ids = IPNetwork::searchNetworksContainingIP($ipaddress, $entity);
@@ -108,4 +107,3 @@ class IPAddress_IPNetwork extends CommonDBRelation {
    }
 
 }
-?>

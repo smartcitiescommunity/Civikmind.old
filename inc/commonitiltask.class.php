@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
-
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -55,7 +54,7 @@ abstract class CommonITILTask  extends CommonDBTM {
 
 
    function getItilObjectItemType() {
-      return str_replace('Task','',$this->getType());
+      return str_replace('Task', '', $this->getType());
    }
 
 
@@ -82,8 +81,8 @@ abstract class CommonITILTask  extends CommonDBTM {
          if ($item->getFromDB($this->fields[$item->getForeignKeyField()])) {
             return $item;
          }
-     }
-     return false;
+      }
+      return false;
    }
 
 
@@ -126,7 +125,7 @@ abstract class CommonITILTask  extends CommonDBTM {
     *
     * @param $nb : number of item in the type (default 0)
    **/
-   static function getTypeName($nb=0) {
+   static function getTypeName($nb = 0) {
       return _n('Task', 'Tasks', $nb);
 
    }
@@ -139,10 +138,10 @@ abstract class CommonITILTask  extends CommonDBTM {
     * @param $values
     * @param $options   array
    **/
-   static function getSpecificValueToDisplay($field, $values, array $options=array()) {
+   static function getSpecificValueToDisplay($field, $values, array $options = []) {
 
       if (!is_array($values)) {
-         $values = array($field => $values);
+         $values = [$field => $values];
       }
 
       switch ($field) {
@@ -163,10 +162,10 @@ abstract class CommonITILTask  extends CommonDBTM {
     *
     * @return string
    **/
-   static function getSpecificValueToSelect($field, $name='', $values='', array $options=array()) {
+   static function getSpecificValueToSelect($field, $name = '', $values = '', array $options = []) {
 
       if (!is_array($values)) {
-         $values = array($field => $values);
+         $values = [$field => $values];
       }
       $options['display'] = false;
 
@@ -178,7 +177,7 @@ abstract class CommonITILTask  extends CommonDBTM {
    }
 
 
-   function getTabNameForItem(CommonGLPI $item, $withtemplate=0) {
+   function getTabNameForItem(CommonGLPI $item, $withtemplate = 0) {
 
       if (($item->getType() == $this->getItilObjectItemType())
           && $this->canView()) {
@@ -199,7 +198,7 @@ abstract class CommonITILTask  extends CommonDBTM {
    }
 
 
-   static function displayTabContentForItem(CommonGLPI $item, $tabnum=1, $withtemplate=0) {
+   static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0) {
 
       $itemtype = $item->getType().'Task';
       if ($task = getItemForItemtype($itemtype)) {
@@ -225,14 +224,14 @@ abstract class CommonITILTask  extends CommonDBTM {
       Log::history($this->getField($item->getForeignKeyField()), $this->getItilObjectItemType(),
                    $changes, $this->getType(), Log::HISTORY_DELETE_SUBITEM);
 
-      if (!isset($this->input['_disablenotif']) && $CFG_GLPI["use_mailing"]) {
-         $options = array('task_id'             => $this->fields["id"],
+      if (!isset($this->input['_disablenotif']) && $CFG_GLPI["use_notifications"]) {
+         $options = ['task_id'             => $this->fields["id"],
                            // Force is_private with data / not available
                           'is_private'          => $this->isPrivate(),
                           // Pass users values
                           'task_users_id'       => $this->fields['users_id'],
                           'task_users_id_tech'  => $this->fields['users_id_tech'],
-                          'task_groups_id_tech' => $this->fields['groups_id_tech']);
+                          'task_groups_id_tech' => $this->fields['groups_id_tech']];
          NotificationEvent::raiseEvent('delete_task', $item, $options);
       }
    }
@@ -246,11 +245,11 @@ abstract class CommonITILTask  extends CommonDBTM {
          PlanningRecall::manageDatas($input['_planningrecall']);
       }
 
-      // do not update writer if content change. Following code can be used for #2187
-      /*if (isset($input['update'])
+      // update last editor if content change
+      if (isset($input['update'])
           && ($uid = Session::getLoginUserID())) { // Change from task form
-         $input["users_id"] = $uid;
-      }*/
+         $input["users_id_editor"] = $uid;
+      }
 
       $itemtype      = $this->getItilObjectItemType();
       $input["_job"] = new $itemtype();
@@ -276,7 +275,7 @@ abstract class CommonITILTask  extends CommonDBTM {
             return false;
          }
          Planning::checkAlreadyPlanned($input["users_id_tech"], $input["begin"], $input["end"],
-                                       array($this->getType() => array($input["id"])));
+                                       [$this->getType() => [$input["id"]]]);
 
          $calendars_id = Entity::getUsedConfig('calendars_id', $input["_job"]->fields['entities_id']);
          $calendar     = new Calendar();
@@ -295,15 +294,16 @@ abstract class CommonITILTask  extends CommonDBTM {
          }
       }
 
+      $input = $this->addFiles($input);
+
       return $input;
    }
 
 
-   function post_updateItem($history=1) {
+   function post_updateItem($history = 1) {
       global $CFG_GLPI;
 
-
-      if (in_array("begin",$this->updates)) {
+      if (in_array("begin", $this->updates)) {
          PlanningRecall::managePlanningUpdates($this->getType(), $this->getID(),
                                                $this->fields["begin"]);
       }
@@ -329,7 +329,7 @@ abstract class CommonITILTask  extends CommonDBTM {
          if ($proceed) {
             $update_done = true;
 
-            if (in_array("actiontime",$this->updates)) {
+            if (in_array("actiontime", $this->updates)) {
                $item->updateActionTime($this->input[$item->getForeignKeyField()]);
             }
 
@@ -345,7 +345,7 @@ abstract class CommonITILTask  extends CommonDBTM {
                 $update['id']            = $this->input['_job']->fields['id'];
                 $update['_disablenotif'] = true;
                 $this->input['_job']->update($update);
-             }
+            }
 
             if (!empty($this->fields['begin'])
                 && $item->isStatusExists(CommonITILObject::PLANNED)
@@ -358,9 +358,9 @@ abstract class CommonITILTask  extends CommonDBTM {
                $item->update($input2);
             }
 
-            if (!isset($this->input['_disablenotif']) && $CFG_GLPI["use_mailing"]) {
-               $options = array('task_id'    => $this->fields["id"],
-                                'is_private' => $this->isPrivate());
+            if (!isset($this->input['_disablenotif']) && $CFG_GLPI["use_notifications"]) {
+               $options = ['task_id'    => $this->fields["id"],
+                                'is_private' => $this->isPrivate()];
                NotificationEvent::raiseEvent('update_task', $item, $options);
             }
 
@@ -379,7 +379,6 @@ abstract class CommonITILTask  extends CommonDBTM {
 
 
    function prepareInputForAdd($input) {
-
       $itemtype = $this->getItilObjectItemType();
 
       Toolbox::manageBeginAndEndPlanDates($input['plan']);
@@ -423,13 +422,10 @@ abstract class CommonITILTask  extends CommonDBTM {
          $input['is_private'] = 0;
       }
 
-      // Manage File attached (from mailgate)
-      // Pass filename if set to ticket
-      if (isset($input['_filename'])) {
-         $input["_job"]->input['_filename'] = $input['_filename'];
+      $input['timeline_position'] = CommonITILObject::TIMELINE_LEFT;
+      if (isset($input["users_id"])) {
+         $input['timeline_position'] = $itemtype::getTimelinePosition($input["_job"]->getID(), $this->getType(), $input["users_id"]);
       }
-      // Add docs without notif
-      $docadded = $input["_job"]->addFiles(0,1);
 
       return $input;
    }
@@ -438,17 +434,20 @@ abstract class CommonITILTask  extends CommonDBTM {
    function post_addItem() {
       global $CFG_GLPI;
 
+      // Add document if needed, without notification
+      $this->input = $this->addFiles($this->input, ['force_update' => true]);
+
       if (isset($this->input['_planningrecall'])) {
          $this->input['_planningrecall']['items_id'] = $this->fields['id'];
          PlanningRecall::manageDatas($this->input['_planningrecall']);
       }
 
-      $donotif = !isset($this->input['_disablenotif']) && $CFG_GLPI["use_mailing"];
+      $donotif = !isset($this->input['_disablenotif']) && $CFG_GLPI["use_notifications"];
 
       if (isset($this->fields["begin"]) && !empty($this->fields["begin"])) {
          Planning::checkAlreadyPlanned($this->fields["users_id_tech"], $this->fields["begin"],
                                        $this->fields["end"],
-                                       array($this->getType() => array($this->fields["id"])));
+                                       [$this->getType() => [$this->fields["id"]]]);
 
          $calendars_id = Entity::getUsedConfig('calendars_id', $this->input["_job"]->fields['entities_id']);
          $calendar     = new Calendar();
@@ -467,18 +466,14 @@ abstract class CommonITILTask  extends CommonDBTM {
          }
       }
 
-//       if (isset($this->input["_no_notif"]) && $this->input["_no_notif"]) {
-//          $donotif = false;
-//       }
-
       $this->input["_job"]->updateDateMod($this->input[$this->input["_job"]->getForeignKeyField()]);
 
       if (isset($this->input["actiontime"]) && ($this->input["actiontime"] > 0)) {
          $this->input["_job"]->updateActionTime($this->input[$this->input["_job"]->getForeignKeyField()]);
       }
 
-     //change status only if input change
-     if (isset($this->input['_status'])
+      //change status only if input change
+      if (isset($this->input['_status'])
          && ($this->input['_status'] != $this->input['_job']->fields['status'])) {
          $update['status']        = $this->input['_status'];
          $update['id']            = $this->input['_job']->fields['id'];
@@ -498,8 +493,8 @@ abstract class CommonITILTask  extends CommonDBTM {
       }
 
       if ($donotif) {
-         $options = array('task_id'             => $this->fields["id"],
-                          'is_private'          => $this->isPrivate());
+         $options = ['task_id'             => $this->fields["id"],
+                          'is_private'          => $this->isPrivate()];
          NotificationEvent::raiseEvent('add_task', $this->input["_job"], $options);
       }
 
@@ -561,57 +556,83 @@ abstract class CommonITILTask  extends CommonDBTM {
    }
 
 
-   function getSearchOptions() {
+   function getSearchOptionsNew() {
+      $tab = [];
 
-      $tab                    = array();
-      $tab['common']          = __('Characteristics');
+      $tab[] = [
+         'id'                 => 'common',
+         'name'               => __('Characteristics')
+      ];
 
-      $tab[1]['table']        = $this->getTable();
-      $tab[1]['field']        = 'content';
-      $tab[1]['name']         = __('Description');
-      $tab[1]['datatype']     = 'text';
+      $tab[] = [
+         'id'                 => '1',
+         'table'              => $this->getTable(),
+         'field'              => 'content',
+         'name'               => __('Description'),
+         'datatype'           => 'text'
+      ];
 
-      $tab[2]['table']        = 'glpi_taskcategories';
-      $tab[2]['field']        = 'name';
-      $tab[2]['name']         = _n('Task category', 'Task categories', 1);
-      $tab[2]['forcegroupby'] = true;
-      $tab[2]['datatype']     = 'dropdown';
+      $tab[] = [
+         'id'                 => '2',
+         'table'              => 'glpi_taskcategories',
+         'field'              => 'name',
+         'name'               => _n('Task category', 'Task categories', 1),
+         'forcegroupby'       => true,
+         'datatype'           => 'dropdown'
+      ];
 
-      $tab[3]['table']        = $this->getTable();
-      $tab[3]['field']        = 'date';
-      $tab[3]['name']         = __('Date');
-      $tab[3]['datatype']     = 'datetime';
+      $tab[] = [
+         'id'                 => '3',
+         'table'              => $this->getTable(),
+         'field'              => 'date',
+         'name'               => __('Date'),
+         'datatype'           => 'datetime'
+      ];
 
       if ($this->maybePrivate()) {
-         $tab[4]['table']    = $this->getTable();
-         $tab[4]['field']    = 'is_private';
-         $tab[4]['name']     = __('Public followup');
-         $tab[4]['datatype'] = 'bool';
+         $tab[] = [
+            'id'                 => '4',
+            'table'              => $this->getTable(),
+            'field'              => 'is_private',
+            'name'               => __('Public followup'),
+            'datatype'           => 'bool'
+         ];
       }
 
-      $tab[5]['table']        = 'glpi_users';
-      $tab[5]['field']        = 'name';
-      $tab[5]['name']         = __('Technician');
-      $tab[5]['datatype']     = 'dropdown';
-      $tab[5]['right']        = 'own_ticket';
+      $tab[] = [
+         'id'                 => '5',
+         'table'              => 'glpi_users',
+         'field'              => 'name',
+         'name'               => __('Technician'),
+         'datatype'           => 'dropdown',
+         'right'              => 'own_ticket'
+      ];
 
+      $tab[] = [
+         'id'                 => '6',
+         'table'              => $this->getTable(),
+         'field'              => 'actiontime',
+         'name'               => __('Total duration'),
+         'datatype'           => 'actiontime',
+         'massiveaction'      => false
+      ];
 
-      $tab[6]['table']         = $this->getTable();
-      $tab[6]['field']         = 'actiontime';
-      $tab[6]['name']          = __('Total duration');
-      $tab[6]['datatype']      = 'actiontime';
-      $tab[6]['massiveaction'] = false;
+      $tab[] = [
+         'id'                 => '7',
+         'table'              => $this->getTable(),
+         'field'              => 'state',
+         'name'               => __('Status'),
+         'datatype'           => 'specific'
+      ];
 
-      $tab[7]['table']         = $this->getTable();
-      $tab[7]['field']         = 'state';
-      $tab[7]['name']          = __('Status');
-      $tab[7]['datatype']      = 'specific';
-
-      $tab[8]['table']        = 'glpi_groups';
-      $tab[8]['field']        = 'completename';
-      $tab[8]['name']         = __('Group in charge of the task');
-      $tab[8]['datatype']     = 'dropdown';
-      $tab[8]['condition']    = 'is_task';
+      $tab[] = [
+         'id'                 => '8',
+         'table'              => 'glpi_groups',
+         'field'              => 'completename',
+         'name'               => __('Group in charge of the task'),
+         'datatype'           => 'dropdown',
+         'condition'          => 'is_task'
+      ];
 
       return $tab;
    }
@@ -620,129 +641,222 @@ abstract class CommonITILTask  extends CommonDBTM {
    /**
     * @since version 0.85
    **/
-   static function getSearchOptionsToAdd() {
+   static function getSearchOptionsToAddNew($itemtype = null) {
+      $task = new static();
+      $tab = [];
 
-      $task                      = new static();
+      $tab[] = [
+         'id'                 => 'task',
+         'name'               => _n('Task', 'Tasks', Session::getPluralNumber())
+      ];
 
-      $tab                       = array();
+      $tab[] = [
+         'id'                 => '26',
+         'table'              => static::getTable(),
+         'field'              => 'content',
+         'name'               => __('Description'),
+         'datatype'           => 'text',
+         'forcegroupby'       => true,
+         'splititems'         => true,
+         'massiveaction'      => false,
+         'joinparams'         => [
+            'jointype'           => 'child'
+         ]
+      ];
 
-      $tab['task']               = _n('Task', 'Tasks', Session::getPluralNumber());
+      $tab[] = [
+         'id'                 => '28',
+         'table'              => static::getTable(),
+         'field'              => 'id',
+         'name'               => _x('quantity', 'Number of tasks'),
+         'forcegroupby'       => true,
+         'usehaving'          => true,
+         'datatype'           => 'count',
+         'massiveaction'      => false,
+         'joinparams'         => [
+            'jointype'           => 'child'
+         ]
+      ];
 
-      $tab[26]['table']          = static::getTable();
-      $tab[26]['field']          = 'content';
-      $tab[26]['name']           = __('Description');
-      $tab[26]['datatype']       = 'text';
-      $tab[26]['forcegroupby']   = true;
-      $tab[26]['splititems']     = true;
-      $tab[26]['massiveaction']  = false;
-      $tab[26]['joinparams']     = array('jointype' => 'child');
-
-      $tab[28]['table']          = static::getTable();
-      $tab[28]['field']          = 'id';
-      $tab[28]['name']           = _x('quantity', 'Number of tasks');
-      $tab[28]['forcegroupby']   = true;
-      $tab[28]['usehaving']      = true;
-      $tab[28]['datatype']       = 'count';
-      $tab[28]['massiveaction']  = false;
-      $tab[28]['joinparams']     = array('jointype' => 'child');
-
-      $tab[20]['table']          = 'glpi_taskcategories';
-      $tab[20]['field']          = 'name';
-      $tab[20]['datatype']       = 'dropdown';
-      $tab[20]['name']           = __('Task category');
-      $tab[20]['forcegroupby']   = true;
-      $tab[20]['splititems']     = true;
-      $tab[20]['massiveaction']  = false;
-      $tab[20]['joinparams']     = array('beforejoin'
-                                          => array('table'      => static::getTable(),
-                                                   'joinparams' => array('jointype' => 'child')));
+      $tab[] = [
+         'id'                 => '20',
+         'table'              => 'glpi_taskcategories',
+         'field'              => 'name',
+         'datatype'           => 'dropdown',
+         'name'               => __('Task category'),
+         'forcegroupby'       => true,
+         'splititems'         => true,
+         'massiveaction'      => false,
+         'joinparams'         => [
+            'beforejoin'         => [
+               'table'              => static::getTable(),
+               'joinparams'         => [
+                  'jointype'           => 'child'
+               ]
+            ]
+         ]
+      ];
 
       if ($task->maybePrivate()) {
-         $tab[92]['table']          = static::getTable();
-         $tab[92]['field']          = 'is_private';
-         $tab[92]['name']           = __('Private task');
-         $tab[92]['datatype']       = 'bool';
-         $tab[92]['forcegroupby']   = true;
-         $tab[92]['splititems']     = true;
-         $tab[92]['massiveaction']  = false;
-         $tab[92]['joinparams']     = array('jointype' => 'child');
+
+         $tab[] = [
+            'id'                 => '92',
+            'table'              => static::getTable(),
+            'field'              => 'is_private',
+            'name'               => __('Private task'),
+            'datatype'           => 'bool',
+            'forcegroupby'       => true,
+            'splititems'         => true,
+            'massiveaction'      => false,
+            'joinparams'         => [
+               'jointype'           => 'child'
+            ]
+         ];
       }
 
-      $tab[94]['table']          = 'glpi_users';
-      $tab[94]['field']          = 'name';
-      $tab[94]['name']           = __('Writer');
-      $tab[94]['datatype']       = 'itemlink';
-      $tab[94]['right']          = 'all';
-      $tab[94]['forcegroupby']   = true;
-      $tab[94]['massiveaction']  = false;
-      $tab[94]['joinparams']     = array('beforejoin'
-                                          => array('table'      => static::getTable(),
-                                                   'joinparams' => array('jointype' => 'child')));
-      $tab[95]['table']          = 'glpi_users';
-      $tab[95]['field']          = 'name';
-      $tab[95]['linkfield']      = 'users_id_tech';
-      $tab[95]['name']           = __('Technician');
-      $tab[95]['datatype']       = 'itemlink';
-      $tab[95]['right']          = 'own_ticket';
-      $tab[95]['forcegroupby']   = true;
-      $tab[95]['massiveaction']  = false;
-      $tab[95]['joinparams']     = array('beforejoin'
-                                          => array('table'      => static::getTable(),
-                                                   'joinparams' => array('jointype'  => 'child')));
+      $tab[] = [
+         'id'                 => '94',
+         'table'              => 'glpi_users',
+         'field'              => 'name',
+         'name'               => __('Writer'),
+         'datatype'           => 'itemlink',
+         'right'              => 'all',
+         'forcegroupby'       => true,
+         'massiveaction'      => false,
+         'joinparams'         => [
+            'beforejoin'         => [
+               'table'              => static::getTable(),
+               'joinparams'         => [
+                  'jointype'           => 'child'
+               ]
+            ]
+         ]
+      ];
 
-      $tab[112]['table']          = 'glpi_groups';
-      $tab[112]['field']          = 'name';
-      $tab[112]['linkfield']      = 'groups_id_tech';
-      $tab[112]['name']           = __('Group in charge of the task');
-      $tab[112]['datatype']       = 'itemlink';
-      $tab[112]['condition']      = 'is_task';
-      $tab[112]['forcegroupby']   = true;
-      $tab[112]['massiveaction']  = false;
-      $tab[112]['joinparams']     = array('beforejoin'
-                                          => array('table'      => static::getTable(),
-                                                   'joinparams' => array('jointype'  => 'child')));
+      $tab[] = [
+         'id'                 => '95',
+         'table'              => 'glpi_users',
+         'field'              => 'name',
+         'linkfield'          => 'users_id_tech',
+         'name'               => __('Technician in charge of the task'),
+         'datatype'           => 'itemlink',
+         'right'              => 'own_ticket',
+         'forcegroupby'       => true,
+         'massiveaction'      => false,
+         'joinparams'         => [
+            'beforejoin'         => [
+               'table'              => static::getTable(),
+               'joinparams'         => [
+                  'jointype'           => 'child'
+               ]
+            ]
+         ]
+      ];
 
-      $tab[96]['table']          = static::getTable();
-      $tab[96]['field']          = 'actiontime';
-      $tab[96]['name']           = __('Duration');
-      $tab[96]['datatype']       = 'timestamp';
-      $tab[96]['massiveaction']  = false;
-      $tab[96]['forcegroupby']   = true;
-      $tab[96]['joinparams']     = array('jointype' => 'child');
+      $tab[] = [
+         'id'                 => '112',
+         'table'              => 'glpi_groups',
+         'field'              => 'completename',
+         'linkfield'          => 'groups_id_tech',
+         'name'               => __('Group in charge of the task'),
+         'datatype'           => 'itemlink',
+         'condition'          => 'is_task',
+         'forcegroupby'       => true,
+         'massiveaction'      => false,
+         'joinparams'         => [
+            'beforejoin'         => [
+               'table'              => static::getTable(),
+               'joinparams'         => [
+                  'jointype'           => 'child'
+               ]
+            ]
+         ]
+      ];
 
-      $tab[97]['table']          = static::getTable();
-      $tab[97]['field']          = 'date';
-      $tab[97]['name']           = __('Date');
-      $tab[97]['datatype']       = 'datetime';
-      $tab[97]['massiveaction']  = false;
-      $tab[97]['forcegroupby']   = true;
-      $tab[97]['joinparams']     = array('jointype' => 'child');
+      $tab[] = [
+         'id'                 => '96',
+         'table'              => static::getTable(),
+         'field'              => 'actiontime',
+         'name'               => __('Duration'),
+         'datatype'           => 'timestamp',
+         'massiveaction'      => false,
+         'forcegroupby'       => true,
+         'joinparams'         => [
+            'jointype'           => 'child'
+         ]
+      ];
 
-      $tab[33]['table']          = static::getTable();
-      $tab[33]['field']          = 'state';
-      $tab[33]['name']           = __('Status');
-      $tab[33]['datatype']       = 'specific';
-      $tab[33]['searchtype']     = 'equals';
-      $tab[33]['searchequalsonfield'] = true;
-      $tab[33]['massiveaction']  = false;
-      $tab[33]['forcegroupby']   = true;
-      $tab[33]['joinparams']     = array('jointype' => 'child');
+      $tab[] = [
+         'id'                 => '97',
+         'table'              => static::getTable(),
+         'field'              => 'date',
+         'name'               => __('Date'),
+         'datatype'           => 'datetime',
+         'massiveaction'      => false,
+         'forcegroupby'       => true,
+         'joinparams'         => [
+            'jointype'           => 'child'
+         ]
+      ];
 
-      $tab[173]['table']          = static::getTable();
-      $tab[173]['field']          = 'begin';
-      $tab[173]['name']           = __('Begin date');
-      $tab[173]['datatype']       = 'datetime';
-      $tab[173]['massiveaction']  = false;
-      $tab[173]['forcegroupby']   = true;
-      $tab[173]['joinparams']     = array('jointype' => 'child');
+      $tab[] = [
+         'id'                 => '33',
+         'table'              => static::getTable(),
+         'field'              => 'state',
+         'name'               => __('Status'),
+         'datatype'           => 'specific',
+         'searchtype'         => 'equals',
+         'searchequalsonfield' => true,
+         'massiveaction'      => false,
+         'forcegroupby'       => true,
+         'joinparams'         => [
+            'jointype'           => 'child'
+         ]
+      ];
 
-      $tab[174]['table']          = static::getTable();
-      $tab[174]['field']          = 'end';
-      $tab[174]['name']           = __('End date');
-      $tab[174]['datatype']       = 'datetime';
-      $tab[174]['massiveaction']  = false;
-      $tab[174]['forcegroupby']   = true;
-      $tab[174]['joinparams']     = array('jointype' => 'child');
+      $tab[] = [
+         'id'                 => '173',
+         'table'              => static::getTable(),
+         'field'              => 'begin',
+         'name'               => __('Begin date'),
+         'datatype'           => 'datetime',
+         'massiveaction'      => false,
+         'forcegroupby'       => true,
+         'joinparams'         => [
+            'jointype'           => 'child'
+         ]
+      ];
+
+      $tab[] = [
+         'id'                 => '174',
+         'table'              => static::getTable(),
+         'field'              => 'end',
+         'name'               => __('End date'),
+         'datatype'           => 'datetime',
+         'massiveaction'      => false,
+         'forcegroupby'       => true,
+         'joinparams'         => [
+            'jointype'           => 'child'
+         ]
+      ];
+
+      $tab[] = [
+         'id'                 => '175',
+         'table'              => TaskTemplate::getTable(),
+         'field'              => 'name',
+         'linkfield'          => 'tasktemplates_id',
+         'name'               => __('Task template'),
+         'datatype'           => 'dropdown',
+         'massiveaction'      => false,
+         'joinparams'         => [
+            'beforejoin'         => [
+               'table'              => static::getTable(),
+               'joinparams'         => [
+                  'jointype'           => 'child'
+               ]
+            ]
+         ]
+      ];
 
       return $tab;
    }
@@ -778,10 +892,10 @@ abstract class CommonITILTask  extends CommonDBTM {
     *
     * @return array of planning item
    **/
-   static function genericPopulatePlanning($itemtype, $options=array()) {
+   static function genericPopulatePlanning($itemtype, $options = []) {
       global $DB, $CFG_GLPI;
 
-      $interv = array();
+      $interv = [];
 
       if (!isset($options['begin']) || ($options['begin'] == 'NULL')
           || !isset($options['end']) || ($options['end'] == 'NULL')) {
@@ -796,12 +910,12 @@ abstract class CommonITILTask  extends CommonDBTM {
          return;
       }
 
-      $default_options = array(
+      $default_options = [
          'genical'             => false,
          'color'               => '',
          'event_type_color'    => '',
          'display_done_events' => true,
-      );
+      ];
       $options = array_merge($default_options, $options);
 
       $who       = $options['who'];
@@ -816,7 +930,7 @@ abstract class CommonITILTask  extends CommonDBTM {
       if ($who_group === "mine") {
          if (!$options['genical']
              && count($_SESSION["glpigroups"])) {
-            $groups = implode("','",$_SESSION['glpigroups']);
+            $groups = implode("','", $_SESSION['glpigroups']);
             $ASSIGN = "`".$item->getTable()."`.`users_id_tech`
                            IN (SELECT DISTINCT `users_id`
                                FROM `glpi_groups_users`
@@ -885,13 +999,13 @@ abstract class CommonITILTask  extends CommonDBTM {
 
       $result = $DB->query($query);
 
-      $interv = array();
+      $interv = [];
 
       if ($DB->numrows($result) > 0) {
-         for ($i=0 ; $data=$DB->fetch_assoc($result) ; $i++) {
+         for ($i=0; $data=$DB->fetch_assoc($result); $i++) {
             if ($item->getFromDB($data["id"])
                 && $item->canViewItem()) {
-               if ($parentitem->getFromDBwithData($item->fields[$parentitem->getForeignKeyField()],0)) {
+               if ($parentitem->getFromDBwithData($item->fields[$parentitem->getForeignKeyField()], 0)) {
                   $key = $data["begin"]."$$$".$itemtype."$$$".$data["id"];
                   $interv[$key]['color']            = $options['color'];
                   $interv[$key]['event_type_color'] = $options['event_type_color'];
@@ -917,13 +1031,13 @@ abstract class CommonITILTask  extends CommonDBTM {
                   $interv[$key]["users_id_tech"]  = $data["users_id_tech"];
                   $interv[$key]["groups_id_tech"]  = $data["groups_id_tech"];
 
-                  if (strcmp($begin,$data["begin"]) > 0) {
+                  if (strcmp($begin, $data["begin"]) > 0) {
                      $interv[$key]["begin"] = $begin;
                   } else {
                      $interv[$key]["begin"] = $data["begin"];
                   }
 
-                  if (strcmp($end,$data["end"]) < 0) {
+                  if (strcmp($end, $data["end"]) < 0) {
                      $interv[$key]["end"] = $end;
                   } else {
                      $interv[$key]["end"] = $data["end"];
@@ -940,11 +1054,13 @@ abstract class CommonITILTask  extends CommonDBTM {
                   /// Specific for tickets
                   $interv[$key]["device"] = '';
                   if (isset($parentitem->hardwaredatas) && !empty($parentitem->hardwaredatas)) {
-                     foreach($parentitem->hardwaredatas as $hardwaredata){
+                     foreach ($parentitem->hardwaredatas as $hardwaredata) {
                         $interv[$key]["device"][$hardwaredata->fields['id']] = ($hardwaredata
                                                    ? $hardwaredata->getName() :'');
                      }
-                     $interv[$key]["device"] = implode("<br>", $interv[$key]["device"]);
+                     if (is_array($interv[$key]["device"])) {
+                        $interv[$key]["device"] = implode("<br>", $interv[$key]["device"]);
+                     }
                   }
                }
             }
@@ -973,7 +1089,7 @@ abstract class CommonITILTask  extends CommonDBTM {
                          Html::convDateTime($val["begin"]), Html::convDateTime($val["end"]));
          $out .= "<br><a href='".Toolbox::getItemTypeFormURL($objectitemtype)."?id=".
                        $val[getForeignKeyFieldForItemType($objectitemtype)]."&amp;forcetab=".$itemtype."$1'>";
-         $out .= Html::resume_text($val["name"],80).'</a>';
+         $out .= Html::resume_text($val["name"], 80).'</a>';
 
          return $out;
       }
@@ -992,7 +1108,7 @@ abstract class CommonITILTask  extends CommonDBTM {
     *
     * @return Nothing (display function)
    **/
-   static function genericDisplayPlanningItem($itemtype, array $val, $who, $type="", $complete=0) {
+   static function genericDisplayPlanningItem($itemtype, array $val, $who, $type = "", $complete = 0) {
       global $CFG_GLPI;
 
       $html = "";
@@ -1006,7 +1122,7 @@ abstract class CommonITILTask  extends CommonDBTM {
          }
       }
 
-      $parenttype = str_replace('Task','',$itemtype);
+      $parenttype = str_replace('Task', '', $itemtype);
       if ($parent = getItemForItemtype($parenttype)) {
          $parenttype_fk = $parent->getForeignKeyField();
       } else {
@@ -1047,7 +1163,6 @@ abstract class CommonITILTask  extends CommonDBTM {
          }
       }
 
-
       if (isset($val["state"])) {
          $html.= "<span>";
          $html.= Planning::getState($val["state"]);
@@ -1068,10 +1183,10 @@ abstract class CommonITILTask  extends CommonDBTM {
     * @param $rand
     * @param $showprivate  (false by default)
    **/
-   function showInObjectSumnary(CommonITILObject $item, $rand, $showprivate=false) {
+   function showInObjectSumnary(CommonITILObject $item, $rand, $showprivate = false) {
       global $DB, $CFG_GLPI;
 
-      $canedit = (isset($this->fields['can_edit']) && !$this->fields['can_edit']) ? false : $this->canEdit($this->fields['id']) ;
+      $canedit = (isset($this->fields['can_edit']) && !$this->fields['can_edit']) ? false : $this->canEdit($this->fields['id']);
       $canview = $this->canViewItem();
 
       echo "<tr class='tab_bg_";
@@ -1082,7 +1197,7 @@ abstract class CommonITILTask  extends CommonDBTM {
          echo "2' ";
       }
 
-      $tasktype = $this->getType() ;
+      $tasktype = $this->getType();
       if ($canedit) {
          echo "style='cursor:pointer' onClick=\"viewEdit$tasktype" . $this->fields['id'] . "$rand();\"";
       }
@@ -1094,22 +1209,22 @@ abstract class CommonITILTask  extends CommonDBTM {
          switch ($this->fields['state']) {
             case Planning::INFO :
                echo Html::image($CFG_GLPI['root_doc']."/pics/faqedit.png",
-                                array('title' =>_n('Information', 'Information', 1)));
+                                ['title' =>_n('Information', 'Information', 1)]);
                break;
 
             case Planning::TODO :
                if (empty($this->fields['begin'])) {
                   echo Html::image($CFG_GLPI['root_doc']."/pics/redbutton.png",
-                                   array('title' => __('To do')));
+                                   ['title' => __('To do')]);
                } else {
                   echo Html::image($CFG_GLPI['root_doc']."/pics/rdv.png",
-                                   array('title' => __('Planned')));
+                                   ['title' => __('Planned')]);
                }
                break;
 
             case Planning::DONE :
                echo Html::image($CFG_GLPI['root_doc']."/pics/greenbutton.png",
-                                array('title' => __('Done')));
+                                ['title' => __('Done')]);
                break;
          }
          echo "</td>";
@@ -1127,11 +1242,11 @@ abstract class CommonITILTask  extends CommonDBTM {
          if ($canedit) {
             echo "\n<script type='text/javascript' >\n";
             echo "function viewEdit$tasktype" . $this->fields["id"] . "$rand() {\n";
-            $params = array('type'       => $this->getType(),
+            $params = ['type'       => $this->getType(),
                             'parenttype' => $item->getType(),
                             $item->getForeignKeyField()
                                          => $this->fields[$item->getForeignKeyField()],
-                            'id'         => $this->fields["id"]);
+                            'id'         => $this->fields["id"]];
             Ajax::updateItemJsCode("viewitem$tasktype$rand",
                                    $CFG_GLPI["root_doc"]."/ajax/viewsubitem.php", $params);
             echo "};";
@@ -1152,10 +1267,10 @@ abstract class CommonITILTask  extends CommonDBTM {
             }
             if ($this->fields["users_id_tech"] || $this->fields["groups_id_tech"]) {
                if (isset($this->fields["users_id_tech"])) {
-                  printf('%1$s %2$s',__('By user'),getUserName($this->fields["users_id_tech"]));
+                  printf('%1$s %2$s', __('By user'), getUserName($this->fields["users_id_tech"]));
                }
                if (isset($this->fields["groups_id_tech"])) {
-                  $groupname = sprintf('%1$s %2$s',"<br />".__('By group'),
+                  $groupname = sprintf('%1$s %2$s', "<br />".__('By group'),
                                        Dropdown::getDropdownName('glpi_groups',
                                                                  $this->fields["groups_id_tech"]));
                   if ($_SESSION['glpiis_ids_visible']) {
@@ -1164,7 +1279,7 @@ abstract class CommonITILTask  extends CommonDBTM {
                   echo $groupname;
                }
             } else {
-               _e('None');
+               echo __('None');
             }
          } else {
             echo "<table width='100%'>";
@@ -1178,10 +1293,10 @@ abstract class CommonITILTask  extends CommonDBTM {
             echo Html::convDateTime($this->fields["end"])."</td></tr>";
             echo "<tr><td>";
             if ($this->fields["users_id_tech"]) {
-               printf('%1$s %2$s',__('By user'),getUserName($this->fields["users_id_tech"]));
+               printf('%1$s %2$s', __('By user'), getUserName($this->fields["users_id_tech"]));
             }
             if ($this->fields["groups_id_tech"]) {
-               $groupname = sprintf('%1$s %2$s',"<br />".__('By group'),
+               $groupname = sprintf('%1$s %2$s', "<br />".__('By group'),
                                      Dropdown::getDropdownName('glpi_groups',
                                                                $this->fields["groups_id_tech"]));
                if ($_SESSION['glpiis_ids_visible']) {
@@ -1192,9 +1307,9 @@ abstract class CommonITILTask  extends CommonDBTM {
             }
             if (PlanningRecall::isAvailable()
                 && $_SESSION["glpiactiveprofile"]["interface"] == "central") {
-               echo "<tr><td>"._x('Planning','Reminder')."</td><td>";
-               PlanningRecall::specificForm(array('itemtype' => $this->getType(),
-                                                  'items_id' => $this->fields["id"]));
+               echo "<tr><td>"._x('Planning', 'Reminder')."</td><td>";
+               PlanningRecall::specificForm(['itemtype' => $this->getType(),
+                                                  'items_id' => $this->fields["id"]]);
             }
             echo "</td></tr>";
             echo "</table>";
@@ -1210,7 +1325,7 @@ abstract class CommonITILTask  extends CommonDBTM {
     * @param $options   array
     *     -  parent Object : the object
    **/
-   function showForm($ID, $options=array()) {
+   function showForm($ID, $options = []) {
       global $DB, $CFG_GLPI;
 
       $rand_template = mt_rand();
@@ -1247,49 +1362,75 @@ abstract class CommonITILTask  extends CommonDBTM {
       }
       echo "<tr class='tab_bg_1'>";
       echo "<td rowspan='$rowspan' style='width:100px'>".__('Description')."</td>";
-      echo "<td rowspan='$rowspan' style='width:50%' id='content$rand_text'>".
-           "<textarea name='content' style='width: 95%; height: 160px' id='task$rand_text'>".$this->fields["content"].
-           "</textarea>";
-      echo Html::scriptBlock("$(document).ready(function() { $('#content$rand').autogrow(); });");
+      echo "<td rowspan='$rowspan' style='width:65%' id='content$rand_text'>";
+
+      $rand_text  = mt_rand();
+      $content_id = "content$rand_text";
+      $cols       = 90;
+      $rows       = 6;
+      if ($CFG_GLPI["use_rich_text"]) {
+         $cols              = 100;
+         $rows              = 10;
+      }
+
+      Html::textarea(['name'              => 'content',
+                      'value'             => $this->fields["content"],
+                      'rand'              => $rand_text,
+                      'editor_id'         => $content_id,
+                      'enable_fileupload' => true,
+                      'enable_richtext'   => $CFG_GLPI["use_rich_text"],
+                      'cols'              => $cols,
+                      'rows'              => $rows]);
+
       echo "</td>";
       echo "<input type='hidden' name='$fkfield' value='".$this->fields[$fkfield]."'>";
       echo "</td></tr>\n";
 
       echo "<tr class='tab_bg_1'>";
       echo "<td style='width:100px'>"._n('Task template', 'Task templates', 1)."</td><td>";
-      TaskTemplate::dropdown(array('value'     => 0,
+      TaskTemplate::dropdown(['value'     => $this->fields['tasktemplates_id'],
                                    'entity'    => $this->getEntityID(),
                                    'rand'      => $rand_template,
-                                   'on_change' => 'tasktemplate_update(this.value)'));
+                                   'on_change' => 'tasktemplate_update(this.value)']);
       echo "</td>";
       echo "</tr>";
       echo Html::scriptBlock('
          function tasktemplate_update(value) {
-            jQuery.ajax({
+            $.ajax({
                url: "' . $CFG_GLPI["root_doc"] . '/ajax/task.php",
                type: "POST",
                data: {
                   tasktemplates_id: value
                }
-            }).done(function(datas) {
-               datas.taskcategories_id = isNaN(parseInt(datas.taskcategories_id)) ? 0 : parseInt(datas.taskcategories_id);
-               datas.actiontime = isNaN(parseInt(datas.actiontime)) ? 0 : parseInt(datas.actiontime);
+            }).done(function(data) {
+               var taskcategories_id = isNaN(parseInt(data.taskcategories_id))
+                  ? 0
+                  : parseInt(data.taskcategories_id);
+               var actiontime = isNaN(parseInt(data.actiontime))
+                  ? 0
+                  : parseInt(data.actiontime);
 
-               $("#task' . $rand_text . '").html(datas.content);
-               $("#dropdown_taskcategories_id' . $rand_type . '").select2("val", parseInt(datas.taskcategories_id));
-               $("#dropdown_actiontime' . $rand_time . '").select2("val", parseInt(datas.actiontime));
+               // set textarea content
+               $("#content'.$rand_text.'").html(data.content);
+               // set also tinmyce (if enabled)
+               if (tasktinymce = tinymce.get("content'.$rand_text.'")) {
+                  tasktinymce.setContent(data.content);
+               }
+               // set category
+               $("#dropdown_taskcategories_id'.$rand_type.'").select2("val", taskcategories_id);
+               // set action time
+               $("#dropdown_actiontime'.$rand_time.'").select2("val", actiontime);
             });
          }
       ');
-
 
       if ($ID > 0) {
          echo "<tr class='tab_bg_1'>";
          echo "<td>".__('Date')."</td>";
          echo "<td>";
-         Html::showDateTimeField("date", array('value'      => $this->fields["date"],
+         Html::showDateTimeField("date", ['value'      => $this->fields["date"],
                                                'timestep'   => 1,
-                                               'maybeempty' => false));
+                                               'maybeempty' => false]);
          echo "</tr>";
       } else {
          echo "<tr class='tab_bg_1'>";
@@ -1299,10 +1440,10 @@ abstract class CommonITILTask  extends CommonDBTM {
 
       echo "<tr class='tab_bg_1'>";
       echo "<td>".__('Category')."</td><td>";
-      TaskCategory::dropdown(array('value'  => $this->fields["taskcategories_id"],
+      TaskCategory::dropdown(['value'  => $this->fields["taskcategories_id"],
                                    'rand'   => $rand_type,
                                    'entity' => $item->fields["entities_id"],
-                                   'condition' => "`is_active` = '1'"));
+                                   'condition' => "`is_active` = '1'"]);
 
       echo "</td></tr>\n";
 
@@ -1317,7 +1458,7 @@ abstract class CommonITILTask  extends CommonDBTM {
          echo "<tr class='tab_bg_1'>";
          echo "<td>".__('Private')."</td>";
          echo "<td>";
-         Dropdown::showYesNo('is_private',$this->fields["is_private"]);
+         Dropdown::showYesNo('is_private', $this->fields["is_private"]);
          echo "</td>";
          echo "</tr>";
       }
@@ -1325,46 +1466,43 @@ abstract class CommonITILTask  extends CommonDBTM {
       echo "<tr class='tab_bg_1'>";
       echo "<td>". __('Duration')."</td><td>";
 
-      $toadd = array();
-      for ($i=9 ; $i<=100 ; $i++) {
+      $toadd = [];
+      for ($i=9; $i<=100; $i++) {
          $toadd[] = $i*HOUR_TIMESTAMP;
       }
 
-      Dropdown::showTimeStamp("actiontime", array('min'             => 0,
+      Dropdown::showTimeStamp("actiontime", ['min'             => 0,
                                                   'max'             => 8*HOUR_TIMESTAMP,
                                                   'value'           => $this->fields["actiontime"],
                                                   'rand'            => $rand_time,
                                                   'addfirstminutes' => true,
                                                   'inhours'         => true,
-                                                  'toadd'           => $toadd));
+                                                  'toadd'           => $toadd]);
 
       echo "</td></tr>\n";
 
-      if ($ID <= 0) {
-         Document_Item::showSimpleAddForItem($item);
-      }
       echo "<tr class='tab_bg_1'>";
       echo "<td>".__('By')."</td>";
       echo "<td colspan='2'>";
       echo Html::image($CFG_GLPI['root_doc']."/pics/user.png")."&nbsp;";
       echo _n('User', 'Users', 1);
       $rand_user          = mt_rand();
-      $params             = array('name'   => "users_id_tech",
+      $params             = ['name'   => "users_id_tech",
                                   'value'  => (($ID > -1)
                                                 ?$this->fields["users_id_tech"]
                                                 :Session::getLoginUserID()),
                                   'right'  => "own_ticket",
                                   'rand'   => $rand_user,
                                   'entity' => $item->fields["entities_id"],
-                                  'width'  => '');
+                                  'width'  => ''];
 
-      $params['toupdate'] = array('value_fieldname'
+      $params['toupdate'] = ['value_fieldname'
                                               => 'users_id',
                                   'to_update' => "user_available$rand_user",
-                                  'url'       => $CFG_GLPI["root_doc"]."/ajax/planningcheck.php");
+                                  'url'       => $CFG_GLPI["root_doc"]."/ajax/planningcheck.php"];
       User::dropdown($params);
 
-      echo " <a href='#' onClick=\"".Html::jsGetElementbyID('planningcheck'.$rand).".dialog('open');\">";
+      echo " <a href='#' onClick=\"".Html::jsGetElementbyID('planningcheck'.$rand).".dialog('open'); return false;\">";
       echo "&nbsp;<img src='".$CFG_GLPI["root_doc"]."/pics/reservation-3.png'
              title=\"".__s('Availability')."\" alt=\"".__s('Availability')."\"
              class='calendrier'>";
@@ -1373,24 +1511,23 @@ abstract class CommonITILTask  extends CommonDBTM {
                                     $CFG_GLPI["root_doc"].
                                           "/front/planning.php?checkavailability=checkavailability".
                                           "&itemtype=".$item->getType()."&$fkfield=".$item->getID(),
-                                    array('title'  => __('Availability')));
-
+                                    ['title'  => __('Availability')]);
 
       echo "<br />";
       echo Html::image($CFG_GLPI['root_doc']."/pics/group.png")."&nbsp;";
       echo _n('Group', 'Groups', 1)."&nbsp;";
       $rand_group = mt_rand();
-      $params     = array('name'      => "groups_id_tech",
+      $params     = ['name'      => "groups_id_tech",
                           'value'     => (($ID > -1)
                                           ?$this->fields["groups_id_tech"]
                                           :Dropdown::EMPTY_VALUE),
                           'condition' => "is_task",
                           'rand'      => $rand_group,
-                          'entity'    => $item->fields["entities_id"]);
+                          'entity'    => $item->fields["entities_id"]];
 
-      $params['toupdate'] = array('value_fieldname' => 'users_id',
+      $params['toupdate'] = ['value_fieldname' => 'users_id',
                                   'to_update' => "group_available$rand_group",
-                                  'url'       => $CFG_GLPI["root_doc"]."/ajax/planningcheck.php");
+                                  'url'       => $CFG_GLPI["root_doc"]."/ajax/planningcheck.php"];
       Group::dropdown($params);
       echo "</td>\n";
       echo "<td>";
@@ -1404,7 +1541,7 @@ abstract class CommonITILTask  extends CommonDBTM {
             echo "<script type='text/javascript' >\n";
             echo "function showPlan".$ID.$rand_text."() {\n";
             echo Html::jsHide("plan$rand_text");
-            $params = array('action'    => 'add_event_classic_form',
+            $params = ['action'    => 'add_event_classic_form',
                             'form'      => 'followups',
                             'users_id'  => $this->fields["users_id_tech"],
                             'groups_id' => $this->fields["groups_id_tech"],
@@ -1415,7 +1552,7 @@ abstract class CommonITILTask  extends CommonDBTM {
                             'rand_group' => $rand_group,
                             'entity'    => $item->fields["entities_id"],
                             'itemtype'  => $this->getType(),
-                            'items_id'  => $this->getID());
+                            'items_id'  => $this->getID()];
             Ajax::updateItemJsCode("viewplan$rand_text", $CFG_GLPI["root_doc"] . "/ajax/planning.php",
                                    $params);
             echo "}";
@@ -1446,13 +1583,13 @@ abstract class CommonITILTask  extends CommonDBTM {
             echo "<script type='text/javascript' >\n";
             echo "function showPlanUpdate$rand_text() {\n";
             echo Html::jsHide("plan$rand_text");
-            $params = array('action'    => 'add_event_classic_form',
+            $params = ['action'    => 'add_event_classic_form',
                             'form'      => 'followups',
                             'entity'    => $item->fields['entities_id'],
                             'rand_user' => $rand_user,
                             'rand_group' => $rand_group,
                             'itemtype'  => $this->getType(),
-                            'items_id'  => $this->getID());
+                            'items_id'  => $this->getID()];
             Ajax::updateItemJsCode("viewplan$rand_text", $CFG_GLPI["root_doc"]."/ajax/planning.php",
                                    $params);
             echo "};";
@@ -1465,7 +1602,7 @@ abstract class CommonITILTask  extends CommonDBTM {
                echo "<div id='viewplan$rand_text'></div>\n";
             }
          } else {
-            _e('None');
+            echo __('None');
          }
       }
 
@@ -1474,9 +1611,9 @@ abstract class CommonITILTask  extends CommonDBTM {
       if (!empty($this->fields["begin"])
           && PlanningRecall::isAvailable()) {
 
-         echo "<tr class='tab_bg_1'><td>"._x('Planning','Reminder')."</td><td class='center'>";
-         PlanningRecall::dropdown(array('itemtype' => $this->getType(),
-                                        'items_id' => $this->getID()));
+         echo "<tr class='tab_bg_1'><td>"._x('Planning', 'Reminder')."</td><td class='center'>";
+         PlanningRecall::dropdown(['itemtype' => $this->getType(),
+                                        'items_id' => $this->getID()]);
          echo "</td><td colspan='2'></td></tr>";
       }
 
@@ -1503,7 +1640,7 @@ abstract class CommonITILTask  extends CommonDBTM {
       // Display existing Tasks
       $showprivate = $this->canViewPrivates();
       $caneditall  = $this->canEditAll();
-      $tmp         = array($item->getForeignKeyField() => $tID);
+      $tmp         = [$item->getForeignKeyField() => $tID];
       $canadd      = $this->can(-1, CREATE, $tmp);
       $canpurge    = $this->canPurgeItem();
       $canview     = $this->canViewItem();
@@ -1528,7 +1665,7 @@ abstract class CommonITILTask  extends CommonDBTM {
 
       $rand = mt_rand();
 
-      $tasktype = $this->getType() ;
+      $tasktype = $this->getType();
       if ($caneditall || $canadd || $canpurge) {
          echo "<div id='viewitem$tasktype$rand'></div>\n";
       }
@@ -1536,10 +1673,10 @@ abstract class CommonITILTask  extends CommonDBTM {
       if ($canadd) {
          echo "<script type='text/javascript' >\n";
          echo "function viewAdd$tasktype$rand() {\n";
-         $params = array('type'                      => $tasktype,
+         $params = ['type'                      => $tasktype,
                          'parenttype'                => $item->getType(),
                          $item->getForeignKeyField() => $item->fields['id'],
-                         'id'                        => -1);
+                         'id'                        => -1];
          Ajax::updateItemJsCode("viewitem$tasktype$rand",
                                 $CFG_GLPI["root_doc"]."/ajax/viewsubitem.php", $params);
          echo Html::jsHide("addbutton$rand");
@@ -1570,12 +1707,12 @@ abstract class CommonITILTask  extends CommonDBTM {
 
          while ($data = $DB->fetch_assoc($result)) {
             if ($this->getFromDB($data['id'])) {
-               $options = array( 'parent' => $item,
+               $options = [ 'parent' => $item,
                                  'rand' => $rand,
-                                 'showprivate' => $showprivate ) ;
-               Plugin::doHook('pre_show_item', array('item' => $this, 'options' => &$options));
+                                 'showprivate' => $showprivate ];
+               Plugin::doHook('pre_show_item', ['item' => $this, 'options' => &$options]);
                $this->showInObjectSumnary($item, $rand, $showprivate);
-               Plugin::doHook('post_show_item', array('item' => $this, 'options' => $options));
+               Plugin::doHook('post_show_item', ['item' => $this, 'options' => $options]);
             }
          }
          echo $header;
@@ -1590,7 +1727,7 @@ abstract class CommonITILTask  extends CommonDBTM {
    function showFormMassiveAction() {
 
       echo "&nbsp;".__('Category')."&nbsp;";
-      TaskCategory::dropdown(array('condition' => "`is_active`= '1'"));
+      TaskCategory::dropdown(['condition' => "`is_active`= '1'"]);
 
       echo "<br>".__('Description')." ";
       echo "<textarea name='content' cols='50' rows='6'></textarea>&nbsp;";
@@ -1601,20 +1738,226 @@ abstract class CommonITILTask  extends CommonDBTM {
 
        echo "<br>".__('Duration');
 
-      $toadd = array();
-      for ($i=9 ; $i<=100 ; $i++) {
+      $toadd = [];
+      for ($i=9; $i<=100; $i++) {
          $toadd[] = $i*HOUR_TIMESTAMP;
       }
 
-      Dropdown::showTimeStamp("actiontime", array('min'             => 0,
+      Dropdown::showTimeStamp("actiontime", ['min'             => 0,
                                                   'max'             => 8*HOUR_TIMESTAMP,
                                                   'addfirstminutes' => true,
                                                   'inhours'         => true,
-                                                  'toadd'           => $toadd));
+                                                  'toadd'           => $toadd]);
 
       echo "<input type='submit' name='add' value=\""._sx('button', 'Add')."\" class='submit'>";
    }
 
 
+   /**
+    * Get tasks list
+    *
+    * @since 9.2
+    *
+    * @return DBmysqlIterator
+    */
+   public static function getTaskList($status, $showgrouptickets, $start = null, $limit = null) {
+      global $DB;
+
+      $prep_req = ['SELECT' => self::getTable() . '.id', 'FROM' => self::getTable()];
+
+      $itemtype = str_replace('Task', '', self::getType());
+      $fk_table = getTableForItemType($itemtype);
+      $fk_field = Toolbox::strtolower(getPlural($itemtype)) . '_id';
+
+      $prep_req['INNER JOIN'] = [
+         $fk_table => [
+            'FKEY' => [
+               self::getTable()  => $fk_field,
+               $fk_table         => 'id'
+            ]
+         ]
+      ];
+
+      $prep_req['WHERE'] = [$fk_table.".status" => $itemtype::getNotSolvedStatusArray()];
+      switch ($status) {
+         case "todo" : // we display the task with the status `todo`
+            $prep_req['WHERE'][self::getTable() . '.state'] = Planning::TODO;
+            break;
+
+      }
+      if ($showgrouptickets) {
+         if (isset($_SESSION['glpigroups']) && count($_SESSION['glpigroups'])) {
+            $prep_req['WHERE'][self::getTable() . '.groups_id_tech'] = $_SESSION['glpigroups'];
+         } else {
+            return false;
+         }
+      } else {
+         $prep_req['WHERE'][self::getTable() . '.users_id_tech'] = $_SESSION['glpiID'];
+      }
+      $prep_req['ORDER'] = [self::getTable() . '.date_mod DESC'];
+
+      if ($start !== null) {
+         $prep_req['START'] = $start;
+      }
+      if ($limit !== null) {
+         $prep_req['LIMIT'] = $limit;
+      }
+
+      $req = $DB->request($prep_req);
+      return $req;
+   }
+
+
+   /**
+    * Display tasks in homepage
+    *
+    * @since 9.2
+    *
+    * @param integer $start            Start number to display
+    * @param string  $status           The task status to filter
+    * @param boolean $showgrouptickets As we display for group defined in task or not?
+    *
+    * @return void
+    */
+   static function showCentralList($start, $status = 'todo', $showgrouptickets = true) {
+      global $DB, $CFG_GLPI;
+
+      $req = self::getTaskList($status, $showgrouptickets);
+      $numrows = 0;
+      if ($req !== false) {
+         $numrows = $req->numrows();
+      }
+
+      $number = 0;
+      if ($_SESSION['glpidisplay_count_on_home'] > 0 && $req !== false) {
+         $start = (int)$start;
+         $limit = (int)$_SESSION['glpidisplay_count_on_home'];
+         $req = self::getTaskList($status, $showgrouptickets, $start, $limit);
+         $number = $req->numrows();
+      }
+
+      if ($numrows > 0) {
+         echo "<table class='tab_cadrehov'>";
+         echo "<tr class='noHover'><th colspan='4'>";
+
+         $options['reset'] = 'reset';
+         $forcetab         = '';
+         $num              = 0;
+         $itemtype = get_called_class();
+         $item = new $itemtype;
+         switch ($status) {
+            case "todo" :
+               $options['criteria'][0]['field']      = 12; // status
+               $options['criteria'][0]['searchtype'] = 'equals';
+               $options['criteria'][0]['value']      = "notold";
+               $options['criteria'][0]['link']       = 'AND';
+               if ($showgrouptickets) {
+                  $options['criteria'][1]['field']      = 112; // tech in charge of task
+                  $options['criteria'][1]['searchtype'] = 'equals';
+                  $options['criteria'][1]['value']      = 'mygroups';
+                  $options['criteria'][1]['link']       = 'AND';
+               } else {
+                  $options['criteria'][1]['field']      = 95; // tech in charge of task
+                  $options['criteria'][1]['searchtype'] = 'equals';
+                  $options['criteria'][1]['value']      = $_SESSION['glpiID'];
+                  $options['criteria'][1]['link']       = 'AND';
+               }
+               $options['criteria'][2]['field']      = 33; // task status
+               $options['criteria'][2]['searchtype'] = 'equals';
+               $options['criteria'][2]['value']      = Planning::TODO;
+               $options['criteria'][2]['link']       = 'AND';
+
+               if ($itemtype == "TicketTask") {
+                  $forcetab                 = 'Ticket$1';
+                  $title = __("Ticket tasks to do");
+               } else if ($itemtype == "ProblemTask") {
+                  $forcetab                 = 'ProblemTask$1';
+                  $title = __("Problem tasks to do");
+               }
+               echo "<a href=\"".$CFG_GLPI["root_doc"]."/front/ticket.php?".
+                      Toolbox::append_params($options, '&amp;')."\">".
+                      Html::makeTitle($title, $number, $numrows)."</a>";
+               break;
+         }
+
+         echo "</th></tr>";
+         if ($number) {
+            echo "<tr>";
+            echo "<th>".__('ID')." </th>";
+            $type = "";
+            if ($itemtype == "TicketTask") {
+               $type = Ticket::getTypeName();
+            } else if ($itemtype == "ProblemTask") {
+               $type = Problem::getTypeName();
+            }
+            echo "<th>".__('Title')." (".strtolower($type).")</th>";
+            echo "<th>".__('Description')."</th>";
+            echo "</tr>";
+            foreach ($req as $id => $row) {
+               self::showVeryShort($id, $itemtype);
+            }
+         }
+         echo "</table>";
+      }
+   }
+
+
+
+   /**
+    * Very short table to display the task
+    *
+    * @since 9.2
+    *
+    * @param integer $ID       The ID of the task
+    * @param string  $itemtype The itemtype (TicketTask, ProblemTask)
+    *
+    * @return void
+    */
+   static function showVeryShort($ID, $itemtype) {
+      global $DB, $CFG_GLPI;
+
+      $job  = new $itemtype();
+      $rand = mt_rand();
+      if ($job->getFromDB($ID)) {
+         if ($DB->fieldExists($job->getTable(), 'tickets_id')) {
+            $item_link = new Ticket();
+            $item_link->getFromDB($job->fields['tickets_id']);
+            $tab_name = "Ticket";
+         } else if ($DB->fieldExists($job->getTable(), 'problems_id')) {
+            $item_link = new Problem();
+            $item_link->getFromDB($job->fields['problems_id']);
+            $tab_name = "ProblemTask";
+         }
+
+         $bgcolor = $_SESSION["glpipriority_".$item_link->fields["priority"]];
+         // $rand    = mt_rand();
+         echo "<tr class='tab_bg_2'>";
+         echo "<td class='center' bgcolor='$bgcolor'>".sprintf(__('%1$s: %2$s'), __('ID'),
+                                                               $job->fields["id"])."</td>";
+         echo "<td class='center'>";
+         echo $item_link->fields['name'];
+         echo "</td>";
+
+         echo "<td>";
+         $link = "<a id='".strtolower($item_link->getType())."ticket".$item_link->fields["id"].$rand."' href='".$CFG_GLPI["root_doc"].
+                   "/front/".strtolower($item_link->getType()).".form.php?id=".$item_link->fields["id"];
+         $link .= "&amp;forcetab=".$tab_name."$1";
+         $link   .= "'>";
+         $link    = sprintf(__('%1$s'), $link);
+         $content = Toolbox::unclean_cross_side_scripting_deep(html_entity_decode($job->fields['content'],
+                                                                                  ENT_QUOTES,
+                                                                                  "UTF-8"));
+         printf(__('%1$s %2$s'), $link, Html::resume_text(Html::Clean($content), 50));
+
+         echo "</a>";
+         echo "</td>";
+
+         // Finish Line
+         echo "</tr>";
+      } else {
+         echo "<tr class='tab_bg_2'>";
+         echo "<td colspan='6' ><i>".__('No tasks do to.')."</i></td></tr>";
+      }
+   }
+
 }
-?>

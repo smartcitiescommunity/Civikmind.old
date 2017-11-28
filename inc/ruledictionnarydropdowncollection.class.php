@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
- 
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -53,11 +52,11 @@ class RuleDictionnaryDropdownCollection extends RuleCollection {
    /**
     * @see RuleCollection::replayRulesOnExistingDB()
    **/
-   function replayRulesOnExistingDB($offset=0, $maxtime=0, $items=array(), $params=array()) {
+   function replayRulesOnExistingDB($offset = 0, $maxtime = 0, $items = [], $params = []) {
       global $DB;
 
       // Model check : need to check using manufacturer extra data so specific function
-      if (strpos($this->item_table,'models')) {
+      if (strpos($this->item_table, 'models')) {
          return $this->replayRulesOnExistingDBForModel($offset, $maxtime);
       }
 
@@ -79,7 +78,7 @@ class RuleDictionnaryDropdownCollection extends RuleCollection {
           && ($nb > $offset)) {
          // Step to refresh progressbar
          $step              = (($nb > 20) ? floor($nb/20) : 1);
-         $send              = array();
+         $send              = [];
          $send["tablename"] = $this->item_table;
 
          while ($data = $DB->fetch_assoc($result)) {
@@ -94,15 +93,15 @@ class RuleDictionnaryDropdownCollection extends RuleCollection {
 
             //Replay Type dictionnary
             $ID = Dropdown::importExternal(getItemTypeForTable($this->item_table),
-                                           addslashes($data["name"]), -1, array(),
+                                           addslashes($data["name"]), -1, [],
                                            addslashes($data["comment"]));
             if ($data['id'] != $ID) {
                $tomove[$data['id']] = $ID;
                $type                = GetItemTypeForTable($this->item_table);
 
                if ($dropdown = getItemForItemtype($type)) {
-                  $dropdown->delete(array('id'          => $data['id'],
-                                          '_replace_by' => $ID));
+                  $dropdown->delete(['id'          => $data['id'],
+                                          '_replace_by' => $ID]);
                }
             }
             $i++;
@@ -133,7 +132,7 @@ class RuleDictionnaryDropdownCollection extends RuleCollection {
     *
     * @return -1 on completion else current offset
    **/
-   function replayRulesOnExistingDBForModel($offset=0, $maxtime=0) {
+   function replayRulesOnExistingDBForModel($offset = 0, $maxtime = 0) {
       global $DB;
 
       if (isCommandLine()) {
@@ -141,8 +140,8 @@ class RuleDictionnaryDropdownCollection extends RuleCollection {
       }
 
       // Model check : need to check using manufacturer extra data
-      if (strpos($this->item_table,'models') === false) {
-         _e('Error replaying rules');
+      if (strpos($this->item_table, 'models') === false) {
+         echo __('Error replaying rules');
          return false;
       }
 
@@ -173,7 +172,7 @@ class RuleDictionnaryDropdownCollection extends RuleCollection {
           && ($nb > $offset)) {
          // Step to refresh progressbar
          $step    = (($nb > 20) ? floor($nb/20) : 1);
-         $tocheck = array();
+         $tocheck = [];
 
          while ($data = $DB->fetch_assoc($result)) {
             if (!($i % $step)) {
@@ -212,7 +211,7 @@ class RuleDictionnaryDropdownCollection extends RuleCollection {
 
             $i++;
             if ($maxtime) {
-               $crt = explode(" ",microtime());
+               $crt = explode(" ", microtime());
                if (($crt[0]+$crt[1]) > $maxtime) {
                   break;
                }
@@ -228,7 +227,7 @@ class RuleDictionnaryDropdownCollection extends RuleCollection {
 
             // No item left : delete old item
             if ($result
-                && ($DB->result($result,0,0) == 0)) {
+                && ($DB->result($result, 0, 0) == 0)) {
                $Sql              = "DELETE
                                     FROM `".$this->item_table."`
                                     WHERE `id` = '$ID'";
@@ -245,7 +244,7 @@ class RuleDictionnaryDropdownCollection extends RuleCollection {
                if ($result = $DB->query($sql)) {
                   if ($DB->numrows($result)) {
                      // Get compatible cartridge type
-                     $carttype = array();
+                     $carttype = [];
                      while ($data = $DB->fetch_assoc($result)) {
                         $carttype[] = $data['cartridgeitems_id'];
                      }
@@ -278,4 +277,3 @@ class RuleDictionnaryDropdownCollection extends RuleCollection {
    }
 
 }
-?>

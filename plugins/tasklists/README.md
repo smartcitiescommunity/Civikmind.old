@@ -1,18 +1,34 @@
-# tasklists
-Plugin Tasklists for GLPI
+# Tasklist GLPI plugin
 
-Ajout d'une gestion de tâches simples. Ce plugin permet d'ajouter dans GLPI, une interface pour saisir des tâches simples.
-> * Peut être utilisé avec le collecteur de mail pour créer des tâches.
+This plugin was created as a way to automatically generate a list of ticket tasks based on a ticket category
 
-Adding a management of simple tasks. This plugin adds in GLPI, an interface to input simple tasks.
-> * Can be used with mail collector to create tasks.
+Some parts were adapted from the GLPI Plugin examples.
 
-For use it with mail collector you must to modify "inc/rulemailcollector.class.php" file, into  "executeActions" fonction, into switch : switch ($action->fields["action_type"]), add a default case  : 
+Basic Usage:
+ * Create new ticket categories via the setup -> dropdowns menu
+ * Create a new task list via Setup -> Tasklist List Management
+ * The name of the newly created tasklist must match an existing category
+ * Enable or Disable the task list via the checkbox.
+ * Enter the tasks in the text box.  The following format should be used
+	Task One
+	  Sub task 1
+	  Sub task 2
+	++
+	Task Two
+	  Sub task 1
+	  Sub task 2
+	++
+	Task Three
+	++
+	Task Four
+ * The system will parse the text box, and separate tasks at every ++.
+ * Create a new ticket, select the category for the ticket, and when the new ticket is 
+	submitted, the system will auto-generate tasks.
 
-```
-default:
-   //plugins actions
-   $executeaction = clone $this;
-   $output = $executeaction->executePluginsActions($action, $output, $params);
-   break;
-```
+## Documentation
+
+None yet
+
+## Contributing
+
+

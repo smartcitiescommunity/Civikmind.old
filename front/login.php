@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
- 
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -62,6 +61,8 @@ if (isset($_SESSION['pwdfield']) && isset($_POST[$_SESSION['pwdfield']])) {
    $password = '';
 }
 
+$remember = isset($_SESSION['rmbfield']) && isset($_POST[$_SESSION['rmbfield']]) && $CFG_GLPI["login_remember_time"];
+
 // Redirect management
 $REDIRECT = "";
 if (isset($_POST['redirect']) && (strlen($_POST['redirect']) > 0)) {
@@ -75,32 +76,15 @@ $auth = new Auth();
 
 
 // now we can continue with the process...
-if ($auth->Login($login, $password, (isset($_REQUEST["noAUTO"])?$_REQUEST["noAUTO"]:false))) {
-
-   // Redirect to Command Central if not post-only
-   if ($_SESSION["glpiactiveprofile"]["interface"] == "helpdesk") {
-      if ($_SESSION['glpiactiveprofile']['create_ticket_on_login']
-          && empty($REDIRECT)) {
-         Html::redirect($CFG_GLPI['root_doc'] . "/front/helpdesk.public.php?create_ticket=1");
-      }
-      Html::redirect($CFG_GLPI['root_doc'] . "/front/helpdesk.public.php$REDIRECT");
-
-   } else {
-      if ($_SESSION['glpiactiveprofile']['create_ticket_on_login']
-          && empty($REDIRECT)) {
-         Html::redirect($CFG_GLPI['root_doc'] . "/front/ticket.form.php");
-      }
-      Html::redirect($CFG_GLPI['root_doc'] . "/front/central.php$REDIRECT");
-   }
-
+if ($auth->login($login, $password, (isset($_REQUEST["noAUTO"])?$_REQUEST["noAUTO"]:false), $remember)) {
+   Auth::redirectIfAuthenticated();
 } else {
    // we have done at least a good login? No, we exit.
    Html::nullHeader("Login", $CFG_GLPI["root_doc"] . '/index.php');
    echo '<div class="center b">' . $auth->getErr() . '<br><br>';
    // Logout whit noAUto to manage auto_login with errors
    echo '<a href="' . $CFG_GLPI["root_doc"] . '/front/logout.php?noAUTO=1'.
-         str_replace("?","&",$REDIRECT).'">' .__('Log in again') . '</a></div>';
+         str_replace("?", "&", $REDIRECT).'">' .__('Log in again') . '</a></div>';
    Html::nullFooter();
    exit();
 }
-?>

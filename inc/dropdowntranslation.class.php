@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
-
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 if (!defined('GLPI_ROOT')) {
@@ -67,7 +66,7 @@ class DropdownTranslation extends CommonDBChild {
    /**
     * @see CommonGLPI::getTabNameForItem()
    **/
-   function getTabNameForItem(CommonGLPI $item, $withtemplate=0) {
+   function getTabNameForItem(CommonGLPI $item, $withtemplate = 0) {
 
       if (self::canBeTranslated($item)) {
          $nb = 0;
@@ -85,7 +84,7 @@ class DropdownTranslation extends CommonDBChild {
     * @param $tabnum          (default 1)
     * @param $withtemplate    (default 0)
    **/
-   static function displayTabContentForItem(CommonGLPI $item, $tabnum=1, $withtemplate=0) {
+   static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0) {
 
       if (DropdownTranslation::canBeTranslated($item)) {
          DropdownTranslation::showTranslations($item);
@@ -107,7 +106,7 @@ class DropdownTranslation extends CommonDBChild {
 
    function prepareInputForUpdate($input) {
 
-      if ($this->checkBeforeAddorUpdate($input,false)) {
+      if ($this->checkBeforeAddorUpdate($input, false)) {
          return $input;
       }
       Session::addMessageAfterRedirect(__("There's already a translation for this field in this language"),
@@ -128,25 +127,25 @@ class DropdownTranslation extends CommonDBChild {
                                                            $this->fields['itemtype'],
                                                            'completename',
                                                            $this->fields['language'])) {
-               $translation->delete(array('id' => $completenames_id));
+               $translation->delete(['id' => $completenames_id]);
             }
          }
          // If only completename for sons : drop
-//          foreach (getSonsOf(getTableForItemType($this->fields['itemtype']),
-//                                                 $this->fields['items_id']) as $son) {
-//
-//             if ($this->getNumberOfTranslations($this->fields['itemtype'], $son,
-//                                               'name', $this->fields['language']) == 0) {
-//
-//                $completenames_id = self::getTranslationID($son, $this->fields['itemtype'],
-//                                                               'completename',
-//                                                               $this->fields['language']);
-//                if ($completenames_id) {
-//                   $translation = new self();
-//                   $translation->delete(array('id' => $completenames_id));
-//                }
-//             }
-//          }
+         // foreach (getSonsOf(getTableForItemType($this->fields['itemtype']),
+         //                                        $this->fields['items_id']) as $son) {
+
+         //    if ($this->getNumberOfTranslations($this->fields['itemtype'], $son,
+         //                                      'name', $this->fields['language']) == 0) {
+
+         //       $completenames_id = self::getTranslationID($son, $this->fields['itemtype'],
+         //                                                      'completename',
+         //                                                      $this->fields['language']);
+         //       if ($completenames_id) {
+         //          $translation = new self();
+         //          $translation->delete(array('id' => $completenames_id));
+         //       }
+         //    }
+         // }
          // Then update all sons records
          if (!isset($this->input['_no_completename'])) {
             $translation->generateCompletename($this->fields, false);
@@ -156,7 +155,7 @@ class DropdownTranslation extends CommonDBChild {
    }
 
 
-   function post_updateItem($history=1) {
+   function post_updateItem($history = 1) {
 
       if (!isset($this->input['_no_completename'])) {
          $translation = new self();
@@ -191,10 +190,10 @@ class DropdownTranslation extends CommonDBChild {
    static function getNumberOfTranslations($itemtype, $items_id, $field, $language) {
 
       return countElementsInTable(getTableForItemType(__CLASS__),
-                                  "`itemtype`='".$itemtype."'
-                                     AND `items_id`='".$items_id."'
-                                     AND `field`='".$field."'
-                                     AND `language`='".$language."'");
+                                  ['itemtype' => $itemtype,
+                                   'items_id' => $items_id,
+                                   'field'    => $field,
+                                   'language' => $language]);
    }
 
 
@@ -208,9 +207,9 @@ class DropdownTranslation extends CommonDBChild {
    static function getNumberOfTranslationsForItem($item) {
 
       return countElementsInTable(getTableForItemType(__CLASS__),
-                                  "`itemtype`='".$item->getType()."'
-                                     AND `items_id`='".$item->getID()."'
-                                     AND `field` <> 'completename'");
+                                  ['itemtype' => $item->getType(),
+                                   'items_id' => $item->getID(),
+                                   'NOT'      => ['field' => 'completename' ]]);
    }
 
 
@@ -222,7 +221,7 @@ class DropdownTranslation extends CommonDBChild {
     *
     * @return true if translation can be added/update, false otherwise
    **/
-   function checkBeforeAddorUpdate($input, $add=true) {
+   function checkBeforeAddorUpdate($input, $add = true) {
       global $DB;
 
       $number = $this->getNumberOfTranslations($input['itemtype'], $input['items_id'],
@@ -242,20 +241,20 @@ class DropdownTranslation extends CommonDBChild {
     *
     * @return nothing
    **/
-   function generateCompletename($input, $add=true) {
+   function generateCompletename($input, $add = true) {
       global $DB;
       // Force completename translated : used for the first translation
       $_SESSION['glpi_dropdowntranslations'][$input['itemtype']]['completename'] = 'completename';
 
       //If there's already a completename for this language, get it's ID, otherwise 0
       $completenames_id = self::getTranslationID($input['items_id'], $input['itemtype'],
-                                                 'completename',  $input['language']);
+                                                 'completename', $input['language']);
       $item = new $input['itemtype']();
       //Completename is used only for tree dropdowns !
       if ($item instanceof CommonTreeDropdown
           && isset($input['language'])) {
          $item->getFromDB($input['items_id']);
-         $foreignKey = $item->getForeignKeyField() ;
+         $foreignKey = $item->getForeignKeyField();
 
          //Regenerate completename : look for item's ancestors
          $completename = "";
@@ -275,7 +274,7 @@ class DropdownTranslation extends CommonDBChild {
 
          //Add or update completename for this language
          $translation              = new self();
-         $tmp                      = array();
+         $tmp                      = [];
          $tmp['items_id']          = $input['items_id'];
          $tmp['itemtype']          = $input['itemtype'];
          $tmp['field']             = 'completename';
@@ -285,7 +284,7 @@ class DropdownTranslation extends CommonDBChild {
          if ($completenames_id) {
             $tmp['id']    = $completenames_id;
             if ($completename === $item->fields['completename']) {
-                $translation->delete(array('id' => $completenames_id));
+                $translation->delete(['id' => $completenames_id]);
             } else {
                 $translation->update($tmp);
             }
@@ -295,16 +294,16 @@ class DropdownTranslation extends CommonDBChild {
             }
          }
 
-        $query = "SELECT `id`
-                FROM `".$item->getTable()."`
-                WHERE `$foreignKey` = '".$item->getID()."'";
+         $query = "SELECT `id`
+                   FROM `".$item->getTable()."`
+                   WHERE `$foreignKey` = '".$item->getID()."'";
 
-        foreach ($DB->request($query) as $tmp) {
+         foreach ($DB->request($query) as $tmp) {
             $input2 = $input;
             $input2['items_id'] = $tmp['id'];
             $this->generateCompletename($input2, $add);
-        }
-     }
+         }
+      }
    }
 
 
@@ -326,10 +325,10 @@ class DropdownTranslation extends CommonDBChild {
 
          echo "<script type='text/javascript' >\n";
          echo "function addTranslation" . $item->getType().$item->getID() . "$rand() {\n";
-         $params = array('type'                       => __CLASS__,
+         $params = ['type'                       => __CLASS__,
                          'parenttype'                 => get_class($item),
                          $item->getForeignKeyField()  => $item->getID(),
-                         'id'                         => -1);
+                         'id'                         => -1];
          Ajax::updateItemJsCode("viewtranslation" . $item->getType().$item->getID() . "$rand",
                                 $CFG_GLPI["root_doc"]."/ajax/viewsubitem.php",
                                 $params);
@@ -351,7 +350,7 @@ class DropdownTranslation extends CommonDBChild {
       if ($DB->numrows($results)) {
          if ($canedit) {
             Html::openMassiveActionsForm('mass'.__CLASS__.$rand);
-            $massiveactionparams = array('container' => 'mass'.__CLASS__.$rand);
+            $massiveactionparams = ['container' => 'mass'.__CLASS__.$rand];
             Html::showMassiveActions($massiveactionparams);
          }
          echo "<div class='center'>";
@@ -382,10 +381,10 @@ class DropdownTranslation extends CommonDBChild {
             if ($canedit) {
                echo "\n<script type='text/javascript' >\n";
                echo "function viewEditTranslation".$data['itemtype'].$data['id']."$rand() {\n";
-               $params = array('type'                     => __CLASS__,
+               $params = ['type'                     => __CLASS__,
                               'parenttype'                => get_class($item),
                               $item->getForeignKeyField() => $item->getID(),
-                              'id'                        => $data["id"]);
+                              'id'                        => $data["id"]];
                Ajax::updateItemJsCode("viewtranslation" . $item->getType().$item->getID() . "$rand",
                                       $CFG_GLPI["root_doc"]."/ajax/viewsubitem.php",
                                       $params);
@@ -419,7 +418,7 @@ class DropdownTranslation extends CommonDBChild {
     * @param $ID               field (default -1)
     * @param $options   array
     */
-   function showForm($ID=-1, $options=array()) {
+   function showForm($ID = -1, $options = []) {
       global $CFG_GLPI;
 
       if (isset($options['parent']) && !empty($options['parent'])) {
@@ -432,7 +431,7 @@ class DropdownTranslation extends CommonDBChild {
          $options['items_id'] = $item->getID();
 
          // Create item
-         $this->check(-1 , CREATE, $options);
+         $this->check(-1, CREATE, $options);
       }
       $rand = mt_rand();
       $this->showFormHeader($options);
@@ -446,11 +445,11 @@ class DropdownTranslation extends CommonDBChild {
          echo Dropdown::getLanguageName($this->fields['language']);
       } else {
          $rand   = Dropdown::showLanguages("language",
-                                           array('display_none' => false,
-                                                 'value'        => $_SESSION['glpilanguage']));
-         $params = array('language' => '__VALUE__',
+                                           ['display_none' => false,
+                                                 'value'        => $_SESSION['glpilanguage']]);
+         $params = ['language' => '__VALUE__',
                          'itemtype' => get_class($item),
-                         'items_id' => $item->getID());
+                         'items_id' => $item->getID()];
          Ajax::updateItemOnSelectEvent("dropdown_language$rand",
                                        "span_fields",
                                        $CFG_GLPI["root_doc"]."/ajax/updateTranslationFields.php",
@@ -488,22 +487,22 @@ class DropdownTranslation extends CommonDBChild {
     *
     * @return the dropdown's random identifier
    **/
-   static function dropdownFields(CommonDBTM $item, $language='', $value='') {
+   static function dropdownFields(CommonDBTM $item, $language = '', $value = '') {
       global $DB;
 
-      $options = array();
+      $options = [];
       foreach (Search::getOptions(get_class($item)) as $id => $field) {
          //Can only translate name, and fields whose datatype is text or string
          if (isset ($field['field'])
              && ($field['field'] == 'name')
              && ($field['table'] == getTableForItemType(get_class($item)))
              || (isset($field['datatype'])
-                 && in_array($field['datatype'], array('text', 'string')))) {
+                 && in_array($field['datatype'], ['text', 'string']))) {
             $options[$field['field']] = $field['name'];
          }
       }
 
-      $used = array();
+      $used = [];
       if (!empty($options)) {
          $query = "SELECT `field`
                    FROM `".self::getTable()."`
@@ -518,8 +517,8 @@ class DropdownTranslation extends CommonDBChild {
          }
       }
       //$used = array();
-      return Dropdown::showFromArray('field', $options, array('value' => $value,
-                                                              'used'  => $used));
+      return Dropdown::showFromArray('field', $options, ['value' => $value,
+                                                              'used'  => $used]);
    }
 
 
@@ -534,8 +533,12 @@ class DropdownTranslation extends CommonDBChild {
     *
     * @return the translated value of the value in the default language
    **/
-   static function getTranslatedValue($ID, $itemtype, $field='name', $language, $value='') {
+   static function getTranslatedValue($ID, $itemtype, $field = 'name', $language = '', $value = '') {
       global $DB;
+
+      if ($language == '') {
+         $language = $_SESSION['glpilanguage'];
+      }
 
       //If dropdown translation is globally off, or if this itemtype cannot be translated,
       //then original value should be returned
@@ -670,7 +673,7 @@ class DropdownTranslation extends CommonDBChild {
                   WHERE `itemtype` = '$itemtype'
                     AND `items_id` = '$items_id'
                     AND `field` = '$field'";
-      $data = array();
+      $data = [];
       foreach ($DB->request($query) as $tmp) {
          $data[$tmp['id']] = $tmp;
       }
@@ -685,12 +688,12 @@ class DropdownTranslation extends CommonDBChild {
     *
     * @return the value translated if a translation is available, or the same value if not
    **/
-    static function regenerateAllCompletenameTranslationsFor($itemtype, $items_id) {
-        foreach (self::getTranslationsForAnItem($itemtype, $items_id, 'completename') as $data) {
-            $dt = new DropdownTranslation();
-            $dt->generateCompletename($data, false);
-        }
-    }
+   static function regenerateAllCompletenameTranslationsFor($itemtype, $items_id) {
+      foreach (self::getTranslationsForAnItem($itemtype, $items_id, 'completename') as $data) {
+         $dt = new DropdownTranslation();
+         $dt->generateCompletename($data, false);
+      }
+   }
 
    /**
     * Check if there's at least one translation for this itemtype
@@ -700,7 +703,7 @@ class DropdownTranslation extends CommonDBChild {
     * @return true if there's at least one translation, otherwise false
    **/
    static function hasItemtypeATranslation($itemtype) {
-      return countElementsInTable(self::getTable(), "`itemtype`='$itemtype'");
+      return countElementsInTable(self::getTable(), ['itemtype'=> $itemtype ]);
    }
 
 
@@ -714,7 +717,7 @@ class DropdownTranslation extends CommonDBChild {
    static function getAvailableTranslations($language) {
       global $DB;
 
-      $tab = array();
+      $tab = [];
       if (self::isDropdownTranslationActive()) {
          $query   = "SELECT DISTINCT `itemtype`, `field`
                      FROM `".self::getTable()."`
@@ -727,4 +730,3 @@ class DropdownTranslation extends CommonDBChild {
    }
 
 }
-?>

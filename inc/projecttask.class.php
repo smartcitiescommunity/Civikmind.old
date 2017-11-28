@@ -1,33 +1,33 @@
 <?php
-/*
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 201-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
-
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -53,7 +53,7 @@ class ProjectTask extends CommonDBChild {
    static public $itemtype     = 'Project';
    static public $items_id     = 'projects_id';
 
-   protected $team             = array();
+   protected $team             = [];
    static $rightname           = 'projecttask';
    protected $usenotepad       = true;
 
@@ -64,14 +64,14 @@ class ProjectTask extends CommonDBChild {
 
 
 
-   static function getTypeName($nb=0) {
+   static function getTypeName($nb = 0) {
       return _n('Project task', 'Project tasks', $nb);
    }
 
 
    static function canView() {
 
-      return (Session::haveRightsOr('project', array(Project::READALL, Project::READMY))
+      return (Session::haveRightsOr('project', [Project::READALL, Project::READMY])
               || Session::haveRight(self::$rightname, ProjectTask::READMY));
    }
 
@@ -147,11 +147,31 @@ class ProjectTask extends CommonDBChild {
       parent::cleanDBonPurge();
    }
 
+   /**
+    * Duplicate all tasks from a project template to his clone
+    *
+    * @since version 9.2
+    *
+    * @param integer $oldid        ID of the item to clone
+    * @param integer $newid        ID of the item cloned
+    **/
+   static function cloneProjectTask ($oldid, $newid) {
+      global $DB;
+
+      foreach ($DB->request('glpi_projecttasks',
+                            ['WHERE' => "`projects_id` = '$oldid'"]) as $data) {
+         $cd                  = new self();
+         unset($data['id']);
+         $data['projects_id'] = $newid;
+         $data                = Toolbox::addslashes_deep($data);
+         $cd->add($data);
+      }
+   }
 
    /**
     * @see commonDBTM::getRights()
     **/
-   function getRights($interface='central') {
+   function getRights($interface = 'central') {
 
       $values = parent::getRights();
       unset($values[READ], $values[CREATE], $values[UPDATE], $values[DELETE], $values[PURGE]);
@@ -163,16 +183,16 @@ class ProjectTask extends CommonDBChild {
    }
 
 
-   function defineTabs($options=array()) {
+   function defineTabs($options = []) {
 
-      $ong = array();
+      $ong = [];
       $this->addDefaultFormTab($ong);
-      $this->addStandardTab(__CLASS__,$ong, $options);
-      $this->addStandardTab('ProjectTaskTeam',$ong, $options);
+      $this->addStandardTab(__CLASS__, $ong, $options);
+      $this->addStandardTab('ProjectTaskTeam', $ong, $options);
       $this->addStandardTab('Document_Item', $ong, $options);
-      $this->addStandardTab('ProjectTask_Ticket',$ong, $options);
-      $this->addStandardTab('Notepad',$ong, $options);
-      $this->addStandardTab('Log',$ong, $options);
+      $this->addStandardTab('ProjectTask_Ticket', $ong, $options);
+      $this->addStandardTab('Notepad', $ong, $options);
+      $this->addStandardTab('Log', $ong, $options);
 
       return $ong;
    }
@@ -188,10 +208,10 @@ class ProjectTask extends CommonDBChild {
    }
 
 
-   function post_updateItem($history=1) {
+   function post_updateItem($history = 1) {
       global $CFG_GLPI;
 
-      if (!isset($this->input['_disablenotif']) && $CFG_GLPI["use_mailing"]) {
+      if (!isset($this->input['_disablenotif']) && $CFG_GLPI["use_notifications"]) {
          // Read again project to be sure that all data are up to date
          $this->getFromDB($this->fields['id']);
          NotificationEvent::raiseEvent("update", $this);
@@ -202,7 +222,13 @@ class ProjectTask extends CommonDBChild {
    function post_addItem() {
       global $DB, $CFG_GLPI;
 
-      if (!isset($this->input['_disablenotif']) && $CFG_GLPI["use_mailing"]) {
+      // ADD Documents
+      Document_Item::cloneItem('ProjectTaskTemplate',
+                               $this->input["projecttasktemplates_id"],
+                               $this->fields['id'],
+                               $this->getType());
+
+      if (!isset($this->input['_disablenotif']) && $CFG_GLPI["use_notifications"]) {
          // Clean reload of the project
          $this->getFromDB($this->fields['id']);
 
@@ -260,7 +286,7 @@ class ProjectTask extends CommonDBChild {
    function pre_deleteItem() {
       global $CFG_GLPI;
 
-      if (!isset($this->input['_disablenotif']) && $CFG_GLPI['use_mailing']) {
+      if (!isset($this->input['_disablenotif']) && $CFG_GLPI['use_notifications']) {
          NotificationEvent::raiseEvent('delete', $this);
       }
       return true;
@@ -275,7 +301,7 @@ class ProjectTask extends CommonDBChild {
       }
 
       if (isset($input['is_milestone'])
-            && $input['is_milestone']){
+            && $input['is_milestone']) {
          $input['plan_end_date'] = $input['plan_start_date'];
          $input['real_end_date'] = $input['real_start_date'];
       }
@@ -293,7 +319,7 @@ class ProjectTask extends CommonDBChild {
       }
 
       if (isset($input['is_milestone'])
-            && $input['is_milestone']){
+            && $input['is_milestone']) {
          $input['plan_end_date'] = $input['plan_start_date'];
          $input['real_end_date'] = $input['real_start_date'];
       }
@@ -312,11 +338,11 @@ class ProjectTask extends CommonDBChild {
    static function getAllForProject($ID) {
       global $DB;
 
-      $tasks = array();
+      $tasks = [];
       foreach ($DB->request('glpi_projecttasks',
-                            array("projects_id" => $ID,
-                                  'ORDER'       => array('plan_start_date',
-                                                         'real_start_date'))) as $data) {
+                            ["projects_id" => $ID,
+                                  'ORDER'       => ['plan_start_date',
+                                                         'real_start_date']]) as $data) {
          $tasks[] = $data;
       }
       return $tasks;
@@ -333,13 +359,13 @@ class ProjectTask extends CommonDBChild {
    static function getAllTicketsForProject($ID) {
       global $DB;
 
-      $tasks = array();
-      foreach ($DB->request(array('glpi_projecttasks_tickets', 'glpi_projecttasks'),
-                            array("`glpi_projecttasks`.`projects_id`"
+      $tasks = [];
+      foreach ($DB->request(['glpi_projecttasks_tickets', 'glpi_projecttasks'],
+                            ["`glpi_projecttasks`.`projects_id`"
                                           => $ID,
                                   "`glpi_projecttasks_tickets`.`projecttasks_id`"
                                           => "`glpi_projecttasks`.`id`",
-                                  'FIELDS' =>  "tickets_id" ))
+                                  'FIELDS' =>  "tickets_id" ])
                         as $data) {
          $tasks[] = $data['tickets_id'];
       }
@@ -357,8 +383,24 @@ class ProjectTask extends CommonDBChild {
     *
     * @return true if displayed  false if item not found or not right to display
    **/
-   function showForm($ID, $options=array()) {
+   function showForm($ID, $options = []) {
       global $CFG_GLPI;
+
+      $rand_template           = mt_rand();
+      $rand_name               = mt_rand();
+      $rand_description        = mt_rand();
+      $rand_comment            = mt_rand();
+      $rand_project            = mt_rand();
+      $rand_state              = mt_rand();
+      $rand_type               = mt_rand();
+      $rand_percent            = mt_rand();
+      $rand_milestone          = mt_rand();
+      $rand_plan_start_date    = mt_rand();
+      $rand_plan_end_date      = mt_rand();
+      $rand_real_start_date    = mt_rand();
+      $rand_real_end_date      = mt_rand();
+      $rand_effective_duration = mt_rand();
+      $rand_planned_duration   = mt_rand();
 
       if ($ID > 0) {
          $this->check($ID, READ);
@@ -373,6 +415,61 @@ class ProjectTask extends CommonDBChild {
 
       $this->showFormHeader($options);
 
+      echo "<tr class='tab_bg_1'>";
+      echo "<td style='width:100px'>"._n('Project task template', 'Project task templates', 1)."</td><td>";
+      ProjectTaskTemplate::dropdown(['value'     => $this->fields['projecttasktemplates_id'],
+                                     'entity'    => $this->getEntityID(),
+                                     'rand'      => $rand_template,
+                                     'on_change' => 'projecttasktemplate_update(this.value)']);
+      echo "</td>";
+      echo "</tr>";
+      echo Html::scriptBlock('
+         function projecttasktemplate_update(value) {
+            $.ajax({
+               url: "' . $CFG_GLPI["root_doc"] . '/ajax/projecttask.php",
+               type: "POST",
+               data: {
+                  projecttasktemplates_id: value
+               }
+            }).done(function(data) {
+
+               // set input name
+               $("#textfield_name'.$rand_name.'").val(data.name);
+
+               // set textarea description
+               $("#description'.$rand_description.'").val(data.description);
+                // set textarea comment
+               $("#comment'.$rand_comment.'").val(data.comments);
+
+               // set project
+               $("#dropdown_projects_id'.$rand_project.'").select2("val", data.projects_id);
+               // set state
+               $("#dropdown_projectstates_id'.$rand_state.'").select2("val", data.projectstates_id);
+               // set type
+               $("#dropdown_projecttasktypes_id'.$rand_type.'").select2("val", data.projecttasktypes_id);
+               // set percent done
+               $("#dropdown_percent_done'.$rand_percent.'").select2("val", data.percent_done);
+               // set milestone
+               $("#dropdown_is_milestone'.$rand_milestone.'").select2("val", data.is_milestone);
+
+               // set plan_start_date
+               $("#showdate'.$rand_plan_start_date.'").val(data.plan_start_date);
+               // set plan_end_date
+               $("#showdate'.$rand_plan_end_date.'").val(data.plan_end_date);
+               // set real_start_date
+               $("#showdate'.$rand_real_start_date.'").val(data.real_start_date);
+               // set real_end_date
+               $("#showdate'.$rand_real_end_date.'").val(data.real_end_date);
+
+               // set effective_duration
+               $("#dropdown_effective_duration'.$rand_effective_duration.'").select2("val", data.effective_duration);
+               // set planned_duration
+               $("#dropdown_planned_duration'.$rand_planned_duration.'").select2("val", data.planned_duration);
+
+            });
+         }
+      ');
+
       echo "<tr class='tab_bg_1'><td>"._n('Project', 'Projects', Session::getPluralNumber())."</td>";
       echo "<td>";
       if ($this->isNewID($ID)) {
@@ -384,11 +481,12 @@ class ProjectTask extends CommonDBChild {
       echo "</td>";
       echo "<td>".__('As child of')."</td>";
       echo "<td>";
-      $this->dropdown(array('entity'    => $this->fields['entities_id'],
+      $this->dropdown(['entity'    => $this->fields['entities_id'],
                             'value'     => $projecttasks_id,
+                            'rand'      => $rand_project,
                             'condition' => "`glpi_projecttasks`.`projects_id`='".
                                              $this->fields['projects_id']."'",
-                            'used'      => array($this->fields['id'])));
+                            'used'      => [$this->fields['id']]]);
       echo "</td></tr>";
 
       $showuserlink = 0;
@@ -411,36 +509,39 @@ class ProjectTask extends CommonDBChild {
 
       echo "<tr class='tab_bg_1'><td>".__('Name')."</td>";
       echo "<td colspan='3'>";
-      Html::autocompletionTextField($this,"name", array('size' => 80));
+      Html::autocompletionTextField($this, "name", ['size' => 80,
+                                                    'rand' => $rand_name]);
       echo "</td></tr>\n";
 
       echo "<tr class='tab_bg_1'>";
       echo "<td>"._x('item', 'State')."</td>";
       echo "<td>";
-      ProjectState::dropdown(array('value' => $this->fields["projectstates_id"]));
+      ProjectState::dropdown(['value' => $this->fields["projectstates_id"],
+                              'rand'  => $rand_state]);
       echo "</td>";
       echo "<td>".__('Type')."</td>";
       echo "<td>";
-      ProjectTaskType::dropdown(array('value' => $this->fields["projecttasktypes_id"]));
+      ProjectTaskType::dropdown(['value' => $this->fields["projecttasktypes_id"],
+                                 'rand'  => $rand_type]);
       echo "</td></tr>";
 
       echo "<tr class='tab_bg_1'>";
       echo "<td>".__('Percent done')."</td>";
       echo "<td>";
-      Dropdown::showNumber("percent_done", array('value' => $this->fields['percent_done'],
-                                                 'min'   => 0,
-                                                 'max'   => 100,
-                                                 'step'  => 5,
-                                                 'unit'  => '%'));
+      Dropdown::showNumber("percent_done", ['value' => $this->fields['percent_done'],
+                                            'rand'  => $rand_percent,
+                                            'min'   => 0,
+                                            'max'   => 100,
+                                            'step'  => 5,
+                                            'unit'  => '%']);
 
       echo "</td>";
       echo "<td>";
-      _e('Milestone');
+      echo __('Milestone');
       echo "</td>";
       echo "<td>";
-      $rand = mt_rand();
-      Dropdown::showYesNo("is_milestone", $this->fields["is_milestone"], -1, ['rand' => $rand]);
-      $js = "$('#dropdown_is_milestone$rand').on('change', function(e) {
+      Dropdown::showYesNo("is_milestone", $this->fields["is_milestone"], -1, ['rand' => $rand_milestone]);
+      $js = "$('#dropdown_is_milestone$rand_milestone').on('change', function(e) {
          $('tr.is_milestone').toggleClass('starthidden');
       })";
       echo Html::scriptBlock($js);
@@ -453,68 +554,79 @@ class ProjectTask extends CommonDBChild {
       echo "<td>".__('Planned start date')."</td>";
       echo "<td>";
       Html::showDateTimeField("plan_start_date",
-                              array('value' => $this->fields['plan_start_date']));
+                              ['value' => $this->fields['plan_start_date'],
+                               'rand'  => $rand_plan_start_date]);
       echo "</td>";
       echo "<td>".__('Real start date')."</td>";
       echo "<td>";
       Html::showDateTimeField("real_start_date",
-                              array('value' => $this->fields['real_start_date']));
+                              ['value' => $this->fields['real_start_date'],
+                               'rand'  => $rand_real_start_date]);
       echo "</td></tr>\n";
 
-      echo "<tr class='tab_bg_1 is_milestone" . ($this->fields['is_milestone'] ? ' starthidden' : '')  . "'>";
+      echo "<tr class='tab_bg_1'>";
       echo "<td>".__('Planned end date')."</td>";
       echo "<td>";
-      Html::showDateTimeField("plan_end_date", array('value' => $this->fields['plan_end_date']));
+      Html::showDateTimeField("plan_end_date", ['value' => $this->fields['plan_end_date'],
+                                                'rand'  => $rand_plan_end_date]);
       echo "</td>";
       echo "<td>".__('Real end date')."</td>";
       echo "<td>";
-      Html::showDateTimeField("real_end_date", array('value' => $this->fields['real_end_date']));
+      Html::showDateTimeField("real_end_date", ['value' => $this->fields['real_end_date'],
+                                                'rand'  => $rand_real_end_date]);
       echo "</td></tr>\n";
 
       echo "<tr class='tab_bg_1 is_milestone" . ($this->fields['is_milestone'] ? ' starthidden' : '')  . "'>";
       echo "<td>".__('Planned duration')."</td>";
       echo "<td>";
 
+      $toadd = [];
+      for ($i = 9; $i <= 100; $i++) {
+         $toadd[] = $i*HOUR_TIMESTAMP;
+      }
+
       Dropdown::showTimeStamp("planned_duration",
-                              array('min'             => 0,
-                                    'max'             => 100*HOUR_TIMESTAMP,
-                                    'step'            => HOUR_TIMESTAMP,
-                                    'value'           => $this->fields["planned_duration"],
-                                    'addfirstminutes' => true,
-                                    'inhours'         => true));
+                              ['min'             => 0,
+                               'max'             => 8*HOUR_TIMESTAMP,
+                               'rand'            => $rand_planned_duration,
+                               'value'           => $this->fields["planned_duration"],
+                               'addfirstminutes' => true,
+                               'inhours'         => true,
+                               'toadd'           => $toadd]);
       echo "</td>";
       echo "<td>".__('Effective duration')."</td>";
       echo "<td>";
       Dropdown::showTimeStamp("effective_duration",
-                              array('min'             => 0,
-                                    'max'             => 100*HOUR_TIMESTAMP,
-                                    'step'            => HOUR_TIMESTAMP,
-                                    'value'           => $this->fields["effective_duration"],
-                                    'addfirstminutes' => true,
-                                    'inhours'         => true));
+                              ['min'             => 0,
+                               'max'             => 8*HOUR_TIMESTAMP,
+                               'rand'            => $rand_effective_duration,
+                               'value'           => $this->fields["effective_duration"],
+                               'addfirstminutes' => true,
+                               'inhours'         => true,
+                               'toadd'           => $toadd]);
       if ($ID) {
          $ticket_duration = ProjectTask_Ticket::getTicketsTotalActionTime($this->getID());
          echo "<br>";
-         printf(__('%1$s: %2$s'),__('Tickets duration'),
-               Html::timestampToString($ticket_duration, false));
+         printf(__('%1$s: %2$s'), __('Tickets duration'),
+                Html::timestampToString($ticket_duration, false));
          echo '<br>';
-         printf(__('%1$s: %2$s'),__('Total duration'),
-               Html::timestampToString($ticket_duration+$this->fields["effective_duration"],
-                                       false));
+         printf(__('%1$s: %2$s'), __('Total duration'),
+                Html::timestampToString($ticket_duration+$this->fields["effective_duration"],
+                                        false));
       }
       echo "</td></tr>\n";
 
       echo "<tr class='tab_bg_1'>";
       echo "<td>".__('Description')."</td>";
       echo "<td colspan='3'>";
-      echo "<textarea id='content' name='content' cols='90' rows='6'>".$this->fields["content"].
+      echo "<textarea id='description$rand_description' name='content' cols='90' rows='6'>".$this->fields["content"].
            "</textarea>";
       echo "</td></tr>\n";
 
       echo "<tr class='tab_bg_1'>";
       echo "<td>".__('Comments')."</td>";
       echo "<td colspan='3'>";
-      echo "<textarea id='comment' name='comment' cols='90' rows='6'>".$this->fields["comment"].
+      echo "<textarea id='comment$rand_comment' name='comment' cols='90' rows='6'>".$this->fields["comment"].
            "</textarea>";
       echo "</td></tr>\n";
 
@@ -598,142 +710,200 @@ class ProjectTask extends CommonDBChild {
    }
 
 
-   function getSearchOptions() {
+   function getSearchOptionsNew() {
+      $tab = [];
 
-      $tab                          = array();
-      $tab['common']                = __('Characteristics');
+      $tab[] = [
+         'id'                 => 'common',
+         'name'               => __('Characteristics')
+      ];
 
-      $tab[1]['table']              = $this->getTable();
-      $tab[1]['field']              = 'name';
-      $tab[1]['name']               = __('Name');
-      $tab[1]['datatype']           = 'itemlink';
-      $tab[1]['massiveaction']      = false; // implicit key==1
+      $tab[] = [
+         'id'                 => '1',
+         'table'              => $this->getTable(),
+         'field'              => 'name',
+         'name'               => __('Name'),
+         'datatype'           => 'itemlink',
+         'massiveaction'      => false
+      ];
 
-      $tab[2]['table']              = $this->getTable();
-      $tab[2]['field']              = 'id';
-      $tab[2]['name']               = __('ID');
-      $tab[2]['massiveaction']      = false; // implicit field is id
-      $tab[2]['datatype']           = 'number';
+      $tab[] = [
+         'id'                 => '2',
+         'table'              => 'glpi_projects',
+         'field'              => 'name',
+         'name'               => __('Project'),
+         'massiveaction'      => false,
+         'datatype'           => 'dropdown'
+      ];
 
-      $tab[2]['table']              = 'glpi_projects';
-      $tab[2]['field']              = 'name';
-      $tab[2]['name']               = __('Project');
-      $tab[2]['massiveaction']      = false;
-      $tab[2]['datatype']           = 'dropdown';
+      $tab[] = [
+         'id'                 => '13',
+         'table'              => $this->getTable(),
+         'field'              => 'name',
+         'name'               => __('Father'),
+         'datatype'           => 'dropdown',
+         'massiveaction'      => false,
+         // Add virtual condition to relink table
+         'joinparams'         => [
+            'condition'          => 'AND 1=1'
+         ]
+      ];
 
-      $tab[13]['table']             = $this->getTable();
-      $tab[13]['field']             = 'name';
-      $tab[13]['name']              = __('Father');
-      $tab[13]['datatype']          = 'dropdown';
-      $tab[13]['massiveaction']     = false;
-      // Add virtual condition to relink table
-      $tab[13]['joinparams']        = array('condition' => "AND 1=1");
+      $tab[] = [
+         'id'                 => '21',
+         'table'              => $this->getTable(),
+         'field'              => 'content',
+         'name'               => __('Description'),
+         'massiveaction'      => false,
+         'datatype'           => 'text'
+      ];
 
-      $tab[21]['table']             = $this->getTable();
-      $tab[21]['field']             = 'content';
-      $tab[21]['name']              = __('Description');
-      $tab[21]['massiveaction']     = false;
-      $tab[21]['datatype']          = 'text';
+      $tab[] = [
+         'id'                 => '12',
+         'table'              => 'glpi_projectstates',
+         'field'              => 'name',
+         'name'               => _x('item', 'State'),
+         'datatype'           => 'dropdown'
+      ];
 
-      $tab[12]['table']             = 'glpi_projectstates';
-      $tab[12]['field']             = 'name';
-      $tab[12]['name']              = _x('item', 'State');
-      $tab[12]['datatype']          = 'dropdown';
+      $tab[] = [
+         'id'                 => '14',
+         'table'              => 'glpi_projecttasktypes',
+         'field'              => 'name',
+         'name'               => __('Type'),
+         'datatype'           => 'dropdown'
+      ];
 
-      $tab[14]['table']             = 'glpi_projecttasktypes';
-      $tab[14]['field']             = 'name';
-      $tab[14]['name']              = __('Type');
-      $tab[14]['datatype']          = 'dropdown';
+      $tab[] = [
+         'id'                 => '15',
+         'table'              => $this->getTable(),
+         'field'              => 'date',
+         'name'               => __('Opening date'),
+         'datatype'           => 'datetime',
+         'massiveaction'      => false
+      ];
 
-      $tab[15]['table']             = $this->getTable();
-      $tab[15]['field']             = 'date';
-      $tab[15]['name']              = __('Opening date');
-      $tab[15]['datatype']          = 'datetime';
-      $tab[15]['massiveaction']     = false;
+      $tab[] = [
+         'id'                 => '19',
+         'table'              => $this->getTable(),
+         'field'              => 'date_mod',
+         'name'               => __('Last update'),
+         'datatype'           => 'datetime',
+         'massiveaction'      => false
+      ];
 
-      $tab[19]['table']             = $this->getTable();
-      $tab[19]['field']             = 'date_mod';
-      $tab[19]['name']              = __('Last update');
-      $tab[19]['datatype']          = 'datetime';
-      $tab[19]['massiveaction']     = false;
+      $tab[] = [
+         'id'                 => '5',
+         'table'              => $this->getTable(),
+         'field'              => 'percent_done',
+         'name'               => __('Percent done'),
+         'datatype'           => 'number',
+         'unit'               => '%',
+         'min'                => 0,
+         'max'                => 100,
+         'step'               => 5
+      ];
 
-      $tab[5]['table']              = $this->getTable();
-      $tab[5]['field']              = 'percent_done';
-      $tab[5]['name']               = __('Percent done');
-      $tab[5]['datatype']           = 'number';
-      $tab[5]['unit']               = '%';
-      $tab[5]['min']                = 0;
-      $tab[5]['max']                = 100;
-      $tab[5]['step']               = 5;
+      $tab[] = [
+         'id'                 => '24',
+         'table'              => 'glpi_users',
+         'field'              => 'name',
+         'linkfield'          => 'users_id',
+         'name'               => __('Creator'),
+         'datatype'           => 'dropdown'
+      ];
 
-      $tab[24]['table']             = 'glpi_users';
-      $tab[24]['field']             = 'name';
-      $tab[24]['linkfield']         = 'users_id';
-      $tab[24]['name']              = __('Creator');
-      $tab[24]['datatype']          = 'dropdown';
+      $tab[] = [
+         'id'                 => '7',
+         'table'              => $this->getTable(),
+         'field'              => 'plan_start_date',
+         'name'               => __('Planned start date'),
+         'datatype'           => 'datetime'
+      ];
 
+      $tab[] = [
+         'id'                 => '8',
+         'table'              => $this->getTable(),
+         'field'              => 'plan_end_date',
+         'name'               => __('Planned end date'),
+         'datatype'           => 'datetime'
+      ];
 
-      $tab[7]['table']              = $this->getTable();
-      $tab[7]['field']              = 'plan_start_date';
-      $tab[7]['name']               = __('Planned start date');
-      $tab[7]['datatype']           = 'datetime';
+      $tab[] = [
+         'id'                 => '9',
+         'table'              => $this->getTable(),
+         'field'              => 'real_start_date',
+         'name'               => __('Real start date'),
+         'datatype'           => 'datetime'
+      ];
 
-      $tab[8]['table']              = $this->getTable();
-      $tab[8]['field']              = 'plan_end_date';
-      $tab[8]['name']               = __('Planned end date');
-      $tab[8]['datatype']           = 'datetime';
+      $tab[] = [
+         'id'                 => '10',
+         'table'              => $this->getTable(),
+         'field'              => 'real_end_date',
+         'name'               => __('Real end date'),
+         'datatype'           => 'datetime'
+      ];
 
-      $tab[9]['table']              = $this->getTable();
-      $tab[9]['field']              = 'real_start_date';
-      $tab[9]['name']               = __('Real start date');
-      $tab[9]['datatype']           = 'datetime';
+      $tab[] = [
+         'id'                 => '11',
+         'table'              => $this->getTable(),
+         'field'              => 'planned_duration',
+         'name'               => __('Planned duration'),
+         'datatype'           => 'timestamp',
+         'min'                => 0,
+         'max'                => 100*HOUR_TIMESTAMP,
+         'step'               => HOUR_TIMESTAMP,
+         'addfirstminutes'    => true,
+         'inhours'            => true
+      ];
 
-      $tab[10]['table']             = $this->getTable();
-      $tab[10]['field']             = 'real_end_date';
-      $tab[10]['name']              = __('Real end date');
-      $tab[10]['datatype']          = 'datetime';
+      $tab[] = [
+         'id'                 => '17',
+         'table'              => $this->getTable(),
+         'field'              => 'effective_duration',
+         'name'               => __('Effective duration'),
+         'datatype'           => 'timestamp',
+         'min'                => 0,
+         'max'                => 100*HOUR_TIMESTAMP,
+         'step'               => HOUR_TIMESTAMP,
+         'addfirstminutes'    => true,
+         'inhours'            => true
+      ];
 
-      $tab[11]['table']             = $this->getTable();
-      $tab[11]['field']             = 'planned_duration';
-      $tab[11]['name']              = __('Planned duration');
-      $tab[11]['datatype']          = 'timestamp';
-      $tab[11]['min']               = 0;
-      $tab[11]['max']               = 100*HOUR_TIMESTAMP;
-      $tab[11]['step']              = HOUR_TIMESTAMP;
-      $tab[11]['addfirstminutes']   = true;
-      $tab[11]['inhours']           = true;
+      $tab[] = [
+         'id'                 => '16',
+         'table'              => $this->getTable(),
+         'field'              => 'comment',
+         'name'               => __('Comments'),
+         'datatype'           => 'text'
+      ];
 
-      $tab[17]['table']             = $this->getTable();
-      $tab[17]['field']             = 'effective_duration';
-      $tab[17]['name']              = __('Effective duration');
-      $tab[17]['datatype']          = 'timestamp';
-      $tab[17]['min']               = 0;
-      $tab[17]['max']               = 100*HOUR_TIMESTAMP;
-      $tab[17]['step']              = HOUR_TIMESTAMP;
-      $tab[17]['addfirstminutes']   = true;
-      $tab[17]['inhours']           = true;
+      $tab[] = [
+         'id'                 => '18',
+         'table'              => $this->getTable(),
+         'field'              => 'is_milestone',
+         'name'               => __('Milestone'),
+         'datatype'           => 'bool'
+      ];
 
-      $tab[16]['table']             = $this->getTable();
-      $tab[16]['field']             = 'comment';
-      $tab[16]['name']              = __('Comments');
-      $tab[16]['datatype']          = 'text';
+      $tab[] = [
+         'id'                 => '80',
+         'table'              => 'glpi_entities',
+         'field'              => 'completename',
+         'name'               => __('Entity'),
+         'datatype'           => 'dropdown'
+      ];
 
-      $tab[18]['table']             = $this->getTable();
-      $tab[18]['field']             = 'is_milestone';
-      $tab[18]['name']              = __('Milestone');
-      $tab[18]['datatype']          = 'bool';
+      $tab[] = [
+         'id'                 => '86',
+         'table'              => $this->getTable(),
+         'field'              => 'is_recursive',
+         'name'               => __('Child entities'),
+         'datatype'           => 'bool'
+      ];
 
-      $tab[80]['table']             = 'glpi_entities';
-      $tab[80]['field']             = 'completename';
-      $tab[80]['name']              = __('Entity');
-      $tab[80]['datatype']          = 'dropdown';
-
-      $tab[86]['table']             = $this->getTable();
-      $tab[86]['field']             = 'is_recursive';
-      $tab[86]['name']              = __('Child entities');
-      $tab[86]['datatype']          = 'bool';
-
-      $tab += Notepad::getSearchOptionsToAdd();
+      $tab = array_merge($tab, Notepad::getSearchOptionsToAddNew());
 
       return $tab;
    }
@@ -755,7 +925,7 @@ class ProjectTask extends CommonDBChild {
          return false;
       }
 
-      $columns = array('name'             => self::getTypeName(Session::getPluralNumber()),
+      $columns = ['name'             => self::getTypeName(Session::getPluralNumber()),
                        'tname'            => __('Type'),
                        'sname'            => __('Status'),
                        'percent_done'     => __('Percent done'),
@@ -763,7 +933,7 @@ class ProjectTask extends CommonDBChild {
                        'plan_end_date'    => __('Planned end date'),
                        'planned_duration' => __('Planned duration'),
                        '_effect_duration' => __('Effective duration'),
-                       'fname'            => __('Father'),);
+                       'fname'            => __('Father'),];
 
       if (isset($_GET["order"]) && ($_GET["order"] == "DESC")) {
          $order = "DESC";
@@ -801,7 +971,6 @@ class ProjectTask extends CommonDBChild {
 
       echo "<div class='spaced'>";
 
-
       if ($canedit) {
          echo "<div class='center firstbloc'>";
          echo "<a class='vsubmit' href='projecttask.form.php?projects_id=$ID'>".
@@ -817,7 +986,7 @@ class ProjectTask extends CommonDBChild {
                 action='".Toolbox::getItemTypeFormURL('ProjectTask')."'>";
          $projet = $item->fields['projects_id'];
          echo "<a href='".Toolbox::getItemTypeFormURL('ProjectTask')."?projecttasks_id=$ID&amp;projects_id=$projet'>";
-         _e('Create a sub task from this task of project');
+         echo __('Create a sub task from this task of project');
          echo "</a>";
          Html::closeForm();
          echo "</div>";
@@ -842,7 +1011,6 @@ class ProjectTask extends CommonDBChild {
                                AND `namet3`.`field` = 'name')";
          $where     .= " AND `namet3`.`items_id` = `glpi_projectstates`.`id` ";
       }
-
 
       $query = "SELECT `glpi_projecttasks`.*,
                        `glpi_projecttasktypes`.`name` AS tname,
@@ -872,16 +1040,13 @@ class ProjectTask extends CommonDBChild {
          if ($DB->numrows($result)) {
             echo "<table class='tab_cadre_fixehov'>";
 
-            $sort_img = "<img src=\"" . $CFG_GLPI["root_doc"] . "/pics/" .
-                          (($order == "DESC") ? "puce-down.png" : "puce-up.png") ."\" alt='' title=''>";
-
             $header = '<tr>';
             foreach ($columns as $key => $val) {
                // Non order column
                if ($key[0] == '_') {
                   $header .= "<th>$val</th>";
                } else {
-                  $header .= "<th>".(($sort == "`$key`") ?$sort_img:"").
+                  $header .= "<th".($sort == "`$key`" ? " class='order_$order'" : '').">".
                         "<a href='javascript:reloadTab(\"sort=$key&amp;order=".
                            (($order == "ASC") ?"DESC":"ASC")."&amp;start=0\");'>$val</a></th>";
                }
@@ -890,7 +1055,7 @@ class ProjectTask extends CommonDBChild {
             echo $header;
 
             while ($data=$DB->fetch_assoc($result)) {
-               Session::addToNavigateListItems('ProjectTask',$data['id']);
+               Session::addToNavigateListItems('ProjectTask', $data['id']);
                $rand = mt_rand();
                echo "<tr class='tab_bg_2'>";
                echo "<td>";
@@ -899,8 +1064,8 @@ class ProjectTask extends CommonDBChild {
                          (empty($data['name'])?"(".$data['id'].")":"")."</a>";
                echo sprintf(__('%1$s %2$s'), $link,
                              Html::showToolTip($data['content'],
-                                               array('display' => false,
-                                                     'applyto' => "ProjectTask".$data["id"].$rand)));
+                                               ['display' => false,
+                                                     'applyto' => "ProjectTask".$data["id"].$rand]));
                echo "</td>";
                $name = !empty($data['transname2'])?$data['transname2']:$data['tname'];
                echo "<td>".$name."</td>";
@@ -909,7 +1074,7 @@ class ProjectTask extends CommonDBChild {
                echo " style=\"background-color:".$data['color']."\"";
                echo ">".$statename."</td>";
                echo "<td>";
-               echo Dropdown::getValueWithUnit($data["percent_done"],"%");
+               echo Dropdown::getValueWithUnit($data["percent_done"], "%");
                echo "</td>";
                echo "<td>".Html::convDateTime($data['plan_start_date'])."</td>";
                echo "<td>".Html::convDateTime($data['plan_end_date'])."</td>";
@@ -939,31 +1104,29 @@ class ProjectTask extends CommonDBChild {
    }
 
 
-   function getTabNameForItem(CommonGLPI $item, $withtemplate=0) {
+   function getTabNameForItem(CommonGLPI $item, $withtemplate = 0) {
 
-      if (!$withtemplate) {
-         $nb = 0;
-         switch ($item->getType()) {
-            case 'Project' :
-               if ($_SESSION['glpishow_count_on_tabs']) {
-                  $nb = countElementsInTable($this->getTable(),
-                                             "projects_id = '".$item->getID()."'");
-               }
-               return self::createTabEntry(self::getTypeName(Session::getPluralNumber()), $nb);
+      $nb = 0;
+      switch ($item->getType()) {
+         case 'Project' :
+            if ($_SESSION['glpishow_count_on_tabs']) {
+               $nb = countElementsInTable($this->getTable(),
+                                          ['projects_id' => $item->getID()]);
+            }
+            return self::createTabEntry(self::getTypeName(Session::getPluralNumber()), $nb);
 
-            case __CLASS__ :
-               if ($_SESSION['glpishow_count_on_tabs']) {
-                  $nb = countElementsInTable($this->getTable(),
-                                             "projecttasks_id = '".$item->getID()."'");
-               }
-               return self::createTabEntry(self::getTypeName(Session::getPluralNumber()), $nb);
-         }
+         case __CLASS__ :
+            if ($_SESSION['glpishow_count_on_tabs']) {
+               $nb = countElementsInTable($this->getTable(),
+                                          ['projecttasks_id' => $item->getID()]);
+            }
+            return self::createTabEntry(self::getTypeName(Session::getPluralNumber()), $nb);
       }
       return '';
    }
 
 
-   static function displayTabContentForItem(CommonGLPI $item, $tabnum=1, $withtemplate=0) {
+   static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0) {
 
       switch ($item->getType()) {
          case 'Project' :
@@ -1006,17 +1169,17 @@ class ProjectTask extends CommonDBChild {
          echo "<tr class='tab_bg_1'><th colspan='2'>".__('Add a team member')."</tr>";
          echo "<tr class='tab_bg_2'><td>";
 
-         $params = array('itemtypes'       => ProjectTeam::$available_types,
+         $params = ['itemtypes'       => ProjectTeam::$available_types,
                          'entity_restrict' => ($task->fields['is_recursive']
                                                ? getSonsOf('glpi_entities',
                                                            $task->fields['entities_id'])
                                                : $task->fields['entities_id']),
-                         'checkright'      => true);
+                         'checkright'      => true];
          $addrand = Dropdown::showSelectItemFromItemtypes($params);
 
          echo "</td>";
          echo "<td width='20%'>";
-         echo "<input type='submit' name='add' value=\""._sx('button','Add')."\" class='submit'>";
+         echo "<input type='submit' name='add' value=\""._sx('button', 'Add')."\" class='submit'>";
          echo "</td>";
          echo "</tr>";
          echo "</table>";
@@ -1026,15 +1189,8 @@ class ProjectTask extends CommonDBChild {
       echo "<div class='spaced'>";
       if ($canedit && $nb) {
          Html::openMassiveActionsForm('mass'.__CLASS__.$rand);
-         $massiveactionparams = array('num_displayed' => min($_SESSION['glpilist_limit'], $nb),
-                                      'container'     => 'mass'.__CLASS__.$rand);
-//                     'specific_actions'
-//                         => array('delete' => _x('button', 'Delete permanently')) );
-//
-//          if ($this->fields['users_id'] != Session::getLoginUserID()) {
-//             $massiveactionparams['confirm']
-//                = __('Caution! You are not the author of this element. Delete targets can result in loss of access to that element.');
-//          }
+         $massiveactionparams = ['num_displayed' => min($_SESSION['glpilist_limit'], $nb),
+                                      'container'     => 'mass'.__CLASS__.$rand];
          Html::showMassiveActions($massiveactionparams);
       }
       echo "<table class='tab_cadre_fixehov'>";
@@ -1061,7 +1217,7 @@ class ProjectTask extends CommonDBChild {
                   echo "<tr class='tab_bg_2'>";
                   if ($canedit) {
                      echo "<td>";
-                     Html::showMassiveActionCheckBox('ProjectTaskTeam',$data["id"]);
+                     Html::showMassiveActionCheckBox('ProjectTaskTeam', $data["id"]);
                      echo "</td>";
                   }
                   echo "<td>".$item->getTypeName(1)."</td>";
@@ -1095,21 +1251,21 @@ class ProjectTask extends CommonDBChild {
    static function getDataToDisplayOnGantt($ID) {
       global $DB;
 
-      $todisplay = array();
+      $todisplay = [];
 
       $task = new self();
-//       echo $ID.'<br>';
+      // echo $ID.'<br>';
       if ($task->getFromDB($ID)) {
-         $subtasks = array();
+         $subtasks = [];
          foreach ($DB->request('glpi_projecttasks',
-                               array('projecttasks_id' => $ID,
-                                     'ORDER'           => array('plan_start_date',
-                                                                'real_start_date'))) as $data) {
+                               ['projecttasks_id' => $ID,
+                                     'ORDER'           => ['plan_start_date',
+                                                                'real_start_date']]) as $data) {
             $subtasks += static::getDataToDisplayOnGantt($data['id']);
          }
 
-         $real_begin = NULL;
-         $real_end   = NULL;
+         $real_begin = null;
+         $real_end   = null;
          // Use real if set
          if (!is_null($task->fields['real_start_date'])) {
             $real_begin = $task->fields['real_start_date'];
@@ -1120,7 +1276,7 @@ class ProjectTask extends CommonDBChild {
             if (!is_null($task->fields['plan_start_date'])) {
                $real_begin = $task->fields['plan_start_date'];
             } else {
-               foreach($subtasks as $subtask) {
+               foreach ($subtasks as $subtask) {
                   if (is_null($real_begin)
                       || (!is_null($subtask['from'])
                           && ($real_begin > $subtask['from']))) {
@@ -1138,7 +1294,7 @@ class ProjectTask extends CommonDBChild {
             if (!is_null($task->fields['plan_end_date'])) {
                $real_end = $task->fields['plan_end_date'];
             } else {
-               foreach($subtasks as $subtask) {
+               foreach ($subtasks as $subtask) {
                   if (is_null($real_end)
                       || (!is_null($subtask['to'])
                           && ($real_end < $subtask['to']))) {
@@ -1148,33 +1304,32 @@ class ProjectTask extends CommonDBChild {
             }
          }
 
-
          $parents = 0;
          if ($task->fields['projecttasks_id'] > 0) {
             $parents = count(getAncestorsOf("glpi_projecttasks", $ID));
          }
 
-         if ($task->fields['is_milestone']){
+         if ($task->fields['is_milestone']) {
             $percent = "";
-         }else{
+         } else {
             $percent = isset($task->fields['percent_done'])?$task->fields['percent_done']:0;
          }
 
          // Add current task
          $todisplay[$real_begin.'#'.$real_end.'#task'.$task->getID()]
-                        = array('id'    => $task->getID(),
+                        = ['id'    => $task->getID(),
                               'name'    => $task->fields['name'],
                               'desc'    => $task->fields['content'],
-                              'link'    => $task->getlink(['linkoption' => " title='{$task->fields['name']}'"]),
+                              'link'    => $task->getlink(),
                               'type'    => 'task',
                               'percent' => $percent,
                               'from'    => $real_begin,
                               'parents' => $parents,
                               'to'      => $real_end,
-                              'is_milestone' => $task->fields['is_milestone']);
+                              'is_milestone' => $task->fields['is_milestone']];
 
          // Add ordered subtasks
-         foreach($subtasks as $key => $val) {
+         foreach ($subtasks as $key => $val) {
             $todisplay[$key] = $val;
          }
       }
@@ -1189,15 +1344,15 @@ class ProjectTask extends CommonDBChild {
    static function getDataToDisplayOnGanttForProject($ID) {
       global $DB;
 
-      $todisplay = array();
+      $todisplay = [];
 
       $task      = new self();
       // Get all tasks without father
       foreach ($DB->request('glpi_projecttasks',
-                            array('projects_id'     => $ID,
+                            ['projects_id'     => $ID,
                                   'projecttasks_id' => 0,
-                                  'ORDER'           => array('plan_start_date',
-                                                             'real_start_date'))) as $data) {
+                                  'ORDER'           => ['plan_start_date',
+                                                             'real_start_date']]) as $data) {
          if ($task->getFromDB($data['id'])) {
             $todisplay += static::getDataToDisplayOnGantt($data['id']);
          }
@@ -1229,11 +1384,11 @@ class ProjectTask extends CommonDBChild {
     *
     * @return array of planning item
    **/
-   static function populatePlanning($options=array()) {
+   static function populatePlanning($options = []) {
 
       global $DB, $CFG_GLPI;
 
-      $interv = array();
+      $interv = [];
       $ttask  = new self;
 
       if (!isset($options['begin']) || ($options['begin'] == 'NULL')
@@ -1241,11 +1396,11 @@ class ProjectTask extends CommonDBChild {
          return $interv;
       }
 
-      $default_options = array(
+      $default_options = [
          'genical'             => false,
          'color'               => '',
          'event_type_color'    => '',
-      );
+      ];
       $options = array_merge($default_options, $options);
 
       $who       = $options['who'];
@@ -1259,7 +1414,7 @@ class ProjectTask extends CommonDBChild {
       if ($who_group === "mine") {
          if (!$options['genical']
              && count($_SESSION["glpigroups"])) {
-            $groups = implode("','",$_SESSION['glpigroups']);
+            $groups = implode("','", $_SESSION['glpigroups']);
             $ASSIGN = "`glpi_projecttaskteams`.`itemtype` = 'Group'
                        AND `glpi_projecttaskteams`.`items_id`
                            IN (SELECT DISTINCT `groups_id`
@@ -1322,11 +1477,11 @@ class ProjectTask extends CommonDBChild {
 
       $result = $DB->query($query);
 
-      $interv = array();
+      $interv = [];
       $task   = new self();
 
       if ($DB->numrows($result) > 0) {
-         for ($i=0 ; $data=$DB->fetch_assoc($result) ; $i++) {
+         for ($i=0; $data=$DB->fetch_assoc($result); $i++) {
             if ($task->getFromDB($data["id"])) {
                $key = $data["plan_start_date"]."$$$"."ProjectTask"."$$$".$data["id"];
                $interv[$key]['color']            = $options['color'];
@@ -1344,13 +1499,13 @@ class ProjectTask extends CommonDBChild {
                $interv[$key]["id"]                        = $data["id"];
                $interv[$key]["users_id"]                  = $data["users_id"];
 
-               if (strcmp($begin,$data["plan_start_date"]) > 0) {
+               if (strcmp($begin, $data["plan_start_date"]) > 0) {
                   $interv[$key]["begin"] = $begin;
                } else {
                   $interv[$key]["begin"] = $data["plan_start_date"];
                }
 
-               if (strcmp($end,$data["plan_end_date"]) < 0) {
+               if (strcmp($end, $data["plan_end_date"]) < 0) {
                   $interv[$key]["end"]   = $end;
                } else {
                   $interv[$key]["end"]   = $data["plan_end_date"];
@@ -1383,8 +1538,8 @@ class ProjectTask extends CommonDBChild {
     *
     * @return Nothing (display function)
     **/
-   static function displayPlanningItem(array $val, $who, $type="", $complete=0) {
-     global $CFG_GLPI;
+   static function displayPlanningItem(array $val, $who, $type = "", $complete = 0) {
+      global $CFG_GLPI;
 
       $html = "";
       $rand     = mt_rand();
@@ -1404,23 +1559,23 @@ class ProjectTask extends CommonDBChild {
       switch ($type) {
          case "in" :
             //TRANS: %1$s is the start time of a planned item, %2$s is the end
-            $beginend = sprintf(__('From %1$s to %2$s'), date("H:i",strtotime($val["begin"])),
-                                date("H:i",strtotime($val["end"])));
-            $html.= sprintf(__('%1$s: %2$s'), $beginend, Html::resume_text($val["name"],80)) ;
+            $beginend = sprintf(__('From %1$s to %2$s'), date("H:i", strtotime($val["begin"])),
+                                date("H:i", strtotime($val["end"])));
+            $html.= sprintf(__('%1$s: %2$s'), $beginend, Html::resume_text($val["name"], 80));
             break;
 
          case "through" :
-            $html.= Html::resume_text($val["name"],80);
+            $html.= Html::resume_text($val["name"], 80);
             break;
 
          case "begin" :
             $start = sprintf(__('Start at %s'), date("H:i", strtotime($val["begin"])));
-            $html.= sprintf(__('%1$s: %2$s'), $start, Html::resume_text($val["name"],80)) ;
+            $html.= sprintf(__('%1$s: %2$s'), $start, Html::resume_text($val["name"], 80));
             break;
 
          case "end" :
             $end = sprintf(__('End at %s'), date("H:i", strtotime($val["end"])));
-            $html.= sprintf(__('%1$s: %2$s'), $end,  Html::resume_text($val["name"],80)) ;
+            $html.= sprintf(__('%1$s: %2$s'), $end, Html::resume_text($val["name"], 80));
             break;
       }
 
@@ -1428,7 +1583,7 @@ class ProjectTask extends CommonDBChild {
       $html.= "</a>";
 
       $html.= "<div class='b'>";
-      $html.= sprintf(__('%1$s: %2$s'), __('Percent done'), $val["status"]."%") ;
+      $html.= sprintf(__('%1$s: %2$s'), __('Percent done'), $val["status"]."%");
       $html.= "</div>";
       $html.= "<div class='event-description'>".html_entity_decode($val["content"])."</div>";
       return $html;

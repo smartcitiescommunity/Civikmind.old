@@ -50,6 +50,11 @@ Session::checkRight("profile", READ);
 
 <style>
 	table.dataTable thead .sorting::after { content: "" !important; }
+	  .sorting {
+   	color: #fff;
+    	background-color: #555 !important;
+ 	}
+    .sorting > a { color: #fff !important;}
 </style>
 
 <?php echo '<link rel="stylesheet" type="text/css" href="../css/style-'.$_SESSION['style'].'">'; 
@@ -253,8 +258,8 @@ if(isset($_REQUEST['order'])) {
 		 case "tea": $order = "ORDER BY glpi_tickets.id ASC"; break;
 		 case "pd": $order = "ORDER BY glpi_tickets.priority DESC, glpi_tickets.date ASC"; break;
 		 case "pa": $order = "ORDER BY glpi_tickets.priority ASC, glpi_tickets.date ASC"; break;	
- 		 case "dd": $order = "ORDER BY glpi_tickets.due_date DESC"; break;
-		 case "da": $order = "ORDER BY glpi_tickets.due_date ASC"; break;	  
+ 		 case "dd": $order = "ORDER BY glpi_tickets.time_to_resolve DESC"; break;
+		 case "da": $order = "ORDER BY glpi_tickets.time_to_resolve ASC"; break;	  
 		}	
 	}
 	
@@ -263,7 +268,7 @@ else {
 }
 						
 			$sql_cham = "SELECT glpi_tickets.id AS id, glpi_tickets.name AS descri, glpi_tickets.status AS status, glpi_tickets.date_mod, 
-			glpi_tickets.priority,  glpi_tickets.due_date AS duedate, glpi_tickets.locations_id AS lid
+			glpi_tickets.priority,  glpi_tickets.time_to_resolve AS duedate, glpi_tickets.locations_id AS lid
 			FROM glpi_tickets, glpi_groups,`glpi_groups_tickets` 
 			WHERE glpi_tickets.is_deleted = 0
 			AND glpi_groups_tickets.`groups_id` = ".$id_grp."
@@ -277,12 +282,12 @@ else {
 			
 			$result_cham = $DB->query($sql_cham);
 			
-			//check due_date	
+			//check time_to_resolve	
 			$sql_due = "SELECT COUNT(glpi_tickets.id) AS count_due
 			FROM glpi_tickets
 			WHERE  glpi_tickets.status NOT IN (4,5,6) 
 			AND glpi_tickets.is_deleted = 0
-			AND glpi_tickets.due_date IS NOT NULL";
+			AND glpi_tickets.time_to_resolve IS NOT NULL";
 					
 			$result_due = $DB->query($sql_due);			
 			$count_due = $DB->result($result_due,0,'count_due');	
@@ -421,8 +426,8 @@ else {
 		$row_loc = $DB->fetch_assoc($result_loc);		 			 				 		
 
 	echo "
-	<tr class='title'>
-		<td style='text-align:center; vertical-align:middle;'> <a href=../../../../front/ticket.form.php?id=". $row['id'] ." target=_blank > <span >" . $row['id'] . "</span> </a></td>
+	<tr class='title' style='font-weight:normal;'>
+		<td style='text-align:center; vertical-align:middle; font-weight:bold;'> <a href=../../../../front/ticket.form.php?id=". $row['id'] ." target=_blank > <span >" . $row['id'] . "</span> </a></td>
 		<td style='vertical-align:middle;'><span style='color:#000099';><img src=../../../../pics/".$status1.".png />  ".Ticket::getStatus($row['status'])."</span ></td>";		
 
 	if($show_tit != 0 || $show_tit == '') {	
@@ -482,8 +487,11 @@ $(document).ready(function() {
         "aaSorting": false,
         "bLengthChange": false,
         "bPaginate": false, 
-        "iDisplayLength": 15,
-    	  "aLengthMenu": [[15, 25, 50, 100, -1], [15, 25, 50, 100, "All"]],
+        "scrollY":        "67vh",
+        "scrollCollapse": true,
+        "paging":         false,
+        //"iDisplayLength": 15,
+    	  //"aLengthMenu": [[15, 25, 50, 100, -1], [15, 25, 50, 100, "All"]],
     	  
     	   
         "sDom": 'T<"clear">lfrtip', 

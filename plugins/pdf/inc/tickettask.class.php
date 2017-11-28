@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: tickettask.class.php 476 2017-01-09 15:53:05Z yllen $
+ * @version $Id: tickettask.class.php 498 2017-11-03 13:33:40Z yllen $
  -------------------------------------------------------------------------
  LICENSE
 
@@ -45,37 +45,50 @@ class PluginPdfTicketTask extends PluginPdfCommon {
    static function pdfForTicket(PluginPdfSimplePDF $pdf, Ticket $job, $private) {
       global $CFG_GLPI, $DB;
 
-      $ID = $job->getField('id');
+      $dbu = new DbUtils();
+
+      $ID  = $job->getField('id');
 
       //////////////Tasks///////////
 
-      $RESTRICT = "";
+      $where = [];
       if (!$private) {
          // Don't show private'
-         $RESTRICT=" AND `is_private` = '0' ";
+         $where['is_private'] = 0;
       } else if (!Session::haveRight('task', TicketTask::SEEPRIVATE)) {
          // No right, only show connected user private one
-         $RESTRICT=" AND (`is_private` = '0'
-                          OR `users_id` ='".Session::getLoginUserID()."' ) ";
+         $where[] = ['OR' => ['is_private' => 0,
+                              'users_id'   => Session::getLoginUserID(),
+                              'users_id_tech'   => Session::getLoginUserID()]];
       }
 
-      $query = "SELECT *
-                FROM `glpi_tickettasks`
-                WHERE `tickets_id` = '$ID'
-                      $RESTRICT
-                ORDER BY `date` DESC";
-      $result = $DB->query($query);
+      $result = $DB->request(['FROM'  => 'glpi_tickettasks',
+                              'WHERE' => ['tickets_id' => $ID,
+                                          $where],
+                              'ORDER' => 'date DESC']);
 
-      if (!$DB->numrows($result)) {
-         $pdf->displayLine(__('No task found.'));
+      $number = count($result);
+
+      $pdf->setColumnsSize(100);
+      $title = '<b>'.TicketTask::getTypeName(2).'</b>';
+
+      if (!$number) {
+         $pdf->displayTitle(sprintf(__('%1$s: %2$s'), $title, __('No item to display')));
       } else {
-         $pdf->setColumnsSize(100);
-         $pdf->displayTitle("<b>".TicketTask::getTypeName($DB->numrows($result))."</b>");
+         if ($number > $_SESSION['glpilist_limit']) {
+            $title = sprintf(__('%1$s (%2$s)'), $title, $_SESSION['glpilist_limit']."/".$number);
+         } else {
+            $title = sprintf(__('%1$s: %2$s'), $title, $number);
+         }
+         $pdf->displayTitle($title);
 
-         while ($data=$DB->fetch_array($result)) {
-            $pdf->setColumnsSize(20,20,20,20,20);
-            $pdf->displayTitle("<i>".__('Type'), __('Date'), __('Duration'), __('Writer'),
-                                     __('Planning')."</i>");
+         $pdf->setColumnsSize(20,20,20,20,20);
+         $pdf->displayTitle("<i>".__('Type'), __('Date'), __('Duration'), __('Writer'),
+               __('Planning')."</i>");
+
+
+         $tot = 0;
+         while (($data = $result->next()) && ($tot < $_SESSION['glpilist_limit'])) {
 
             $actiontime = Html::timestampToString($data['actiontime'], false);
             $planification = '';
@@ -91,7 +104,7 @@ class PluginPdfTicketTask extends PluginPdfCommon {
             }
             if ($data['users_id_tech'] > 0) {
                $planification .= "<br>".sprintf(__('%1$s: %2$s'), __('By user', 'pdf'),
-                                                getUserName($data["users_id_tech"]));
+                                                $dbu->getUserName($data["users_id_tech"]));
             }
             if ($data['groups_id_tech'] > 0) {
                $planification .= "<br>".sprintf(__('%1$s: %2$s'), __('By group', 'pdf'),
@@ -110,10 +123,11 @@ class PluginPdfTicketTask extends PluginPdfCommon {
             $pdf->displayLine("</b>".Html::clean($lib),
                               Html::convDateTime($data["date"]),
                               Html::timestampToString($data["actiontime"], 0),
-                              Html::clean(getUserName($data["users_id"])),
+                              Html::clean($dbu->getUserName($data["users_id"])),
                               $planification);
             $pdf->displayText("<b><i>".sprintf(__('%1$s: %2$s')."</i></b>", __('Description'), ''),
                                                Html::clean($data["content"]), 1);
+            $tot++;
          }
       }
 

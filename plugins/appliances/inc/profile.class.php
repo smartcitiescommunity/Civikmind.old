@@ -1,6 +1,6 @@
 <?php
 /*
- * @version $Id: profile.class.php 246 2016-12-05 17:14:42Z yllen $
+ * @version $Id: profile.class.php 258 2017-10-10 13:21:54Z yllen $
  -------------------------------------------------------------------------
    LICENSE
 
@@ -21,7 +21,7 @@
 
  @package   appliances
  @author    Xavier CAILLAUD, Remi Collet, Nelly Mahu-Lasson
- @copyright Copyright (c) 2009-2016 Appliances plugin team
+ @copyright Copyright (c) 2009-2017 Appliances plugin team
  @license   AGPL License 3.0 or (at your option) any later version
             http://www.gnu.org/licenses/agpl-3.0-standalone.html
  @link      https://forge.glpi-project.org/projects/appliances
@@ -67,8 +67,8 @@ class PluginAppliancesProfile extends Profile {
          $ID = $item->getID();
          $prof = new self();
 
-         self::addDefaultProfileInfos($ID, array('plugin_appliances'               => 0,
-                                                 'plugin_appliances_open_ticket'   => 0));
+         self::addDefaultProfileInfos($ID, ['plugin_appliances'               => 0,
+                                            'plugin_appliances_open_ticket'   => 0]);
          $prof->showForm($ID);
       }
       return true;
@@ -77,8 +77,8 @@ class PluginAppliancesProfile extends Profile {
 
    static function createFirstAccess($ID) {
 
-      self::addDefaultProfileInfos($ID, array('plugin_appliances'             => 127,
-                                              'plugin_appliances_open_ticket' => 1), true);
+      self::addDefaultProfileInfos($ID, ['plugin_appliances'             => 127,
+                                         'plugin_appliances_open_ticket' => 1], true);
    }
 
 
@@ -96,8 +96,8 @@ class PluginAppliancesProfile extends Profile {
                                    "`profiles_id`='$profiles_id' AND `name`='$right'")
              && $drop_existing) {
 
-            $profileRight->deleteByCriteria(array('profiles_id' => $profiles_id,
-                                                  'name' => $right));
+            $profileRight->deleteByCriteria(['profiles_id' => $profiles_id,
+                                             'name' => $right]);
          }
 
          if (!countElementsInTable('glpi_profilerights',
@@ -125,7 +125,7 @@ class PluginAppliancesProfile extends Profile {
    function showForm($profiles_id=0, $openform=TRUE, $closeform=TRUE) {
 
       echo "<div class='firstbloc'>";
-      if (($canedit = Session::haveRightsOr(self::$rightname, array(CREATE, UPDATE, PURGE)))
+      if (($canedit = Session::haveRightsOr(self::$rightname, [CREATE, UPDATE, PURGE]))
           && $openform) {
          $profile = new Profile();
          echo "<form method='post' action='".$profile->getFormURL()."'>";
@@ -135,28 +135,28 @@ class PluginAppliancesProfile extends Profile {
       $profile->getFromDB($profiles_id);
       if ($profile->getField('interface') == 'central') {
          $rights = $this->getAllRights();
-         $profile->displayRightsChoiceMatrix($rights, array('canedit'       => $canedit,
-                                                            'default_class' => 'tab_bg_2',
-                                                            'title'         => __('General')));
+         $profile->displayRightsChoiceMatrix($rights, ['canedit'       => $canedit,
+                                                       'default_class' => 'tab_bg_2',
+                                                       'title'         => __('General')]);
       }
       echo "<table class='tab_cadre_fixehov'>";
       echo "<tr class='tab_bg_1'><th colspan='4'>".__('Helpdesk')."</th></tr>\n";
 
       $effective_rights = ProfileRight::getProfileRights($profiles_id,
-                                                         array('plugin_appliances_open_ticket'));
+                                                         ['plugin_appliances_open_ticket']);
       echo "<tr class='tab_bg_2'>";
       echo "<td width='20%'>".__('Associable items to a ticket')."</td>";
       echo "<td colspan='5'>";
-      Html::showCheckbox(array('name'    => '_plugin_appliances_open_ticket',
-                               'checked' => $effective_rights['plugin_appliances_open_ticket']));
+      Html::showCheckbox(['name'    => '_plugin_appliances_open_ticket',
+                          'checked' => $effective_rights['plugin_appliances_open_ticket']]);
       echo "</td></tr>\n";
       echo "</table>";
 
       if ($canedit
           && $closeform) {
          echo "<div class='center'>";
-         echo Html::hidden('id', array('value' => $profiles_id));
-         echo Html::submit(_sx('button', 'Save'), array('name' => 'update'));
+         echo Html::hidden('id', ['value' => $profiles_id]);
+         echo Html::submit(_sx('button', 'Save'), ['name' => 'update']);
          echo "</div>\n";
          Html::closeForm();
       }
@@ -166,14 +166,14 @@ class PluginAppliancesProfile extends Profile {
 
    static function getAllRights($all=false) {
 
-      $rights = array(array('itemtype'  => 'PluginAppliancesAppliance',
-                            'label'     => _n('Appliance', 'Appliances', 2, 'appliances'),
-                            'field'     => 'plugin_appliances'));
+      $rights = [['itemtype'  => 'PluginAppliancesAppliance',
+                  'label'     => _n('Appliance', 'Appliances', 2, 'appliances'),
+                  'field'     => 'plugin_appliances']];
 
       if ($all) {
-         $rights[] = array('itemtype' => 'PluginAppliancesAppliance',
-                           'label'    =>  __('Associable items to a ticket'),
-                           'field'    => 'plugin_appliances_open_ticket');
+         $rights[] = ['itemtype' => 'PluginAppliancesAppliance',
+                      'label'    =>  __('Associable items to a ticket'),
+                      'field'    => 'plugin_appliances_open_ticket'];
       }
       return $rights;
    }
@@ -220,15 +220,15 @@ class PluginAppliancesProfile extends Profile {
       global $DB;
 
       //Cannot launch migration if there's nothing to migrate...
-      if (!TableExists('glpi_plugin_appliances_profiles')) {
+      if (!$DB->tableExists('glpi_plugin_appliances_profiles')) {
       return true;
       }
 
       foreach ($DB->request('glpi_plugin_appliances_profiles',
-                            "`profiles_id`='$profiles_id'") as $profile_data) {
+                            ['profiles_id' => $profiles_id]) as $profile_data) {
 
-         $matching = array('appliances'  => 'plugin_appliances',
-                           'open_ticket' => 'plugin_appliances_open_ticket');
+         $matching = ['appliances'  => 'plugin_appliances',
+                      'open_ticket' => 'plugin_appliances_open_ticket'];
          $current_rights = ProfileRight::getProfileRights($profiles_id, array_values($matching));
          foreach ($matching as $old => $new) {
             if (!isset($current_rights[$old])) {
@@ -254,7 +254,7 @@ class PluginAppliancesProfile extends Profile {
       foreach ($profile->getAllRights(true) as $data) {
          if (countElementsInTable("glpi_profilerights",
                                   "`name` = '".$data['field']."'") == 0) {
-            ProfileRight::addProfileRights(array($data['field']));
+            ProfileRight::addProfileRights([$data['field']]);
          }
       }
 
@@ -262,10 +262,9 @@ class PluginAppliancesProfile extends Profile {
       foreach ($DB->request("SELECT `id` FROM `glpi_profiles`") as $prof) {
          self::migrateOneProfile($prof['id']);
       }
-      foreach ($DB->request("SELECT *
-                             FROM `glpi_profilerights`
-                             WHERE `profiles_id`='".$_SESSION['glpiactiveprofile']['id']."'
-                                   AND `name` LIKE '%plugin_appliances%'") as $prof) {
+      foreach ($DB->request(['FROM'  => 'glpi_profilerights',
+                             'WHERE' => ['profiles_id' => $_SESSION['glpiactiveprofile']['id'],
+                                         'name'        => ['LIKE', '%plugin_appliances%']]]) as $prof) {
          $_SESSION['glpiactiveprofile'][$prof['name']] = $prof['rights'];
       }
    }

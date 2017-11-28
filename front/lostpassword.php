@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
- 
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -37,7 +36,7 @@
 
 include ('../inc/includes.php');
 
-if (!$CFG_GLPI['use_mailing']
+if (!$CFG_GLPI['notifications_mailing']
     || !countElementsInTable('glpi_notifications',
                              "`itemtype`='User' AND `event`='passwordforget' AND `is_active`=1")) {
    exit();
@@ -52,7 +51,7 @@ Html::simpleHeader(__('Forgotten password?'));
 if (isset($_REQUEST['password_forget_token'])) {
 
    if (isset($_POST['email'])) {
-      $user->updateForgottenPassword($_REQUEST);
+      $user->showUpdateForgottenPassword($_REQUEST);
    } else {
       User::showPasswordForgetChangeForm($_REQUEST['password_forget_token']);
    }
@@ -60,7 +59,7 @@ if (isset($_REQUEST['password_forget_token'])) {
 } else {
 
    if (isset($_POST['email'])) {
-      $user->forgetPassword($_POST['email']);
+      $user->showForgetPassword($_POST['email']);
    } else {
       User::showPasswordForgetRequestForm();
    }
@@ -68,4 +67,3 @@ if (isset($_REQUEST['password_forget_token'])) {
 
 Html::nullFooter();
 exit();
-?>

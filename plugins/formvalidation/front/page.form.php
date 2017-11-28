@@ -56,7 +56,7 @@ if (isset($_POST["add"])) {
 
 } else if (isset($_POST["purge"])) {
    $page->check($_POST["id"], PURGE);
-   $page->delete($_POST,1);
+   $page->delete($_POST, 1);
 
    $page->redirectToList();
 
@@ -68,9 +68,8 @@ if (isset($_POST["add"])) {
    Html::back();
 
 } else {
-//   Html::header(Change::getTypeName(Session::getPluralNumber()), $_SERVER['PHP_SELF'], "helpdesk", "change");
-   Html::header(__('Form Validation - Page','formvalidation'), $_SERVER['PHP_SELF'], "config", "PluginFormvalidationMenu", "formvalidationpage");
+   //   Html::header(Change::getTypeName(Session::getPluralNumber()), $_SERVER['PHP_SELF'], "helpdesk", "change");
+   Html::header(__('Form Validation - Page', 'formvalidation'), $_SERVER['PHP_SELF'], "config", "PluginFormvalidationMenu", "formvalidationpage");
    $page->display($_GET);
    Html::footer();
 }
-?>

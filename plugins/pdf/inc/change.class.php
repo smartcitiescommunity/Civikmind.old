@@ -45,6 +45,8 @@ class PluginPdfChange extends PluginPdfCommon {
    static function pdfMain(PluginPdfSimplePDF $pdf, Change $job) {
       global $CFG_GLPI, $DB;
 
+      $dbu = new DbUtils();
+
       $ID = $job->getField('id');
       if (!$job->can($ID, READ)) {
          return false;
@@ -70,9 +72,9 @@ class PluginPdfChange extends PluginPdfCommon {
       }
 
       $sla = $due = $commentsla = '';
-      if ($job->fields['due_date']) {
-         $due = "<b><i>".sprintf(__('%1$s: %2$s'), __('Due date')."</b></i>",
-                                 Html::convDateTime($job->fields['due_date']));
+      if ($job->fields['time_to_resolve']) {
+         $due = "<b><i>".sprintf(__('%1$s: %2$s'), __('Time to resolve')."</b></i>",
+                                 Html::convDateTime($job->fields['time_to_resolve']));
       }
       $pdf->displayLine(
          "<b><i>".sprintf(__('%1$s: %2$s'), __('Opening date')."</i></b>",
@@ -82,7 +84,7 @@ class PluginPdfChange extends PluginPdfCommon {
       $lastupdate = Html::convDateTime($job->fields["date_mod"]);
       if ($job->fields['users_id_lastupdater'] > 0) {
          $lastupdate = sprintf(__('%1$s by %2$s'), $lastupdate,
-                               getUserName($job->fields["users_id_lastupdater"]));
+                               $dbu->getUserName($job->fields["users_id_lastupdater"]));
       }
 
       $pdf->displayLine(
@@ -126,12 +128,12 @@ class PluginPdfChange extends PluginPdfCommon {
       $pdf->setColumnsSize(50,50);
 
       // Requester
-      $users     = array();
+      $users     = [];
       $listusers = '';
       $requester = '<b><i>'.sprintf(__('%1$s: %2$s')."</i></b>", __('Requester'), $listusers);
       foreach ($job->getUsers(CommonITILActor::REQUESTER) as $d) {
          if ($d['users_id']) {
-            $tmp = Html::clean(getUserName($d['users_id']));
+            $tmp = Html::clean($dbu->getUserName($d['users_id']));
             if ($d['alternative_email']) {
                $tmp .= ' ('.$d['alternative_email'].')';
             }
@@ -145,7 +147,7 @@ class PluginPdfChange extends PluginPdfCommon {
       }
       $pdf->displayText($requester, $listusers, 1);
 
-      $groups         = array();
+      $groups         = [];
       $listgroups     = '';
       $requestergroup = '<b><i>'.sprintf(__('%1$s: %2$s')."</i></b>", __('Requester group'),
                                          $listgroups);
@@ -158,12 +160,12 @@ class PluginPdfChange extends PluginPdfCommon {
       $pdf->displayText($requestergroup, $listgroups, 1);
 
       // Observer
-      $users     = array();
+      $users     = [];
       $listusers = '';
       $watcher   = '<b><i>'.sprintf(__('%1$s: %2$s')."</i></b>", __('Watcher'), $listusers);
       foreach ($job->getUsers(CommonITILActor::OBSERVER) as $d) {
          if ($d['users_id']) {
-            $tmp = Html::clean(getUserName($d['users_id']));
+            $tmp = Html::clean($dbu->getUserName($d['users_id']));
             if ($d['alternative_email']) {
                $tmp .= ' ('.$d['alternative_email'].')';
             }
@@ -177,7 +179,7 @@ class PluginPdfChange extends PluginPdfCommon {
       }
       $pdf->displayText($watcher, $listusers, 1);
 
-      $groups       = array();
+      $groups       = [];
       $listgroups   = '';
       $watchergroup = '<b><i>'.sprintf(__('%1$s: %2$s')."</i></b>", __('Watcher group'),
                                          $listgroups);
@@ -190,13 +192,13 @@ class PluginPdfChange extends PluginPdfCommon {
       $pdf->displayText($watchergroup, $listgroups, 1);
 
       // Assign to
-      $users = array();
+      $users     = [];
       $listusers = '';
       $assign    = '<b><i>'.sprintf(__('%1$s: %2$s')."</i></b>", __('Assigned to technicians'),
                                     $listusers);
       foreach ($job->getUsers(CommonITILActor::ASSIGN) as $d) {
          if ($d['users_id']) {
-            $tmp = Html::clean(getUserName($d['users_id']));
+            $tmp = Html::clean($dbu->getUserName($d['users_id']));
             if ($d['alternative_email']) {
                $tmp .= ' ('.$d['alternative_email'].')';
             }
@@ -210,7 +212,7 @@ class PluginPdfChange extends PluginPdfCommon {
       }
       $pdf->displayText($assign, $listusers, 1);
 
-      $groups     = array();
+      $groups      = [];
       $listgroups  = '';
       $assigngroup = '<b><i>'.sprintf(__('%1$s: %2$s')."</i></b>", __('Assigned to groups'),
                                          $listgroups);
@@ -223,7 +225,7 @@ class PluginPdfChange extends PluginPdfCommon {
       $pdf->displayText($assigngroup, $listgroups, 1);
 
      // Supplier
-      $suppliers      = array();
+      $suppliers      = [];
       $listsuppliers  = '';
       $assignsupplier = '<b><i>'.sprintf(__('%1$s: %2$s')."</i></b>", __('Assigned to a supplier'),
                                          $listsuppliers);
@@ -264,7 +266,7 @@ class PluginPdfChange extends PluginPdfCommon {
    static function pdfPlan(PluginPdfSimplePDF $pdf, Change $job) {
 
       $pdf->setColumnsSize(100);
-      $pdf->displayTitle("<b>".__('Analysis')."</b>");
+      $pdf->displayTitle("<b>".__('Plans')."</b>");
 
       $pdf->setColumnsSize(10, 90);
 
@@ -285,17 +287,22 @@ class PluginPdfChange extends PluginPdfCommon {
       $pdf->setColumnsSize(100);
       $pdf->displayTitle("<b>".__('Solution')."</b>");
 
+      $title = '';
       if ($job->fields['solutiontypes_id'] || !empty($job->fields['solution'])) {
          if ($job->fields['solutiontypes_id']) {
-            $title = Html::clean(Dropdown::getDropdownName('glpi_solutiontypes',
-                                           $job->getField('solutiontypes_id')));
-         } else {
-            $title = __('Solution');
+            $title = sprintf(__('%1$s: %2$s'), "<b><i>".__('Solution type')."</i></b>",
+                             Html::clean(Dropdown::getDropdownName('glpi_solutiontypes',
+                                                                   $job->getField('solutiontypes_id'))))
+                     ."<br />";
          }
-         $pdf->displayText("<b><i>".sprintf(__('%1$s: %2$s'), $title."</i></b>",
-                                    $job->fields['solution']));
+         if (!empty($job->fields['solution'])) {
+            $title .= sprintf(__('%1$s: %2$s'), "<b><i>".__('Solution')."</i></b>",
+                              $job->fields['solution']);
+         }
+
+         $pdf->displayText($title);
       } else {
-         $pdf->displayLine(__('None'));
+         $pdf->displayLine(__('No item to display'));
       }
 
       $pdf->displaySpace();
@@ -305,13 +312,14 @@ class PluginPdfChange extends PluginPdfCommon {
    static function pdfStat(PluginPdfSimplePDF $pdf, Change $job) {
 
       $pdf->setColumnsSize(100);
+      $pdf->displayTitle("<b>".__('Statistics')."</b>");
+
       $pdf->displayTitle("<b>"._n('Date', 'Dates', 2)."</b>");
 
-      $pdf->setColumnsSize(50, 50);
       $pdf->displayLine(sprintf(__('%1$s: %2$s'), __('Opening date'),
                                 Html::convDateTime($job->fields['date'])));
-      $pdf->displayLine(sprintf(__('%1$s: %2$s'), __('Due date'),
-                                Html::convDateTime($job->fields['due_date'])));
+      $pdf->displayLine(sprintf(__('%1$s: %2$s'), __('Time to resolve'),
+                                Html::convDateTime($job->fields['time_to_resolve'])));
 
       if (in_array($job->fields["status"], $job->getSolvedStatusArray())
           || in_array($job->fields["status"], $job->getClosedStatusArray())) {
@@ -323,10 +331,8 @@ class PluginPdfChange extends PluginPdfCommon {
                                    Html::convDateTime($job->fields['closedate'])));
       }
 
-      $pdf->setColumnsSize(100);
       $pdf->displayTitle("<b>"._n('Time', 'Times', 2)."</b>");
 
-      $pdf->setColumnsSize(50, 50);
       if (isset($job->fields['takeintoaccount_delay_stat']) > 0) {
          if ($job->fields['takeintoaccount_delay_stat'] > 0) {
             $accountdelay = Html::clean(Html::timestampToString($job->fields['takeintoaccount_delay_stat'],0));
@@ -357,10 +363,11 @@ class PluginPdfChange extends PluginPdfCommon {
    }
 
 
-   function defineAllTabs($options=array()) {
+   function defineAllTabs($options=[]) {
 
       $onglets = parent::defineAllTabs($options);
       unset($onglets['Change_Project$1']); // projet
+      unset($onglets['KnowbaseItem_Item$1']);
 
       return $onglets;
    }

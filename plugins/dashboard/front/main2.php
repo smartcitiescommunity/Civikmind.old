@@ -1,7 +1,7 @@
 <?php
 
 include ("../../../inc/includes.php");
-include ("../../../config/config.php");
+include ("../../../inc/config.php");
 
 global $DB;
 
@@ -23,20 +23,18 @@ else {
 	$result = $DB->query($query);
 	$ent_name1 = $DB->result($result,0,'name');
 	$ent_name = __('Tickets Statistics','dashboard')." :  ". $ent_name1 ;	
-	}	
+}	
 
 if($sel_ent != '') {			
 	$entidade = "AND glpi_tickets.entities_id IN (".$sel_ent.")";
-	$entidade_u = "AND gpu.entities_id IN (".$sel_ent.")";
-
+	$entidade_u = "AND glpi_profiles_users.entities_id IN (".$sel_ent.")";	
 }
 
-else {
-	
+else {	
 	$entities = $_SESSION['glpiactiveentities'];	
 	$ent = implode(",",$entities);	
 	$entidade = "AND glpi_tickets.entities_id IN (".$ent.")";
-	$entidade_u = "AND gpu.entities_id IN (".$ent.")";	
+	$entidade_u = "AND glpi_profiles_users.entities_id IN (".$ent.")";				
 }
 
 
@@ -168,10 +166,10 @@ $_SESSION['back'] = $back;
 	<?php
 	if($theme == 'trans.css') {		
    	echo "<body style=\"background: url('./img/".$back."') no-repeat top center fixed; \">";
-   	}
+   }
    else {
-   	echo "<body>";
-   	}	 
+   	echo "<body style='baclground-color:#E5E5E5;'>";
+   }	 
    ?>
                                                
 <?php     
@@ -271,6 +269,7 @@ $sql_users = " SELECT COUNT(DISTINCT `glpi_users`.id) AS total
                LEFT JOIN `glpi_users`
                   ON (`glpi_users`.`id` = `glpi_profiles_users`.`users_id`)
                WHERE `glpi_users`.`is_deleted` = '0'  
+               AND is_active = 1 
      				".$entidade_u." ";
 				
 $result_users = $DB->query($sql_users);
@@ -846,7 +845,7 @@ setTimeout(function(){
 <script src="js/highcharts-3d.js" type="text/javascript" ></script>
 <script src="js/modules/exporting.js" type="text/javascript" ></script>
 <script src="js/modules/no-data-to-display.js" type="text/javascript" ></script>
-<script src="js/themes/<?php echo $_SESSION['charts_colors'] ?>"></script>';
+<script src="js/themes/<?php echo $_SESSION['charts_colors']; ?>"></script>
 
 <!-- knob -->
 <script src="js/jquery.knob.js"></script>

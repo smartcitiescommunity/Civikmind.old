@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
-
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -48,7 +47,7 @@ class DBConnection extends CommonDBTM {
    static protected $notable = true;
 
 
-   static function getTypeName($nb=0) {
+   static function getTypeName($nb = 0) {
       return _n('SQL replica', 'SQL replicas', $nb);
    }
 
@@ -68,12 +67,12 @@ class DBConnection extends CommonDBTM {
    **/
    static function createMainConfig($host, $user, $password, $DBname) {
 
-      $DB_str = "<?php\n class DB extends DBmysql {
-                \n public \$dbhost     = '". $host ."';
-                \n public \$dbuser     = '". $user ."';
-                \n public \$dbpassword = '". rawurlencode($password) ."';
-                \n public \$dbdefault  = '". $DBname ."';
-                \n}\n";
+      $DB_str = "<?php\nclass DB extends DBmysql {\n" .
+                "   public \$dbhost     = '$host';\n" .
+                "   public \$dbuser     = '$user';\n" .
+                "   public \$dbpassword = '". rawurlencode($password) . "';\n" .
+                "   public \$dbdefault  = '$DBname';\n" .
+                "}\n";
 
       return Toolbox::writeConfig('config_db.php', $DB_str);
    }
@@ -135,7 +134,7 @@ class DBConnection extends CommonDBTM {
     *
     * @return DBmysql object
    **/
-   static function getDBSlaveConf($choice=NULL) {
+   static function getDBSlaveConf($choice = null) {
 
       if (self::isDBSlaveActive()) {
          include_once (GLPI_CONFIG_DIR . "/config_db_slave.php");
@@ -266,7 +265,7 @@ class DBConnection extends CommonDBTM {
     *                      (if connection failed, do not try to connect to the other server)
     * @param $display      display error message (true by default)
    **/
-   static function establishDBConnection($use_slave, $required, $display=true) {
+   static function establishDBConnection($use_slave, $required, $display = true) {
       global $DB;
 
       $DB  = null;
@@ -288,8 +287,7 @@ class DBConnection extends CommonDBTM {
                $res = self::switchToMaster();
             }
 
-         // Slave DB configured
-         } else {
+         } else { // Slave DB configured
             // Try to connect to slave if wanted
             if ($use_slave) {
                $res = self::switchToSlave();
@@ -325,7 +323,7 @@ class DBConnection extends CommonDBTM {
     *
     * @return integer
    **/
-   static function getReplicateDelay($choice=NULL) {
+   static function getReplicateDelay($choice = null) {
 
       include_once (GLPI_CONFIG_DIR . "/config_db_slave.php");
       return (int) (self::getHistoryMaxDate(new DB())
@@ -378,8 +376,8 @@ class DBConnection extends CommonDBTM {
    **/
    static function cronInfo($name) {
 
-      return array('description' => __('Check the SQL replica'),
-                   'parameter'   => __('Max delay between master and slave (minutes)'));
+      return ['description' => __('Check the SQL replica'),
+                   'parameter'   => __('Max delay between master and slave (minutes)')];
    }
 
 
@@ -400,7 +398,7 @@ class DBConnection extends CommonDBTM {
          if (is_array($DBslave->dbhost)) {
             $hosts = $DBslave->dbhost;
          } else {
-            $hosts = array($DBslave->dbhost);
+            $hosts = [$DBslave->dbhost];
          }
 
          foreach ($hosts as $num => $name) {
@@ -418,9 +416,9 @@ class DBConnection extends CommonDBTM {
 
             if ($diff > ($task->fields['param']*60)) {
                //Raise event if replicate is not synchronized
-               $options = array('diff'        => $diff,
+               $options = ['diff'        => $diff,
                                 'name'        => $name,
-                                'entities_id' => 0); // entity to avoid warning in getReplyTo
+                                'entities_id' => 0]; // entity to avoid warning in getReplyTo
                NotificationEvent::raiseEvent('desynchronization', new self(), $options);
             }
          }
@@ -441,7 +439,7 @@ class DBConnection extends CommonDBTM {
       if (is_array($DBslave->dbhost)) {
          $hosts = $DBslave->dbhost;
       } else {
-         $hosts = array($DBslave->dbhost);
+         $hosts = [$DBslave->dbhost];
       }
 
       foreach ($hosts as $num => $name) {
@@ -486,7 +484,7 @@ class DBConnection extends CommonDBTM {
     *
     * @param enable of disable cron task (true by default)
    **/
-   static function changeCronTaskStatus($enable=true) {
+   static function changeCronTaskStatus($enable = true) {
 
       $cron           = new CronTask();
       $cron->getFromDBbyName('DBConnection', 'CheckDBreplicate');
@@ -496,4 +494,3 @@ class DBConnection extends CommonDBTM {
    }
 
 }
-?>

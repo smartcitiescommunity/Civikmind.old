@@ -1,7 +1,7 @@
 <?php
 
 include ("../../../../inc/includes.php");
-include ("../../../../config/config.php");
+include ("../../../../inc/config.php");
 include "../inc/functions.php";
 
 Session::checkLoginUser();
@@ -80,7 +80,7 @@ else {
 <body style="background-color: #e5e5e5; margin-left:0%;">
 
 <div id='content' >
-<div id='container-fluid' style="margin: 0px 2% 0px 2%;">
+<div id='container-fluid' style="margin: <?php echo margins(); ?> ;">
 <div id="charts" class="fluid chart">
 	<div id="pad-wrapper" >
 		<div id="head-lg" class="fluid">
@@ -262,8 +262,8 @@ else {
 		$row_tec = $DB->fetch_assoc($result_tec);
 	
 	echo "
-		<tr>
-			<td style='vertical-align:middle; text-align:center;'><a href=".$CFG_GLPI['url_base']."/front/ticket.form.php?id=". $row['id'] ." target=_blank >" . $row['id'] . "</a></td>
+		<tr style='font-weight:normal;'>
+			<td style='vertical-align:middle; text-align:center; font-weight:bold;'><a href=".$CFG_GLPI['url_base']."/front/ticket.form.php?id=". $row['id'] ." target=_blank >" . $row['id'] . "</a></td>
 			<td style='vertical-align:middle;'> ". substr($row_user['descr'],0,55) ." </td>
 			<td style='vertical-align:middle;'> ". $row_user['name'] ." ".$row_user['sname'] ." </td>
 			<td style='vertical-align:middle;'> ". $row_tec['name'] ." ".$row_tec['sname'] ." </td>

@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: ticketfollowup.class.php 476 2017-01-09 15:53:05Z yllen $
+ * @version $Id: ticketfollowup.class.php 498 2017-11-03 13:33:40Z yllen $
  -------------------------------------------------------------------------
  LICENSE
 
@@ -45,39 +45,50 @@ class PluginPdfTicketFollowup extends PluginPdfCommon {
    static function pdfForTicket(PluginPdfSimplePDF $pdf, Ticket $job, $private) {
       global $CFG_GLPI, $DB;
 
-      $ID = $job->getField('id');
+      $dbu = new DbUtils();
+
+      $ID  = $job->getField('id');
 
       //////////////followups///////////
 
-      $RESTRICT = "";
+      $where = [];
       if (!$private) {
          // Don't show private'
-         $RESTRICT=" AND `is_private` = '0' ";
-      } else if (!Session::haveRight("show_full_ticket","1")) {
+         $where['is_private'] = 0;
+      } else if (!Session::haveRight('followup', TicketFollowup::SEEPRIVATE)) {
          // No right, only show connected user private one
-         $RESTRICT=" AND (`is_private` = '0'
-                          OR `users_id` ='".Session::getLoginUserID()."' ) ";
+         $where[] = ['OR' => ['is_private' => 0,
+                     'users_id'   => Session::getLoginUserID()]];
       }
 
-      $query = "SELECT *
-                FROM `glpi_ticketfollowups`
-                WHERE `tickets_id` = '$ID'
-                      $RESTRICT
-                ORDER BY `date` DESC";
-      $result=$DB->query($query);
+      $result = $DB->request(['FROM'  => 'glpi_ticketfollowups',
+                              'WHERE' => ['tickets_id' => $ID,
+                                          $where],
+                              'ORDER' => 'date DESC']);
 
-      if (!$DB->numrows($result)) {
-         $pdf->displayLine(__('No followup for this ticket.', 'pdf'));
+      $number = count($result);
+
+      $pdf->setColumnsSize(100);
+      $title = '<b>'.TicketFollowup::getTypeName(2).'</b>';
+
+      if (!$number) {
+         $pdf->displayTitle(sprintf(__('%1$s: %2$s'), $title, __('No item to display')));
       } else {
-         $pdf->setColumnsSize(100);
-         $pdf->displayTitle("<b>".TicketFollowup::getTypeName($DB->numrows($result))."</b>");
+         if ($number > $_SESSION['glpilist_limit']) {
+            $title = sprintf(__('%1$s (%2$s)'), $title, $_SESSION['glpilist_limit']."/".$number);
+         } else {
+            $title = sprintf(__('%1$s: %2$s'), $title, $number);
+         }
+         $pdf->displayTitle($title);
 
-         while ($data=$DB->fetch_array($result)) {
-            $pdf->setColumnsSize(44,14,42);
-            $pdf->displayTitle("<b><i>".__('Source of followup', 'pdf')."</i></b>", // Source
-                               "<b><i>".__('Date')."</i></b>", // Date
-                               "<b><i>".__('Requester')."</i></b>"); // Author
+         $pdf->setColumnsSize(44,14,42);
+         $pdf->displayTitle("<b><i>".__('Source of followup', 'pdf')."</i></b>", // Source
+               "<b><i>".__('Date')."</i></b>", // Date
+               "<b><i>".__('Requester')."</i></b>"); // Author
 
+
+         $tot = 0;
+         while (($data = $result->next()) && ($tot < $_SESSION['glpilist_limit'])) {
             if ($data['requesttypes_id']) {
                $lib = Dropdown::getDropdownName('glpi_requesttypes', $data['requesttypes_id']);
             } else {
@@ -88,10 +99,11 @@ class PluginPdfTicketFollowup extends PluginPdfCommon {
             }
             $pdf->displayLine(Html::clean($lib),
                               Html::convDateTime($data["date"]),
-                              Html::clean(getUserName($data["users_id"])));
+                              Html::clean($dbu->getUserName($data["users_id"])));
 
             $pdf->displayText("<b><i>".sprintf(__('%1$s: %2$s')."</i></b>",__('Comments'), ''),
                                                Html::clean($data["content"]), 1);
+            $tot++;
          }
       }
       $pdf->displaySpace();

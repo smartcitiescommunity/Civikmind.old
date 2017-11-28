@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: notificationtemplate.class.php 204 2017-03-02 18:31:42Z yllen $
+ * @version $Id: notificationtemplate.class.php 234 2017-10-18 12:40:59Z yllen $
  -------------------------------------------------------------------------
 
  LICENSE
@@ -39,8 +39,9 @@ class PluginBehaviorsNotificationTemplate extends PluginBehaviorsCommon {
       global $DB;
 
       $trad = new NotificationTemplateTranslation();
-      $fkey = getForeignKeyFieldForTable($clone->getTable());
-      $crit = array($fkey => $oldid);
+      $dbu  = new DbUtils();
+      $fkey = $dbu->getForeignKeyFieldForTable($clone->getTable());
+      $crit = [$fkey => $oldid];
 
       foreach ($DB->request($trad->getTable(), $crit) as $data) {
          unset($data['id']);

@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: hook.php 204 2017-03-02 18:31:42Z yllen $
+ * @version $Id: hook.php 234 2017-10-18 12:40:59Z yllen $
  -------------------------------------------------------------------------
 
  LICENSE
@@ -35,7 +35,7 @@
 
 function plugin_behaviors_install() {
 
-   $migration = new Migration(13);
+   $migration = new Migration(160);
 
    // No autoload when plugin is not activated
    require 'inc/config.class.php';

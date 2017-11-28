@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: monitor.class.php 204 2017-03-02 18:31:42Z yllen $
+ * @version $Id: monitor.class.php 234 2017-10-18 12:40:59Z yllen $
  -------------------------------------------------------------------------
 
  LICENSE
@@ -38,7 +38,6 @@ class PluginBehaviorsMonitor extends PluginBehaviorsCommon {
    static function afterAdd(Monitor $monitor) {
       // Toolbox::logDebug("PluginBehaviorsMonitor::afterAdd(), Monitor=", $monitor);
    }
-
 
    static function afterUpdate(Monitor $monitor) {
       // Toolbox::logDebug("PluginBehaviorsMonitor::afterUpdate(), Monitor=", $monitor);

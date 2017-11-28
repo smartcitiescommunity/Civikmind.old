@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
- 
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -57,12 +56,12 @@ if (isset($_POST["itemtype"])
    }
    echo "<br>";
    $field_id = Html::cleanId("dropdown_".$_POST['myname'].$rand);
-   $p = array('itemtype'            => $_POST["itemtype"],
+   $p = ['itemtype'            => $_POST["itemtype"],
               'entity_restrict'     => $_POST['entity_restrict'],
               'table'               => $table,
               'multiple'            => $_POST["multiple"],
               'myname'              => $_POST["myname"],
-              'rand'                => $_POST["rand"]);
+              'rand'                => $_POST["rand"]];
 
    if (isset($_POST["used"]) && !empty($_POST["used"])) {
       if (isset($_POST["used"][$_POST["itemtype"]])) {
@@ -75,10 +74,9 @@ if (isset($_POST["itemtype"])
                              $p);
 
    // Auto update summary of active or just solved tickets
-   $params = array('items_id' => '__VALUE__',
-                   'itemtype' => $_POST['itemtype']);
-   Ajax::updateItemOnSelectEvent($field_id,"item_ticket_selection_information",
+   $params = ['items_id' => '__VALUE__',
+                   'itemtype' => $_POST['itemtype']];
+   Ajax::updateItemOnSelectEvent($field_id, "item_ticket_selection_information",
                                  $CFG_GLPI["root_doc"]."/ajax/ticketiteminformation.php",
                                  $params);
 }
-?>

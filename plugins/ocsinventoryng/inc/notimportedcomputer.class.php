@@ -326,7 +326,8 @@ class PluginOcsinventoryngNotimportedcomputer extends CommonDropdown
       $computer = $ocsClient->getComputer($ocsid, $options);
 
 
-      if ($computer["HARDWARE"] && $computer["BIOS"]) {
+      if ((isset($computer["HARDWARE"]) && $computer["HARDWARE"])
+          && (isset($computer["BIOS"]) && $computer["BIOS"])) {
          $input["_ocs"] = true;
          $input["name"] = $computer["HARDWARE"]["NAME"];
          $input["domain"] = $computer["HARDWARE"]["WORKGROUP"];
@@ -590,7 +591,7 @@ class PluginOcsinventoryngNotimportedcomputer extends CommonDropdown
    {
       global $DB, $CFG_GLPI;
 
-      if (!$CFG_GLPI["use_mailing"]) {
+      if (!$CFG_GLPI["notifications_mailing"]) {
          return 0;
       }
 

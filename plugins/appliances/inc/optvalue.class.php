@@ -1,6 +1,6 @@
 <?php
 /*
- * @version $Id: optvalue.class.php 246 2016-12-05 17:14:42Z yllen $
+ * @version $Id: optvalue.class.php 258 2017-10-10 13:21:54Z yllen $
  -------------------------------------------------------------------------
   LICENSE
 
@@ -21,7 +21,7 @@
 
  @package   appliances
  @author    Xavier CAILLAUD, Remi Collet, Nelly Mahu-Lasson
- @copyright Copyright (c) 2009-2016 Appliances plugin team
+ @copyright Copyright (c) 2009-2017 Appliances plugin team
  @license   AGPL License 3.0 or (at your option) any later version
             http://www.gnu.org/licenses/agpl-3.0-standalone.html
  @link      https://forge.glpi-project.org/projects/appliances
@@ -46,7 +46,7 @@ class PluginAppliancesOptvalue extends CommonDBTM {
     function cleanDBonPurge() {
 
       $temp = new PluginAppliancesOptvalue_Item();
-      $temp->deleteByCriteria(array('plugin_appliances_optvalues_id' => $this->fields['id']));
+      $temp->deleteByCriteria(['plugin_appliances_optvalues_id' => $this->fields['id']]);
    }
 
 
@@ -74,16 +74,13 @@ class PluginAppliancesOptvalue extends CommonDBTM {
       echo "<div class='center'><table class='tab_cadre_fixe'>";
       echo "<tr><th colspan='4'>".__('User fields', 'appliances')."</th></tr>\n";
 
-      $query_app = "SELECT *
-                    FROM `glpi_plugin_appliances_optvalues`
-                    WHERE `plugin_appliances_appliances_id` = '".$appli->fields['id']."'
-                    ORDER BY `vvalues`";
-
-      $result_app    = $DB->query($query_app);
-      $number_champs = $DB->numrows($result_app);
+      $query_app = $DB->request(['FROM' => 'glpi_plugin_appliances_optvalues',
+                                 'WHERE' => ['plugin_appliances_appliances_id' => $appli->fields['id']],
+                                 'ORDER' => 'vvalues']);
+      $number_champs = $query_app->numrows();
       $number_champs++;
       for ($i=1 ; $i <= $number_champs ; $i++) {
-         if ($data = $DB->fetch_array($result_app)) {
+         if ($data = $query_app->next()) {
             $champ    = $data["champ"];
             $ddefault = $data["ddefault"];
          } else {
@@ -128,14 +125,13 @@ class PluginAppliancesOptvalue extends CommonDBTM {
       $pdf->setColumnsSize(100);
       $pdf->displayTitle('<b>'.__('User fields', 'appliances').'</b>');
 
-      $query_app = "SELECT `champ`, `ddefault`
-                    FROM `glpi_plugin_appliances_optvalues`
-                    WHERE `plugin_appliances_appliances_id` = '".$appli->getID()."'
-                    ORDER BY `vvalues`";
-      $result_app = $DB->query($query_app);
+      $query_app = $DB->request(['FIELDS' => ['champ', 'ddefault', 'vvalues'],
+                                 'FROM'   => 'glpi_plugin_appliances_optvalues',
+                                 'WHERE'  => ['plugin_appliances_appliances_id' => $appli->getID()],
+                                 'ORDER' => 'vvalues']);
 
       $opts = array();
-      while ($data = $DB->fetch_array($result_app)) {
+      while ($data = $query_app->next()) {
          $opts[] = '<b>'.$data["champ"].'</b>'.($data["ddefault"] ? '='.$data["ddefault"] : '');
       }
       if (count($opts)) {
@@ -158,7 +154,7 @@ class PluginAppliancesOptvalue extends CommonDBTM {
    function updateList($input) {
       global $DB;
 
-      if (!isset($input['number_champs']) || !isset($input['plugin_appliances_appliances_id'])) {
+     if (!isset($input['number_champs']) || !isset($input['plugin_appliances_appliances_id'])) {
          return false;
       }
       $number_champs = $input['number_champs'];
@@ -167,14 +163,13 @@ class PluginAppliancesOptvalue extends CommonDBTM {
          $champ    = "champ$i";
          $ddefault = "ddefault$i";
 
-         $query_app = "SELECT `id`
-                       FROM `glpi_plugin_appliances_optvalues`
-                       WHERE `plugin_appliances_appliances_id`
-                                 = '".$input['plugin_appliances_appliances_id']."'
-                             AND `vvalues` = '".$i."'";
-         $result_app = $DB->query($query_app);
+         $query_app = $DB->request(['SELECT' => 'id',
+                                    'FROM'   => 'glpi_plugin_appliances_optvalues',
+                                    'WHERE'  => ['plugin_appliances_appliances_id' => $input['plugin_appliances_appliances_id'],
+                                                 'vvalues' => $i]]);
 
-         if ($data = $DB->fetch_array($result_app)) {
+
+         if ($data = $query_app->next()) {
             // l'entrée existe déjà, il faut faire un update ou un delete
             if (empty($input[$champ])) {
                $this->delete($data);
@@ -187,12 +182,13 @@ class PluginAppliancesOptvalue extends CommonDBTM {
          } else if (!empty($input[$champ])) {
             // l'entrée n'existe pas
             // et la valeur saisie est non nulle -> on fait un insert
-            $data = array('plugin_appliances_appliances_id' => $input['plugin_appliances_appliances_id'],
-                          'champ'                           => $input[$champ],
-                          'ddefault'                        => $input[$ddefault],
-                          'vvalues'                         => $i);
+            $data = ['plugin_appliances_appliances_id' => $input['plugin_appliances_appliances_id'],
+                     'champ'                           => $input[$champ],
+                     'ddefault'                        => $input[$ddefault],
+                     'vvalues'                         => $i];
             $this->add($data);
          }
+    //  }
       } // for
    }
 
@@ -216,7 +212,7 @@ class PluginAppliancesOptvalue extends CommonDBTM {
     **/
     function getTabNameForItem(CommonGLPI $item, $withtemplate=0) {
 
-      if ($item->getType()=='PluginAppliancesAppliance') {
+      if ($item->getType() == 'PluginAppliancesAppliance') {
          $nb = '';
          if ($_SESSION['glpishow_count_on_tabs']) {
             $nb = self::countForAppliance($item);
@@ -252,7 +248,7 @@ class PluginAppliancesOptvalue extends CommonDBTM {
     **/
     static function displayTabContentForPDF(PluginPdfSimplePDF $pdf, CommonGLPI $item, $tab) {
 
-      if ($item->getType()=='PluginAppliancesAppliance') {
+      if ($item->getType() == 'PluginAppliancesAppliance') {
          self::pdfForAppliance($pdf, $item);
       } else {
          return false;

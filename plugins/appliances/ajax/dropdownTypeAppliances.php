@@ -1,6 +1,6 @@
 <?php
 /*
- * @version $Id: dropdownTypeAppliances.php 221 2016-05-30 15:25:38Z yllen $
+ * @version $Id: dropdownTypeAppliances.php 258 2017-10-10 13:21:54Z yllen $
  -------------------------------------------------------------------------
   LICENSE
 
@@ -21,7 +21,7 @@
 
  @package   appliances
  @author    Xavier CAILLAUD, Remi Collet, Nelly Mahu-Lasson
- @copyright Copyright (c) 2009-2016 Appliances plugin team
+ @copyright Copyright (c) 2009-2017 Appliances plugin team
  @license   AGPL License 3.0 or (at your option) any later version
             http://www.gnu.org/licenses/agpl-3.0-standalone.html
  @link      https://forge.glpi-project.org/projects/appliances
@@ -39,27 +39,25 @@ Session::checkCentralAccess();
 
 // Make a select box
 if (isset($_POST["appliancetype"])) {
-   $used = array();
+   $used = [];
 
    // Clean used array
    if (isset($_POST['used']) && is_array($_POST['used']) && (count($_POST['used']) > 0)) {
-      $query = "SELECT `id`
-                FROM `glpi_plugin_appliances_appliances`
-                WHERE `id` IN (".implode(',',$_POST['used']).")
-                      AND `plugin_appliances_appliancetypes_id` = '".$_POST["appliancetype"]."'";
-
-      foreach ($DB->request($query) AS $data) {
+      foreach ($DB->request(['SELECT' => 'id',
+                             'FROM'   => 'glpi_plugin_appliances_appliances',
+                             'WHERE'  => ['id' => $_POST['used'],
+                                          'plugin_appliances_appliancetypes_id'
+                                               => $_POST["appliancetype"]]]) AS $data) {
          $used[$data['id']] = $data['id'];
       }
    }
 
    Dropdown::show('PluginAppliancesAppliance',
-                  array('name'      => $_POST['myname'],
-                        'used'      => $used,
-                        'width'     => '50%',
-                        'entity'    => $_POST['entity'],
-                        'rand'      => $_POST['rand'],
-                        'condition' => "glpi_plugin_appliances_appliances.plugin_appliances_appliancetypes_id='".$_POST["appliancetype"]."'"));
+                  ['name'      => $_POST['myname'],
+                   'used'      => $used,
+                   'width'     => '50%',
+                   'entity'    => $_POST['entity'],
+                   'rand'      => $_POST['rand'],
+                   'condition' => "glpi_plugin_appliances_appliances.plugin_appliances_appliancetypes_id='".$_POST["appliancetype"]."'"]);
 
 }
-?>

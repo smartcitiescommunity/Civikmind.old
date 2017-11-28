@@ -2,7 +2,7 @@
 include ("../../../inc/includes.php");
 
 
-Html::header(__('Form Validations','formvalidation'), $_SERVER['PHP_SELF'] , "config", "PluginFormvalidationMenu", "formvalidationpage");
+Html::header(__('Form Validations', 'formvalidation'), $_SERVER['PHP_SELF'], "config", "PluginFormvalidationMenu", "formvalidationpage");
 
 if (Session::haveRight('entity', READ) || Session::haveRight("entity", UPDATE)) {
    //$process=new PluginFormvalidationPage();
@@ -14,4 +14,3 @@ if (Session::haveRight('entity', READ) || Session::haveRight("entity", UPDATE)) 
 }
 Html::footer();
 
-?>

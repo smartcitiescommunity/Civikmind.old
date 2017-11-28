@@ -33,12 +33,12 @@ include (GLPI_ROOT . "/inc/includes.php");
 $pref = new PluginFormvalidationUser();
 if (isset($_POST["update"])) {
 
-   if( isset($_POST['editmode']) && $_POST['users_id'] == Session::getLoginUserID()) {
-       $_SESSION['glpiformvalidationeditmode'] =   $_POST['editmode'] ;
-    }
+   if (isset($_POST['editmode']) && $_POST['users_id'] == Session::getLoginUserID()) {
+       $_SESSION['glpiformvalidationeditmode'] =   $_POST['editmode'];
+   }
 
     Html::back();
-} 
+}
 
 Html::redirect($CFG_GLPI["root_doc"]."/front/preference.php?forcetab=".
              urlencode('PluginFormvalidationUser$1'));

@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: preference.class.php 476 2017-01-09 15:53:05Z yllen $
+ * @version $Id: preference.class.php 498 2017-11-03 13:33:40Z yllen $
  -------------------------------------------------------------------------
  LICENSE
 
@@ -40,10 +40,11 @@ class PluginPdfPreference extends CommonDBTM {
 
       $target = Toolbox::getItemTypeFormURL(__CLASS__);
       $pref   = new self();
+      $dbu    = new DbUtils();
 
       echo "<div class='center' id='pdf_type'>";
       foreach ($PLUGIN_HOOKS['plugin_pdf'] as $type => $plug) {
-         if (!($item = getItemForItemtype($type))) {
+         if (!($item = $dbu->getItemForItemtype($type))) {
             continue;
          }
          if ($item->canView()) {
@@ -95,15 +96,13 @@ class PluginPdfPreference extends CommonDBTM {
              ($ID ? "target='_blank'" : "")."><table class='tab_cadre_fixe'>";
 
       $landscape = false;
-      $values    = array();
+      $values    = [];
 
-      $sql = "SELECT `tabref`
-              FROM `".$this->getTable()."`
-              WHERE `users_ID` = '" . $_SESSION['glpiID'] . "'
-                    AND `itemtype` = '$type'";
-
-      foreach ($DB->request($sql) AS $data) {
-         if ($data["tabref"]=='landscape') {
+      foreach ($DB->request(['SELECT' => 'tabref',
+                             'FROM'   => $this->getTable(),
+                             'WHERE'  => ['users_id' => $_SESSION['glpiID'],
+                                          'itemtype' => $type]]) AS $data) {
+         if ($data["tabref"] == 'landscape') {
             $landscape = true;
          } else {
             $values[$data["tabref"]] = $data["tabref"];

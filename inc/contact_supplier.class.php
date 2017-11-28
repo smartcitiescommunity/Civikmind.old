@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
-
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -50,8 +49,8 @@ class Contact_Supplier extends CommonDBRelation{
 
 
 
-   static function getTypeName($nb=0) {
-      return _n('Link Contact/Supplier','Links Contact/Supplier',$nb);
+   static function getTypeName($nb = 0) {
+      return _n('Link Contact/Supplier', 'Links Contact/Supplier', $nb);
    }
 
    function getForbiddenStandardMassiveAction() {
@@ -61,17 +60,8 @@ class Contact_Supplier extends CommonDBRelation{
       return $forbidden;
    }
 
-   /**
-    * Get search function for the class
-    *
-    * @return array of search option
-   **/
-   function getSearchOptions() {
-      return parent::getSearchOptions();
-   }
 
-
-   function getTabNameForItem(CommonGLPI $item, $withtemplate=0) {
+   function getTabNameForItem(CommonGLPI $item, $withtemplate = 0) {
 
       if (!$withtemplate && Session::haveRight("contact_enterprise", READ)) {
          $nb = 0;
@@ -93,7 +83,7 @@ class Contact_Supplier extends CommonDBRelation{
    }
 
 
-   static function displayTabContentForItem(CommonGLPI $item, $tabnum=1, $withtemplate=0) {
+   static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0) {
 
       switch ($item->getType()) {
          case 'Supplier' :
@@ -118,7 +108,7 @@ class Contact_Supplier extends CommonDBRelation{
                     getEntitiesRestrictRequest(" AND ", "glpi_contacts", '',
                                                $_SESSION['glpiactiveentities'], true);
 
-      return countElementsInTable(array('glpi_contacts_suppliers', 'glpi_contacts'), $restrict);
+      return countElementsInTable(['glpi_contacts_suppliers', 'glpi_contacts'], $restrict);
    }
 
 
@@ -132,7 +122,7 @@ class Contact_Supplier extends CommonDBRelation{
                     getEntitiesRestrictRequest(" AND ", "glpi_suppliers", '',
                                                $_SESSION['glpiactiveentities'], true);
 
-      return countElementsInTable(array('glpi_contacts_suppliers', 'glpi_suppliers'), $restrict);
+      return countElementsInTable(['glpi_contacts_suppliers', 'glpi_suppliers'], $restrict);
    }
 
 
@@ -166,13 +156,13 @@ class Contact_Supplier extends CommonDBRelation{
                 LEFT JOIN `glpi_entities` ON (`glpi_entities`.`id`=`glpi_suppliers`.`entities_id`)
                 WHERE `glpi_contacts_suppliers`.`contacts_id` = '$instID'
                       AND `glpi_contacts_suppliers`.`suppliers_id` = `glpi_suppliers`.`id`".
-                      getEntitiesRestrictRequest(" AND","glpi_suppliers",'','',true) ."
+                      getEntitiesRestrictRequest(" AND", "glpi_suppliers", '', '', true) ."
                 ORDER BY `glpi_entities`.`completename`, `name`";
 
       $result = $DB->query($query);
 
-      $suppliers = array();
-      $used = array();
+      $suppliers = [];
+      $used = [];
       if ($number = $DB->numrows($result)) {
          while ($data = $DB->fetch_assoc($result)) {
             $suppliers[$data['id']] = $data;
@@ -190,11 +180,11 @@ class Contact_Supplier extends CommonDBRelation{
 
          echo "<tr class='tab_bg_2'><td class='center'>";
          echo "<input type='hidden' name='contacts_id' value='$instID'>";
-         Supplier::dropdown(array('used'        => $used,
+         Supplier::dropdown(['used'        => $used,
                                   'entity'      => $contact->fields["entities_id"],
-                                  'entity_sons' => $contact->fields["is_recursive"]));
+                                  'entity_sons' => $contact->fields["is_recursive"]]);
          echo "</td><td class='center'>";
-         echo "<input type='submit' name='add' value=\""._sx('button','Add')."\" class='submit'>";
+         echo "<input type='submit' name='add' value=\""._sx('button', 'Add')."\" class='submit'>";
          echo "</td></tr>";
 
          echo "</table>";
@@ -205,8 +195,8 @@ class Contact_Supplier extends CommonDBRelation{
       echo "<div class='spaced'>";
       if ($canedit && $number) {
          Html::openMassiveActionsForm('mass'.__CLASS__.$rand);
-         $massiveactionparams = array('num_displayed' => min($_SESSION['glpilist_limit'], $number),
-                                      'container'     => 'mass'.__CLASS__.$rand);
+         $massiveactionparams = ['num_displayed' => min($_SESSION['glpilist_limit'], $number),
+                                      'container'     => 'mass'.__CLASS__.$rand];
          Html::showMassiveActions($massiveactionparams);
       }
       echo "<table class='tab_cadre_fixehov'>";
@@ -229,7 +219,7 @@ class Contact_Supplier extends CommonDBRelation{
       $header_end .= "</tr>";
       echo $header_begin.$header_top.$header_end;
 
-      $used = array();
+      $used = [];
       if ($number > 0) {
          Session::initNavigateListItems('Supplier',
                               //TRANS : %1$s is the itemtype name,
@@ -246,7 +236,7 @@ class Contact_Supplier extends CommonDBRelation{
             if (!empty($website)) {
                $website = $data["website"];
 
-               if (!preg_match("?https*://?",$website)) {
+               if (!preg_match("?https*://?", $website)) {
                   $website = "http://".$website;
                }
                $website = "<a target=_blank href='$website'>".$data["website"]."</a>";
@@ -271,7 +261,6 @@ class Contact_Supplier extends CommonDBRelation{
          }
          echo $header_begin.$header_bottom.$header_end;
       }
-
 
       echo "</table>";
       if ($canedit && $number) {
@@ -307,8 +296,8 @@ class Contact_Supplier extends CommonDBRelation{
 
       $result = $DB->query($query);
 
-      $contacts = array();
-      $used = array();
+      $contacts = [];
+      $used = [];
       if ($number = $DB->numrows($result)) {
          while ($data = $DB->fetch_assoc($result)) {
             $contacts[$data['ID_ent']] = $data;
@@ -326,12 +315,12 @@ class Contact_Supplier extends CommonDBRelation{
          echo "<tr class='tab_bg_2'><td class='center'>";
          echo "<input type='hidden' name='suppliers_id' value='$instID'>";
 
-         Contact::dropdown(array('used'        => $used,
+         Contact::dropdown(['used'        => $used,
                                  'entity'      => $supplier->fields["entities_id"],
-                                 'entity_sons' => $supplier->fields["is_recursive"]));
+                                 'entity_sons' => $supplier->fields["is_recursive"]]);
 
          echo "</td><td class='center'>";
-         echo "<input type='submit' name='add' value=\""._sx('button','Add')."\" class='submit'>";
+         echo "<input type='submit' name='add' value=\""._sx('button', 'Add')."\" class='submit'>";
          echo "</td></tr>";
 
          echo "</table>";
@@ -342,8 +331,8 @@ class Contact_Supplier extends CommonDBRelation{
       echo "<div class='spaced'>";
       if ($canedit && $number) {
          Html::openMassiveActionsForm('mass'.__CLASS__.$rand);
-         $massiveactionparams = array('num_displayed' => min($_SESSION['glpilist_limit'], $number),
-                                      'container'     => 'mass'.__CLASS__.$rand);
+         $massiveactionparams = ['num_displayed' => min($_SESSION['glpilist_limit'], $number),
+                                      'container'     => 'mass'.__CLASS__.$rand];
          Html::showMassiveActions($massiveactionparams);
       }
       echo "<table class='tab_cadre_fixehov'>";
@@ -369,7 +358,7 @@ class Contact_Supplier extends CommonDBRelation{
       $header_end .= "</tr>";
       echo $header_begin.$header_top.$header_end;
 
-      $used = array();
+      $used = [];
       if ($number) {
          Session::initNavigateListItems('Contact',
          //TRANS : %1$s is the itemtype name, %2$s is the name of the item (used for headings of a list)
@@ -379,7 +368,7 @@ class Contact_Supplier extends CommonDBRelation{
          foreach ($contacts as $data) {
             $ID                = $data["ID_ent"];
             $used[$data["id"]] = $data["id"];
-            Session::addToNavigateListItems('Contact',$data["id"]);
+            Session::addToNavigateListItems('Contact', $data["id"]);
 
             echo "<tr class='tab_bg_1".($data["is_deleted"]?"_2":"")."'>";
             if ($canedit) {
@@ -413,4 +402,3 @@ class Contact_Supplier extends CommonDBRelation{
       echo "</div>";
    }
 }
-?>

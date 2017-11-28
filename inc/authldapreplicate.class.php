@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
- 
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -37,37 +36,25 @@
 
 /**
  *  Class used to manage LDAP replicate config
-**/
+ */
 class AuthLdapReplicate extends CommonDBTM {
 
    static $rightname = 'config';
-
 
    static function canCreate() {
       return static::canUpdate();
    }
 
-
-   /**
-    * @since version 0.85
-   **/
    static function canPurge() {
       return static::canUpdate();
    }
 
-
-   /**
-    * @since version 0.84
-    *
-    * @return string
-   **/
    function getForbiddenStandardMassiveAction() {
 
       $forbidden   = parent::getForbiddenStandardMassiveAction();
       $forbidden[] = 'update';
       return $forbidden;
    }
-
 
    function prepareInputForAdd($input) {
 
@@ -77,22 +64,19 @@ class AuthLdapReplicate extends CommonDBTM {
       return $input;
    }
 
-
    function prepareInputForUpdate($input) {
 
-      if (isset($input["port"]) && (intval($input["port"]) == 0)) {
-         $input["port"] = 389;
-      }
-      return $input;
+      return $this->prepareInputForAdd($input);
    }
-
 
    /**
     * Form to add a replicate to a ldap server
     *
-    * @param $target       target page for add new replicate
-    * @param $master_id    master ldap server ID
-   **/
+    * @param string  $target    target page for add new replicate
+    * @param integer $master_id master ldap server ID
+    *
+    * @return void
+    */
    static function addNewReplicateForm($target, $master_id) {
 
       echo "<form action='$target' method='post' name='add_replicate_form' id='add_replicate_form'>";
@@ -109,10 +93,9 @@ class AuthLdapReplicate extends CommonDBTM {
       echo "<td class='center'><input type='text' name='port'></td>";
       echo "<td class='center'><input type='hidden' name='next' value='extauth_ldap'>";
       echo "<input type='hidden' name='authldaps_id' value='$master_id'>";
-      echo "<input type='submit' name='add_replicate' value='"._sx('button','Add') ."' class='submit'></td>";
+      echo "<input type='submit' name='add_replicate' value='"._sx('button', 'Add') ."' class='submit'></td>";
       echo "</tr></table></div>";
       Html::closeForm();
    }
 
 }
-?>

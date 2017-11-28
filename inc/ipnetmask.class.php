@@ -1,38 +1,37 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
- 
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
 */
 
 /** @file
-* @brief 
+* @brief
 */
 
 if (!defined('GLPI_ROOT')) {
@@ -50,7 +49,7 @@ class IPNetmask extends IPAddress {
     * @param $ipnetmask (default '')
     * @param $version   (default 0)
    **/
-   function __construct($ipnetmask='', $version=0) {
+   function __construct($ipnetmask = '', $version = 0) {
 
       // First, be sure that the parent is correctly initialised
       parent::__construct();
@@ -75,7 +74,7 @@ class IPNetmask extends IPAddress {
    }
 
 
-   static function getTypeName($nb=0) {
+   static function getTypeName($nb = 0) {
       return _n('Subnet mask', 'Subnet masks', $nb);
    }
 
@@ -105,8 +104,8 @@ class IPNetmask extends IPAddress {
          $bits          = str_repeat("1", $nbBits).str_repeat("0", 128 - $nbBits);
          $this->version = $version;
          $this->textual = $netmask;
-         $this->binary  = array();
-         for ($i = 0 ; $i  < 4 ; $i++) {
+         $this->binary  = [];
+         for ($i = 0; $i  < 4; $i++) {
             $localBits      = substr($bits, 32 * $i, 32);
             $this->binary[] = bindec($localBits);
          }
@@ -119,7 +118,7 @@ class IPNetmask extends IPAddress {
             return false;
          }
          if ($version == 4) {
-            for ($i = 0 ; $i < 3 ; $i++) {
+            for ($i = 0; $i < 3; $i++) {
                $this->binary[$i] = 0xffffffff;
             }
          }
@@ -127,8 +126,8 @@ class IPNetmask extends IPAddress {
 
       if ($version == 4) {
          $mask    = decbin($this->binary[3]);
-         $textual = array();
-         for ($i = 0 ; $i < 4 ; $i++) {
+         $textual = [];
+         for ($i = 0; $i < 4; $i++) {
             $textual[] = bindec(substr($mask, 8 * $i, 8));
          }
          $this->textual = implode(".", $textual);
@@ -136,4 +135,3 @@ class IPNetmask extends IPAddress {
       return true;
    }
 }
-?>

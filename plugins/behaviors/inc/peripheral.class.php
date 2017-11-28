@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: peripheral.class.php 204 2017-03-02 18:31:42Z yllen $
+ * @version $Id: peripheral.class.php 234 2017-10-18 12:40:59Z yllen $
  -------------------------------------------------------------------------
 
  LICENSE
@@ -38,7 +38,6 @@ class PluginBehaviorsPeripheral extends PluginBehaviorsCommon {
    static function afterAdd(Peripheral $periph) {
       // Toolbox::logDebug("PluginBehaviorsPeripheral::afterAdd(), Peripheral=", $periph);
    }
-
 
    static function afterUpdate(Peripheral $periph) {
       // Toolbox::logDebug("PluginBehaviorsPeripheral::afterUpdate(), Peripheral=", $periph);

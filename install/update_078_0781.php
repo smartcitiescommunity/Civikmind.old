@@ -1,38 +1,37 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
- 
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
-* @brief 
+* @brief
 */
 
 /**
@@ -61,12 +60,12 @@ function update078to0781() {
          while ($data = $DB->fetch_assoc($result)) {
             $itemtable=getTableForItemType($data['itemtype']);
             // ajout d'un contrôle pour voir si la table existe ( cas migration plugin non fait)
-            if (!TableExists($itemtable)) {
+            if (!$DB->tableExists($itemtable)) {
                $migration->displayWarning("*** Skip : no table $itemtable ***", true);
                continue;
             }
             $do_recursive = false;
-            if (FieldExists($itemtable,'is_recursive', false)) {
+            if ($DB->fieldExists($itemtable, 'is_recursive', false)) {
                $do_recursive=true;
             }
             foreach ($entities as $entID => $val) {
@@ -109,8 +108,7 @@ function update078to0781() {
                                 FROM `glpi_ticketvalidations`)";
    $DB->query($query) or die("0.78.1 update ticket global_validation state");
 
-
-   if (!FieldExists('glpi_knowbaseitemcategories','entities_id', false)) {
+   if (!$DB->fieldExists('glpi_knowbaseitemcategories', 'entities_id', false)) {
       $query = "ALTER TABLE `glpi_knowbaseitemcategories`
                     ADD `entities_id` INT NOT NULL DEFAULT '0' AFTER `id`,
                     ADD `is_recursive` TINYINT( 1 ) NOT NULL DEFAULT '0' AFTER `entities_id`,
@@ -131,4 +129,3 @@ function update078to0781() {
 
    return $updateresult;
 }
-?>

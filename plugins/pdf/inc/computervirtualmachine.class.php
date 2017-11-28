@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: computervirtualmachine.class.php 476 2017-01-09 15:53:05Z yllen $
+ * @version $Id: computervirtualmachine.class.php 498 2017-11-03 13:33:40Z yllen $
  -------------------------------------------------------------------------
  LICENSE
 
@@ -43,14 +43,22 @@ class PluginPdfComputerVirtualMachine extends PluginPdfCommon {
    static function pdfForComputer(PluginPdfSimplePDF $pdf, Computer $item) {
       global $DB;
 
+      $dbu = new DbUtils();
+
       $ID = $item->getField('id');
 
       // From ComputerVirtualMachine::showForComputer()
-      $virtualmachines = getAllDatasFromTable('glpi_computervirtualmachines',
-                                              "`computers_id` = '$ID'");
+      $virtualmachines = $dbu->getAllDataFromTable('glpi_computervirtualmachines',
+                                              ['computers_id' => $ID]);
       $pdf->setColumnsSize(100);
-      if (count($virtualmachines)) {
-         $pdf->displayTitle("<b>".__('List of virtual machines')."</b>");
+      $title = "<b>".__('List of virtual machines')."</b>";
+
+      if (!count($virtualmachines)) {
+         $pdf->displayTitle(sprintf(__('%1$s: %2$s'), $title, __('No item to display')));
+      } else {
+         $title = sprintf(__('%1$s: %2$s'), $title, $number);
+         $pdf->displayTitle($title);
+
          $pdf->setColumnsSize(20,8,8,8,25,8,8,15);
          $pdf->setColumnsAlign('left', 'center', 'center', 'center', 'left', 'right', 'right', 'left');
          $typ = explode(' ', __('Virtualization system'));
@@ -82,14 +90,12 @@ class PluginPdfComputerVirtualMachine extends PluginPdfCommon {
                $name
             );
          }
-      } else {
-         $pdf->displayTitle("<b>".__('No associated virtual machine')."</b>");
       }
 
       // From ComputerVirtualMachine::showForVirtualMachine()
       if ($item->fields['uuid']) {
          $where = "`uuid`".ComputerVirtualMachine::getUUIDRestrictRequest($item->fields['uuid']);
-         $hosts = getAllDatasFromTable('glpi_computervirtualmachines', $where);
+         $hosts = $dbu->getAllDataFromTable('glpi_computervirtualmachines', $where);
 
          if (count($hosts)) {
             $pdf->setColumnsSize(100);

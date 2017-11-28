@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
-
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -54,14 +53,14 @@ class Notepad extends CommonDBChild {
    static public $logs_for_parent = true;
 
 
-   static function getTypeName($nb=0) {
+   static function getTypeName($nb = 0) {
       //TRANS: Always plural
       return _n('Note', 'Notes', $nb);
    }
 
 
    function getLogTypeID() {
-      return array($this->fields['itemtype'], $this->fields['items_id']);
+      return [$this->fields['itemtype'], $this->fields['items_id']];
    }
 
 
@@ -100,11 +99,33 @@ class Notepad extends CommonDBChild {
       return $input;
    }
 
+   /**
+    * Duplicate all notepads from a item template to his clone
+    *
+    * @since version 9.2
+    *
+    * @param string $itemtype      itemtype of the item
+    * @param integer $oldid        ID of the item to clone
+    * @param integer $newid        ID of the item cloned
+    **/
+   static function cloneItem ($itemtype, $oldid, $newid) {
+      global $DB;
+
+      foreach ($DB->request('glpi_notepads',
+                            ['WHERE'  => "`items_id` = '$oldid'
+                                          AND `itemtype` = '$itemtype'"]) as $data) {
+         $cd               = new self();
+         unset($data['id']);
+         $data['items_id'] = $newid;
+         $data             = Toolbox::addslashes_deep($data);
+         $cd->add($data);
+      }
+   }
 
    /**
     * @see CommonGLPI::getTabNameForItem()
    **/
-   function getTabNameForItem(CommonGLPI $item, $withtemplate=0) {
+   function getTabNameForItem(CommonGLPI $item, $withtemplate = 0) {
 
       if (Session::haveRight($item::$rightname, READNOTE)) {
          $nb = 0;
@@ -122,7 +143,7 @@ class Notepad extends CommonDBChild {
     * @param $tabnum          (default 1)
     * @param $withtemplate    (default 0)
    **/
-   static function displayTabContentForItem(CommonGLPI $item, $tabnum=1, $withtemplate=0) {
+   static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0) {
       static::showForItem($item, $withtemplate);
    }
 
@@ -135,8 +156,8 @@ class Notepad extends CommonDBChild {
    static function countForItem(CommonDBTM $item) {
 
       return countElementsInTable('glpi_notepads',
-                                 "`itemtype` = '".$item->getType()."'
-                                    AND `items_id` = '".$item->getID()."'");
+                                  ['itemtype' => $item->getType(),
+                                   'items_id' => $item->getID()]);
    }
 
 
@@ -146,7 +167,7 @@ class Notepad extends CommonDBChild {
    static function getAllForItem(CommonDBTM $item) {
       global $DB;
 
-      $data = array();
+      $data = [];
       $query = "SELECT `glpi_notepads`.*, `glpi_users`.`picture`
                 FROM `glpi_notepads`
                 LEFT JOIN `glpi_users` ON (`glpi_notepads`.`users_id_lastupdater` = `glpi_users`.`id`)
@@ -154,83 +175,112 @@ class Notepad extends CommonDBChild {
                      AND `glpi_notepads`.`items_id` = '".$item->getID()."'
                 ORDER BY `date_mod` DESC";
 
-      foreach($DB->request($query) as $note) {
+      foreach ($DB->request($query) as $note) {
          $data[] = $note;
       }
       return $data;
    }
 
 
-   /**
-    * @since version 0.85
-   **/
-   static function getSearchOptionsToAdd() {
+   static public function getSearchOptionsToAddNew() {
+      $tab = [];
 
-      $tab                      = array();
+      $tab[] = [
+         'id'                 => 'notepad',
+         'name'               => _n('Note', 'Notes', Session::getPluralNumber())
+      ];
 
-      $tab['notepad']             = _n('Note', 'Notes', Session::getPluralNumber());
+      $tab[] = [
+         'id'                 => '200',
+         'table'              => 'glpi_notepads',
+         'field'              => 'content',
+         'name'               => _n('Note', 'Notes', Session::getPluralNumber()),
+         'datatype'           => 'text',
+         'joinparams'         => [
+            'jointype'           => 'itemtype_item'
+         ],
+         'forcegroupby'       => true,
+         'splititems'         => true,
+         'massiveaction'      => false
+      ];
 
-      $tab[200]['table']          = 'glpi_notepads';
-      $tab[200]['field']          = 'content';
-      $tab[200]['name']           = _n('Note', 'Notes', Session::getPluralNumber());
-      $tab[200]['datatype']       = 'text';
-      $tab[200]['joinparams']     = array('jointype' => 'itemtype_item');
-      $tab[200]['forcegroupby']   = true;
-      $tab[200]['splititems']     = true;
-      $tab[200]['massiveaction']  = false;
+      $tab[] = [
+         'id'                 => '201',
+         'table'              => 'glpi_notepads',
+         'field'              => 'date',
+         'name'               => __('Creation date'),
+         'datatype'           => 'datetime',
+         'joinparams'         => [
+            'jointype'           => 'itemtype_item'
+         ],
+         'forcegroupby'       => true,
+         'massiveaction'      => false
+      ];
 
-      $tab[201]['table']          = 'glpi_notepads';
-      $tab[201]['field']          = 'date';
-      $tab[201]['name']           = __('Creation date');
-      $tab[201]['datatype']       = 'datetime';
-      $tab[201]['joinparams']     = array('jointype' => 'itemtype_item');
-      $tab[201]['forcegroupby']   = true;
-      $tab[201]['massiveaction']  = false;
+      $tab[] = [
+         'id'                 => '202',
+         'table'              => 'glpi_users',
+         'field'              => 'name',
+         'name'               => __('Writer'),
+         'datatype'           => 'dropdown',
+         'forcegroupby'       => true,
+         'massiveaction'      => false,
+         'joinparams'         => [
+            'beforejoin'         => [
+               'table'              => 'glpi_notepads',
+               'joinparams'         => [
+                  'jointype'           => 'itemtype_item'
+               ]
+            ]
+         ]
+      ];
 
-      $tab[202]['table']          = 'glpi_users';
-      $tab[202]['field']          = 'name';
-      $tab[202]['name']           = __('Writer');
-      $tab[202]['datatype']       = 'dropdown';
-      $tab[202]['forcegroupby']   = true;
-      $tab[202]['massiveaction']  = false;
-      $tab[202]['joinparams']     = array('beforejoin'
-                                       => array('table'      => 'glpi_notepads',
-                                                'joinparams' => array('jointype'  => 'itemtype_item')));
+      $tab[] = [
+         'id'                 => '203',
+         'table'              => 'glpi_notepads',
+         'field'              => 'date_mod',
+         'name'               => __('Last update'),
+         'datatype'           => 'datetime',
+         'joinparams'         => [
+            'jointype'           => 'itemtype_item'
+         ],
+         'forcegroupby'       => true,
+         'massiveaction'      => false
+      ];
 
-      $tab[203]['table']          = 'glpi_notepads';
-      $tab[203]['field']          = 'date_mod';
-      $tab[203]['name']           = __('Last update');
-      $tab[203]['datatype']       = 'datetime';
-      $tab[203]['joinparams']     = array('jointype' => 'itemtype_item');
-      $tab[203]['forcegroupby']   = true;
-      $tab[203]['massiveaction']  = false;
-
-      $tab[204]['table']          = 'glpi_users';
-      $tab[204]['field']          = 'name';
-      $tab[204]['linkfield']      = 'users_id_lastupdater';
-      $tab[204]['name']           = __('Last updater');
-      $tab[204]['datatype']       = 'dropdown';
-      $tab[204]['forcegroupby']   = true;
-      $tab[204]['massiveaction']  = false;
-      $tab[204]['joinparams']     = array('beforejoin'
-                                       => array('table'      => 'glpi_notepads',
-                                                'joinparams' => array('jointype'  => 'itemtype_item')));
+      $tab[] = [
+         'id'                 => '204',
+         'table'              => 'glpi_users',
+         'field'              => 'name',
+         'linkfield'          => 'users_id_lastupdater',
+         'name'               => __('Last updater'),
+         'datatype'           => 'dropdown',
+         'forcegroupby'       => true,
+         'massiveaction'      => false,
+         'joinparams'         => [
+            'beforejoin'         => [
+               'table'              => 'glpi_notepads',
+               'joinparams'         => [
+                  'jointype'           => 'itemtype_item'
+               ]
+            ]
+         ]
+      ];
 
       return $tab;
    }
-
 
    /**
     * Show notepads for an item
     *
     * @param $item                  CommonDBTM object
-    * @param $withtemplate integer  template or basic item (default '')
+    * @param $withtemplate integer  template or basic item (default 0)
    **/
-   static function showForItem(CommonDBTM $item, $withtemplate='') {
+   static function showForItem(CommonDBTM $item, $withtemplate = 0) {
       global $CFG_GLPI;
 
       if (!Session::haveRight($item::$rightname, READNOTE)) {
-        return false;
+         return false;
       }
       $notes   = static::getAllForItem($item);
       $rand    = mt_rand();
@@ -248,8 +298,8 @@ class Notepad extends CommonDBChild {
          echo "<div class='boxnoteleft'></div>";
          echo "<form name='addnote_form$rand' id='addnote_form$rand' ";
          echo " method='post' action='".Toolbox::getItemTypeFormURL('Notepad')."'>";
-         echo Html::hidden('itemtype', array('value' => $item->getType()));
-         echo Html::hidden('items_id', array('value' => $item->getID()));
+         echo Html::hidden('itemtype', ['value' => $item->getType()]);
+         echo Html::hidden('items_id', ['value' => $item->getID()]);
 
          echo "<div class='boxnotecontent'>";
          echo "<div class='floatleft'>";
@@ -258,7 +308,7 @@ class Notepad extends CommonDBChild {
          echo "</div>"; // box notecontent
 
          echo "<div class='boxnoteright'><br>";
-         echo Html::submit(_x('button','Add'), array('name' => 'add'));
+         echo Html::submit(_x('button', 'Add'), ['name' => 'add']);
          echo "</div>";
 
          Html::closeForm();
@@ -281,7 +331,6 @@ class Notepad extends CommonDBChild {
 
             echo "<div class='boxnotecontent'>";
 
-
             echo "<div class='boxnotefloatright'>";
             $username = NOT_AVAILABLE;
             if ($note['users_id_lastupdater']) {
@@ -298,7 +347,6 @@ class Notepad extends CommonDBChild {
             printf(__('%1$s / %2$s'), $update, $create);
             echo "</div>"; // floatright
 
-
             echo "<div class='boxnotetext $classtoadd' ";
             if ($canedit) {
                echo "onclick=\"".Html::jsHide("view$id")." ".
@@ -306,45 +354,45 @@ class Notepad extends CommonDBChild {
             }
             echo ">";
             $content = nl2br($note['content']);
-            if (empty($content)) $content = NOT_AVAILABLE;
+            if (empty($content)) {
+               $content = NOT_AVAILABLE;
+            }
             echo $content.'</div>'; // boxnotetext
 
             echo "</div>"; // boxnotecontent
             echo "<div class='boxnoteright'>";
             if ($canedit) {
                Html::showSimpleForm(Toolbox::getItemTypeFormURL('Notepad'),
-                                    array('purge' => 'purge'),
+                                    ['purge' => 'purge'],
                                     _x('button', 'Delete permanently'),
-                                    array('id'   => $note['id']),
-                                    $CFG_GLPI["root_doc"]."/pics/delete.png",
+                                    ['id'   => $note['id']],
+                                    'fa-times-circle',
                                     '',
                                      __('Confirm the final deletion?'));
             }
             echo "</div>"; // boxnoteright
             echo "</div>"; // boxnote
 
-             if ($canedit) {
+            if ($canedit) {
                 echo "<div class='boxnote starthidden' id='edit$id'>";
                 echo "<form name='update_form$id$rand' id='update_form$id$rand' ";
                 echo " method='post' action='".Toolbox::getItemTypeFormURL('Notepad')."'>";
 
                 echo "<div class='boxnoteleft'></div>";
                 echo "<div class='boxnotecontent'>";
-                echo Html::hidden('id', array('value' => $note['id']));
+                echo Html::hidden('id', ['value' => $note['id']]);
                 echo "<textarea name='content' rows=5 cols=100>".$note['content']."</textarea>";
                 echo "</div>"; // boxnotecontent
 
                 echo "<div class='boxnoteright'><br>";
-                echo Html::submit(_x('button','Update'), array('name' => 'update'));
+                echo Html::submit(_x('button', 'Update'), ['name' => 'update']);
                 echo "</div>"; // boxnoteright
 
                 Html::closeForm();
                 echo "</div>"; // boxnote
-             }
+            }
          }
       }
-
       return true;
    }
 }
-?>

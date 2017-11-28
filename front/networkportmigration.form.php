@@ -1,43 +1,44 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
- 
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
 * @brief
 */
 
+use Glpi\Event;
+
 include ('../inc/includes.php');
 
-if (!TableExists('glpi_networkportmigrations')) {
+if (!$DB->tableExists('glpi_networkportmigrations')) {
    Html::displayNotFoundError();
 }
 
@@ -62,7 +63,7 @@ if (isset($_POST["purge"])) {
    if (isset($_POST["del_port"]) && count($_POST["del_port"])) {
       foreach ($_POST["del_port"] as $port_id => $val) {
          if ($np->can($port_id, PURGE)) {
-            $np->delete(array("id" => $port_id));
+            $np->delete(["id" => $port_id]);
          }
       }
    }
@@ -96,11 +97,10 @@ if (isset($_POST["purge"])) {
    Html::redirect($CFG_GLPI["root_doc"]."/front/networkportmigration.php");
 
 } else {
-   Session::checkRight("networking",UPDATE);
+   Session::checkRight("networking", UPDATE);
    Html::header(NetworkPort::getTypeName(Session::getPluralNumber()), $_SERVER['PHP_SELF'], "tools",
                 "migration", "networkportmigration");
 
-   $np->display(array('id' => $_GET["id"]));
+   $np->display(['id' => $_GET["id"]]);
    Html::footer();
 }
-?>

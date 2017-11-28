@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
-
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -48,14 +47,14 @@ class Project extends CommonDBTM {
 
    // From CommonDBTM
    public $dohistory                   = true;
-   static protected $forward_entity_to = array('ProjectTask');
+   static protected $forward_entity_to = ['ProjectTask'];
    static $rightname                   = 'project';
    protected $usenotepad               = true;
 
    const READMY                        = 1;
    const READALL                       = 1024;
 
-   protected $team                     = array();
+   protected $team                     = [];
 
 
    /**
@@ -63,13 +62,13 @@ class Project extends CommonDBTM {
     *
     * @param $nb : number of item in the type (default 0)
    **/
-   static function getTypeName($nb=0) {
-      return _n('Project','Projects',$nb);
+   static function getTypeName($nb = 0) {
+      return _n('Project', 'Projects', $nb);
    }
 
 
    static function canView() {
-      return Session::haveRightsOr(self::$rightname, array(self::READALL, self::READMY));
+      return Session::haveRightsOr(self::$rightname, [self::READALL, self::READMY]);
    }
 
 
@@ -112,7 +111,7 @@ class Project extends CommonDBTM {
     *
     * @see commonDBTM::getRights()
     **/
-   function getRights($interface='central') {
+   function getRights($interface = 'central') {
 
       $values = parent::getRights();
       unset($values[READ]);
@@ -124,17 +123,21 @@ class Project extends CommonDBTM {
    }
 
 
-   function getTabNameForItem(CommonGLPI $item, $withtemplate=0) {
+   function getTabNameForItem(CommonGLPI $item, $withtemplate = 0) {
 
-      if (static::canView()) {
+      if (static::canView() && !$withtemplate) {
          $nb = 0;
          switch ($item->getType()) {
             case __CLASS__ :
-               $ong    = array();
+               $ong    = [];
                if ($_SESSION['glpishow_count_on_tabs']) {
-                  $nb = countElementsInTable($this->getTable(),
-                                             "`".$this->getForeignKeyField()."` = '".
-                                                $item->getID()."' AND `is_deleted`=0");
+                  $nb = countElementsInTable(
+                     $this->getTable(),
+                     [
+                        $this->getForeignKeyField() => $item->getID(),
+                        'is_deleted'                => 0
+                     ]
+                  );
                }
                $ong[1] = self::createTabEntry($this->getTypeName(Session::getPluralNumber()), $nb);
                $ong[2] = __('GANTT');
@@ -146,7 +149,7 @@ class Project extends CommonDBTM {
    }
 
 
-   static function displayTabContentForItem(CommonGLPI $item, $tabnum=1, $withtemplate=0) {
+   static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0) {
 
       switch ($item->getType()) {
          case __CLASS__ :
@@ -165,9 +168,9 @@ class Project extends CommonDBTM {
    }
 
 
-   function defineTabs($options=array()) {
+   function defineTabs($options = []) {
 
-      $ong = array();
+      $ong = [];
       $this->addDefaultFormTab($ong);
       $this->addStandardTab('ProjectTask', $ong, $options);
       $this->addStandardTab('ProjectTeam', $ong, $options);
@@ -178,6 +181,7 @@ class Project extends CommonDBTM {
       $this->addStandardTab('Document_Item', $ong, $options);
       $this->addStandardTab('Contract_Item', $ong, $options);
       $this->addStandardTab('Notepad', $ong, $options);
+      $this->addStandardTab('KnowbaseItem_Item', $ong, $options);
       $this->addStandardTab('Log', $ong, $options);
 
       return $ong;
@@ -206,8 +210,8 @@ class Project extends CommonDBTM {
 
    static function getAdditionalMenuOptions() {
 
-      return array('task' => array('title' => __('My tasks'),
-                                   'page'  => ProjectTask::getSearchURL(false)));
+      return ['task' => ['title' => __('My tasks'),
+                                   'page'  => ProjectTask::getSearchURL(false)]];
    }
 
 
@@ -217,10 +221,10 @@ class Project extends CommonDBTM {
    static function getAdditionalMenuLinks() {
       global $CFG_GLPI;
 
-      $links = array();
+      $links = [];
       if (static::canView()
           || Session::haveRight('projecttask', ProjectTask::READMY)) {
-         $pic_validate = "<img title=\"".__('My tasks')."\" alt=\"".__('My tasks')."\" src='".
+         $pic_validate = "<img title=\"".__s('My tasks')."\" alt=\"".__('My tasks')."\" src='".
                            $CFG_GLPI["root_doc"]."/pics/menu_showall.png' class='pointer'>";
 
          $links[$pic_validate] = '/front/projecttask.php';
@@ -234,10 +238,10 @@ class Project extends CommonDBTM {
    }
 
 
-   function post_updateItem($history=1) {
+   function post_updateItem($history = 1) {
       global $CFG_GLPI;
 
-      if (!isset($this->input['_disablenotif']) && $CFG_GLPI["use_mailing"]) {
+      if (!isset($this->input['_disablenotif']) && $CFG_GLPI["use_notifications"]) {
          // Read again project to be sure that all data are up to date
          $this->getFromDB($this->fields['id']);
          NotificationEvent::raiseEvent("update", $this);
@@ -251,8 +255,29 @@ class Project extends CommonDBTM {
       // Manage add from template
       if (isset($this->input["_oldID"])) {
          ProjectCost::cloneProject($this->input["_oldID"], $this->fields['id']);
+
+         // ADD Task
+         ProjectTask::cloneProjectTask($this->input["_oldID"], $this->fields['id']);
+
+         // ADD Documents
+         Document_Item::cloneItem($this->getType(), $this->input["_oldID"], $this->fields['id']);
+
+         // ADD Team
+         ProjectTeam::cloneProjectTeam($this->input["_oldID"], $this->fields['id']);
+
+         // ADD Change
+         Change_Project::cloneChangeProject($this->input["_oldID"], $this->fields['id']);
+
+         // ADD Contract
+         Contract::cloneItem($this->getType(), $this->input["_oldID"], $this->fields['id']);
+
+         // ADD Notepad
+         Notepad::cloneItem($this->getType(), $this->input["_oldID"], $this->fields['id']);
+
+         //Add KB links
+         KnowbaseItem_Item::cloneItem($this->getType(), $this->input["_oldID"], $this->fields['id']);
       }
-      if (!isset($this->input['_disablenotif']) && $CFG_GLPI["use_mailing"]) {
+      if (!isset($this->input['_disablenotif']) && $CFG_GLPI["use_notifications"]) {
          // Clean reload of the project
          $this->getFromDB($this->fields['id']);
 
@@ -282,7 +307,7 @@ class Project extends CommonDBTM {
    function pre_deleteItem() {
       global $CFG_GLPI;
 
-      if (!isset($this->input['_disablenotif']) && $CFG_GLPI['use_mailing']) {
+      if (!isset($this->input['_disablenotif']) && $CFG_GLPI['use_notifications']) {
          NotificationEvent::raiseEvent('delete', $this);
       }
       return true;
@@ -373,161 +398,318 @@ class Project extends CommonDBTM {
    }
 
 
-   function getSearchOptions() {
+   function getSearchOptionsNew() {
+      $tab = [];
 
-      $tab = array();
-      $tab['common']             = __('Characteristics');
+      $tab[] = [
+         'id'                 => 'common',
+         'name'               => __('Characteristics')
+      ];
 
-      $tab[1]['table']           = $this->getTable();
-      $tab[1]['field']           = 'name';
-      $tab[1]['name']            = __('Name');
-      $tab[1]['datatype']        = 'itemlink';
-      $tab[1]['massiveaction']   = false; // implicit key==1
-      $tab[1]['forcegroupby']    = true;
+      $tab[] = [
+         'id'                 => '1',
+         'table'              => $this->getTable(),
+         'field'              => 'name',
+         'name'               => __('Name'),
+         'datatype'           => 'itemlink',
+         'massiveaction'      => false,
+         'forcegroupby'       => true
+      ];
 
-      $tab[2]['table']           = $this->getTable();
-      $tab[2]['field']           = 'id';
-      $tab[2]['name']            = __('ID');
-      $tab[2]['massiveaction']   = false; // implicit field is id
-      $tab[2]['datatype']        = 'number';
+      $tab[] = [
+         'id'                 => '2',
+         'table'              => $this->getTable(),
+         'field'              => 'id',
+         'name'               => __('ID'),
+         'massiveaction'      => false,
+         'datatype'           => 'number'
+      ];
 
-      $tab[4]['table']           = $this->getTable();
-      $tab[4]['field']           = 'code';
-      $tab[4]['name']            = __('Code');
-      $tab[4]['massiveaction']   = false;
-      $tab[4]['datatype']        = 'string';
+      $tab[] = [
+         'id'                 => '4',
+         'table'              => $this->getTable(),
+         'field'              => 'code',
+         'name'               => __('Code'),
+         'massiveaction'      => false,
+         'datatype'           => 'string'
+      ];
 
-      $tab[13]['table']          = $this->getTable();
-      $tab[13]['field']          = 'name';
-      $tab[13]['name']           = __('Father');
-      $tab[13]['datatype']       = 'itemlink';
-      $tab[13]['massiveaction']  = false;
-      // Add virtual condition to relink table
-      $tab[13]['joinparams']     = array('condition' => "AND 1=1");
+      $tab[] = [
+         'id'                 => '13',
+         'table'              => $this->getTable(),
+         'field'              => 'name',
+         'name'               => __('Father'),
+         'datatype'           => 'itemlink',
+         'massiveaction'      => false,
+         'joinparams'         => [
+            'condition'          => 'AND 1=1'
+         ]
+      ];
 
-      $tab[21]['table']          = $this->getTable();
-      $tab[21]['field']          = 'content';
-      $tab[21]['name']           = __('Description');
-      $tab[21]['massiveaction']  = false;
-      $tab[21]['datatype']       = 'text';
+      $tab[] = [
+         'id'                 => '21',
+         'table'              => $this->getTable(),
+         'field'              => 'content',
+         'name'               => __('Description'),
+         'massiveaction'      => false,
+         'datatype'           => 'text'
+      ];
 
-      $tab[3]['table']           = $this->getTable();
-      $tab[3]['field']           = 'priority';
-      $tab[3]['name']            = __('Priority');
-      $tab[3]['searchtype']      = 'equals';
-      $tab[3]['datatype']        = 'specific';
+      $tab[] = [
+         'id'                 => '3',
+         'table'              => $this->getTable(),
+         'field'              => 'priority',
+         'name'               => __('Priority'),
+         'searchtype'         => 'equals',
+         'datatype'           => 'specific'
+      ];
 
-      $tab[14]['table']          = 'glpi_projecttypes';
-      $tab[14]['field']          = 'name';
-      $tab[14]['name']           = __('Type');
-      $tab[14]['datatype']       = 'dropdown';
+      $tab[] = [
+         'id'                 => '14',
+         'table'              => 'glpi_projecttypes',
+         'field'              => 'name',
+         'name'               => __('Type'),
+         'datatype'           => 'dropdown'
+      ];
 
-      $tab[12]['table']          = 'glpi_projectstates';
-      $tab[12]['field']          = 'name';
-      $tab[12]['name']           = _x('item', 'State');
-      $tab[12]['datatype']       = 'dropdown';
+      $tab[] = [
+         'id'                 => '12',
+         'table'              => 'glpi_projectstates',
+         'field'              => 'name',
+         'name'               => __('State'),
+         'datatype'           => 'dropdown'
+      ];
 
-      $tab[15]['table']          = $this->getTable();
-      $tab[15]['field']          = 'date';
-      $tab[15]['name']           = __('Creation date');
-      $tab[15]['datatype']       = 'datetime';
-      $tab[15]['massiveaction']  = false;
+      $tab[] = [
+         'id'                 => '15',
+         'table'              => $this->getTable(),
+         'field'              => 'date',
+         'name'               => __('Creation date'),
+         'datatype'           => 'datetime',
+         'massiveaction'      => false
+      ];
 
-      $tab[5]['table']           = $this->getTable();
-      $tab[5]['field']           = 'percent_done';
-      $tab[5]['name']            = __('Percent done');
-      $tab[5]['datatype']        = 'number';
-      $tab[5]['unit']            = '%';
-      $tab[5]['min']             = 0;
-      $tab[5]['max']             = 100;
-      $tab[5]['step']            = 5;
+      $tab[] = [
+         'id'                 => '5',
+         'table'              => $this->getTable(),
+         'field'              => 'percent_done',
+         'name'               => __('Percent done'),
+         'datatype'           => 'number',
+         'unit'               => '%',
+         'min'                => 0,
+         'max'                => 100,
+         'step'               => 5
+      ];
 
-      $tab[6]['table']           = $this->getTable();
-      $tab[6]['field']           = 'show_on_global_gantt';
-      $tab[6]['name']            = __('Show on global GANTT');
-      $tab[6]['datatype']        = 'bool';
+      $tab[] = [
+         'id'                 => '6',
+         'table'              => $this->getTable(),
+         'field'              => 'show_on_global_gantt',
+         'name'               => __('Show on global GANTT'),
+         'datatype'           => 'bool'
+      ];
 
-      $tab[24]['table']          = 'glpi_users';
-      $tab[24]['field']          = 'name';
-      $tab[24]['linkfield']      = 'users_id';
-      $tab[24]['name']           = __('Manager');
-      $tab[24]['datatype']       = 'dropdown';
-      $tab[24]['right']          = 'see_project';
+      $tab[] = [
+         'id'                 => '24',
+         'table'              => 'glpi_users',
+         'field'              => 'name',
+         'linkfield'          => 'users_id',
+         'name'               => __('Manager'),
+         'datatype'           => 'dropdown',
+         'right'              => 'see_project'
+      ];
 
-      $tab[49]['table']          = 'glpi_groups';
-      $tab[49]['field']          = 'completename';
-      $tab[49]['linkfield']      = 'groups_id';
-      $tab[49]['name']           = __('Manager group');
-      $tab[49]['condition']      = '`is_manager`';
-      $tab[49]['datatype']       = 'dropdown';
+      $tab[] = [
+         'id'                 => '49',
+         'table'              => 'glpi_groups',
+         'field'              => 'completename',
+         'linkfield'          => 'groups_id',
+         'name'               => __('Manager group'),
+         'condition'          => '`is_manager`',
+         'datatype'           => 'dropdown'
+      ];
 
-      $tab[7]['table']           = $this->getTable();
-      $tab[7]['field']           = 'plan_start_date';
-      $tab[7]['name']            = __('Planned start date');
-      $tab[7]['datatype']        = 'datetime';
+      $tab[] = [
+         'id'                 => '7',
+         'table'              => $this->getTable(),
+         'field'              => 'plan_start_date',
+         'name'               => __('Planned start date'),
+         'datatype'           => 'datetime'
+      ];
 
-      $tab[8]['table']           = $this->getTable();
-      $tab[8]['field']           = 'plan_end_date';
-      $tab[8]['name']            = __('Planned end date');
-      $tab[8]['datatype']        = 'datetime';
+      $tab[] = [
+         'id'                 => '8',
+         'table'              => $this->getTable(),
+         'field'              => 'plan_end_date',
+         'name'               => __('Planned end date'),
+         'datatype'           => 'datetime'
+      ];
 
-      $tab[17]['table']           = $this->getTable();
-      $tab[17]['field']           = '_virtual_planned_duration';
-      $tab[17]['name']            = __('Planned duration');
-      $tab[17]['datatype']        = 'specific';
-      $tab[17]['nosearch']        = true;
-      $tab[17]['massiveaction']   = false;
-      $tab[17]['nosort']          = true;
+      $tab[] = [
+         'id'                 => '17',
+         'table'              => $this->getTable(),
+         'field'              => '_virtual_planned_duration',
+         'name'               => __('Planned duration'),
+         'datatype'           => 'specific',
+         'nosearch'           => true,
+         'massiveaction'      => false,
+         'nosort'             => true
+      ];
 
-      $tab[9]['table']           = $this->getTable();
-      $tab[9]['field']           = 'real_start_date';
-      $tab[9]['name']            = __('Real start date');
-      $tab[9]['datatype']        = 'datetime';
+      $tab[] = [
+         'id'                 => '9',
+         'table'              => $this->getTable(),
+         'field'              => 'real_start_date',
+         'name'               => __('Real start date'),
+         'datatype'           => 'datetime'
+      ];
 
-      $tab[10]['table']          = $this->getTable();
-      $tab[10]['field']          = 'real_end_date';
-      $tab[10]['name']           = __('Real end date');
-      $tab[10]['datatype']       = 'datetime';
+      $tab[] = [
+         'id'                 => '10',
+         'table'              => $this->getTable(),
+         'field'              => 'real_end_date',
+         'name'               => __('Real end date'),
+         'datatype'           => 'datetime'
+      ];
 
-      $tab[18]['table']           = $this->getTable();
-      $tab[18]['field']           = '_virtual_effective_duration';
-      $tab[18]['name']            = __('Effective duration');
-      $tab[18]['datatype']        = 'specific';
-      $tab[18]['nosearch']        = true;
-      $tab[18]['massiveaction']   = false;
-      $tab[18]['nosort']          = true;
+      $tab[] = [
+         'id'                 => '18',
+         'table'              => $this->getTable(),
+         'field'              => '_virtual_effective_duration',
+         'name'               => __('Effective duration'),
+         'datatype'           => 'specific',
+         'nosearch'           => true,
+         'massiveaction'      => false,
+         'nosort'             => true
+      ];
 
-      $tab[16]['table']          = $this->getTable();
-      $tab[16]['field']          = 'comment';
-      $tab[16]['name']           = __('Comments');
-      $tab[16]['datatype']       = 'text';
+      $tab[] = [
+         'id'                 => '16',
+         'table'              => $this->getTable(),
+         'field'              => 'comment',
+         'name'               => __('Comments'),
+         'datatype'           => 'text'
+      ];
 
-      $tab[19]['table']          = $this->getTable();
-      $tab[19]['field']          = 'date_mod';
-      $tab[19]['name']           = __('Last update');
-      $tab[19]['datatype']       = 'datetime';
-      $tab[19]['massiveaction']  = false;
+      $tab[] = [
+         'id'                 => '19',
+         'table'              => $this->getTable(),
+         'field'              => 'date_mod',
+         'name'               => __('Last update'),
+         'datatype'           => 'datetime',
+         'massiveaction'      => false
+      ];
 
-      $tab[121]['table']          = $this->getTable();
-      $tab[121]['field']          = 'date_creation';
-      $tab[121]['name']           = __('Creation date');
-      $tab[121]['datatype']       = 'datetime';
-      $tab[121]['massiveaction']  = false;
+      $tab[] = [
+         'id'                 => '121',
+         'table'              => $this->getTable(),
+         'field'              => 'date_creation',
+         'name'               => __('Creation date'),
+         'datatype'           => 'datetime',
+         'massiveaction'      => false
+      ];
 
-      $tab[80]['table']          = 'glpi_entities';
-      $tab[80]['field']          = 'completename';
-      $tab[80]['name']           = __('Entity');
-      $tab[80]['datatype']       = 'dropdown';
+      $tab[] = [
+         'id'                 => '80',
+         'table'              => 'glpi_entities',
+         'field'              => 'completename',
+         'name'               => __('Entity'),
+         'datatype'           => 'dropdown'
+      ];
 
-      $tab[86]['table']          = $this->getTable();
-      $tab[86]['field']          = 'is_recursive';
-      $tab[86]['name']           = __('Child entities');
-      $tab[86]['datatype']       = 'bool';
+      $tab[] = [
+         'id'                 => '86',
+         'table'              => $this->getTable(),
+         'field'              => 'is_recursive',
+         'name'               => __('Child entities'),
+         'datatype'           => 'bool'
+      ];
+
+      $tab[] = [
+         'id'                 => 'project_team',
+         'name'               => ProjectTeam::getTypeName(),
+      ];
+
+      $tab[] = [
+         'id'                 => '87',
+         'table'              => User::getTable(),
+         'field'              => 'name',
+         'name'               => User::getTypeName(2),
+         'forcegroupby'       => true,
+         'datatype'           => 'dropdown',
+         'joinparams'         => [
+            'jointype'          => 'itemtype_item_revert',
+            'specific_itemtype' => 'User',
+            'beforejoin'        => [
+               'table'      => ProjectTeam::getTable(),
+               'joinparams' => [
+                  'jointype' => 'child',
+               ]
+            ]
+         ]
+      ];
+
+      $tab[] = [
+         'id'                 => '88',
+         'table'              => Group::getTable(),
+         'field'              => 'completename',
+         'name'               => Group::getTypeName(2),
+         'forcegroupby'       => true,
+         'datatype'           => 'dropdown',
+         'joinparams'         => [
+            'jointype'          => 'itemtype_item_revert',
+            'specific_itemtype' => 'Group',
+            'beforejoin'        => [
+               'table'      => ProjectTeam::getTable(),
+               'joinparams' => [
+                  'jointype' => 'child',
+               ]
+            ]
+         ]
+      ];
+
+      $tab[] = [
+         'id'                 => '89',
+         'table'              => Supplier::getTable(),
+         'field'              => 'name',
+         'name'               => Supplier::getTypeName(2),
+         'forcegroupby'       => true,
+         'datatype'           => 'dropdown',
+         'joinparams'         => [
+            'jointype'          => 'itemtype_item_revert',
+            'specific_itemtype' => 'Supplier',
+            'beforejoin'        => [
+               'table'      => ProjectTeam::getTable(),
+               'joinparams' => [
+                  'jointype' => 'child',
+               ]
+            ]
+         ]
+      ];
+
+      $tab[] = [
+         'id'                 => '90',
+         'table'              => Contact::getTable(),
+         'field'              => 'name',
+         'name'               => Contact::getTypeName(2),
+         'forcegroupby'       => true,
+         'datatype'           => 'dropdown',
+         'joinparams'         => [
+            'jointype'          => 'itemtype_item_revert',
+            'specific_itemtype' => 'Contact',
+            'beforejoin'        => [
+               'table'      => ProjectTeam::getTable(),
+               'joinparams' => [
+                  'jointype' => 'child',
+               ]
+            ]
+         ]
+      ];
 
       // add objectlock search options
-      $tab += ObjectLock::getSearchOptionsToAdd( get_class($this) ) ;
+      $tab = array_merge($tab, ObjectLock::getSearchOptionsToAddNew(get_class($this)));
 
-      $tab += Notepad::getSearchOptionsToAdd();
+      $tab = array_merge($tab, Notepad::getSearchOptionsToAddNew());
 
       return $tab;
    }
@@ -537,14 +719,14 @@ class Project extends CommonDBTM {
     * @param $output_type     (default 'Search::HTML_OUTPUT')
     * @param $mass_id         id of the form to check all (default '')
     */
-   static function commonListHeader($output_type=Search::HTML_OUTPUT, $mass_id='') {
+   static function commonListHeader($output_type = Search::HTML_OUTPUT, $mass_id = '') {
 
       // New Line for Header Items Line
       echo Search::showNewLine($output_type);
       // $show_sort if
       $header_num                      = 1;
 
-      $items                           = array();
+      $items                           = [];
       $items[(empty($mass_id) ? '&nbsp' : Html::getCheckAllAsCheckbox($mass_id))] = '';
       $items[__('ID')]                 = "id";
       $items[__('Status')]             = "glpi_projectstates.name";
@@ -563,7 +745,7 @@ class Project extends CommonDBTM {
       foreach ($items as $key => $val) {
          $issort = 0;
          $link   = "";
-         echo Search::showHeaderItem($output_type,$key,$header_num,$link);
+         echo Search::showHeaderItem($output_type, $key, $header_num, $link);
       }
 
       // End Line for column headers
@@ -584,7 +766,7 @@ class Project extends CommonDBTM {
     *      id_for_massaction      : default 0 means no massive action
     *      followups              : only for Tickets : show followup columns
     */
-   static function showShort($id, $options=array()) {
+   static function showShort($id, $options = []) {
       global $CFG_GLPI, $DB;
 
       $p['output_type']            = Search::HTML_OUTPUT;
@@ -618,7 +800,7 @@ class Project extends CommonDBTM {
          $item_num = 1;
          $bgcolor  = $_SESSION["glpipriority_".$item->fields["priority"]];
 
-         echo Search::showNewLine($p['output_type'],$p['row_num']%2);
+         echo Search::showNewLine($p['output_type'], $p['row_num']%2);
 
          $check_col = '';
          if (($candelete || $canupdate)
@@ -682,8 +864,8 @@ class Project extends CommonDBTM {
             $fourth_col .= sprintf(__('%1$s %2$s'),
                                    "<span class='b'>".$userdata['name']."</span>",
                                     Html::showToolTip($userdata["comment"],
-                                                      array('link'    => $userdata["link"],
-                                                            'display' => false)));
+                                                      ['link'    => $userdata["link"],
+                                                            'display' => false]));
          }
 
          echo Search::showItem($p['output_type'], $fourth_col, $item_num, $p['row_num'], $align);
@@ -698,7 +880,6 @@ class Project extends CommonDBTM {
 
          echo Search::showItem($p['output_type'], $fifth_col, $item_num, $p['row_num'], $align);
 
-
          // Eigth column
          $eigth_column = "<span class='b'>".$item->fields["name"]."</span>&nbsp;";
 
@@ -711,16 +892,14 @@ class Project extends CommonDBTM {
          if ($p['output_type'] == Search::HTML_OUTPUT) {
             $eigth_column = sprintf(__('%1$s %2$s'), $eigth_column,
                                     Html::showToolTip($item->fields['content'],
-                                                      array('display' => false,
+                                                      ['display' => false,
                                                             'applyto' => $item->getType().
                                                                            $item->fields["id"].
-                                                                           $rand)));
+                                                                           $rand]));
          }
 
          echo Search::showItem($p['output_type'], $eigth_column, $item_num, $p['row_num'],
                                $align_desc."width='200'");
-
-
 
          // Finish Line
          echo Search::showEndLine($p['output_type']);
@@ -728,6 +907,17 @@ class Project extends CommonDBTM {
          echo "<tr class='tab_bg_2'>";
          echo "<td colspan='6' ><i>".__('No item in progress.')."</i></td></tr>";
       }
+   }
+
+   function prepareInputForAdd($input) {
+
+      if (isset($input["id"]) && ($input["id"] > 0)) {
+         $input["_oldID"] = $input["id"];
+      }
+      unset($input['id']);
+      unset($input['withtemplate']);
+
+      return $input;
    }
 
 
@@ -786,7 +976,7 @@ class Project extends CommonDBTM {
          action='".Toolbox::getItemTypeFormURL(__CLASS__)."'>";
 
          echo "<a href='".Toolbox::getItemTypeFormURL('Project')."?projects_id=$ID'>";
-         _e('Create a sub project from this project');
+         echo __('Create a sub project from this project');
          echo "</a>";
          Html::closeForm();
          echo "</div>";
@@ -806,7 +996,7 @@ class Project extends CommonDBTM {
          $i = 0;
          while ($data = $DB->fetch_assoc($result)) {
             Session::addToNavigateListItems('Project', $data["id"]);
-            Project::showShort($data['id'], array('row_num' => $i));
+            Project::showShort($data['id'], ['row_num' => $i]);
             $i++;
          }
          Project::commonListHeader();
@@ -826,7 +1016,7 @@ class Project extends CommonDBTM {
     *
     *@return Nothing (display)
    **/
-   function showForm($ID, $options=array()) {
+   function showForm($ID, $options = []) {
       global $CFG_GLPI, $DB;
 
       $this->initForm($ID, $options);
@@ -840,9 +1030,9 @@ class Project extends CommonDBTM {
       if (!$ID) {
          $date = $_SESSION['glpi_currenttime'];
       }
-      Html::showDateTimeField("date", array('value'      => $date,
+      Html::showDateTimeField("date", ['value'      => $date,
                                             'timestep'   => 1,
-                                            'maybeempty' => false));
+                                            'maybeempty' => false]);
       echo "</td>";
       if ($ID) {
          echo "<td>".__('Last update')."</td>";
@@ -855,47 +1045,47 @@ class Project extends CommonDBTM {
       echo "<tr class='tab_bg_1'>";
       echo "<td>".__('Name')."</td>";
       echo "<td>";
-      Html::autocompletionTextField($this,'name');
+      Html::autocompletionTextField($this, 'name');
       echo "</td>";
       echo "<td>".__('Code')."</td>";
       echo "<td>";
-      Html::autocompletionTextField($this,'code');
+      Html::autocompletionTextField($this, 'code');
       echo "</td>";
       echo "</tr>";
 
       echo "<tr class='tab_bg_1'>";
       echo "<td>".__('Priority')."</td>";
       echo "<td>";
-      CommonITILObject::dropdownPriority(array('value' => $this->fields['priority'],
-                                               'withmajor' => 1));
+      CommonITILObject::dropdownPriority(['value' => $this->fields['priority'],
+                                               'withmajor' => 1]);
       echo "</td>";
       echo "<td>".__('As child of')."</td>";
       echo "<td>";
-      $this->dropdown(array('entity'   => $this->fields['entities_id'],
+      $this->dropdown(['entity'   => $this->fields['entities_id'],
                             'value'    => $this->fields['projects_id'],
-                            'used'     => array($this->fields['id'])));
+                            'used'     => [$this->fields['id']]]);
       echo "</td>";
       echo "</tr>";
 
       echo "<tr class='tab_bg_1'>";
       echo "<td>"._x('item', 'State')."</td>";
       echo "<td>";
-      ProjectState::dropdown(array('value' => $this->fields["projectstates_id"]));
+      ProjectState::dropdown(['value' => $this->fields["projectstates_id"]]);
       echo "</td>";
       echo "<td>".__('Percent done')."</td>";
       echo "<td>";
-      Dropdown::showNumber("percent_done", array('value' => $this->fields['percent_done'],
+      Dropdown::showNumber("percent_done", ['value' => $this->fields['percent_done'],
                                                  'min'   => 0,
                                                  'max'   => 100,
                                                  'step'  => 5,
-                                                 'unit'  => '%'));
+                                                 'unit'  => '%']);
       echo "</td>";
       echo "</tr>";
 
       echo "<tr class='tab_bg_1'>";
       echo "<td>".__('Type')."</td>";
       echo "<td>";
-      ProjectType::dropdown(array('value' => $this->fields["projecttypes_id"]));
+      ProjectType::dropdown(['value' => $this->fields["projecttypes_id"]]);
       echo "</td>";
       echo "<td>".__('Show on global GANTT')."</td>";
       echo "<td>";
@@ -908,17 +1098,17 @@ class Project extends CommonDBTM {
       echo "<tr class='tab_bg_1'>";
       echo "<td>".__('User')."</td>";
       echo "<td>";
-      User::dropdown(array('name'   => 'users_id',
+      User::dropdown(['name'   => 'users_id',
                            'value'  => $this->fields["users_id"],
                            'right'  => 'see_project',
-                           'entity' => $this->fields["entities_id"]));
+                           'entity' => $this->fields["entities_id"]]);
       echo "</td>";
       echo "<td>".__('Group')."</td>";
       echo "<td>";
-      Group::dropdown(array('name'      => 'groups_id',
+      Group::dropdown(['name'      => 'groups_id',
                             'value'     => $this->fields['groups_id'],
                             'entity'    => $this->fields['entities_id'],
-                            'condition' => '`is_manager`'));
+                            'condition' => '`is_manager`']);
       echo "</td></tr>\n";
 
       echo "<tr><td colspan='4' class='subheader'>".__('Planning')."</td></tr>";
@@ -926,21 +1116,21 @@ class Project extends CommonDBTM {
       echo "<tr class='tab_bg_1'>";
       echo "<td>".__('Planned start date')."</td>";
       echo "<td>";
-      Html::showDateTimeField("plan_start_date", array('value' => $this->fields['plan_start_date']));
+      Html::showDateTimeField("plan_start_date", ['value' => $this->fields['plan_start_date']]);
       echo "</td>";
       echo "<td>".__('Real start date')."</td>";
       echo "<td>";
-      Html::showDateTimeField("real_start_date", array('value' => $this->fields['real_start_date']));
+      Html::showDateTimeField("real_start_date", ['value' => $this->fields['real_start_date']]);
       echo "</td></tr>\n";
 
       echo "<tr class='tab_bg_1'>";
       echo "<td>".__('Planned end date')."</td>";
       echo "<td>";
-      Html::showDateTimeField("plan_end_date", array('value' => $this->fields['plan_end_date']));
+      Html::showDateTimeField("plan_end_date", ['value' => $this->fields['plan_end_date']]);
       echo "</td>";
       echo "<td>".__('Real end date')."</td>";
       echo "<td>";
-      Html::showDateTimeField("real_end_date", array('value' => $this->fields['real_end_date']));
+      Html::showDateTimeField("real_end_date", ['value' => $this->fields['real_end_date']]);
       echo "</td></tr>\n";
 
       echo "<tr class='tab_bg_1'>";
@@ -981,10 +1171,10 @@ class Project extends CommonDBTM {
    }
 
 
-   static function getSpecificValueToDisplay($field, $values, array $options=array()) {
+   static function getSpecificValueToDisplay($field, $values, array $options = []) {
 
       if (!is_array($values)) {
-         $values = array($field => $values);
+         $values = [$field => $values];
       }
       switch ($field) {
          case 'priority':
@@ -1002,10 +1192,10 @@ class Project extends CommonDBTM {
     * @param $values          (default '')
     * @param $options   array
    **/
-   static function getSpecificValueToSelect($field, $name='', $values='', array $options=array()) {
+   static function getSpecificValueToSelect($field, $name = '', $values = '', array $options = []) {
 
       if (!is_array($values)) {
-         $values = array($field => $values);
+         $values = [$field => $values];
       }
       $options['display'] = false;
 
@@ -1044,17 +1234,17 @@ class Project extends CommonDBTM {
          echo "<tr class='tab_bg_1'><th colspan='2'>".__('Add a team member')."</tr>";
          echo "<tr class='tab_bg_2'><td>";
 
-         $params = array('itemtypes'       => ProjectTeam::$available_types,
+         $params = ['itemtypes'       => ProjectTeam::$available_types,
                          'entity_restrict' => ($project->fields['is_recursive']
                                                ? getSonsOf('glpi_entities',
                                                            $project->fields['entities_id'])
                                                : $project->fields['entities_id']),
-                         );
+                         ];
          $addrand = Dropdown::showSelectItemFromItemtypes($params);
 
          echo "</td>";
          echo "<td width='20%'>";
-         echo "<input type='submit' name='add' value=\""._sx('button','Add')."\"
+         echo "<input type='submit' name='add' value=\""._sx('button', 'Add')."\"
                class='submit'>";
          echo "</td>";
          echo "</tr>";
@@ -1065,15 +1255,8 @@ class Project extends CommonDBTM {
       echo "<div class='spaced'>";
       if ($canedit && $nb) {
          Html::openMassiveActionsForm('mass'.__CLASS__.$rand);
-         $massiveactionparams = array('num_displayed' => min($_SESSION['glpilist_limit'], $nb),
-                                      'container'     => 'mass'.__CLASS__.$rand);
-//                     'specific_actions'
-//                         => array('delete' => _x('button', 'Delete permanently')) );
-//
-//          if ($this->fields['users_id'] != Session::getLoginUserID()) {
-//             $massiveactionparams['confirm']
-//                = __('Caution! You are not the author of this element. Delete targets can result in loss of access to that element.');
-//          }
+         $massiveactionparams = ['num_displayed' => min($_SESSION['glpilist_limit'], $nb),
+                                      'container'     => 'mass'.__CLASS__.$rand];
          Html::showMassiveActions($massiveactionparams);
       }
       echo "<table class='tab_cadre_fixehov'>";
@@ -1100,7 +1283,7 @@ class Project extends CommonDBTM {
                   echo "<tr class='tab_bg_2'>";
                   if ($canedit) {
                      echo "<td>";
-                     Html::showMassiveActionCheckBox('ProjectTeam',$data["id"]);
+                     Html::showMassiveActionCheckBox('ProjectTeam', $data["id"]);
                      echo "</td>";
                   }
                   echo "<td>".$item->getTypeName(1)."</td>";
@@ -1133,22 +1316,22 @@ class Project extends CommonDBTM {
    * @param $ID        integer   ID of the project
    * @param $showall   boolean   show all sub items (projects / tasks) (true by default)
    */
-   static function getDataToDisplayOnGantt($ID, $showall=true) {
+   static function getDataToDisplayOnGantt($ID, $showall = true) {
       global $DB;
 
-      $todisplay = array();
+      $todisplay = [];
       $project   = new self();
       if ($project->getFromDB($ID)) {
-         $projects = array();
-         foreach ($DB->request('glpi_projects', array('projects_id' => $ID)) as $data) {
+         $projects = [];
+         foreach ($DB->request('glpi_projects', ['projects_id' => $ID]) as $data) {
             $projects += static::getDataToDisplayOnGantt($data['id']);
          }
          ksort($projects);
          // Get all tasks
          $tasks      = ProjectTask::getAllForProject($ID);
 
-         $real_begin = NULL;
-         $real_end   = NULL;
+         $real_begin = null;
+         $real_end   = null;
          // Use real if set
          if (is_null($project->fields['real_start_date'])) {
             $real_begin = $project->fields['real_start_date'];
@@ -1205,21 +1388,21 @@ class Project extends CommonDBTM {
 
          // Add current project
          $todisplay[$real_begin.'#'.$real_end.'#project'.$project->getID()]
-                      = array('id'       => $project->getID(),
+                      = ['id'       => $project->getID(),
                               'name'     => $project->fields['name'],
                               'link'     => $project->getLink(),
                               'desc'     => $project->fields['content'],
                               'percent'  => isset($project->fields['percent_done'])?$project->fields['percent_done']:0,
                               'type'     => 'project',
                               'from'     => $real_begin,
-                              'to'       => $real_end);
+                              'to'       => $real_end];
 
          if ($showall) {
             // Add current tasks
             $todisplay += ProjectTask::getDataToDisplayOnGanttForProject($ID);
 
             // Add ordered subprojects
-            foreach($projects as $key => $val) {
+            foreach ($projects as $key => $val) {
                $todisplay[$key] = $val;
             }
          }
@@ -1236,7 +1419,6 @@ class Project extends CommonDBTM {
    static function showGantt($ID) {
       global $DB;
 
-
       if ($ID > 0) {
          $project = new Project();
          if ($project->getFromDB($ID) && $project->canView()) {
@@ -1245,27 +1427,28 @@ class Project extends CommonDBTM {
             return false;
          }
       } else {
-         $todisplay = array();
+         $todisplay = [];
          // Get all root projects
          $query = "SELECT *
                    FROM `glpi_projects`
                    WHERE `projects_id` = '0'
                         AND `show_on_global_gantt` = '1'
-                         ".getEntitiesRestrictRequest("AND",'glpi_projects',"", '', true);
+                        AND NOT `is_template`
+                         ".getEntitiesRestrictRequest("AND", 'glpi_projects', "", '', true);
          foreach ($DB->request($query) as $data) {
             $todisplay += static::getDataToDisplayOnGantt($data['id'], false);
          }
          ksort($todisplay);
       }
 
-      $data    = array();
-      $invalid = array();
+      $data    = [];
+      $invalid = [];
       if (count($todisplay)) {
 
          // Prepare for display
          foreach ($todisplay as $key => $val) {
             if (!empty($val['from']) && !empty($val['to'])) {
-               $temp  = array();
+               $temp  = [];
                $color = 'ganttRed';
                if ($val['percent'] > 50) {
                   $color = 'ganttOrange';
@@ -1275,9 +1458,9 @@ class Project extends CommonDBTM {
                }
                switch ($val['type']) {
                   case 'project' :
-                     $temp = array('name'   => $val['link'],
+                     $temp = ['name'   => $val['link'],
                                    'desc'   => '',
-                                   'values' => array(array('from'
+                                   'values' => [['from'
                                                             => "/Date(".strtotime($val['from'])."000)/",
                                                            'to'
                                                             => "/Date(".strtotime($val['to'])."000)/",
@@ -1286,17 +1469,17 @@ class Project extends CommonDBTM {
                                                          'label'
                                                             => $val['percent']."%",
                                                          'customClass'
-                                                            => $color))
-                                 );
+                                                            => $color]]
+                                 ];
                      break;
 
                   case 'task' :
                      if (isset($val['is_milestone']) && $val['is_milestone']) {
                         $color = 'ganttMilestone';
                      }
-                     $temp = array('name'   => ' ',
-                                   'desc'   => str_repeat('-',$val['parents']).$val['link'],
-                                   'values' => array(array('from'
+                     $temp = ['name'   => ' ',
+                                   'desc'   => str_repeat('-', $val['parents']).$val['link'],
+                                   'values' => [['from'
                                                             => "/Date(".strtotime($val['from'])."000)/",
                                                            'to'
                                                             => "/Date(".strtotime($val['to'])."000)/",
@@ -1305,54 +1488,55 @@ class Project extends CommonDBTM {
                                                            'label'
                                                             => strlen($val['percent']==0)?'':$val['percent']."%",
                                                            'customClass'
-                                                            => $color))
-                                 );
+                                                            => $color]]
+                                 ];
                      break;
                }
-            $data[] = $temp;
+               $data[] = $temp;
             } else {
                $invalid[] = $val['link'];
             }
          }
-//       Html::printCleanArray($data);
+         // Html::printCleanArray($data);
       }
 
       if (count($invalid)) {
-         echo sprintf(__('Invalid items (no start or end date): %s'), implode(',',$invalid));
+         echo sprintf(__('Invalid items (no start or end date): %s'), implode(',', $invalid));
          echo "<br><br>";
       }
 
       if (count($data)) {
-//       exit();
-         $months = array(__('January'), __('February'), __('March'), __('April'), __('May'),
+         $months = [__('January'), __('February'), __('March'), __('April'), __('May'),
                          __('June'), __('July'), __('August'), __('September'),
-                         __('October'), __('November'), __('December'));
+                         __('October'), __('November'), __('December')];
 
-         $dow    = array(Toolbox::substr(__('Sunday'),0,1), Toolbox::substr(__('Monday'),0,1),
-                         Toolbox::substr(__('Tuesday'),0,1), Toolbox::substr(__('Wednesday'),0,1),
-                         Toolbox::substr(__('Thursday'),0,1), Toolbox::substr(__('Friday'),0,1),
-                         Toolbox::substr(__('Saturday'),0,1)
-                     );
+         $dow    = [Toolbox::substr(__('Sunday'), 0, 1), Toolbox::substr(__('Monday'), 0, 1),
+                         Toolbox::substr(__('Tuesday'), 0, 1), Toolbox::substr(__('Wednesday'), 0, 1),
+                         Toolbox::substr(__('Thursday'), 0, 1), Toolbox::substr(__('Friday'), 0, 1),
+                         Toolbox::substr(__('Saturday'), 0, 1)
+                     ];
 
          echo "<div class='gantt'></div>";
          $js = "
-                           $('.gantt').gantt({
-                                 source: ".json_encode($data).",
-                                 navigate: 'scroll',
-                                 maxScale: 'months',
-                                 itemsPerPage: 20,
-                                 months: ".json_encode($months).",
-                                 dow: ".json_encode($dow).",
-                                 onItemClick: function(data) {
-   //                                         alert('Item clicked - show some details');
-                                 },
-                                 onAddClick: function(dt, rowId) {
-   //                                         alert('Empty space clicked - add an item!');
-                                 },
+                           $(function() {
+                              $('.gantt').gantt({
+                                    source: ".json_encode($data).",
+                                    navigate: 'scroll',
+                                    maxScale: 'months',
+                                    itemsPerPage: 20,
+                                    months: ".json_encode($months).",
+                                    dow: ".json_encode($dow).",
+                                    onItemClick: function(data) {
+                                    //    alert('Item clicked - show some details');
+                                    },
+                                    onAddClick: function(dt, rowId) {
+                                    //    alert('Empty space clicked - add an item!');
+                                    },
+                              });
                            });";
          echo Html::scriptBlock($js);
       } else {
-         _e('No item to display');
+         echo __('No item to display');
       }
    }
 
@@ -1363,4 +1547,3 @@ class Project extends CommonDBTM {
       NotificationEvent::debugEvent($this);
    }
 }
-?>

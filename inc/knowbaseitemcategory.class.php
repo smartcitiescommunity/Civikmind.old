@@ -1,33 +1,33 @@
 <?php
-/*
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
-
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -49,7 +49,7 @@ class KnowbaseItemCategory extends CommonTreeDropdown {
 
 
 
-   static function getTypeName($nb=0) {
+   static function getTypeName($nb = 0) {
       return _n('Knowledge base category', 'Knowledge base categories', $nb);
    }
 
@@ -107,7 +107,7 @@ class KnowbaseItemCategory extends CommonTreeDropdown {
          if (!isset($_SESSION['glpi_faqcategories'])) {
 
             $_SESSION['glpi_faqcategories'] = '(0)';
-            $tmp   = array();
+            $tmp   = [];
             $query = "SELECT DISTINCT `glpi_knowbaseitems`.`knowbaseitemcategories_id`
                       FROM `glpi_knowbaseitems`
                       ".KnowbaseItem::addVisibilityJoins()."
@@ -130,7 +130,7 @@ class KnowbaseItemCategory extends CommonTreeDropdown {
                   }
                }
                if (count($tmp)) {
-                  $_SESSION['glpi_faqcategories'] = "('".implode("','",$tmp)."')";
+                  $_SESSION['glpi_faqcategories'] = "('".implode("','", $tmp)."')";
                }
             }
          }
@@ -161,7 +161,7 @@ class KnowbaseItemCategory extends CommonTreeDropdown {
       if ($result = $DB->query($query)) {
          echo "<table class='tab_cadre_central'>";
          echo "<tr><td colspan='3'><a href='".$params['target']."?knowbaseitemcategories_id=0$parameters'>";
-         echo "<img alt='' src='".$CFG_GLPI["root_doc"]."/pics/folder-open.png' class='bottom'></a>";
+         echo "<i class='fa fa-folder-open-o'></i> " . __('Root category')  . "</a>";
 
          // Display Category
          if ($params["knowbaseitemcategories_id"]!=0) {
@@ -197,11 +197,11 @@ class KnowbaseItemCategory extends CommonTreeDropdown {
                }
                $ID = $row["id"];
                echo "<td class='tdkb_result'>";
-               echo "<img alt='' src='".$CFG_GLPI["root_doc"]."/pics/folder.png' hspace='5'>";
+               echo "<i class='fa fa-folder-o'></i> ";
                echo "<span class='b'>".
                     "<a href='".$params['target']."?knowbaseitemcategories_id=".$row["id"]."$parameters'>".
                       $row["name"]."</a></span>";
-               echo "<div class='kb_resume'>".Html::resume_text($row['comment'],60)."</div>";
+               echo "<div class='kb_resume'>".Html::resume_text($row['comment'], 60)."</div>";
 
                if (($i%3) == 2) {
                   echo "</tr>";

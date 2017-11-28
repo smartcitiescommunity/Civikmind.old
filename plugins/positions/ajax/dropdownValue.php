@@ -40,7 +40,7 @@ if(empty($_GET) && !empty($_POST)){
    $_GET = $_POST;
 }
 // Security
-if (!TableExists($_GET['table'])) {
+if (!$DB->tableExists($_GET['table'])) {
    exit();
 }
 
@@ -62,11 +62,11 @@ if ($_GET['searchText']==$CFG_GLPI["ajax_wildcard"]) {
 $where =" WHERE `".$_GET['table']."`.`id` NOT IN ('".$_GET['value2']."'";
 
 $used = array();
-
+$dbu = new DbUtils();
 if ($_GET["name"] != "type") {
-   $datas = getAllDatasFromTable("glpi_plugin_positions_positions", "`itemtype` = '".$_GET['itemtype']."'");
+   $datas = $dbu->getAllDataFromTable("glpi_plugin_positions_positions", "`itemtype` = '".$_GET['itemtype']."'");
 } else {
-   $datas = getAllDatasFromTable("glpi_plugin_positions_imageitems", "`itemtype` = '".$_GET['itemtype']."'");
+   $datas = $dbu->getAllDataFromTable("glpi_plugin_positions_imageitems", "`itemtype` = '".$_GET['itemtype']."'");
 }
 if (!empty($datas)) {
    foreach ($datas as $data) {

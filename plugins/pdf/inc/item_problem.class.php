@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: item_problem.class.php 476 2017-01-09 15:53:05Z yllen $
+ * @version $Id: item_problem.class.php 498 2017-11-03 13:33:40Z yllen $
  -------------------------------------------------------------------------
  LICENSE
 
@@ -45,44 +45,49 @@ class PluginPdfItem_Problem extends PluginPdfCommon {
    static function pdfForProblem(PluginPdfSimplePDF $pdf, Problem $problem) {
       global $DB;
 
+      $dbu = new DbUtils();
+
       $instID = $problem->fields['id'];
 
       if (!$problem->can($instID, READ)) {
          return false;
       }
 
-      $query = "SELECT DISTINCT `itemtype`
-                FROM `glpi_items_problems`
-                WHERE `glpi_items_problems`.`problems_id` = '$instID'
-                ORDER BY `itemtype`";
+      $result = $DB->request(['SELECT DISTINCT' => 'itemtype',
+                              'FROM'            => 'glpi_items_problems',
+                              'WHERE'           => ['problems_id' => $instID],
+                              'ORDER'           => 'itemtype']);
 
-      $result = $DB->query($query);
-      $number = $DB->numrows($result);
+      $number = count($result);
 
+      $pdf->setColumnsSize(100);
+      $title = '<b>'._n('Item', 'Items', 2).'</b>';
       if (!$number) {
-         $pdf->setColumnsSize(100);
-         $pdf->displayLine(__('No associated problem', 'pdf'));
+         $pdf->displayTitle(sprintf(__('%1$s: %2$s'), $title, __('No item to display')));
       } else {
-         $pdf->displayTitle('<b>'._n('Item', 'Items', $number).'</b>');
+         $title = sprintf(__('%1$s: %2$s'), $title, $number);
+         $pdf->displayTitle($title);
 
-         $pdf->setColumnsSize(20,30,25,25);
-         $pdf->displayTitle("<b><i>".__('Type'), __('Name'), __('Serial number'),
-                                  __('Inventory number')."</b></i>");
+         $pdf->setColumnsSize(20,20,26,17,17);
+         $pdf->displayTitle("<i>".__('Type'), __('Name'), __('Entity'),__('Serial number'),
+                                  __('Inventory number')."</i>");
 
                                         $totalnb = 0;
          for ($i=0 ; $i<$number ; $i++) {
-            $itemtype = $DB->result($result, $i, "itemtype");
-            if (!($item = getItemForItemtype($itemtype))) {
+            $row = $result->next();
+            $itemtype = $row['itemtype'];
+            if (!($item = $dbu->getItemForItemtype($itemtype))) {
                continue;
             }
 
             if ($item->canView()) {
-               $itemtable = getTableForItemType($itemtype);
-            $query = "SELECT `$itemtable`.*,
+               $itemtable = $dbu->getTableForItemType($itemtype);
+
+               $query = "SELECT `$itemtable`.*,
                              `glpi_items_problems`.`id` AS IDD,
                              `glpi_entities`.`id` AS entity
-                      FROM `glpi_items_problems`,
-                           `$itemtable`";
+                         FROM `glpi_items_problems`,
+                              `$itemtable`";
 
             if ($itemtype != 'Entity') {
                $query .= " LEFT JOIN `glpi_entities`
@@ -97,14 +102,14 @@ class PluginPdfItem_Problem extends PluginPdfCommon {
                $query .= " AND `$itemtable`.`is_template` = '0'";
             }
 
-            $query .= getEntitiesRestrictRequest(" AND", $itemtable, '', '',
+            $query .= $dbu->getEntitiesRestrictRequest(" AND", $itemtable, '', '',
                                                  $item->maybeRecursive())."
                       ORDER BY `glpi_entities`.`completename`, `$itemtable`.`name`";
 
-            $result_linked = $DB->query($query);
-            $nb            = $DB->numrows($result_linked);
+            $result_linked = $DB->request($query);
+            $nb            = count($result_linked);
 
-            for ($prem=true ; $data=$DB->fetch_assoc($result_linked) ; $prem=false) {
+            for ($prem=true ; $data=$result_linked->next() ; $prem=false) {
                $name = $data["name"];
                if (empty($data["name"])) {
                   $name = "(".$data["id"].")";
@@ -113,11 +118,13 @@ class PluginPdfItem_Problem extends PluginPdfCommon {
                   $typename = $item->getTypeName($nb);
                   $pdf->displayLine(Html::clean(sprintf(__('%1$s: %2$s'), $typename, $nb)),
                                     Html::clean($name),
+                                    Dropdown::getDropdownName("glpi_entities", $data['entity']),
                                     Html::clean($data["serial"]),
                                     Html::clean($data["otherserial"]),$nb);
                } else {
                   $pdf->displayLine('',
                                     Html::clean($name),
+                                    Dropdown::getDropdownName("glpi_entities", $data['entity']),
                                     Html::clean($data["serial"]),
                                     Html::clean($data["otherserial"]),$nb);
                }
@@ -132,6 +139,8 @@ class PluginPdfItem_Problem extends PluginPdfCommon {
 
    static function pdfForItem(PluginPdfSimplePDF $pdf, CommonDBTM $item, $tree=false) {
       global $DB,$CFG_GLPI;
+
+      $dbu = new DbUtils();
 
       $restrict         = '';
       $order            = '';
@@ -169,23 +178,24 @@ class PluginPdfItem_Problem extends PluginPdfCommon {
                   ON (`glpi_problems`.`id` = `glpi_items_problems`.`problems_id`) ".
                         Problem::getCommonLeftJoin()."
                 WHERE $restrict ".
-                      getEntitiesRestrictRequest("AND","glpi_problems")."
+                      $dbu->getEntitiesRestrictRequest("AND","glpi_problems")."
                 ORDER BY $order
                 LIMIT ".intval($_SESSION['glpilist_limit']);
 
-      $result = $DB->query($query);
-      $number = $DB->numrows($result);
+      $result = $DB->request($query);
+      $number = count($result);
 
       $pdf->setColumnsSize(100);
       if (!$number) {
-         $pdf->displayTitle('<b>'.__('No associated problem', 'pdf').'</b>');
+         $pdf->displayTitle(sprintf(__('%1$s: %2$s'), "<b>".__('Problem', 'Problems', 2)."<b>",
+                                    __('No item to display')));
       } else {
          $pdf->displayTitle("<b>".sprintf(_n('Last %d problem','Last %d problems', $number)."</b>",
                                           $number));
       }
 
       $job = new Problem();
-      while ($data = $DB->fetch_assoc($result)) {
+      while ($data = $result->next()) {
          if (!$job->getFromDB($data["id"])) {
             continue;
          }
@@ -224,10 +234,10 @@ class PluginPdfItem_Problem extends PluginPdfCommon {
                            '<b><i>'.sprintf(__('Closed on %s').'</i></b>',
                                             Html::convDateTime($job->fields['closedate'])));
          }
-         if ($job->fields['due_date']) {
+         if ($job->fields['time_to_resolve']) {
             $col = sprintf(__('%1$s, %2$s'), $col,
-                           '<b><i>'.sprintf(__('%1$s: %2$s').'</i></b>', __('Due date'),
-                                            Html::convDateTime($job->fields['due_date'])));
+                           '<b><i>'.sprintf(__('%1$s: %2$s').'</i></b>', __('Time to resolve'),
+                                            Html::convDateTime($job->fields['time_to_resolve'])));
          }
          $pdf->displayLine($col);
 
@@ -244,7 +254,7 @@ class PluginPdfItem_Problem extends PluginPdfCommon {
          $lastupdate = Html::convDateTime($job->fields["date_mod"]);
          if ($job->fields['users_id_lastupdater'] > 0) {
             $lastupdate = sprintf(__('%1$s by %2$s'), $lastupdate,
-                                  getUserName($job->fields["users_id_lastupdater"]));
+                                  $dbu->getUserName($job->fields["users_id_lastupdater"]));
          }
 
          $pdf->displayLine('<b><i>'.sprintf(__('%1$s: %2$s'), __('Last update').'</i></b>',
@@ -255,9 +265,9 @@ class PluginPdfItem_Problem extends PluginPdfCommon {
          if (count($users)) {
             foreach ($users as $d) {
                if (empty($col)) {
-                  $col = getUserName($d['users_id']);
+                  $col = $dbu->getUserName($d['users_id']);
                } else {
-                  $col = sprintf(__('%1$s, %2$s'), $col, getUserName($d['users_id']));
+                  $col = sprintf(__('%1$s, %2$s'), $col, $dbu->getUserName($d['users_id']));
                }
             }
          }
@@ -290,9 +300,9 @@ class PluginPdfItem_Problem extends PluginPdfCommon {
          if (count($users)) {
             foreach ($users as $d) {
                if (empty($col)) {
-                  $col = getUserName($d['users_id']);
+                  $col = $dbu->getUserName($d['users_id']);
                } else {
-                  $col = sprintf(__('%1$s, %2$s'), $col, getUserName($d['users_id']));
+                  $col = sprintf(__('%1$s, %2$s'), $col, $dbu->getUserName($d['users_id']));
                }
             }
          }

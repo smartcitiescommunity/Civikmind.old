@@ -1,0 +1,7 @@
+2017-11-17 05:42:28 [2@F-3542]
+0 segundos for "Installing glpi_plugin_purgelogs_configs" @ 2017-11-17 05:42:28 [2@F-3542]
+0 segundos for "Updating glpi_plugin_purgelogs_configs" @ 2017-11-17 05:42:28 [2@F-3542]
+0 segundos for "- adding field purge_genericobject_unusedtypes" @ 2017-11-17 05:42:28 [2@F-3542]
+0 segundos for "- adding field purge_all" @ 2017-11-17 05:42:28 [2@F-3542]
+0 segundos for "- adding field purge_user_auth_changes" @ 2017-11-17 05:42:29 [2@F-3542]
+1 segundo for "- adding field purge_software_computer_install" @ 

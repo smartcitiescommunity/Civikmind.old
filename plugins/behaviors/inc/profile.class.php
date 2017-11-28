@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: profile.class.php 204 2017-03-02 18:31:42Z yllen $
+ * @version $Id: profile.class.php 234 2017-10-18 12:40:59Z yllen $
  -------------------------------------------------------------------------
 
  LICENSE
@@ -48,7 +48,7 @@ class PluginBehaviorsProfile extends  PluginBehaviorsCommon {
       if (!isset($input['helpdesk_item_type'])
           || !is_array($input['helpdesk_item_type'])) {
 
-         $input['helpdesk_item_type'] = array();
+         $input['helpdesk_item_type'] = [];
       }
 
       return $input;

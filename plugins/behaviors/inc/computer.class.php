@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: computer.class.php 204 2017-03-02 18:31:42Z yllen $
+ * @version $Id: computer.class.php 234 2017-10-18 12:40:59Z yllen $
  -------------------------------------------------------------------------
 
  LICENSE
@@ -44,8 +44,6 @@ class PluginBehaviorsComputer extends PluginBehaviorsCommon {
    }
 
    static function beforePurge(Computer $comp) {
-
-      // Toolbox::logDebug("PluginBehaviorsComputer::beforePurge(), Computer=", $comp);
 
       $config = PluginBehaviorsConfig::getInstance();
 

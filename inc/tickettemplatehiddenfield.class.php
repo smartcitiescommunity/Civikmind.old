@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
-
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -61,7 +60,7 @@ class TicketTemplateHiddenField extends CommonDBChild {
    }
 
 
-   static function getTypeName($nb=0) {
+   static function getTypeName($nb = 0) {
       return _n('Hidden field', 'Hidden fields', $nb);
    }
 
@@ -83,7 +82,7 @@ class TicketTemplateHiddenField extends CommonDBChild {
    }
 
 
-   function getTabNameForItem(CommonGLPI $item, $withtemplate=0) {
+   function getTabNameForItem(CommonGLPI $item, $withtemplate = 0) {
 
       // can exists for template
       if (($item->getType() == 'TicketTemplate')
@@ -91,7 +90,7 @@ class TicketTemplateHiddenField extends CommonDBChild {
          $nb = 0;
          if ($_SESSION['glpishow_count_on_tabs']) {
             $nb = countElementsInTable($this->getTable(),
-                                       "`tickettemplates_id` = '".$item->getID()."'");
+                                       ['tickettemplates_id' => $item->getID()]);
          }
          return self::createTabEntry(self::getTypeName(Session::getPluralNumber()), $nb);
       }
@@ -99,7 +98,7 @@ class TicketTemplateHiddenField extends CommonDBChild {
    }
 
 
-   static function displayTabContentForItem(CommonGLPI $item, $tabnum=1, $withtemplate=0) {
+   static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0) {
 
       self::showForTicketTemplate($item, $withtemplate);
       return true;
@@ -124,7 +123,7 @@ class TicketTemplateHiddenField extends CommonDBChild {
          if ($result = $DB->query($query)) {
             if ($DB->numrows($result)) {
                $a = new self();
-               $a->delete(array('id'=>$DB->result($result,0,0)));
+               $a->delete(['id'=>$DB->result($result, 0, 0)]);
             }
          }
       }
@@ -141,7 +140,7 @@ class TicketTemplateHiddenField extends CommonDBChild {
     *
     * @return an array of hidden fields
    **/
-   function getHiddenFields($ID, $withtypeandcategory=false) {
+   function getHiddenFields($ID, $withtypeandcategory = false) {
       global $DB;
 
       $sql = "SELECT *
@@ -152,7 +151,7 @@ class TicketTemplateHiddenField extends CommonDBChild {
 
       $tt             = new TicketTemplate();
       $allowed_fields = $tt->getAllowedFields($withtypeandcategory);
-      $fields         = array();
+      $fields         = [];
 
       while ($rule = $DB->fetch_assoc($result)) {
          if (isset($allowed_fields[$rule['num']])) {
@@ -164,16 +163,30 @@ class TicketTemplateHiddenField extends CommonDBChild {
 
 
    /**
+    * Return fields who doesn't need to be used for this part of template
+    *
+    * @since 9.2
+    *
+    * @return array the excluded fields (keys and values are equals)
+    */
+   static function getExcludedFields() {
+      return [
+         175 => 175, // ticket's tasks (template)
+      ];
+   }
+
+
+   /**
     * Print the hidden fields
     *
     * @since version 0.83
     *
     * @param $tt                       Ticket Template
-    * @param $withtemplate    boolean  Template or basic item (default '')
+    * @param $withtemplate    boolean  Template or basic item (default 0)
     *
     * @return Nothing (call to classes members)
    **/
-   static function showForTicketTemplate(TicketTemplate $tt, $withtemplate='') {
+   static function showForTicketTemplate(TicketTemplate $tt, $withtemplate = 0) {
       global $DB;
 
       $ID = $tt->fields['id'];
@@ -187,6 +200,7 @@ class TicketTemplateHiddenField extends CommonDBChild {
 
       $canedit = $tt->canEdit($ID);
       $fields  = $tt->getAllowedFieldsNames(false);
+      $fields  = array_diff_key($fields, self::getExcludedFields());
       $rand    = mt_rand();
 
       $query = "SELECT `glpi_tickettemplatehiddenfields`.*
@@ -194,8 +208,8 @@ class TicketTemplateHiddenField extends CommonDBChild {
                 WHERE (`tickettemplates_id` = '$ID')";
 
       if ($result = $DB->query($query)) {
-         $hiddenfields = array();
-         $used         = array();
+         $hiddenfields = [];
+         $used         = [];
          if ($numrows = $DB->numrows($result)) {
             while ($data = $DB->fetch_assoc($result)) {
                $hiddenfields[$data['id']] = $data;
@@ -212,7 +226,7 @@ class TicketTemplateHiddenField extends CommonDBChild {
             echo "<tr class='tab_bg_2'><th colspan='2'>".__('Add a hidden field')."</th></tr>";
             echo "<tr class='tab_bg_2'><td class='right'>";
             echo "<input type='hidden' name='tickettemplates_id' value='$ID'>";
-            Dropdown::showFromArray('num', $fields, array('used'=> $used));
+            Dropdown::showFromArray('num', $fields, ['used'=> $used]);
             echo "</td><td class='center'>";
             echo "&nbsp;<input type='submit' name='add' value=\""._sx('button', 'Add').
                          "\" class='submit'>";
@@ -227,8 +241,8 @@ class TicketTemplateHiddenField extends CommonDBChild {
 
          if ($canedit && $numrows) {
             Html::openMassiveActionsForm('mass'.__CLASS__.$rand);
-            $massiveactionparams = array('num_displayed' => min($_SESSION['glpilist_limit'], $numrows),
-                                         'container'     => 'mass'.__CLASS__.$rand);
+            $massiveactionparams = ['num_displayed' => min($_SESSION['glpilist_limit'], $numrows),
+                                         'container'     => 'mass'.__CLASS__.$rand];
             Html::showMassiveActions($massiveactionparams);
          }
          echo "<table class='tab_cadre_fixehov'>";
@@ -274,4 +288,3 @@ class TicketTemplateHiddenField extends CommonDBChild {
    }
 
 }
-?>

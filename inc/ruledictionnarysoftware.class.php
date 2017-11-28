@@ -1,33 +1,33 @@
 <?php
-/*
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
-
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -45,7 +45,7 @@ if (!defined('GLPI_ROOT')) {
 **/
 class RuleDictionnarySoftware extends Rule {
 
-   public $additional_fields_for_dictionnary = array('manufacturer');
+   public $additional_fields_for_dictionnary = ['manufacturer'];
    public $can_sort                          = true;
 
    static $rightname                         = 'rule_dictionnary_software';
@@ -73,7 +73,7 @@ class RuleDictionnarySoftware extends Rule {
    **/
    function getCriterias() {
 
-      static $criterias = array();
+      static $criterias = [];
 
       if (count($criterias)) {
          return $criterias;
@@ -92,6 +92,9 @@ class RuleDictionnarySoftware extends Rule {
       $criterias['entities_id']['table']  = 'glpi_entities';
       $criterias['entities_id']['type']   = 'dropdown';
 
+      $criterias['_system_category']['field'] = 'name';
+      $criterias['_system_category']['name']  = __('Category from inventory tool');
+
       return $criterias;
    }
 
@@ -101,21 +104,21 @@ class RuleDictionnarySoftware extends Rule {
    **/
    function getActions() {
 
-      $actions                                  = array();
+      $actions                                  = [];
 
       $actions['name']['name']                  = _n('Software', 'Software', 1);
-      $actions['name']['force_actions']         = array('assign', 'regex_result');
+      $actions['name']['force_actions']         = ['assign', 'regex_result'];
 
       $actions['_ignore_import']['name']        = __('To be unaware of import');
       $actions['_ignore_import']['type']        = 'yesonly';
 
-      $actions['version']['name']               = _n('Version', 'Versions',1);
-      $actions['version']['force_actions']      = array('assign','regex_result',
-                                                        'append_regex_result');
+      $actions['version']['name']               = _n('Version', 'Versions', 1);
+      $actions['version']['force_actions']      = ['assign','regex_result',
+                                                        'append_regex_result'];
 
       $actions['manufacturer']['name']          = __('Publisher');
       $actions['manufacturer']['table']         = 'glpi_manufacturers';
-      $actions['manufacturer']['force_actions'] = array('append_regex_result', 'assign','regex_result');
+      $actions['manufacturer']['force_actions'] = ['append_regex_result', 'assign','regex_result'];
 
       $actions['is_helpdesk_visible']['name']   = __('Associable to a ticket');
       $actions['is_helpdesk_visible']['table']  = 'glpi_softwares';
@@ -124,6 +127,11 @@ class RuleDictionnarySoftware extends Rule {
       $actions['new_entities_id']['name']       = __('Entity');
       $actions['new_entities_id']['table']      = 'glpi_entities';
       $actions['new_entities_id']['type']       = 'dropdown';
+
+      $actions['softwarecategories_id']['name']  = __('Category');
+      $actions['softwarecategories_id']['type']  = 'dropdown';
+      $actions['softwarecategories_id']['table'] = 'glpi_softwarecategories';
+      $actions['softwarecategories_id']['force_actions'] = ['assign','regex_result'];
 
       return $actions;
    }
@@ -147,7 +155,7 @@ class RuleDictionnarySoftware extends Rule {
    function showSpecificCriteriasForPreview($fields) {
 
       if (isset($this->fields['id'])) {
-         $this->getRuleWithCriteriasAndActions($this->fields['id'],0,1);
+         $this->getRuleWithCriteriasAndActions($this->fields['id'], 0, 1);
       }
 
       //if there's a least one action with type == append_regex_result, then need to display

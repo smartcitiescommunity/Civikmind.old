@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
- 
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -60,7 +59,7 @@ class NotImportedEmail extends CommonDBTM {
    }
 
 
-   static function getTypeName($nb=0) {
+   static function getTypeName($nb = 0) {
       return _n('Refused email', 'Refused emails', $nb);
    }
 
@@ -68,7 +67,7 @@ class NotImportedEmail extends CommonDBTM {
    /**
     * @see CommonDBTM::getSpecificMassiveActions()
     **/
-   function getSpecificMassiveActions($checkitem=NULL) {
+   function getSpecificMassiveActions($checkitem = null) {
 
       $isadmin = static::canUpdate();
       $actions = parent::getSpecificMassiveActions($checkitem);
@@ -93,7 +92,7 @@ class NotImportedEmail extends CommonDBTM {
          case 'import_email' :
             Entity::dropdown();
             echo "<br><br>";
-            echo Html::submit(_x('button', 'Import'), array('name' => 'massiveaction'));
+            echo Html::submit(_x('button', 'Import'), ['name' => 'massiveaction']);
             return true;
       }
       return parent::showMassiveActionsSubForm($ma);
@@ -131,56 +130,79 @@ class NotImportedEmail extends CommonDBTM {
    }
 
 
-   function getSearchOptions() {
+   function getSearchOptionsNew() {
+      $tab = [];
 
-      $tab                       = array();
+      $tab[] = [
+         'id'                 => '1',
+         'table'              => $this->getTable(),
+         'field'              => 'from',
+         'name'               => __('From email header'),
+         'massiveaction'      => false,
+         'datatype'           => 'string'
+      ];
 
-      $tab[1]['table']           = 'glpi_notimportedemails';
-      $tab[1]['field']           = 'from';
-      $tab[1]['name']            = __('From email header');
-      $tab[1]['massiveaction']   = false;
-      $tab[1]['datatype']        = 'string';
+      $tab[] = [
+         'id'                 => '2',
+         'table'              => $this->getTable(),
+         'field'              => 'to',
+         'name'               => __('To email header'),
+         'massiveaction'      => false,
+         'datatype'           => 'string'
+      ];
 
-      $tab[2]['table']           = 'glpi_notimportedemails';
-      $tab[2]['field']           = 'to';
-      $tab[2]['name']            = __('To email header');
-      $tab[2]['massiveaction']   = false;
-      $tab[2]['datatype']        = 'string';
+      $tab[] = [
+         'id'                 => '3',
+         'table'              => $this->getTable(),
+         'field'              => 'subject',
+         'name'               => __('Subject email header'),
+         'massiveaction'      => false,
+         'datatype'           => 'string'
+      ];
 
-      $tab[3]['table']           = 'glpi_notimportedemails';
-      $tab[3]['field']           = 'subject';
-      $tab[3]['name']            = __('Subject email header');
-      $tab[3]['massiveaction']   = false;
-      $tab[3]['datatype']        = 'string';
+      $tab[] = [
+         'id'                 => '4',
+         'table'              => 'glpi_mailcollectors',
+         'field'              => 'name',
+         'name'               => __('Mails receiver'),
+         'datatype'           => 'itemlink'
+      ];
 
-      $tab[4]['table']           = 'glpi_mailcollectors';
-      $tab[4]['field']           = 'name';
-      $tab[4]['name']            = __('Mails receiver');
-      $tab[4]['datatype']        = 'itemlink';
+      $tab[] = [
+         'id'                 => '5',
+         'table'              => $this->getTable(),
+         'field'              => 'messageid',
+         'name'               => __('Message-ID email header'),
+         'massiveaction'      => false,
+         'datatype'           => 'string'
+      ];
 
-      $tab[5]['table']           = 'glpi_notimportedemails';
-      $tab[5]['field']           = 'messageid';
-      $tab[5]['name']            = __('Message-ID email header');
-      $tab[5]['massiveaction']   = false;
-      $tab[5]['datatype']        = 'string';
+      $tab[] = [
+         'id'                 => '6',
+         'table'              => 'glpi_users',
+         'field'              => 'name',
+         'name'               => __('Requester'),
+         'datatype'           => 'dropdown',
+         'right'              => 'all'
+      ];
 
-      $tab[6]['table']           = 'glpi_users';
-      $tab[6]['field']           = 'name';
-      $tab[6]['name']            = __('Requester');
-      $tab[6]['datatype']        = 'dropdown';
-      $tab[6]['right']           = 'all';
+      $tab[] = [
+         'id'                 => '16',
+         'table'              => $this->getTable(),
+         'field'              => 'reason',
+         'name'               => __('Reason of rejection'),
+         'datatype'           => 'specific',
+         'massiveaction'      => false
+      ];
 
-      $tab[16]['table']          = 'glpi_notimportedemails';
-      $tab[16]['field']          = 'reason';
-      $tab[16]['name']           = __('Reason of rejection');
-      $tab[16]['datatype']       = 'specific';
-      $tab[16]['massiveaction']  = false;
-
-      $tab[19]['table']          = 'glpi_notimportedemails';
-      $tab[19]['field']          = 'date';
-      $tab[19]['name']           = __('Date');
-      $tab[19]['datatype']       = 'datetime';
-      $tab[19]['massiveaction']  = false;
+      $tab[] = [
+         'id'                 => '19',
+         'table'              => $this->getTable(),
+         'field'              => 'date',
+         'name'               => __('Date'),
+         'datatype'           => 'datetime',
+         'massiveaction'      => false
+      ];
 
       return $tab;
    }
@@ -214,9 +236,9 @@ class NotImportedEmail extends CommonDBTM {
    **/
    static function getAllReasons() {
 
-      return array(self::MATCH_NO_RULE => __('Unable to affect the email to an entity'),
+      return [self::MATCH_NO_RULE => __('Unable to affect the email to an entity'),
                    self::USER_UNKNOWN  => __('Email not found. Impossible import'),
-                   self::FAILED_INSERT => __('Failed operation'));
+                   self::FAILED_INSERT => __('Failed operation')];
    }
 
 
@@ -227,18 +249,18 @@ class NotImportedEmail extends CommonDBTM {
     * @param $values
     * @param $options   array
    **/
-   static function getSpecificValueToDisplay($field, $values, array $options=array()) {
+   static function getSpecificValueToDisplay($field, $values, array $options = []) {
 
       if (!is_array($values)) {
-         $values = array($field => $values);
+         $values = [$field => $values];
       }
       switch ($field) {
          case 'reason' :
             return self::getReason($values[$field]);
 
          case 'messageid' :
-            $clean = array('<' => '',
-                           '>' => '');
+            $clean = ['<' => '',
+                           '>' => ''];
             return strtr($values[$field], $clean);
       }
       return parent::getSpecificValueToDisplay($field, $values, $options);
@@ -253,10 +275,10 @@ class NotImportedEmail extends CommonDBTM {
     * @param $values             (default '')
     * @param $options      array
    **/
-   static function getSpecificValueToSelect($field, $name='', $values='', array $options=array()) {
+   static function getSpecificValueToSelect($field, $name = '', $values = '', array $options = []) {
 
       if (!is_array($values)) {
-         $values = array($field => $values);
+         $values = [$field => $values];
       }
       $options['display'] = false;
 
@@ -270,4 +292,3 @@ class NotImportedEmail extends CommonDBTM {
 
 
 }
-?>

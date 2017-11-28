@@ -46,9 +46,16 @@ if (!empty($tz)) {
    date_default_timezone_set(@date_default_timezone_get());
 }
 
+// If this file exists, it is load
+if (file_exists(GLPI_ROOT. '/config/local_define.php')) {
+   require_once GLPI_ROOT. '/config/local_define.php';
+}
+
 // If this file exists, it is load, allow to set configdir/dumpdir elsewhere
-if (file_exists(GLPI_ROOT ."/config/config_path.php")) {
-   include_once(GLPI_ROOT ."/config/config_path.php");
+if (file_exists(GLPI_ROOT . '/inc/downstream.php')) {
+   include_once (GLPI_ROOT . '/inc/downstream.php');
+} else if (file_exists(GLPI_ROOT . '/config/config_path.php')) { // For compatibility, deprecated
+   include_once (GLPI_ROOT . '/config/config_path.php');
 }
 
 // Default location for database configuration : config_db.php
@@ -105,6 +112,11 @@ if (!defined("GLPI_TMP_DIR")) {
    define("GLPI_TMP_DIR", GLPI_ROOT . "/files/_tmp");
 }
 
+// Path for cache
+if (!defined("GLPI_CACHE_DIR")) {
+   define("GLPI_CACHE_DIR", GLPI_ROOT . "/files/_cache");
+}
+
 // Path for rss storage
 if (!defined("GLPI_RSS_DIR")) {
    define("GLPI_RSS_DIR", GLPI_ROOT . "/files/_rss");
@@ -125,6 +137,16 @@ if (!defined('GLPI_HTMLAWED')) {
    define('GLPI_HTMLAWED', GLPI_ROOT.'/lib/htmlawed/htmLawed.php');
    // if htmLawed available in system, use (in config_path.php)
    // define('GLPI_HTMLAWED', '/usr/share/htmlawed/htmLawed.php');
+}
+
+// Install mode for telemetry
+if (!defined('GLPI_INSTALL_MODE')) {
+   if (is_dir(GLPI_ROOT . '/.git')) {
+      define('GLPI_INSTALL_MODE', 'GIT');
+   } else {
+      define('GLPI_INSTALL_MODE', 'TARBALL');
+   }
+   // For packager, you can use RPM, DEB, ...  (in config_path.php)
 }
 
 // Default path to FreeSans.ttf

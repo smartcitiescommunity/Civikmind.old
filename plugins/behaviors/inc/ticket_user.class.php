@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: ticket_user.class.php 204 2017-03-02 18:31:42Z yllen $
+ * @version $Id: ticket_user.class.php 234 2017-10-18 12:40:59Z yllen $
  -------------------------------------------------------------------------
 
  LICENSE
@@ -39,22 +39,6 @@ class PluginBehaviorsTicket_User {
 
       $config = PluginBehaviorsConfig::getInstance();
 
-      if ($config->getField('add_notif')) {
-         if ($item->getField('type') == CommonITILActor::ASSIGN) {
-            $ticket = new Ticket();
-            if ($ticket->getFromDB($item->getField('tickets_id'))) {
-               NotificationEvent::raiseEvent('plugin_behaviors_ticketnewtech', $ticket);
-            }
-         }
-
-         if ($item->getField('type') == CommonITILActor::OBSERVER) {
-            $ticket = new Ticket();
-            if ($ticket->getFromDB($item->getField('tickets_id'))) {
-               NotificationEvent::raiseEvent('plugin_behaviors_ticketnewwatch', $ticket);
-            }
-         }
-      }
-
       // Check is the connected user is a tech
       if (!is_numeric(Session::getLoginUserID(false))
           || !Session::haveRight('ticket', Ticket::OWN)) {
@@ -65,8 +49,8 @@ class PluginBehaviorsTicket_User {
       if (($config->getField('single_tech_mode') != 0)
           && ($item->input['type'] == CommonITILActor::ASSIGN)) {
 
-         $crit = array('tickets_id' => $item->input['tickets_id'],
-                       'type'       => CommonITILActor::ASSIGN);
+         $crit = ['tickets_id' => $item->input['tickets_id'],
+                  'type'       => CommonITILActor::ASSIGN];
 
          foreach ($DB->request('glpi_tickets_users', $crit) as $data) {
             if ($data['id'] != $item->getID()) {

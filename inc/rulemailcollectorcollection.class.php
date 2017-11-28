@@ -1,34 +1,33 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
- 
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -65,7 +64,7 @@ class RuleMailCollectorCollection extends RuleCollection {
       //Add needed ticket datas for rules processing
       if (isset($params['ticket']) && is_array($params['ticket'])) {
          foreach ($params['ticket'] as $key => $value) {
-            if (in_array($key,$fields) && !isset($input[$key])) {
+            if (in_array($key, $fields) && !isset($input[$key])) {
                $input[$key] = $value;
             }
          }
@@ -74,28 +73,28 @@ class RuleMailCollectorCollection extends RuleCollection {
       //Add needed headers for rules processing
       if (isset($params['headers']) && is_array($params['headers'])) {
          foreach ($params['headers'] as $key => $value) {
-            if (in_array($key,$fields) && !isset($input[$key])) {
+            if (in_array($key, $fields) && !isset($input[$key])) {
                $input[$key] = $value;
             }
          }
       }
 
       //Add all user's groups
-      if (in_array('groups',$fields)) {
+      if (in_array('groups', $fields)) {
          foreach (Group_User::getUserGroups($input['_users_id_requester']) as $group) {
             $input['GROUPS'][] = $group['id'];
          }
       }
 
       //Add all user's profiles
-      if (in_array('profiles',$fields)) {
+      if (in_array('profiles', $fields)) {
          foreach (Profile_User::getForUser($input['_users_id_requester']) as $profile) {
             $input['PROFILES'][$profile['profiles_id']] = $profile['profiles_id'];
          }
       }
 
       //If the criteria is "user has only one time the profile xxx"
-      if (in_array('unique_profile',$fields)) {
+      if (in_array('unique_profile', $fields)) {
          //Get all profiles
          $profiles = Profile_User::getForUser($input['_users_id_requester']);
          foreach ($profiles as $profile) {
@@ -107,7 +106,7 @@ class RuleMailCollectorCollection extends RuleCollection {
       }
 
       //Store the number of profiles of which the user belongs to
-      if (in_array('one_profile',$fields)) {
+      if (in_array('one_profile', $fields)) {
          $profiles = Profile_User::getForUser($input['_users_id_requester']);
          if (count($profiles) == 1) {
             $tmp = array_pop($profiles);
@@ -116,12 +115,11 @@ class RuleMailCollectorCollection extends RuleCollection {
       }
 
       //Store the number of profiles of which the user belongs to
-      if (in_array('known_domain',$fields)) {
-         if (preg_match("/@(.*)/",$input['from'],$results)) {
+      if (in_array('known_domain', $fields)) {
+         if (preg_match("/@(.*)/", $input['from'], $results)) {
             if (Entity::getEntityIDByDomain($results[1]) != -1) {
                $input['KNOWN_DOMAIN'] = 1;
-            }
-            else {
+            } else {
                $input['KNOWN_DOMAIN'] = 0;
             }
          }
@@ -142,4 +140,3 @@ class RuleMailCollectorCollection extends RuleCollection {
    }
 
 }
-?>

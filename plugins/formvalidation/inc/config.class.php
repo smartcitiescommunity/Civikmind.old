@@ -32,6 +32,7 @@ class PluginFormvalidationConfig extends CommonDBTM {
 
    /**
     * Singleton for the unique config record
+    * @return PluginFormvalidationConfig singleton
     */
    static function getInstance() {
 
@@ -45,4 +46,3 @@ class PluginFormvalidationConfig extends CommonDBTM {
    }
 }
 
-?>

@@ -1,33 +1,33 @@
 <?php
-/*
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
-
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2017 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
 
 /** @file
@@ -43,7 +43,7 @@ if (!defined('GLPI_ROOT')) {
 **/
 class Notification extends CommonDBTM {
 
-// MAILING TYPE
+   // MAILING TYPE
    //Notification to a user (sse mailing users type below)
    const USER_TYPE             = 1;
    //Notification to users of a profile
@@ -141,7 +141,7 @@ class Notification extends CommonDBTM {
 
 
 
-   static function getTypeName($nb=0) {
+   static function getTypeName($nb = 0) {
       return _n('Notification', 'Notifications', $nb);
    }
 
@@ -154,7 +154,7 @@ class Notification extends CommonDBTM {
    static function getMenuContent() {
       global $CFG_GLPI;
 
-      $menu = array();
+      $menu = [];
 
       if (Notification::canView()
           || Config::canView()) {
@@ -164,9 +164,6 @@ class Notification extends CommonDBTM {
          $menu['options']['notification']['page']            = '/front/notification.php';
          $menu['options']['notification']['links']['add']    = '/front/notification.form.php';
          $menu['options']['notification']['links']['search'] = '/front/notification.php';
-
-         $menu['options']['config']['title'] = __('Setup');
-         $menu['options']['config']['page']  = '/front/notificationmailsetting.form.php';
 
          $menu['options']['notificationtemplate']['title']
                         = _n('Notification template', 'Notification templates', Session::getPluralNumber());
@@ -185,10 +182,11 @@ class Notification extends CommonDBTM {
    }
 
 
-   function defineTabs($options=array()) {
+   function defineTabs($options = []) {
 
-      $ong = array();
+      $ong = [];
       $this->addDefaultFormTab($ong);
+      $this->addStandardTab('Notification_NotificationTemplate', $ong, $options);
       $this->addStandardTab('NotificationTarget', $ong, $options);
       $this->addStandardTab('Log', $ong, $options);
 
@@ -196,7 +194,7 @@ class Notification extends CommonDBTM {
    }
 
 
-   function showForm($ID, $options=array()) {
+   function showForm($ID, $options = []) {
       global $CFG_GLPI;
 
       $this->initForm($ID, $options);
@@ -207,8 +205,8 @@ class Notification extends CommonDBTM {
       Html::autocompletionTextField($this, "name");
       echo "</td>";
 
-      echo "<td rowspan='6' class='middle right'>".__('Comments')."</td>";
-      echo "<td class='center middle' rowspan='6'><textarea cols='45' rows='9' name='comment' >".
+      echo "<td rowspan='4' class='middle right'>".__('Comments')."</td>";
+      echo "<td class='center middle' rowspan='4'><textarea cols='45' rows='9' name='comment' >".
              $this->fields["comment"]."</textarea></td></tr>";
 
       echo "<tr class='tab_bg_1'><td>" . __('Active') . "</td>";
@@ -225,15 +223,15 @@ class Notification extends CommonDBTM {
       } else if (Config::canUpdate()
           && ($this->getEntityID() == 0)) {
          $rand = Dropdown::showItemTypes('itemtype', $CFG_GLPI["notificationtemplates_types"],
-                                          array('value' => $this->fields['itemtype']));
+                                          ['value' => $this->fields['itemtype']]);
       } else {
          $rand = Dropdown::showItemTypes('itemtype',
                                          array_diff($CFG_GLPI["notificationtemplates_types"],
-                                                    array('Crontask', 'DBConnection', 'User')),
-                                         array('value' => $this->fields['itemtype']));
+                                                    ['Crontask', 'DBConnection', 'User']),
+                                         ['value' => $this->fields['itemtype']]);
       }
 
-      $params = array('itemtype' => '__VALUE__');
+      $params = ['itemtype' => '__VALUE__'];
       Ajax::updateItemOnSelectEvent("dropdown_itemtype$rand", "show_events",
                                     $CFG_GLPI["root_doc"]."/ajax/dropdownNotificationEvent.php",
                                     $params);
@@ -242,21 +240,10 @@ class Notification extends CommonDBTM {
                                     $params);
       echo "</td></tr>";
 
-      echo "<tr class='tab_bg_1'><td>" . __('Notification method') . "</td>";
-      echo "<td>";
-      self::dropdownMode(array('value'=>$this->fields['mode']));
-      echo "</td></tr>";
-
       echo "<tr class='tab_bg_1'><td>" . NotificationEvent::getTypeName(1) . "</td>";
       echo "<td><span id='show_events'>";
       NotificationEvent::dropdownEvents($this->fields['itemtype'],
-                                        array('value'=>$this->fields['event']));
-      echo "</span></td></tr>";
-
-      echo "<tr class='tab_bg_1'><td>". NotificationTemplate::getTypeName(1)."</td>";
-      echo "<td><span id='show_templates'>";
-      NotificationTemplate::dropdownTemplates('notificationtemplates_id', $this->fields['itemtype'],
-                                              $this->fields['notificationtemplates_id']);
+                                        ['value'=>$this->fields['event']]);
       echo "</span></td></tr>";
 
       $this->showFormButtons($options);
@@ -271,20 +258,17 @@ class Notification extends CommonDBTM {
     * @param $values
     * @param $options   array
    **/
-   static function getSpecificValueToDisplay($field, $values, array $options=array()) {
+   static function getSpecificValueToDisplay($field, $values, array $options = []) {
 
       if (!is_array($values)) {
-         $values = array($field => $values);
+         $values = [$field => $values];
       }
       switch ($field) {
          case 'event':
             if (isset($values['itemtype']) && !empty($values['itemtype'])) {
-               return NotificationEvent::getEventName($values['itemtype'],$values[$field]);
+               return NotificationEvent::getEventName($values['itemtype'], $values[$field]);
             }
             break;
-
-         case 'mode':
-            return self::getMode($values[$field]);
       }
       return parent::getSpecificValueToDisplay($field, $values, $options);
    }
@@ -298,10 +282,10 @@ class Notification extends CommonDBTM {
     * @param $values             (default '')
     * @param $options      array
    **/
-   static function getSpecificValueToSelect($field, $name='', $values='', array $options=array()) {
+   static function getSpecificValueToSelect($field, $name = '', $values = '', array $options = []) {
 
       if (!is_array($values)) {
-         $values = array($field => $values);
+         $values = [$field => $values];
       }
       $options['display'] = false;
 
@@ -311,76 +295,119 @@ class Notification extends CommonDBTM {
                 && !empty($values['itemtype'])) {
                $options['value'] = $values[$field];
                $options['name']  = $name;
-               return NotificationEvent::dropdownEvents($values['itemtype'],$options);
+               return NotificationEvent::dropdownEvents($values['itemtype'], $options);
             }
             break;
-
-         case 'mode' :
-            $options['value'] = $values[$field];
-            $options['name']  = $name;
-            return self::dropdownMode($options);
       }
       return parent::getSpecificValueToSelect($field, $name, $values, $options);
    }
 
 
-   function getSearchOptions() {
+   function getSearchOptionsNew() {
+      $tab = [];
 
-      $tab                       = array();
-      $tab['common']             = __('Characteristics');
+      $tab[] = [
+         'id'                 => 'common',
+         'name'               => __('Characteristics')
+      ];
 
-      $tab[1]['table']           = $this->getTable();
-      $tab[1]['field']           = 'name';
-      $tab[1]['name']            = __('Name');
-      $tab[1]['datatype']        = 'itemlink';
-      $tab[1]['massiveaction']   = false;
+      $tab[] = [
+         'id'                 => '1',
+         'table'              => $this->getTable(),
+         'field'              => 'name',
+         'name'               => __('Name'),
+         'datatype'           => 'itemlink',
+         'massiveaction'      => false
+      ];
 
-      $tab[2]['table']           = $this->getTable();
-      $tab[2]['field']           = 'event';
-      $tab[2]['name']            = _n('Event', 'Events', 1);
-      $tab[2]['massiveaction']   = false;
-      $tab[2]['datatype']        = 'specific';
-      $tab[2]['additionalfields'] = array('itemtype');
+      $tab[] = [
+         'id'                 => '2',
+         'table'              => $this->getTable(),
+         'field'              => 'event',
+         'name'               => _n('Event', 'Events', 1),
+         'massiveaction'      => false,
+         'datatype'           => 'specific',
+         'additionalfields'   => [
+            '0'                  => 'itemtype'
+         ]
+      ];
 
-      $tab[3]['table']           = $this->getTable();
-      $tab[3]['field']           = 'mode';
-      $tab[3]['name']            = __('Notification method');
-      $tab[3]['massiveaction']   = false;
-      $tab[3]['datatype']        = 'specific';
-      $tab[3]['searchtype']      = array('equals', 'notequals');
+      $tab[] = [
+         'id'                 => '3',
+         'table'              => Notification_NotificationTemplate::getTable(),
+         'field'              => 'mode',
+         'name'               => __('Notification method'),
+         'massiveaction'      => false,
+         'searchequalsonfield'=> true,
+         'datatype'           => 'specific',
+         'joinparams'         => [
+            'jointype'  => 'child'
+         ],
+         'searchtype'         => [
+            '0'                  => 'equals',
+            '1'                  => 'notequals'
+         ]
+      ];
 
-      $tab[4]['table']           = 'glpi_notificationtemplates';
-      $tab[4]['field']           = 'name';
-      $tab[4]['name']            = _n('Notification template', 'Notification templates', Session::getPluralNumber());
-      $tab[4]['datatype']        = 'itemlink';
+      $tab[] = [
+         'id'                 => '4',
+         'table'              => 'glpi_notificationtemplates',
+         'field'              => 'name',
+         'name'               => _n('Notification template', 'Notification templates', Session::getPluralNumber()),
+         'datatype'           => 'itemlink',
+         'forcegroupby'       => true,
+         'joinparams'         => [
+            'beforejoin'  => [
+               'table'        => Notification_NotificationTemplate::getTable(),
+               'joinparams'   => [
+                  'jointype'  => 'child'
+               ]
+            ]
+         ]
+      ];
 
-      $tab[5]['table']           = $this->getTable();
-      $tab[5]['field']           = 'itemtype';
-      $tab[5]['name']            = __('Type');
-      $tab[5]['datatype']        = 'itemtypename';
-      $tab[5]['itemtype_list']   = 'notificationtemplates_types';
-      $tab[5]['massiveaction']   = false;
+      $tab[] = [
+         'id'                 => '5',
+         'table'              => $this->getTable(),
+         'field'              => 'itemtype',
+         'name'               => __('Type'),
+         'datatype'           => 'itemtypename',
+         'itemtype_list'      => 'notificationtemplates_types',
+         'massiveaction'      => false
+      ];
 
-      $tab[6]['table']           = $this->getTable();
-      $tab[6]['field']           = 'is_active';
-      $tab[6]['name']            = __('Active');
-      $tab[6]['datatype']        = 'bool';
+      $tab[] = [
+         'id'                 => '6',
+         'table'              => $this->getTable(),
+         'field'              => 'is_active',
+         'name'               => __('Active'),
+         'datatype'           => 'bool'
+      ];
 
-      $tab[16]['table']          = $this->getTable();
-      $tab[16]['field']          = 'comment';
-      $tab[16]['name']           = __('Comments');
-      $tab[16]['datatype']       = 'text';
+      $tab[] = [
+         'id'                 => '16',
+         'table'              => $this->getTable(),
+         'field'              => 'comment',
+         'name'               => __('Comments'),
+         'datatype'           => 'text'
+      ];
 
-      $tab[80]['table']          = 'glpi_entities';
-      $tab[80]['field']          = 'completename';
-      $tab[80]['name']           = __('Entity');
-      $tab[80]['massiveaction']  = false;
-      $tab[80]['datatype']       = 'dropdown';
+      $tab[] = [
+         'id'                 => '80',
+         'table'              => 'glpi_entities',
+         'field'              => 'completename',
+         'name'               => __('Entity'),
+         'massiveaction'      => false,
+         'datatype'           => 'dropdown'
+      ];
 
-      $tab[86]['table']          = $this->getTable();
-      $tab[86]['field']          = 'is_recursive';
-      $tab[86]['name']           = __('Child entities');
-      $tab[86]['datatype']       = 'bool';
+      $tab[] = [
+         'id'                 => '86',
+         'table'              => $this->getTable(),
+         'field'              => 'is_recursive',
+         'name'               => __('Child entities'),
+         'datatype'           => 'bool'
+      ];
 
       return $tab;
    }
@@ -413,57 +440,13 @@ class Notification extends CommonDBTM {
    }
 
 
-   /**
-    * Display a dropdown with all the available notification modes
-    *
-    * @param $options array of options
-   **/
-   static function dropdownMode($options) {
-
-      $p['name']    = 'mode';
-      $p['display'] = true;
-      $p['value']   = '';
-
-      if (is_array($options) && count($options)) {
-         foreach ($options as $key => $val) {
-            $p[$key] = $val;
-         }
-      }
-
-      return Dropdown::showFromArray($p['name'], self::getModes(), $p);
-   }
-
-
-   /**
-    * Get notification method label (email only for the moment)
-    *
-    * @param $mode the mode to use
-    *
-    * @return the mode's label
-   **/
-   static function getMode($mode) {
-
-      $tab = self::getModes();
-      if (isset($tab[$mode])) {
-         return $tab[$mode];
-      }
-      return NOT_AVAILABLE;
-   }
-
-   /**
-    * Get notification method label (email only for the moment)
-    *
-    * @since versin 0.84
-    *
-    * @return the mode's label
-   **/
-   static function getModes() {
-      return array('mail' => __('Email'));
-   }
-
-
    function cleanDBonPurge() {
       global $DB;
+
+      $query = "DELETE
+                FROM `glpi_notifications_notificationtemplates`
+                WHERE `notifications_id` = '".$this->fields['id']."'";
+      $DB->query($query);
 
       $query = "DELETE
                 FROM `glpi_notificationtargets`
@@ -473,13 +456,16 @@ class Notification extends CommonDBTM {
 
 
    /**
-    * @param $mailing_options
+    * Send notification
+    *
+    * @param array $options Options
+    *
+    * @return void
    **/
-   static function send($mailing_options) {
-
-      $mail = new NotificationMail();
-      $mail->sendNotification($mailing_options);
-//       $mail->ClearAddresses();
+   static function send($options) {
+      $classname = Notification_NotificationTemplate::getModeClass($options['mode']);
+      $notif = new $classname();
+      $notif->sendNotification($options);
    }
 
 
@@ -491,7 +477,7 @@ class Notification extends CommonDBTM {
    static function getMailingSignature($entity) {
       global $DB, $CFG_GLPI;
 
-      foreach ($DB->request('glpi_entities', array('id' => $entity)) as $data) {
+      foreach ($DB->request('glpi_entities', ['id' => $entity]) as $data) {
          if (!empty($data['mailing_signature'])) {
             return $data['mailing_signature'];
          }
@@ -501,23 +487,48 @@ class Notification extends CommonDBTM {
 
 
    /**
-    * @param $event
-    * @param $itemtype
-    * @param $entity
+    * @param string $event    Event name
+    * @param string $itemtype Item type
+    * @param int    $entity   Restrict to entity
+    *
+    * @return ResultSet
    **/
    static function getNotificationsByEventAndType($event, $itemtype, $entity) {
-      global $DB;
+      global $DB, $CFG_GLPI;
 
-      $query = "SELECT `glpi_notifications`.*
+      $query = "SELECT `glpi_notifications`.*,
+                  `glpi_notifications_notificationtemplates`.`mode`,
+                  `glpi_notifications_notificationtemplates`.`notificationtemplates_id`
                 FROM `glpi_notifications`
                 LEFT JOIN `glpi_entities`
                   ON (`glpi_entities`.`id` = `glpi_notifications`.`entities_id`)
+                LEFT JOIN `glpi_notifications_notificationtemplates`
+                  ON (`glpi_notifications`.`id`=`glpi_notifications_notificationtemplates`.`notifications_id`)
                 WHERE `glpi_notifications`.`itemtype` = '$itemtype'
                       AND `glpi_notifications`.`event` = '$event' ".
                       getEntitiesRestrictRequest("AND", "glpi_notifications", 'entities_id',
                                                  $entity, true) ."
-                      AND `glpi_notifications`.`is_active`='1'
-                ORDER BY `glpi_entities`.`level` DESC";
+                      AND `glpi_notifications`.`is_active`='1'";
+
+      $modes = Notification_NotificationTemplate::getModes();
+      $restrict_modes = null;
+      foreach ($modes as $mode => $conf) {
+         $count = 0;
+         if ($CFG_GLPI['notifications_' . $mode]) {
+            if ($restrict_modes === null) {
+               $restrict_modes = ' AND (';
+            } else {
+               $restrict_modes .= ' OR ';
+            }
+            $restrict_modes .= "`glpi_notifications_notificationtemplates`.`mode` = '$mode'";
+         }
+      }
+      if ($restrict_modes !== null) {
+         $restrict_modes .= ')';
+         $query .= $restrict_modes;
+      }
+
+      $query .= " ORDER BY `glpi_entities`.`level` DESC";
 
       return $DB->request($query);
    }
@@ -553,5 +564,4 @@ class Notification extends CommonDBTM {
 
       return $input;
    }
-
 }
