@@ -15,6 +15,8 @@ Para el tema de campañas electorales permite el control de proyectos, tareas, a
 
 A su vez Civikmind puede ser usado por organizaciones Sociales, Comunitarias, Politicas, Activistas, Defensores de derechos humanos, Veeduria ciudadana, Transparencia y Anticorrupción, Lideres sociales como tambien Lideres politicos y afines.
 
+<img align="left" src="pics/img/Bigonefull.png?raw=true"/>
+
 Otras caracteristicas:
 
 *** Soporte Multilenguaje: 45 Traducciones disponible
