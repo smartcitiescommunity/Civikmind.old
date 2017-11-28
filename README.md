@@ -93,4 +93,4 @@ Visitanos en:
 
 La distribución de este software se hace bajo la licencia GNU GENERAL PUBLIC LICENSE Version 2 - favor revisar [COPYING](https://raw.githubusercontent.com/glpi-project/glpi/master/COPYING.txt) para más detalles.
 
-:house: :house_with_garden: :school: :house: :house_with_garden: :office: :house: :house_with_garden: :post_office: :house: :house_with_garden: :hospital: :house: :house_with_garden: :bank: :house: :house_with_garden: :convenience_store: :house: :house_with_garden: :hotel: :house: :house_with_garden: :church: :house: :house_with_garden: :department_store:
+:circus_tent: :house: :house_with_garden: :school: :house: :house_with_garden: :office: :house: :house_with_garden: :post_office: :house: :house_with_garden: :hospital: :house: :house_with_garden: :bank: :atm: :house: :house_with_garden: :convenience_store: :house: :house_with_garden: :hotel: :house: :house_with_garden: :church: :house: :house_with_garden: :department_store: :busstop: :bus: :bike: :bike: :car: :blue_car: :minibus:
