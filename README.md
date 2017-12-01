@@ -6,7 +6,7 @@
 
 **CivikMind** es un sistema de gestión de información y activos basado en la aplicación GLPI. 
 Su principal caracteristica es la adecuada gestión de la información bajo las mejores practicas
-Entre sus potencialidades encontramos que hace uso de manera integrada ya sea de forma completa o parcial de las normas o estandares: iso 9001, 14001, 20000, 21500, 27001, 31000, 37129 y adaptable a muchas otras.
+Entre sus potencialidades encontramos que hace uso de manera integrada ya sea de forma completa o parcial de las normas o estandares: iso 9001, 14001, 20000, 21500, 27001, 31000, 37120 y adaptable a muchas otras.
 
 Tambien hace uso de mejores practicas integradas a nivel integrado como lo es ITIL, Agilismo, Auditoria y Gobierno de TI.
 Estas caracteristicas permiten que este sistema controle de manera eficiente y eficaz con una fuerte orientación al logro y al resultado, Caracteristicas esenciales para la correcta gestión de una Ciudad Inteligente o Smart City.
