@@ -92,7 +92,9 @@ Los dispositivos que posean una interfaz de red con un sistema operativo que les
 
 Ademas la plataforma viene precargada con [plugins](http://plugins.glpi-project.org) que abre un panorama enorme a diferentes clases de soluciones..
 <img align="right" src="pics/img/Bigonefull.png?raw=true" width="50%"/>
-Visitanos en:
+
+
+:eight_pointed_black_star: Visitanos en:
 
  | Youtube - http://bit.ly/Smart-Cities-Community-Youtube
 
