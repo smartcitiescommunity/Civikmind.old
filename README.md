@@ -9,24 +9,29 @@ Forker & Dev: **Juan Fernando Villa**
 Apoyo: **indira Carazo** - **Manuela Zuluaga Posada** - **Andrés Beltrán** - **Yamid Hernández** - **Yessy Lotero** - **Alejandro Cataño** - **Alejandro Angel**
 
 <p align="center">
-  <img src="https://pixabay.com/get/54e7d4414953a914f1dc8460825668204022dfe05552744c70267adc/woman-2712315_640.jpg" width="250" alt="Activismo">
+  <img src="https://pixabay.com/get/54e7d4414953a914f1dc8460825668204022dfe05552744c70267adc/woman-2712315_640.jpg" width="512" alt="Activismo">
 </p>
 
 **Civikmind** puede ser usado por organizaciones Sociales, Comunitarias, Politicas, Activistas, Defensores de derechos humanos, Veeduria ciudadana, Transparencia y Anticorrupción, Lideres sociales como tambien Lideres politicos y afines.
 
 <p align="center">
-  <img src="https://i0.wp.com/www.un.org/sustainabledevelopment/es/wp-content/uploads/sites/3/2015/09/S_SDG_Icons-01-18.jpg?" width="250" alt="ODSt">
+  <img src="https://i0.wp.com/www.un.org/sustainabledevelopment/es/wp-content/uploads/sites/3/2015/09/S_SDG_Icons-01-18.jpg" width="250" alt="ODSt">
 </p>
 
 **Civikmind** Busca la implementación efectiva de los objetivos de desarrollo sostenible y mejores practicas sociales, buscando a su vez que las intenciones globales se puedan hacer posibles a través de una plataforma como **Civikmind** la cual hace que el trabajo y los objetivos sean posibles de realizar.
 
 <p align="center">
-  <img src="https://pixabay.com/get/55e2d6434c54ad14ea9d8078c72937791222dfe05552744c732d7ad3/man-3230661.jpg" width="250" alt="ISO">
+  <img src="https://pixabay.com/get/55e2d6434c54ad14ea9d8078c72937791222dfe05552744c732d7ad3/man-3230661.jpg" width="512" alt="ISO">
 </p>
 
-*CivikMind** es un sistema de gestión de información y activos basado en la aplicación GLPI. 
-Su principal caracteristica es la adecuada gestión de la información bajo las mejores practicas
+**CivikMind** es un sistema de gestión de información y activos basado en la aplicación GLPI. 
 Entre sus potencialidades encontramos que hace uso de manera integrada ya sea de forma filosofica, completa o parcial de las normas o estandares: iso 9001, 14001, 20000, 21500, 27001, 31000, 37120 y adaptable a muchas otras.
+
+<p align="center">
+  <img src="https://pixabay.com/get/57e9dc434854a414f1dc8460822c327e143fd9e24e50744f762a7ed29344c3/hong-kong-1990268_640.jpg" width="512" alt="Ciudades">
+</p>
+
+**Civikmind** Su principal caracteristica es la adecuada gestión de la información bajo las mejores practicas las cuales pueden ser usadas para la gestión de ciudades inteligentes
 
 Tambien hace uso de mejores practicas integradas a nivel integrado como lo es ITIL, Agilismo, Auditoria y Gobierno de TI.
 Estas caracteristicas permiten que este sistema controle de manera eficiente y eficaz con una fuerte orientación al logro y al resultado, Caracteristicas esenciales para la correcta gestión de una Ciudad Inteligente o Smart City.
@@ -35,7 +40,6 @@ Para el tema de campañas electorales permite el control de proyectos, tareas, a
 
 
 <img align="right" src="pics/img/smart cities2.png?raw=true" width="100%"/>
-
 
 
 
