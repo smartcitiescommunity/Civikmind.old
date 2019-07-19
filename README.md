@@ -10,6 +10,9 @@ Apoyo: **indira Carazo** - **Manuela Zuluaga Posada** - **Andrés Beltrán** - *
 
 **Civikmind** puede ser usado por organizaciones Sociales, Comunitarias, Politicas, Activistas, Defensores de derechos humanos, Veeduria ciudadana, Transparencia y Anticorrupción, Lideres sociales como tambien Lideres politicos y afines.
 
+**Civikmind** Busca la implementación efectiva de los objetivos de desarrollo sostenible y mejores practicas sociales, buscando a su vez que las intenciones globales se puedan hacer posibles a través de una plataforma como **Civikmind** la cual hace que el trabajo y los objetivos sean posibles de realizar.
+(https://i0.wp.com/www.un.org/sustainabledevelopment/es/wp-content/uploads/sites/3/2015/09/S_SDG_Icons-01-18.jpg?w=512)
+
 **CivikMind** es un sistema de gestión de información y activos basado en la aplicación GLPI. 
 Su principal caracteristica es la adecuada gestión de la información bajo las mejores practicas
 Entre sus potencialidades encontramos que hace uso de manera integrada ya sea de forma completa o parcial de las normas o estandares: iso 9001, 14001, 20000, 21500, 27001, 31000, 37120 y adaptable a muchas otras.
