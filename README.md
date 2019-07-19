@@ -20,6 +20,9 @@ Apoyo: **indira Carazo** - **Manuela Zuluaga Posada** - **Andrés Beltrán** - *
 
 **Civikmind** Busca la implementación efectiva de los objetivos de desarrollo sostenible y mejores practicas sociales, buscando a su vez que las intenciones globales se puedan hacer posibles a través de una plataforma como **Civikmind** la cual hace que el trabajo y los objetivos sean posibles de realizar.
 
+<p align="center">
+  <img src="https://pixabay.com/get/55e2d6434c54ad14ea9d8078c72937791222dfe05552744c732d7ad3/man-3230661.jpg" width="250" alt="ISO">
+</p>
 
 *CivikMind** es un sistema de gestión de información y activos basado en la aplicación GLPI. 
 Su principal caracteristica es la adecuada gestión de la información bajo las mejores practicas
@@ -30,7 +33,7 @@ Estas caracteristicas permiten que este sistema controle de manera eficiente y e
 
 Para el tema de campañas electorales permite el control de proyectos, tareas, actividades, presupuestos, interacción con el ciudadano de manera directa con respuestas objetivas como tambien gestión segmentada de lideres, equipos de trabajo y sectores bajo segmentación geografica.
 
-A su vez Civikmind puede ser usado por organizaciones Sociales, Comunitarias, Politicas, Activistas, Defensores de derechos humanos, Veeduria ciudadana, Transparencia y Anticorrupción, Lideres sociales como tambien Lideres politicos y afines.
+
 <img align="right" src="pics/img/smart cities2.png?raw=true" width="100%"/>
 
 
