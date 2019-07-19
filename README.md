@@ -15,7 +15,7 @@ Apoyo: **indira Carazo** - **Manuela Zuluaga Posada** - **Andrés Beltrán** - *
 **Civikmind** puede ser usado por organizaciones Sociales, Comunitarias, Politicas, Activistas, Defensores de derechos humanos, Veeduria ciudadana, Transparencia y Anticorrupción, Lideres sociales como tambien Lideres politicos y afines.
 
 <p align="center">
-  <img src="https://i0.wp.com/www.un.org/sustainabledevelopment/es/wp-content/uploads/sites/3/2015/09/S_SDG_Icons-01-18.jpg" width="250" alt="ODSt">
+  <img src="https://i1.wp.com/www.un.org/sustainabledevelopment/es/wp-content/uploads/sites/3/2015/09/ODSbann.jpg" width="100%" alt="ODS">
 </p>
 
 **Civikmind** Busca la implementación efectiva de los objetivos de desarrollo sostenible y mejores practicas sociales, buscando a su vez que las intenciones globales se puedan hacer posibles a través de una plataforma como **Civikmind** la cual hace que el trabajo y los objetivos sean posibles de realizar.
