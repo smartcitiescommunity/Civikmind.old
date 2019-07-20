@@ -38,7 +38,13 @@ Entre sus potencialidades encontramos que hace uso de manera integrada ya sea de
 
 **Civikmind** Su principal caracteristica es la adecuada gestión de la información bajo las mejores practicas las cuales pueden ser usadas para la gestión de ciudades inteligentes, Las caracteristicas incluidas permiten que este sistema controle de manera eficiente y eficaz con una fuerte orientación al logro y al resultado, Caracteristicas esenciales para la correcta gestión de una Ciudad Inteligente o Smart City.
 
-Para el tema de campañas electorales permite el control de proyectos, tareas, actividades, presupuestos, interacción con el ciudadano de manera directa con respuestas objetivas como tambien gestión segmentada de lideres, equipos de trabajo y sectores bajo segmentación geografica.
+## Activismo y Causas Sociales
+<p align="center">
+  <img src="https://pixabay.com/get/54e4d0434a5aad14f6da8c7dda6d337b153edee2544c704c732c7dd09648c55c/together-2450081_1280.jpg" width="512" alt="Politica">
+</p>
+
+**Civikmind** Para el tema de campañas electorales permite el control de proyectos, tareas, actividades, presupuestos, interacción con el ciudadano de manera directa con respuestas objetivas como tambien gestión segmentada de lideres, equipos de trabajo y sectores bajo segmentación geografica.
+
 
 ## Sistema Base
 
