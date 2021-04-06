@@ -11,7 +11,7 @@ Apoyo: **indira Carazo** - **Andrés Beltrán** - **Yessy Lotero** - **Sergio He
 
 ## Activismo y Causas Sociales
 <p align="center">
-  <img src="https://pixabay.com/get/54e7d4414953a914f1dc8460825668204022dfe05552744c70267adc/woman-2712315_640.jpg" width="512" alt="Activismo">
+  <img src="pics/img/smart cities2.png?raw=true" width="512" alt="Activismo">
 </p>
 
 **Civikmind** sistema de gestión de información orientado a la gestión de peticiones ciudadana. esta orientado a los objetivos de desarrollo sostenible y las normas relacionadas a la ISO 37120.
@@ -20,14 +20,14 @@ Puede ser usado tanto por organizaciones Sociales, Comunitarias, Politicas, Acti
 
 ## Objetivos de Desarrollo Sostenible
 <p align="center">
-  <img src="https://i1.wp.com/www.un.org/sustainabledevelopment/es/wp-content/uploads/sites/3/2015/09/ODSbann.jpg" width="100%" alt="ODS">
+  <img src="pics/img/smart cities2.png?raw=true" width="100%" alt="ODS">
 </p>
 
 **Civikmind** Busca la implementación efectiva de los objetivos de desarrollo sostenible y mejores practicas sociales, buscando a su vez que las intenciones globales se puedan hacer posibles a través de una plataforma como **Civikmind** la cual hace que el trabajo y los objetivos sean posibles de realizar.
 
 ## Mejores prácticas & Estandares
 <p align="center">
-  <img src="https://pixabay.com/get/55e2d6434c54ad14ea9d8078c72937791222dfe05552744c732d7ad3/man-3230661.jpg" width="512" alt="ISO">
+  <img src="pics/img/smart cities2.png?raw=true" width="512" alt="ISO">
 </p>
 
 **CivikMind** es un sistema de gestión de información y activos basado en la aplicación GLPI. 
@@ -35,14 +35,14 @@ Entre sus potencialidades encontramos que hace uso de manera integrada ya sea de
 
 ## Gestión de Ciudades Inteligentes
 <p align="center">
-  <img src="https://pixabay.com/get/57e9dc434854a414f1dc8460822c327e143fd9e24e50744f762a7ed29344c3/hong-kong-1990268_640.jpg" width="512" alt="Ciudades">
+  <img src="pics/img/smart cities2.png?raw=true" width="512" alt="Ciudades">
 </p>
 
 **Civikmind** Su principal caracteristica es la adecuada gestión de la información bajo las mejores practicas las cuales pueden ser usadas para la gestión de ciudades inteligentes, Las caracteristicas incluidas permiten que este sistema controle de manera eficiente y eficaz con una fuerte orientación al logro y al resultado, Caracteristicas esenciales para la correcta gestión de una Ciudad Inteligente o Smart City.
 
 ## Actividades Políticas y Campañas Electorales
 <p align="center">
-  <img src="https://pixabay.com/get/54e4d0434a5aad14f6da8c7dda6d337b153edee2544c704c732c7dd09648c55c/together-2450081_1280.jpg" width="512" alt="Politica">
+  <img src="pics/img/smart cities2.png?raw=true" width="512" alt="Politica">
 </p>
 
 **Civikmind** Para el tema de campañas electorales permite el control de proyectos, tareas, actividades, presupuestos, interacción con el ciudadano de manera directa con respuestas objetivas como tambien gestión segmentada de lideres, equipos de trabajo y sectores bajo segmentación geografica.
@@ -63,7 +63,7 @@ Caracteristicas:
 - España
 - Venezuela
 
-:eight_pointed_black_star: [API REST](https://fossies.org/dox/glpi-9.1.6/md_apirest.html)
+:eight_pointed_black_star: [API REST](https://fossies.org/dox/glpi-9.4.5/md_apirest.html)
 
 permitiendo asi ampliar en gran medida las potencialidades de la aplicación
 
