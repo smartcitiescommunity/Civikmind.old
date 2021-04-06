@@ -50,7 +50,7 @@ Entre sus potencialidades encontramos que hace uso de manera integrada ya sea de
 
 ## Sistema Base
 
-<img align="right" src="pics/img/smart cities2.png?raw=true" width="100%"/>
+<img align="right" src="pics/img/smart cities2.png?raw=true" width="50%"/>
 
 
 Caracteristicas:
