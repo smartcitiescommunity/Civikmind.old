@@ -2,7 +2,7 @@
 
 | **`SLES`** <img src="https://cdn.rawgit.com/smartcitiescommunity/Civikmind/e1070b30/pics/linux.svg"> | **`RHEL`** <img src="https://cdn.rawgit.com/smartcitiescommunity/Civikmind/e1070b30/pics/linux.svg"> | **`UBUNTU`** <img src="https://cdn.rawgit.com/smartcitiescommunity/Civikmind/e1070b30/pics/linux.svg"> | **`Windows`** <img src="https://cdn.rawgit.com/smartcitiescommunity/Civikmind/e1070b30/pics/windows.svg"> | **`MacOS`** <img src="https://cdn.rawgit.com/smartcitiescommunity/Civikmind/84d8b4da/pics/mac.svg"> | **`Estado`** | **`Appliance`** | **`Idioma`** | **`Tutorial`** |
 |-----------------|---------------------|------------------|-------------------|---------------|---------------|---------------|---------------|---------------|
-| OK :white_check_mark: | OK :white_check_mark: | OK :white_check_mark: | Fallo :collision: | OK :white_check_mark: | [![Estado](https://secure.travis-ci.org/glpi-project/glpi.svg?branch=master)](https://secure.travis-ci.org/glpi-project/glpi) |[![Appliance](https://maxcdn.icons8.com/wp-content/uploads/2013/12/suse-128.png)](https://j.mp/Smart-Cities-Community-Os-One) |  :us: :fr: :it: :de: 🇧🇷 :ru: :cn: :jp: :kr: 🇸🇦 | http://bit.ly/CivikMind |
+| OK :white_check_mark: | OK :white_check_mark: | OK :white_check_mark: | Fallo :collision: | OK :white_check_mark: | [![Estado](https://secure.travis-ci.org/glpi-project/glpi.svg?branch=master)](https://secure.travis-ci.org/glpi-project/glpi) | No disponible en el momento |  :us: :fr: :it: :de: 🇧🇷 :ru: :cn: :jp: :kr: 🇸🇦 | http://bit.ly/CivikMind |
 
 ## Equipo
 Base: **GLPI**
