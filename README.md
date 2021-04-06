@@ -7,14 +7,16 @@
 ## Equipo
 Base: **GLPI**
 Forker & Dev: **Juan Fernando Villa**
-Apoyo: **indira Carazo** - **Manuela Zuluaga Posada** - **Andrés Beltrán** - **Yamid Hernández** - **Yessy Lotero** - **Alejandro Cataño** - **Alejandro Angel**
+Apoyo: **indira Carazo** - **Andrés Beltrán** - **Yessy Lotero** - **Sergio Herrera** - **Alejandro Cataño** - **Alejandro Angel**
 
 ## Activismo y Causas Sociales
 <p align="center">
   <img src="https://pixabay.com/get/54e7d4414953a914f1dc8460825668204022dfe05552744c70267adc/woman-2712315_640.jpg" width="512" alt="Activismo">
 </p>
 
-**Civikmind** puede ser usado por organizaciones Sociales, Comunitarias, Politicas, Activistas, Defensores de derechos humanos, Veeduria ciudadana, Transparencia y Anticorrupción, Lideres sociales como tambien Lideres politicos y afines.
+**Civikmind** sistema de gestión de información orientado a la gestión de peticiones ciudadana. esta orientado a los objetivos de desarrollo sostenible y las normas relacionadas a la ISO 37120.
+
+Puede ser usado tanto por organizaciones Sociales, Comunitarias, Politicas, Activistas, Defensores de derechos humanos, Veeduria ciudadana, Transparencia y Anticorrupción, Lideres sociales como tambien Lideres politicos y afines.
 
 ## Objetivos de Desarrollo Sostenible
 <p align="center">
@@ -38,7 +40,7 @@ Entre sus potencialidades encontramos que hace uso de manera integrada ya sea de
 
 **Civikmind** Su principal caracteristica es la adecuada gestión de la información bajo las mejores practicas las cuales pueden ser usadas para la gestión de ciudades inteligentes, Las caracteristicas incluidas permiten que este sistema controle de manera eficiente y eficaz con una fuerte orientación al logro y al resultado, Caracteristicas esenciales para la correcta gestión de una Ciudad Inteligente o Smart City.
 
-## Campañas Políticas y Electorales
+## Actividades Políticas y Campañas Electorales
 <p align="center">
   <img src="https://pixabay.com/get/54e4d0434a5aad14f6da8c7dda6d337b153edee2544c704c732c7dd09648c55c/together-2450081_1280.jpg" width="512" alt="Politica">
 </p>
@@ -80,12 +82,13 @@ permitiendo asi ampliar en gran medida las potencialidades de la aplicación
 
 :eight_pointed_black_star: Gestión de información Financiera como por ejemplo:
 
-- Eventos de campaña
-- Actividades con los simpatizantes
-- Proyectos con los simpatizantes
+- Eventos y tareas en las peticiones
+- Actividades con las personas relacionadas a las peticiones
+- Proyectos con la comunidad de tipo social
 - Hub de noticias para toma de decisiones
 - Autogestión con solicitudes ciudadanas
-- Control de las actividades de campañas con Analisis de datos
+- Control y auditoria de las actividades
+- Analisis de datos
 
 :eight_pointed_black_star: Gestión de Información Corporativa como por ejemplo:
 
@@ -136,11 +139,6 @@ Ademas la plataforma viene precargada con [plugins](http://plugins.glpi-project.
 
  | Twitter - http://bit.ly/Smart-Cities-Community-Twitter
 
- | Meet Up - http://j.mp/Smart-Cities-Community-Meetup
-
- | User Echo - http://j.mp/Smart-Cities-Community-Foro
-
- | Suse Linux OS - http://bit.ly/Smart-Cities-Community-Linux-OS
 
 ## Licencia
 
