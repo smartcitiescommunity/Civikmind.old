@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -29,10 +29,6 @@
  * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
  */
-
-/** @file
-* @brief
-*/
 
 /**
  * Update from 0.78.1 to 0.78.2
@@ -144,7 +140,7 @@ function update0781to0782($output = 'HTML') {
              WHERE ranking = '0'";
    if ($result = $DB->query($query)) {
       if ($DB->numrows($result)>0) {
-         while ($data = $DB->fetch_assoc($result)) {
+         while ($data = $DB->fetchAssoc($result)) {
             $query = "UPDATE `glpi_rules`
                       SET `ranking` = ranking +1
                       WHERE `sub_type` = '".$data['sub_type']."';";
@@ -155,7 +151,7 @@ function update0781to0782($output = 'HTML') {
 
    // Check existing rule
    if (countElementsInTable('glpi_rulecriterias',
-                 "`criteria` IN ('auto-submitted','x-auto-response-suppress')") == 0 ) {
+                 ['criteria' => ['auto-submitted','x-auto-response-suppress']]) == 0) {
       /// Reorder ranking
       $query = "UPDATE `glpi_rules`
                 SET `ranking` = ranking +2
@@ -170,7 +166,7 @@ function update0781to0782($output = 'HTML') {
                         'Exclude Auto-Reply emails using X-Auto-Response-Suppress header', 'AND',
                         0, NOW(), 1)";
       $DB->queryOrDie($query, "0.78.2 add new rule RuleMailCollector");
-      $rule_id = $DB->insert_id();
+      $rule_id = $DB->insertId();
       /// Insert criteria and action
       $query = "INSERT INTO `glpi_rulecriterias`
                        (`rules_id`, `criteria`, `condition`, `pattern`)
@@ -189,7 +185,7 @@ function update0781to0782($output = 'HTML') {
                 VALUES ('0', 'RuleMailCollector', '2', 'Auto-Reply Auto-Submitted',
                         'Exclude Auto-Reply emails using Auto-Submitted header', 'AND', 0, NOW(), 1)";
       $DB->queryOrDie($query, "0.78.2 add new rule RuleMailCollector");
-      $rule_id = $DB->insert_id();
+      $rule_id = $DB->insertId();
       /// Insert criteria and action
       $query = "INSERT INTO `glpi_rulecriterias`
                        (`rules_id`, `criteria`, `condition`, `pattern`)

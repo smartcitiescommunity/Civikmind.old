@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -29,10 +29,6 @@
  * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
  */
-
-/** @file
-* @brief
-*/
 
 /**
  *  Class used to manage LDAP replicate config
@@ -86,7 +82,7 @@ class AuthLdapReplicate extends CommonDBTM {
       echo "<tr><th colspan='4'>".__('Add a LDAP directory replica'). "</th></tr>";
       echo "<tr class='tab_bg_1'><td class='center'>".__('Name')."</td>";
       echo "<td class='center'>".__('Server')."</td>";
-      echo "<td class='center'>".__('Port')."</td><td></td></tr>";
+      echo "<td class='center'>"._n('Port', 'Ports', 1)."</td><td></td></tr>";
       echo "<tr class='tab_bg_1'>";
       echo "<td class='center'><input type='text' name='name'></td>";
       echo "<td class='center'><input type='text' name='host'></td>";

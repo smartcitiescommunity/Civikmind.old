@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,9 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief   Retrieve the knowledgebase links associated to a category
-* @since   9.2
-* @author  Alexandre Delaunay
+/**
+ * Retrieve the knowledgebase links associated to a category
+ * @since   9.2
 */
 
 include ('../inc/includes.php');
@@ -53,6 +52,12 @@ if (isset($_POST["table"])
 
    if (isset($_POST['withlink'])) {
       $itemtype = getItemTypeForTable($_POST["table"]);
+      if (!Session::validateIDOR([
+         'itemtype'    => $itemtype,
+         '_idor_token' => $_POST['_idor_token'] ?? ""
+      ])) {
+         exit();
+      }
       $item = new $itemtype;
       $item->getFromDB(intval($_POST["value"]));
       echo '&nbsp;'.$item->getLinks();

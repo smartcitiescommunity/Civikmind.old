@@ -23,8 +23,13 @@ if (isset($_REQUEST['action'])) {
          echo "<body>";
          $dashboard = new PluginMreportingDashboard();
          $dashboard->showDashboard(false);
-         echo "</body>";
-         echo "</html>";
+
+         //load protovis lib for dashboard render
+         $version = Plugin::getInfo('mreporting', 'version');
+         $php_dir = Plugin::getPhpDir('mreporting', false);
+         echo Html::script($php_dir . "/lib/protovis/protovis.js", ['version' => $version]);
+
+         Html::popFooter();
          break;
 
       default:

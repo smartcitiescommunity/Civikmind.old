@@ -183,7 +183,7 @@ else {
    	echo "<body style=\"background: url('./img/".$back."') no-repeat top center fixed; \">";
    }
    else {
-   	echo "<body style='baclground-color:#E5E5E5;'>";
+   	echo "<body style='background-color:#e5e5e5;'>";
    }	 
    ?>
 
@@ -356,11 +356,17 @@ else {
                                             </a>
                                         </li>
                                        <li>
+                                            <a href="#" onclick="window.open('./reports/rel_entidades.php?con=1','iframe1'); scrollWin();" data-original-title=' Categorias'>
+                                                <i class="fa fa-angle-right"></i>
+                                                <span class='hidden-minibar'> <?php echo _sn('Entity','Entities',2); ?> </span>
+                                            </a>
+                                        </li>  
+                                        <li>
                                             <a href="#" onclick="window.open('./reports/rel_grupos.php?con=1','iframe1'); scrollWin();" data-original-title=' Categorias'>
                                                 <i class="fa fa-angle-right"></i>
                                                 <span class='hidden-minibar'> <?php echo _sn('Group','Groups',2); ?> </span>
                                             </a>
-                                        </li>                                        
+                                        </li>                                         
                                         <li>
 	                                         <a href="#" onclick="window.open('./reports/rel_localidades.php?con=1','iframe1'); scrollWin();" data-original-title=' Location' >
                                                 <i class="fa fa-angle-right"></i>
@@ -387,14 +393,14 @@ else {
                                         </li>                                        
                              				 <?php
 					                        	// distinguish between 0.90.x and 9.1 version
-														if (GLPI_VERSION <= intval('9.1')){
+/*														if (GLPI_VERSION <= intval('9.1')){
 		                                     echo '<li>';
 	                                            echo '<a href="#" onclick="window.open(\'./reports/rel_slas.php?con=1\',\'iframe1\'); scrollWin();" data-original-title=" SLAs">';
 	                                            echo '   <i class="fa fa-angle-right"></i>';
-	                                            echo '   <span class="hidden-minibar">'. __('SLA').'</span>';
+	                                            echo '   <span class="hidden-minibar">'. __('SLA','dashboard').'</span>';
 	                                            echo '</a>
 	                                        </li>';
-                                        	}
+                                        	}*/
                                         ?>
 													<li class='submenu'>
 			                                    <a class='dropdown' onClick='return false;' href='#' data-original-title='Custos'>
@@ -505,9 +511,9 @@ else {
 						                        // distinguish between 0.90.x and 9.1 version
 														if (GLPI_VERSION >= 9.1){
 			                                  echo "<li class='submenu'>";
-				                                    echo "<a class='dropdown' onClick='return false;' href='#' data-original-title='SLA'>
+				                                    echo "<a class='dropdown' onClick='return false;' href='#' data-original-title='SLA','dashboard'>
 				                                        <i class='fa fa-angle-right'></i>";
-				                                    echo "<span class='hidden-minibar'>". __('SLA')."
+				                                    echo "<span class='hidden-minibar'>". __('SLA','dashboard')."
 				                                            <i class='fa fa-angle-right  pull-right'></i>
 				                                        </span>
 				                                    </a>";
@@ -520,6 +526,29 @@ else {
 			                                        </li> 
 							        							 <li>
 			                                           <a href="#" onclick="window.open(\'./reports/rel_sltsrs.php?con=1\',\'iframe1\'); scrollWin();"  data-original-title=" Custos">
+			                                                <i class="fa fa-angle-right"></i>
+			                                                <span class="hidden-minibar">'. __('Time to resolve').'</span>
+			                                            </a>
+			                                        </li> 		 
+			                                      </ul>
+			                                  </li>';
+			                                  
+ 														 echo "<li class='submenu'>";
+				                                    echo "<a class='dropdown' onClick='return false;' href='#' data-original-title='SLA','dashboard'>
+				                                        <i class='fa fa-angle-right'></i>";
+				                                    echo "<span class='hidden-minibar'>". __('OLA')."
+				                                            <i class='fa fa-angle-right  pull-right'></i>
+				                                        </span>
+				                                    </a>";
+				                                    echo '<ul  class="animated fadeInDown menu2">
+				                                      <li>';
+			                                            echo '<a href="#" onclick="window.open(\'./reports/rel_oltsas.php?con=1\',\'iframe1\'); scrollWin();"  data-original-title=" Custos">
+			                                                <i class="fa fa-angle-right"></i>
+			                                                <span class="hidden-minibar">'. __('Time to own').'</span>
+			                                            </a>
+			                                        </li> 
+							        							 <li>
+			                                           <a href="#" onclick="window.open(\'./reports/rel_oltsrs.php?con=1\',\'iframe1\'); scrollWin();"  data-original-title=" Custos">
 			                                                <i class="fa fa-angle-right"></i>
 			                                                <span class="hidden-minibar">'. __('Time to resolve').'</span>
 			                                            </a>
@@ -546,13 +575,29 @@ else {
                                                 <i class="fa fa-angle-right"></i>
                                                 <span class='hidden-minibar'> <?php echo __('by Entity','dashboard'); ?> </span>
                                             </a>
-                                        </li>                                         
-                                        <li>
-                                            <a href="#" onclick="window.open('./reports/rel_grupo.php','iframe1'); scrollWin();"  data-original-title=' por Grupo'>
-                                                <i class="fa fa-angle-right"></i>
-                                                <span class='hidden-minibar'> <?php echo __('by Group','dashboard'); ?> </span>
-                                            </a>
                                         </li>   
+ 		                                  <li class='submenu'>
+			                                    <a class='dropdown' onClick='return false;' href='#' data-original-title='por Grupo'>
+			                                        <i class='fa fa-angle-right'></i>
+			                                        <span class='hidden-minibar'><?php echo __('by Group','dashboard');?>
+			                                            <i class='fa fa-angle-right  pull-right'></i>
+			                                        </span>
+			                                    </a>
+			                                   <ul  class="animated fadeInDown menu2">
+   		                                  	<li>
+	                                            <a href="#" onclick="window.open('./reports/rel_grupo_tec.php','iframe1'); scrollWin();" data-original-title=' Atribuído' >
+	                                                <i class="fa fa-angle-right"></i>
+	                                                <span class='hidden-minibar'> <?php echo __('Assigned'); ?> </span>
+	                                            </a>
+	                                        	</li>
+		                                      <li>
+	                                            <a href="#" onclick="window.open('./reports/rel_grupo_req.php','iframe1'); scrollWin();" data-original-title=' Requerente' >
+	                                                <i class="fa fa-angle-right"></i>
+	                                                <span class='hidden-minibar'> <?php echo __('Requester','dashboard'); ?> </span>
+	                                            </a>
+	                                         </li> 
+		                                      </ul>
+		                                  </li>  
                                         <li>
                                               <a href="#" onclick="window.open('./reports/rel_localidade.php','iframe1'); scrollWin();"  data-original-title=' by Localization'>
                                                 <i class="fa fa-angle-right"></i>
@@ -574,19 +619,19 @@ else {
 
                              				 <?php
 					                        	// distinguish between 0.90.x and 9.1 version
-														if (GLPI_VERSION <= intval('9.1')){
+/*														if (GLPI_VERSION <= intval('9.1')){
 			                                    echo '<li>
 		                                            <a href="#" onclick="window.open(\'./reports/rel_sla.php\',\'iframe1\'); scrollWin();"  data-original-title=" por SLA">
 		                                                <i class="fa fa-angle-right"></i>
 		                                                <span class="hidden-minibar">'. __('by SLA','dashboard').'</span>
 		                                            </a>
 		                                        </li>'; 
-		                                     }
+		                                     }*/
                                         ?>
                                         
                                        <?php
 					                        // distinguish between 0.90.x and 9.1 version
-													if (GLPI_VERSION >= 9.1){
+													if (GLPI_VERSION >= 9.1) {
 	                                        echo "<li class='submenu'>
 				                                    <a class='dropdown' onClick='return false;' href='#' data-original-title='by SLA'>
 				                                        <i class='fa fa-angle-right'></i>
@@ -609,6 +654,29 @@ else {
 			                                        </li> 		 
 			                                      </ul>
 			                                  </li>'; 
+			                                  
+														echo "<li class='submenu'>
+				                                    <a class='dropdown' onClick='return false;' href='#' data-original-title='by SLA'>
+				                                        <i class='fa fa-angle-right'></i>
+				                                        <span class='hidden-minibar'>". __('by OLA','dashboard')."
+				                                            <i class='fa fa-angle-right  pull-right'></i>
+				                                        </span>
+				                                    </a>";
+				                                echo '<ul  class="animated fadeInDown menu2">
+				                                      <li>
+			                                            <a href="#" onclick="window.open(\'./reports/rel_oltsa.php\',\'iframe1\'); scrollWin();"  data-original-title=" SLA">
+			                                                <i class="fa fa-angle-right"></i>
+			                                                <span class="hidden-minibar">'. __('Time to own').'</span>
+			                                            </a>
+			                                        </li> 
+							        							 <li>
+			                                           <a href="#" onclick="window.open(\'./reports/rel_oltsr.php\',\'iframe1\'); scrollWin();"  data-original-title=" SLA">
+			                                                <i class="fa fa-angle-right"></i>
+			                                                <span class="hidden-minibar">'. __('Time to resolve').'</span>
+			                                            </a>
+			                                        </li> 		 
+			                                      </ul>
+			                                  </li>'; 			                                  
                                		 		}
                                		 	?>
                                		 		                             
@@ -734,14 +802,14 @@ else {
                                         
                                         <?php
 					                        	// distinguish between 0.90.x and 9.1 version
-														if (GLPI_VERSION <= intval('9.1')){
+/*														if (GLPI_VERSION <= intval('9.1')){
 		                                     echo '<li>';
 	                                            echo '<a href="#" onclick="window.open(\'./graphs/slas.php?con=1\',\'iframe1\'); scrollWin();" data-original-title=" SLAs">';
 	                                            echo '   <i class="fa fa-angle-right"></i>';
 	                                            echo '   <span class="hidden-minibar">'. __('by SLA','dashboard').'</span>';
 	                                            echo '</a>
 	                                        </li>';
-                                        	}
+                                        	}*/
                                         ?>
 
 		                                 <?php
@@ -769,27 +837,72 @@ else {
 			                                        </li> 		 
 			                                      </ul>
 			                                  </li>'; 
+			                                  
+	                                        echo "<li class='submenu'>
+				                                    <a class='dropdown' onClick='return false;' href='#' data-original-title='by SLA'>
+				                                        <i class='fa fa-angle-right'></i>
+				                                        <span class='hidden-minibar'>". __('by OLA','dashboard')."
+				                                            <i class='fa fa-angle-right  pull-right'></i>
+				                                        </span>
+				                                    </a>";
+				                                echo '<ul  class="animated fadeInDown menu2">
+				                                      <li>
+			                                            <a href="#" onclick="window.open(\'./graphs/oltsa.php\',\'iframe1\'); scrollWin();"  data-original-title=" SLA">
+			                                                <i class="fa fa-angle-right"></i>
+			                                                <span class="hidden-minibar">'. __('Time to own').'</span>
+			                                            </a>
+			                                        </li> 
+							        							 <li>
+			                                           <a href="#" onclick="window.open(\'./graphs/oltsr.php\',\'iframe1\'); scrollWin();"  data-original-title=" SLA">
+			                                                <i class="fa fa-angle-right"></i>
+			                                                <span class="hidden-minibar">'. __('Time to resolve').'</span>
+			                                            </a>
+			                                        </li> 		 
+			                                      </ul>
+			                                  </li>'; 			                                  
                                		 		}
                                		 	?>		                                  
                            
                                     </ul>
-                                </li><!-- delighted pages -->  
-
-									     <li>									     
+                                </li><!-- delighted pages -->                               
+                                
+                                <li class='submenu'>
+	                                    <a class='dropdown' onClick='return false;' href='#' data-original-title='Metrics'>
+	                                        <i class='fa fa-line-chart'></i>
+	                                        <span class='hidden-minibar'><?php echo __('Metrics','dashboard');?>
+	                                            <i class='fa fa-chevron-right  pull-right'></i>
+	                                        </span>
+	                                    </a>
+													<ul  class="animated fadeInDown">
+                                        <li>
+                                            <a href="./metrics/index.php" data-original-title=' Geral' target="_blank">
+                                                <i class="fa fa-angle-right"></i>
+                                                <span class='hidden-minibar'> <?php echo __('Overall','dashboard'); ?> </span>
+                                            </a>
+                                        </li>
+                                        <li>
+                                             <a href="./metrics/select_ent.php" data-original-title=' por Entidade' target="_blank">
+                                                <i class="fa fa-angle-right"></i>
+                                                <span class='hidden-minibar'> <?php echo __('by Entity','dashboard'); ?> </span>
+                                            </a>
+                                        </li>
+                                        <li>
+                                              <a href="./metrics/select_grupo.php" data-original-title=' por Grupo' target="_blank">
+                                                <i class="fa fa-angle-right"></i>
+                                                <span class='hidden-minibar'> <?php echo __('by Group','dashboard'); ?> </span>
+                                            </a>
+                                        </li>   
+                                                                     
+                                    	</ul>                                    
+                                </li>
+                                
+                                <li>									     
                                     <a href="#" onclick="window.open('./assets/assets.php','iframe1'); scrollWin();" target="iframe1" data-original-title='Assets'>
                                         <i class='fa fa-desktop'></i>
                                         <span class='hidden-minibar'><?php echo __('Assets'); ?>
                                         </span>
                                     </a>  
-                                </li>
-                                
-                                <li>
-                                    <a href='metrics/index.php' target="_blank" data-original-title='Metrics'>
-                                        <i class='fa fa-line-chart'></i>
-                                        <span class='hidden-minibar'><?php echo __('Metrics','dashboard'); ?>
-                                        </span>
-                                    </a>  
-                                </li>
+                                </li>   
                                                                
                                 <li>
                                     <a href="#" onclick="window.open('./config.php','iframe1'); scrollWin();" target="iframe1"  data-original-title='Config'>

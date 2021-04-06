@@ -7,7 +7,7 @@ class PluginEscaladeConfig extends CommonDBTM {
       return __("Configuration Escalade plugin", "escalade");
    }
 
-   function showForm($ID, $options = array()) {
+   function showForm($ID, $options = []) {
       global $CFG_GLPI;
 
       $this->initForm($ID, $options);
@@ -277,11 +277,15 @@ class PluginEscaladeConfig extends CommonDBTM {
       $config->getFromDB(1);
       unset($config->fields['id']);
 
-      if (isset($config->fields['use_filter_assign_group'])
+      if (isset($_SESSION['glpiID'])
+          && isset($config->fields['use_filter_assign_group'])
           && $config->fields['use_filter_assign_group']) {
          $user = new PluginEscaladeUser();
-         if ($user->getFromDBByQuery("WHERE users_id = '".$_SESSION['glpiID']."'")) {
-            $config->fields['use_filter_assign_group'] = $user->fields['use_filter_assign_group'];
+         if ($user->getFromDBByCrit(['users_id' => $_SESSION['glpiID']])) {
+            //if a bypass is defined for user
+            if ($user->fields['use_filter_assign_group']) {
+               $config->fields['use_filter_assign_group'] = 0;
+            }
          }
       }
 

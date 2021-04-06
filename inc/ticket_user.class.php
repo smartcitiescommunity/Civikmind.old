@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -47,17 +43,20 @@ class Ticket_User extends CommonITILActor {
    static public $itemtype_2 = 'User';
    static public $items_id_2 = 'users_id';
 
-   function prepareInputForUpdate($input) {
-      if (isset($input['alternative_email']) && !NotificationMailing::isUserAddressValid($input['alternative_email'])) {
-         Session::addMessageAfterRedirect(
-            __('Invalid email address'),
-            false,
-            ERROR
-         );
-         return false;
-      }
+   function post_addItem() {
 
-      $input = parent::prepareInputForUpdate($input);
-      return $input;
+      switch ($this->input['type']) { // Values from CommonITILObject::getSearchOptionsActors()
+         case CommonITILActor::REQUESTER:
+            $this->_force_log_option = 4;
+            break;
+         case CommonITILActor::OBSERVER:
+            $this->_force_log_option = 66;
+            break;
+         case CommonITILActor::ASSIGN:
+            $this->_force_log_option = 5;
+            break;
+      }
+      parent::post_addItem();
+      unset($this->_force_log_option);
    }
 }

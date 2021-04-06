@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -29,10 +29,6 @@
  * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
  */
-
-/** @file
-* @brief
-*/
 
 use Glpi\Event;
 
@@ -95,6 +91,22 @@ if (isset($_POST["add"])) {
 
    Html::back();
 
+} else if (isset($_POST['addme_observer'])) {
+   $change->check($_POST['changes_id'], READ);
+   $input = array_merge(Toolbox::addslashes_deep($change->fields), [
+      'id' => $_POST['changes_id'],
+      '_itil_observer' => [
+         '_type' => "user",
+         'users_id' => Session::getLoginUserID(),
+         'use_notification' => 1,
+      ]
+   ]);
+   $change->update($input);
+   Event::log($_POST['changes_id'], "change", 4, "maintain",
+              //TRANS: %s is the user login
+              sprintf(__('%s adds an actor'), $_SESSION["glpiname"]));
+   Html::redirect($change->getFormURLWithID($_POST['changes_id']));
+
 } else if (isset($_POST['addme_assign'])) {
    $change_user = new Change_User();
 
@@ -107,9 +119,37 @@ if (isset($_POST["add"])) {
    Event::log($_POST['changes_id'], "change", 4, "maintain",
               //TRANS: %s is the user login
               sprintf(__('%s adds an actor'), $_SESSION["glpiname"]));
-   Html::redirect($CFG_GLPI["root_doc"]."/front/change.form.php?id=".$_POST['changes_id']);
+   Html::redirect(Change::getFormURLWithID($_POST['changes_id']));
+} else if (isset($_REQUEST['delete_document'])) {
+   $change->getFromDB((int)$_REQUEST['changes_id']);
+   $doc = new Document();
+   $doc->getFromDB(intval($_REQUEST['documents_id']));
+   if ($doc->can($doc->getID(), UPDATE)) {
+      $document_item = new Document_Item;
+      $found_document_items = $document_item->find([
+         $change->getAssociatedDocumentsCriteria(),
+         'documents_id' => $doc->getID()
+      ]);
+      foreach ($found_document_items  as $item) {
+         $document_item->delete(Toolbox::addslashes_deep($item), true);
+      }
+   }
+   Html::back();
 } else {
    Html::header(Change::getTypeName(Session::getPluralNumber()), $_SERVER['PHP_SELF'], "helpdesk", "change");
-   $change->display($_GET);
+   $change->display($_REQUEST);
+
+   if (isset($_GET['id']) && ($_GET['id'] > 0) && isset($_GET['_sol_to_kb'])) {
+      Ajax::createIframeModalWindow(
+         'savetokb',
+         KnowbaseItem::getFormURL() . '?_in_modal=1&item_itemtype=Change&item_items_id=' . $_GET['id'],
+         [
+            'title'         => __('Save solution to the knowledge base'),
+            'reloadonclose' => false,
+         ]
+      );
+      echo Html::scriptBlock('$(function() {' . Html::jsGetElementbyID('savetokb') . '.dialog("open"); });');
+   }
+
    Html::footer();
 }

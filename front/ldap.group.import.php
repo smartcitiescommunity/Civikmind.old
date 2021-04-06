@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,21 +30,16 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 include ('../inc/includes.php');
 
 
-$group = new Group();
 Session::checkRightsOr('group', [CREATE, UPDATE]);
 Session::checkRight('user', User::UPDATEAUTHENT);
 
 Html::header(__('LDAP directory link'), $_SERVER['PHP_SELF'], "admin", "group", "ldap");
 
 if (isset($_GET['next']) || !isset($_SESSION['ldap_server']) && !isset($_POST['ldap_server'])) {
-   AuthLdap::ldapChooseDirectory($_SERVER['PHP_SELF']);
+   AuthLDAP::ldapChooseDirectory($_SERVER['PHP_SELF']);
 } else {
    if (isset($_POST["change_ldap_filter"])) {
       if (isset($_POST["ldap_filter"])) {
@@ -71,7 +66,7 @@ if (isset($_GET['next']) || !isset($_SESSION['ldap_server']) && !isset($_POST['l
          }
       }
 
-      if (!AuthLdap::testLDAPConnection($_SESSION["ldap_server"])) {
+      if (!AuthLDAP::testLDAPConnection($_SESSION["ldap_server"])) {
          unset($_SESSION["ldap_server"]);
          echo "<div class='center b'>".__('Unable to connect to the LDAP directory')."<br>";
          echo "<a href='".$_SERVER['PHP_SELF']."?next=listservers'>".__('Back')."</a></div>";
@@ -90,9 +85,9 @@ if (isset($_GET['next']) || !isset($_SESSION['ldap_server']) && !isset($_POST['l
             $_SESSION["ldap_sortorder"] = "ASC";
          }
 
-         AuthLdap::displayLdapFilter($_SERVER['PHP_SELF'], false);
+         AuthLDAP::displayLdapFilter($_SERVER['PHP_SELF'], false);
 
-         AuthLdap::showLdapGroups($_SERVER['PHP_SELF'], $_GET['start'], 0,
+         AuthLDAP::showLdapGroups($_SERVER['PHP_SELF'], $_GET['start'], 0,
                                   $_SESSION["ldap_group_filter"], $_SESSION["ldap_group_filter2"],
                                   $_SESSION["glpiactive_entity"], $_SESSION["ldap_sortorder"]);
       }

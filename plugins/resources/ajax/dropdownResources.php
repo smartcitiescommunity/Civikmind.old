@@ -9,7 +9,7 @@
  -------------------------------------------------------------------------
 
  LICENSE
-      
+
  This file is part of resources.
 
  resources is free software; you can redistribute it and/or modify
@@ -28,7 +28,7 @@
  */
 
 // Direct access to file
-if (strpos($_SERVER['PHP_SELF'],"dropdownResources.php")) {
+if (strpos($_SERVER['PHP_SELF'], "dropdownResources.php")) {
    $AJAX_INCLUDE = 1;
    include ('../../../inc/includes.php');
    header("Content-Type: text/html; charset=UTF-8");
@@ -39,13 +39,17 @@ if (!defined('GLPI_ROOT')) {
    die("Can not acces directly to this file");
 }
 
+if (empty($_GET)) {
+   $_GET = $_POST;
+}
+
 Session::checkLoginUser();
 // Default view : Nobody
 if (!isset($_GET['all'])) {
    $_GET['all'] = 0;
 }
 
-$used  = array();
+$used  = [];
 
 if (isset($_GET['used'])) {
    if (is_array($_GET['used'])) {
@@ -53,6 +57,10 @@ if (isset($_GET['used'])) {
    } else {
       $used = Toolbox::decodeArrayFromInput($_GET['used']);
    }
+}
+
+if (!isset($_GET['searchText'])) {
+  $_GET['searchText'] = '';
 }
 
 $plugin_resources_contracttypes_id=0;
@@ -65,23 +73,26 @@ if (isset($_GET["plugin_resources_contracttypes_id"])&&
 $result = PluginResourcesResource::getSqlSearchResult(false, $_GET["entity"],
                                    $_GET['value2'], $used, $_GET['searchText']);
 
-$users       = array();
-$logins      = array();
-$linkedUsers = array();
+$users       = [];
+$logins      = [];
+$linkedUsers = [];
+
+$dbu = new DbUtils();
 
 // Add linked resource users
 if ($DB->numrows($result)) {
-   while ($data = $DB->fetch_array($result)) {
-      array_push($users, array('id'   => $data["id"],
-                               'text' => formatUserName($data["id"], $data["username"], $data["name"], $data["firstname"])));
-//      $logins[$data["id"]] = $data["name"];
-      $linkedUsers[]       = $data["userid"];
+   while ($data = $DB->fetchArray($result)) {
+      array_push($users, ['id'   => $data["id"],
+                          'text' => $dbu->formatUserName($data["id"], $data["username"],
+                                                   $data["name"], $data["firstname"], 0)]);
+      //      $logins[$data["id"]] = $data["name"];
+      $linkedUsers[] = $data["userid"];
    }
 }
 
 // Add unlinked users
 if ($_GET['addUnlinkedUsers']) {
-//   ksort($logins);
+   //   ksort($logins);
    $query = "SELECT `glpi_users`.*
              FROM `glpi_users`
              WHERE `glpi_users`.`id` NOT IN ('".implode("','", $linkedUsers)."') 
@@ -95,14 +106,21 @@ if ($_GET['addUnlinkedUsers']) {
                   OR CONCAT(`glpi_users`.`name`,' ',`glpi_users`.`firstname`,' ',`glpi_users`.`registration_number`,' ',`glpi_users`.`name`) ".
                   Search::makeTextSearch($_GET['searchText']).");";
    $result = $DB->query($query);
-   while ($data  = $DB->fetch_array($result)) {
-      array_push($users, array('id'   => 'users-'.$data["id"],
-                               'text' => formatUserName($data["id"], $data["name"], $data["realname"], $data["firstname"])));
-//      $logins['users-'.$data["id"]] = $data["name"];
+   while ($data = $DB->fetchArray($result)) {
+      array_push($users, ['id'   => 'users-' . $data["id"],
+                          'text' => $dbu->formatUserName($data["id"], $data["name"],
+                                                         $data["realname"], $data["firstname"], 0)]);
+      //      $logins['users-'.$data["id"]] = $data["name"];
    }
 }
 
 if (!function_exists('dpuser_cmp')) {
+   /**
+    * @param $a
+    * @param $b
+    *
+    * @return int
+    */
    function dpuser_cmp($a, $b) {
       return strcasecmp($a['text'], $b['text']);
    }
@@ -166,4 +184,3 @@ $ret['count']   = count($users);
 
 echo json_encode($ret);
 
-?>

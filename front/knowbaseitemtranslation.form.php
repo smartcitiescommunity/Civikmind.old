@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,14 +30,11 @@
  * ---------------------------------------------------------------------
  */
 
-
-/** @file
- * @brief
- * @since version 0.85
-**/
+/**
+ * @since 0.85
+ */
 
 include ('../inc/includes.php');
-
 
 $translation = new KnowbaseItemTranslation();
 if (isset($_POST['add'])) {
@@ -46,6 +43,9 @@ if (isset($_POST['add'])) {
 } else if (isset($_POST['update'])) {
    $translation->update($_POST);
    Html::back();
+} else if (isset($_POST["purge"])) {
+   $translation->delete($_POST, true);
+   Html::redirect(KnowbaseItem::getFormURLWithID($_POST['knowbaseitems_id']));
 } else if (isset($_GET["id"]) and isset($_GET['to_rev'])) {
    $translation->check($_GET["id"], UPDATE);
    if ($translation->revertTo($_GET['to_rev'])) {
@@ -65,13 +65,14 @@ if (isset($_POST['add'])) {
          ERROR
       );
    }
-   Html::redirect($CFG_GLPI["root_doc"]."/front/knowbaseitemtranslation.form.php?id=".$_GET['id']);
+   Html::redirect($translation->getFormURLWithID($_GET['id']));
 } else if (isset($_GET["id"])) {
+
    // modifier un item dans la base de connaissance
    $translation->check($_GET["id"], READ);
 
    if (Session::getLoginUserID()) {
-      if ($_SESSION["glpiactiveprofile"]["interface"] == "central") {
+      if (Session::getCurrentInterface() == "central") {
          Html::header(KnowbaseItem::getTypeName(1), $_SERVER['PHP_SELF'], "tools", "knowbaseitemtranslation");
       } else {
          Html::helpHeader(__('FAQ'), $_SERVER['PHP_SELF']);
@@ -86,17 +87,10 @@ if (isset($_POST['add'])) {
                                __('FAQ') => $CFG_GLPI['root_doc'].'/front/helpdesk.faq.php']);
    }
 
-   /*$available_options = array('item_itemtype', 'item_items_id', 'id');
-   $options           = array();
-   foreach ($available_options as $key) {
-      if (isset($_GET[$key])) {
-         $options[$key] = $_GET[$key];
-      }
-   }*/
-   $translation->display([]);
+   $translation->display(['id' => $_GET['id']]);
 
    if (Session::getLoginUserID()) {
-      if ($_SESSION["glpiactiveprofile"]["interface"] == "central") {
+      if (Session::getCurrentInterface() == "central") {
          Html::footer();
       } else {
          Html::helpFooter();

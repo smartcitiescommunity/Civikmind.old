@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 use Glpi\Event;
 
 include ('../inc/includes.php');
@@ -44,19 +40,19 @@ $item = new Change_Ticket();
 if (isset($_POST["add"])) {
    if (!empty($_POST['tickets_id']) && empty($_POST['changes_id'])) {
       $message = sprintf(__('Mandatory fields are not filled. Please correct: %s'),
-                         __('Change'));
+                         Change::getTypeName(1));
       Session::addMessageAfterRedirect($message, false, ERROR);
       Html::back();
    }
    if (empty($_POST['tickets_id']) && !empty($_POST['changes_id'])) {
       $message = sprintf(__('Mandatory fields are not filled. Please correct: %s'),
-                         __('Ticket'));
+                         Ticket::getTypeName(1));
       Session::addMessageAfterRedirect($message, false, ERROR);
       Html::back();
    }
    $item->check(-1, CREATE, $_POST);
 
-   if ($newID = $item->add($_POST)) {
+   if ($item->add($_POST)) {
       Event::log($_POST["changes_id"], "change", 4, "maintain",
                   //TRANS: %s is the user login
                   sprintf(__('%s adds a link with an item'), $_SESSION["glpiname"]));

@@ -21,7 +21,7 @@ else {
 }
 
 if(!isset($_POST["sel_date"])) {
-	$id_date = $_GET["date"];
+	$id_date = $_GET["sel_date"];
 }
 
 else {
@@ -132,24 +132,24 @@ else {
 										$url2 = $arr_url[0];
 
 										echo'
-													<table>
-														<tr>
-															<td>
-															   <div class="input-group date" id="dp1" data-date="'.$data_ini.'" data-date-format="yyyy-mm-dd">
-															    	<input class="col-md-9 form-control" size="13" type="text" name="date1" value="'.$data_ini.'" >
-															    	<span class="input-group-addon add-on"><i class="fa fa-calendar"></i></span>
-														    	</div>
-															</td>
-															<td>&nbsp;</td>
-															<td>
-														   	<div class="input-group date" id="dp2" data-date="'.$data_fin.'" data-date-format="yyyy-mm-dd">
-															    	<input class="col-md-9 form-control" size="13" type="text" name="date2" value="'.$data_fin.'" >
-															    	<span class="input-group-addon add-on"><i class="fa fa-calendar"></i></span>
-														    	</div>
-															</td>
-															<td>&nbsp;</td>
-														</tr>
-													</table> ';
+											<table>
+												<tr>
+													<td>
+													   <div class="input-group date" id="dp1" data-date="'.$data_ini.'" data-date-format="yyyy-mm-dd">
+													    	<input class="col-md-9 form-control" size="13" type="text" name="date1" value="'.$data_ini.'" >
+													    	<span class="input-group-addon add-on"><i class="fa fa-calendar"></i></span>
+												    	</div>
+													</td>
+													<td>&nbsp;</td>
+													<td>
+												   	<div class="input-group date" id="dp2" data-date="'.$data_fin.'" data-date-format="yyyy-mm-dd">
+													    	<input class="col-md-9 form-control" size="13" type="text" name="date2" value="'.$data_fin.'" >
+													    	<span class="input-group-addon add-on"><i class="fa fa-calendar"></i></span>
+												    	</div>
+													</td>
+													<td>&nbsp;</td>
+												</tr>
+											</table> ';
 										?>
 
 										<script language="Javascript">
@@ -160,9 +160,8 @@ else {
 										</td>
 
 										<td style="margin-top:2px;">
-										<?php
-
-										$res_date = $DB->query($sql_date);
+										<?php										
+										
 										$arr_date = array(
 											 __('----'),
 										    __('Today','dashboard'),
@@ -200,7 +199,9 @@ else {
 
 		<?php
 
-		$con = $_GET['con'];
+		if(isset($_GET['con'])){$con = $_GET['con'];}
+		else {$con = '';}
+		
 		if($con == "1") {
 
 		if(!empty($_POST['date1']))
@@ -391,7 +392,7 @@ else {
 			</td>
 				<td style='vertical-align:middle; width: 190px; '>
 				<div class='progress' style='margin-top: 19px;'>
-					<div class='progress-bar ". $cor ." progress-bar-striped active' role='progressbar' aria-valuenow='".$barra."' aria-valuemin='0' aria-valuemax='100' style='width: ".$barra."%;'>
+					<div class='progress-bar ". $cor ." ' role='progressbar' aria-valuenow='".$barra."' aria-valuemin='0' aria-valuemax='100' style='width: ".$barra."%;'>
 		    			".$barra." % ".__('Closed', 'dashboard') ."
 		    		</div>
 				</div>
@@ -444,17 +445,25 @@ else {
 		    if($status1 == "6" ) { $status1 = "closed";}
 
 			//requerente
-			$sql_user = "SELECT glpi_tickets.id AS id, glpi_users.firstname AS name, glpi_users.realname AS sname
+/*			$sql_user = "SELECT glpi_tickets.id AS id, glpi_users.firstname AS name, glpi_users.realname AS sname
 			FROM `glpi_tickets_users` , glpi_tickets, glpi_users
 			WHERE glpi_tickets.id = glpi_tickets_users.`tickets_id`
 			AND glpi_tickets.id = ". $row['id'] ."
 			AND glpi_tickets_users.`users_id` = glpi_users.id
 			AND glpi_tickets_users.type = 1
+			".$entidade." ";*/
+			
+			//requerente
+			$sql_user = "SELECT glpi_tickets.id AS id, glpi_users.firstname AS name, glpi_users.realname AS sname, glpi_tickets_users.alternative_email AS amail
+			FROM glpi_tickets, glpi_tickets_users
+			LEFT OUTER JOIN glpi_users on glpi_tickets_users.users_id = glpi_users.id
+			WHERE glpi_tickets.id = glpi_tickets_users.tickets_id
+			AND glpi_tickets.id = ". $row['id'] ."
+			AND glpi_tickets_users.type = 1
 			".$entidade." ";
 
 			$result_user = $DB->query($sql_user);
-
-			    $row_user = $DB->fetch_assoc($result_user);
+			$row_user = $DB->fetch_assoc($result_user);
 
 			//tecnico
 			$sql_tec = "SELECT glpi_tickets.id AS id, glpi_users.firstname AS name, glpi_users.realname AS sname
@@ -466,8 +475,7 @@ else {
 			".$entidade." ";
 
 			$result_tec = $DB->query($sql_tec);
-
-			    $row_tec = $DB->fetch_assoc($result_tec);
+			$row_tec = $DB->fetch_assoc($result_tec);
 
 			echo "
 			<tr style='font-weight:normal;'>

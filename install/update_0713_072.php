@@ -1,9 +1,8 @@
 <?php
-
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -31,14 +30,10 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 /// Update from 0.71.2 to 0.72
 
 function update0713to072() {
-   global $DB, $CFG_GLPI;
+   global $DB;
 
    //TRANS: %s is the number of new version
    echo "<h3>".sprintf(__('Update to %s'), '0.72')."</h3>";
@@ -156,7 +151,7 @@ function update0713to072() {
    }
 
    // Software Updates
-   displayMigrationMessage("072", _n('Software', 'Software', 2));
+   displayMigrationMessage("072", _n('Software', 'Software', Session::getPluralNumber()));
 
    // Make software recursive
    if (!$DB->fieldExists("glpi_software", "recursive", false)) {
@@ -269,7 +264,7 @@ function update0713to072() {
             $step = 500;
          }
 
-         for ($numsoft=0; $soft=$DB->fetch_assoc($result_softs); $numsoft++) {
+         for ($numsoft=0; $soft=$DB->fetchAssoc($result_softs); $numsoft++) {
             // To avoid navigator timeout on by DB
             if (!($numsoft % $step)) {
                displayMigrationMessage("072 ", "Licenses : $numsoft / $nbsoft");
@@ -292,7 +287,7 @@ function update0713to072() {
 
             if ($result_vers = $DB->query($query_versions)) {
                if ($DB->numrows($result_vers)>0) {
-                  while ($vers = $DB->fetch_assoc($result_vers)) {
+                  while ($vers = $DB->fetchAssoc($result_vers)) {
                      $install_count = 0;
                      $vers_ID       = $vers['ID'];
 
@@ -303,7 +298,7 @@ function update0713to072() {
 
                      if ($result_count=$DB->query($query_count)) {
                         $install_count = $DB->result($result_count, 0, 0);
-                        $DB->free_result($result_count);
+                        $DB->freeResult($result_count);
                      }
 
                      // 1 - Is version already exists ?
@@ -315,7 +310,7 @@ function update0713to072() {
                      if ($result_searchvers = $DB->query($query_search_version)) {
                         // Version already exists : update inst_software
                         if ($DB->numrows($result_searchvers)==1) {
-                           $found_vers = $DB->fetch_assoc($result_searchvers);
+                           $found_vers = $DB->fetchAssoc($result_searchvers);
                            $vers_ID    = $found_vers['ID'];
 
                            $query = "UPDATE `glpi_inst_software`
@@ -345,7 +340,7 @@ function update0713to072() {
                                                  OR (`linked_action` = '".Log::HISTORY_UNINSTALL_SOFTWARE."'
                                                       AND RIGHT(old_value, $findlen) = '$findstr'))");
                         }
-                        $DB->free_result($result_searchvers);
+                        $DB->freeResult($result_searchvers);
                      }
 
                      // 2 - Create glpi_licenses
@@ -376,7 +371,7 @@ function update0713to072() {
                            if ($result_searchlic = $DB->query($query_search_lic)) {
                               if ($DB->numrows($result_searchlic)>0) {
                                  $found_lic = $DB->result($result_searchlic, 0, 0);
-                                 $DB->free_result($result_searchlic);
+                                 $DB->freeResult($result_searchlic);
                               }
                            }
                         }
@@ -413,7 +408,7 @@ function update0713to072() {
                                              '".addslashes($vers['comments'])."')";
 
                            if ($DB->query($query)) {
-                              $lic_ID = $DB->insert_id();
+                              $lic_ID = $DB->insertId();
                               // Update infocoms link
                               if (!empty($vers['infocomID'])) {
                                  $query = "UPDATE `glpi_infocoms`
@@ -429,7 +424,7 @@ function update0713to072() {
                      } // Buy licence
                   } // Each license
                } // while
-               $DB->free_result($result_vers);
+               $DB->freeResult($result_vers);
             }
             // Clean History for this software (old versions no more installed)
             $DB->query("DELETE
@@ -460,7 +455,7 @@ function update0713to072() {
 
    if ($result = $DB->query($query)) {
       if ($DB->numrows($result)>0) {
-         while ($data = $DB->fetch_assoc($result)) {
+         while ($data = $DB->fetchAssoc($result)) {
             $query = "SELECT max(`rank`)
                       FROM `glpi_display`
                       WHERE `FK_users` = '".$data['FK_users']."'
@@ -506,7 +501,7 @@ function update0713to072() {
       }
    }
 
-   displayMigrationMessage("072", _n('Software', 'Software', 2));
+   displayMigrationMessage("072", _n('Software', 'Software', Session::getPluralNumber()));
 
    // If migration run more than once
    if (!$DB->fieldExists("glpi_softwareversions", "state", false)) {
@@ -543,7 +538,7 @@ function update0713to072() {
                 VALUES ('OEM')";
 
       if ($result = $DB->query($query)) {
-         $oemtype  =  $DB->insert_id();
+         $oemtype  =  $DB->insertId();
          $query    = "UPDATE `glpi_softwarelicenses`
                       SET `type` = '$oemtype'
                       WHERE `FK_computers` > '0'";
@@ -551,7 +546,7 @@ function update0713to072() {
       }
    }
 
-   displayMigrationMessage("072", _n('User', 'Users', 2));
+   displayMigrationMessage("072", _n('User', 'Users', Session::getPluralNumber()));
 
    if (!$DB->fieldExists("glpi_groups", "recursive", false)) {
       $query = "ALTER TABLE `glpi_groups`
@@ -643,7 +638,7 @@ function update0713to072() {
       $DB->queryOrDie($query, "0.72 add cache_max_size in glpi_config");
    }
 
-   displayMigrationMessage("072", _n('Volume', 'Volumes', 2));
+   displayMigrationMessage("072", _n('Volume', 'Volumes', Session::getPluralNumber()));
 
    if (!$DB->tableExists("glpi_dropdown_filesystems")) {
       $query = "CREATE TABLE `glpi_dropdown_filesystems` (
@@ -731,7 +726,7 @@ function update0713to072() {
 
       if ($result=$DB->query($query)) {
          if ($DB->numrows($result)>0) {
-            while ($data=$DB->fetch_assoc($result)) {
+            while ($data=$DB->fetchAssoc($result)) {
                $data = Toolbox::addslashes_deep($data);
                // Update datas
                if ($newID=update_importDropdown("glpi_dropdown_interface", $data['OLDNAME'])) {

@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -34,7 +34,7 @@ if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
 
-class NotificationTargetSavedsearch_Alert extends NotificationTarget {
+class NotificationTargetSavedSearch_Alert extends NotificationTarget {
 
 
    function getEvents() {
@@ -43,7 +43,8 @@ class NotificationTargetSavedsearch_Alert extends NotificationTarget {
       $events = [];
 
       $iterator = $DB->request([
-         'SELECT DISTINCT' => ['event'],
+         'SELECT'          => 'event',
+         'DISTINCT'        => true,
          'FROM'            => Notification::getTable(),
          'WHERE'           => ['itemtype' => SavedSearch_Alert::getType()]
       ]);
@@ -58,19 +59,16 @@ class NotificationTargetSavedsearch_Alert extends NotificationTarget {
                   $search->getName(),
                   $search->getID()
                );
-            } else {
-               $events[$row['event']] = __('Private search alert');
             }
          }
-      } else {
-         $events['alert'] = __('Private search alert');
       }
+      $events['alert'] = __('Private search alert');
 
       return $events;
    }
 
 
-   function getDatasForTemplate($event, $options = []) {
+   function addDataForTemplate($event, $options = []) {
       global $CFG_GLPI;
 
       $events = $this->getEvents();
@@ -78,20 +76,20 @@ class NotificationTargetSavedsearch_Alert extends NotificationTarget {
       $savedsearch_alert = $options['item'];
       $savedsearch = $options['savedsearch'];
 
-      $this->datas['##savedsearch.action##']    = $events[$event];
-      $this->datas['##savedsearch.name##']      = $savedsearch->getField('name');
-      $this->datas['##savedsearch.message##']   = $options['msg'];
-      $this->datas['##savedsearch.id##']        = $savedsearch->getID();
-      $this->datas['##savedsearch.count##']     = (int)$options['data']['totalcount'];
-      $this->datas['##savedsearch.type##']      = $savedsearch->getField('itemtype');
-      $this->datas['##savedsearch.url##']       = $CFG_GLPI['url_base']."/?redirect=" .
+      $this->data['##savedsearch.action##']    = $events[$event];
+      $this->data['##savedsearch.name##']      = $savedsearch->getField('name');
+      $this->data['##savedsearch.message##']   = $options['msg'];
+      $this->data['##savedsearch.id##']        = $savedsearch->getID();
+      $this->data['##savedsearch.count##']     = (int)$options['data']['totalcount'];
+      $this->data['##savedsearch.type##']      = $savedsearch->getField('itemtype');
+      $this->data['##savedsearch.url##']       = $CFG_GLPI['url_base']."/?redirect=" .
                                                    rawurlencode($savedsearch->getSearchURL(false) .
                                                    "?action=load&id=". $savedsearch->getID());
 
       $this->getTags();
       foreach ($this->tag_descriptions[NotificationTarget::TAG_LANGUAGE] as $tag => $values) {
-         if (!isset($this->datas[$tag])) {
-            $this->datas[$tag] = $values['label'];
+         if (!isset($this->data[$tag])) {
+            $this->data[$tag] = $values['label'];
          }
       }
    }
@@ -117,16 +115,16 @@ class NotificationTargetSavedsearch_Alert extends NotificationTarget {
    }
 
 
-   function getNotificationTargets($entity) {
+   function addNotificationTargets($entity) {
       if ($this->raiseevent == 'alert') {
-         $this->addTarget(Notification::USER, __('User'));
+         $this->addTarget(Notification::USER, User::getTypeName(1));
       } else {
-         parent::getNotificationTargets($entity);
+         parent::addNotificationTargets($entity);
       }
    }
 
 
-   function getSpecificTargets($data, $options) {
+   function addSpecificTargets($data, $options) {
       //Look for all targets whose type is Notification::ITEM_USER
       switch ($data['type']) {
          case Notification::USER_TYPE :
@@ -142,6 +140,7 @@ class NotificationTargetSavedsearch_Alert extends NotificationTarget {
                   $data = ['name'     => $user->getName(),
                                 'email'    => $user->getDefaultEmail(),
                                 'language' => $user->getField('language'),
+                                'users_id' => $user->getID(),
                                 'usertype' => $usertype];
                   $this->addToRecipientsList($data);
             }

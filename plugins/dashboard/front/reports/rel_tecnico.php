@@ -9,7 +9,7 @@ global $DB;
 Session::checkLoginUser();
 Session::checkRight("profile", READ);
 
-if(!empty($_POST['submit']))
+if(!empty($_REQUEST['date1']))
 {
     $data_ini = $_REQUEST['date1'];
     $data_fin = $_REQUEST['date2'];
@@ -21,7 +21,7 @@ else {
 }
 
 if(!isset($_POST["sel_tec"])) {
-    $id_tec = $_GET["tec"];
+    $id_tec = $_GET["sel_tec"];
 }
 
 else {
@@ -123,8 +123,6 @@ ORDER BY name ASC ";
 
 $result_tec = $DB->query($sql_tec);
 
-//WHERE `glpi_profiles_users`.`is_recursive` = 1
-
 ?>
 <div id='content' >
 <div id='container-fluid' style="margin: <?php echo margins(); ?> ;">
@@ -150,25 +148,25 @@ a:hover { color: #000099; }
 				$arr_url = explode("?", $url);
 				$url2 = $arr_url[0];
 				
-							echo'
-							<table>
-								<tr>
-									<td>
-									   <div class="input-group date" id="dp1" data-date="'.$data_ini.'" data-date-format="yyyy-mm-dd">
-									    	<input class="col-md-9 form-control" size="13" type="text" name="date1" value="'.$data_ini.'" >
-									    	<span class="input-group-addon add-on"><i class="fa fa-calendar"></i></span>
-								    	</div>
-									</td>
-									<td>&nbsp;</td>
-									<td>
-								   	<div class="input-group date" id="dp2" data-date="'.$data_fin.'" data-date-format="yyyy-mm-dd">
-									    	<input class="col-md-9 form-control" size="13" type="text" name="date2" value="'.$data_fin.'" >
-									    	<span class="input-group-addon add-on"><i class="fa fa-calendar"></i></span>
-								    	</div>
-									</td>
-									<td>&nbsp;</td>
-								</tr>
-							</table> ';
+					echo'
+					<table>
+						<tr>
+							<td>
+							   <div class="input-group date" id="dp1" data-date="'.$data_ini.'" data-date-format="yyyy-mm-dd">
+							    	<input class="col-md-9 form-control" size="13" type="text" name="date1" value="'.$data_ini.'" >
+							    	<span class="input-group-addon add-on"><i class="fa fa-calendar"></i></span>
+						    	</div>
+							</td>
+							<td>&nbsp;</td>
+							<td>
+						   	<div class="input-group date" id="dp2" data-date="'.$data_fin.'" data-date-format="yyyy-mm-dd">
+							    	<input class="col-md-9 form-control" size="13" type="text" name="date2" value="'.$data_fin.'" >
+							    	<span class="input-group-addon add-on"><i class="fa fa-calendar"></i></span>
+						    	</div>
+							</td>
+							<td>&nbsp;</td>
+						</tr>
+					</table> ';
 					?>
 				
 				<script language="Javascript">
@@ -223,19 +221,21 @@ $con = $_GET['con'];
 
 if($con == "1") {
 
-	if(!isset($_POST['date1']))
+	if(!isset($_REQUEST['date1']))
 	{
-	    $data_ini2 = $_REQUEST['date1'];
-	    $data_fin2 = $_REQUEST['date2'];
+	   //$data_ini = date("Y-01-01");
+    	//$data_fin = date("Y-m-d");
+	   $data_ini2 = $_REQUEST['date1'];
+	   $data_fin2 = $_REQUEST['date2'];
 	}
 	
 	else {
-	    $data_ini2 = $_REQUEST['date1'];
-	    $data_fin2 = $_REQUEST['date2'];
+	   $data_ini2 = $_REQUEST['date1'];
+	   $data_fin2 = $_REQUEST['date2'];
 	}
 	
 	if(!isset($_POST["sel_tec"])) {
-		$id_tec = $_GET["tec"];
+		$id_tec = $_GET["sel_tec"];
 	}
 	
 	else {
@@ -302,24 +302,26 @@ if($con == "1") {
 	AND glpi_tickets_users.type =2
 	AND glpi_tickets_users.users_id = ". $id_tec ."
 	AND glpi_tickets.is_deleted = 0
-	AND glpi_tickets.date ".$datas2."
+	AND glpi_tickets.date ".$datas2." 
 	AND glpi_tickets.status IN ".$status."
 	".$entidade."
 	GROUP BY id
 	ORDER BY id DESC ";
 	
 	$result_cham = $DB->query($sql_cham);
+	$conta_cons = $DB->numrows($result_cham);
+	$consulta = $conta_cons;
 	
 	
 	$consulta1 =
 	"SELECT glpi_tickets.id AS id, glpi_tickets.name, glpi_tickets.date AS adate, glpi_tickets.closedate AS sdate,
-	FROM_UNIXTIME( UNIX_TIMESTAMP( `glpi_tickets`.`closedate` ) , '%Y-%m' ) AS date_unix, AVG( glpi_tickets.solve_delay_stat ) AS time
+	FROM_UNIXTIME( UNIX_TIMESTAMP( `glpi_tickets`.`date` ) , '%Y-%m' ) AS date_unix, AVG( glpi_tickets.solve_delay_stat ) AS time
 	FROM `glpi_tickets_users` , glpi_tickets
 	WHERE glpi_tickets.id = glpi_tickets_users.`tickets_id`
 	AND glpi_tickets_users.type = 2
 	AND glpi_tickets_users.users_id = ". $id_tec ."
 	AND glpi_tickets.is_deleted = 0
-	AND glpi_tickets.date ".$datas2."
+	AND ( glpi_tickets.date ".$datas2." OR glpi_tickets.closedate ".$datas2." )
 	AND glpi_tickets.status IN ".$status."
 	".$entidade."
 	GROUP BY id
@@ -327,21 +329,23 @@ if($con == "1") {
 	
 	$result_cons1 = $DB->query($consulta1);
 	
-	$conta_cons = $DB->numrows($result_cons1);
-	$consulta = $conta_cons;
-	
 	
 	if($consulta > 0) {
 	
 	//abertos
-	$sql_ab = "SELECT count( glpi_tickets.id ) AS total, glpi_tickets_users.`users_id` AS id
+	$sql_ab = "SELECT glpi_tickets.id AS id, glpi_tickets.name AS name, glpi_tickets.date AS date, glpi_tickets.closedate as closedate,
+	glpi_tickets.type, glpi_tickets.status, FROM_UNIXTIME( UNIX_TIMESTAMP( `glpi_tickets`.`closedate` ) , '%Y-%m' ) AS date_unix, AVG( glpi_tickets.solve_delay_stat ) AS time,
+	glpi_tickets.solve_delay_stat AS time_sec
 	FROM `glpi_tickets_users`, glpi_tickets
 	WHERE glpi_tickets.id = glpi_tickets_users.`tickets_id`
-	AND glpi_tickets.date ".$datas2."
-	AND glpi_tickets_users.users_id = ".$id_tec."
-	AND glpi_tickets.status IN ".$status_open."
+	AND glpi_tickets_users.type =2
+	AND glpi_tickets_users.users_id = ". $id_tec ."
 	AND glpi_tickets.is_deleted = 0
-	".$entidade." " ;
+	AND glpi_tickets.date ".$datas2."
+	AND glpi_tickets.status IN ".$status_open."
+	".$entidade."
+	GROUP BY id
+	ORDER BY id DESC  " ;
 	
 	$result_ab = $DB->query($sql_ab) or die ("erro_ab");
 	$data_ab = $DB->fetch_assoc($result_ab);
@@ -358,7 +362,7 @@ if($con == "1") {
 	AND `glpi_ticketsatisfactions`.tickets_id = glpi_tickets_users.tickets_id
 	AND `glpi_users`.id = glpi_tickets_users.users_id
 	AND glpi_tickets_users.type = 2
-	AND glpi_tickets.date ".$datas2."
+	AND ( glpi_tickets.solvedate ".$datas2." OR glpi_tickets.closedate ".$datas2." )
 	AND glpi_tickets_users.users_id = ".$id_tec."
 	".$entidade." ";
 	
@@ -367,8 +371,6 @@ if($con == "1") {
 	
 	$satisfacao = round(($media['media']/5)*100,1);
 	$nota = round($media['media'],0);
-	//$nota = $media['media'];
-	
 	
 	//barra de porcentagem
 	if($conta_cons > 0) {
@@ -405,7 +407,58 @@ if($con == "1") {
 	
 	$DB->data_seek($result_cham, 0);
 	while($row = $DB->fetch_assoc($result_nome)) {
+		
+	  //count by status
+   $query_stat = "
+	SELECT
+	SUM(case when glpi_tickets.status = 1 then 1 else 0 end) AS new,
+	SUM(case when glpi_tickets.status = 2 then 1 else 0 end) AS assig,
+	SUM(case when glpi_tickets.status = 3 then 1 else 0 end) AS plan,
+	SUM(case when glpi_tickets.status = 4 then 1 else 0 end) AS pend
+	FROM glpi_tickets_users, glpi_tickets
+	WHERE glpi_tickets.is_deleted = '0'
+	AND glpi_tickets.date ".$datas2." 
+	AND glpi_tickets_users.users_id = ".$id_tec."
+	AND glpi_tickets_users.type = 2
+	".$entidade_age."
+	AND glpi_tickets_users.tickets_id = glpi_tickets.id ";
 
+   $result_stat = $DB->query($query_stat);
+
+ 	$new = $DB->result($result_stat,0,'new') + 0;
+ 	$assig = $DB->result($result_stat,0,'assig') + 0;
+ 	$plan = $DB->result($result_stat,0,'plan') + 0;
+ 	$pend = $DB->result($result_stat,0,'pend') + 0;
+   
+
+   $query_stat_c = "
+	SELECT count( glpi_tickets.id ) AS close, glpi_tickets_users.users_id AS id
+	FROM glpi_tickets_users, glpi_tickets
+	WHERE glpi_tickets.is_deleted = '0'
+	AND glpi_tickets.closedate ".$datas2." 
+	AND glpi_tickets_users.users_id = ".$id_tec."
+	AND glpi_tickets_users.type = 2
+	AND glpi_tickets.status = 6
+	".$entidade_age."
+	AND glpi_tickets_users.tickets_id = glpi_tickets.id ";
+
+   $result_stat_c = $DB->query($query_stat_c);
+   $close = $DB->result($result_stat_c,0,'close');
+   
+   
+   $query_stat_s = "
+	SELECT SUM(case when glpi_tickets.status = 5 then 1 else 0 end) AS solve
+	FROM glpi_tickets_users, glpi_tickets
+	WHERE glpi_tickets.is_deleted = '0'
+	AND (glpi_tickets.solvedate ".$datas2." OR glpi_tickets.closedate ".$datas2.") 
+	AND glpi_tickets_users.users_id = ".$id_tec."
+	AND glpi_tickets_users.type = 2
+	".$entidade_age."
+	AND glpi_tickets_users.tickets_id = glpi_tickets.id ";
+
+   $result_stat_s = $DB->query($query_stat_s);
+   $solve = $DB->result($result_stat_s,0,'solve') + 0; 	
+		
 	$tech = $row['firstname'] ." ". $row['realname'];
 
 	echo "
@@ -419,39 +472,13 @@ if($con == "1") {
 
 			<td style='vertical-align:middle; width: 190px; '>
 				<div class='progress' style='margin-top: 19px;'>
-					<div class='progress-bar ". $cor ." progress-bar-striped active' role='progressbar' aria-valuenow='".$barra."' aria-valuemin='0' aria-valuemax='100' style='width: ".$barra."%;'>
+					<div class='progress-bar ". $cor ." ' role='progressbar' aria-valuenow='".$barra."' aria-valuemin='0' aria-valuemax='100' style='width: ".$barra."%;'>
 			 			".$barra." % ".__('Closed', 'dashboard') ."
 			 		</div>
 				</div>
 			</td>
 		</tr>
 	</table> ";
-
-    //count by status
-    $query_stat = "
-	SELECT
-	SUM(case when glpi_tickets.status = 1 then 1 else 0 end) AS new,
-	SUM(case when glpi_tickets.status = 2 then 1 else 0 end) AS assig,
-	SUM(case when glpi_tickets.status = 3 then 1 else 0 end) AS plan,
-	SUM(case when glpi_tickets.status = 4 then 1 else 0 end) AS pend,
-	SUM(case when glpi_tickets.status = 5 then 1 else 0 end) AS solve,
-	SUM(case when glpi_tickets.status = 6 then 1 else 0 end) AS close
-	FROM glpi_tickets_users, glpi_tickets
-	WHERE glpi_tickets.is_deleted = '0'
-	AND glpi_tickets.date ".$datas2."
-	AND glpi_tickets_users.users_id = ".$id_tec."
-	AND glpi_tickets_users.type = 2
-	".$entidade_age."
-	AND glpi_tickets_users.tickets_id = glpi_tickets.id ";
-
-    $result_stat = $DB->query($query_stat);
-
-    $new = $DB->result($result_stat,0,'new') + 0;
-    $assig = $DB->result($result_stat,0,'assig') + 0;
-    $plan = $DB->result($result_stat,0,'plan') + 0;
-    $pend = $DB->result($result_stat,0,'pend') + 0;
-    $solve = $DB->result($result_stat,0,'solve') + 0;
-    $close = $DB->result($result_stat,0,'close') + 0;
 
 
 	if($satisfacao != '' || $satisfacao > 0) {
@@ -489,9 +516,9 @@ if($con == "1") {
         <td><span style='color: #000;'>". __('Closed').": </span><b>".$close." </b></td>
 
 		<td colspan=3 align='right' style='vertical-align:middle;'>
-			<button class='btn btn-primary btn-sm' type='button' name='abertos' value='Abertos' onclick='location.href=\"rel_tecnico.php?con=1&stat=open&tec=".$id_tec."&date1=".$data_ini2."&date2=".$data_fin2."&npage=".$num_por_pagina."\"' <i class='icon-white icon-trash'></i> ".__('Opened','dashboard'). " </button>
-			<button class='btn btn-primary btn-sm' type='button' name='fechados' value='Fechados' onclick='location.href=\"rel_tecnico.php?con=1&stat=close&tec=".$id_tec."&date1=".$data_ini2."&date2=".$data_fin2."&npage=".$num_por_pagina."\"' <i class='icon-white icon-trash'></i> ".__('Closed','dashboard')." </button>
-			<button class='btn btn-primary btn-sm' type='button' name='todos' value='Todos' onclick='location.href=\"rel_tecnico.php?con=1&stat=all&tec=".$id_tec."&date1=".$data_ini2."&date2=".$data_fin2."&npage=".$num_por_pagina."\"' <i class='icon-white icon-trash'></i> ".__('All','dashboard')." </button>
+			<button class='btn btn-primary btn-sm' type='button' name='abertos' value='Abertos' onclick='location.href=\"rel_tecnico.php?con=1&stat=open&sel_tec=".$id_tec."&date1=".$data_ini2."&date2=".$data_fin2."\"' <i class='icon-white icon-trash'></i> ".__('Opened','dashboard'). " </button>
+			<button class='btn btn-primary btn-sm' type='button' name='fechados' value='Fechados' onclick='location.href=\"rel_tecnico.php?con=1&stat=close&sel_tec=".$id_tec."&date1=".$data_ini2."&date2=".$data_fin2."\"' <i class='icon-white icon-trash'></i> ".__('Closed','dashboard')." </button>
+			<button class='btn btn-primary btn-sm' type='button' name='todos' value='Todos' onclick='location.href=\"rel_tecnico.php?con=1&stat=all&sel_tec=".$id_tec."&date1=".$data_ini2."&date2=".$data_fin2."\"' <i class='icon-white icon-trash'></i> ".__('All','dashboard')." </button>
 		</td>
 	</tr>
 	</table>
@@ -520,9 +547,9 @@ if($con == "1") {
 	<table align='right' style='margin-bottom:10px;'>
 		<tr>
 			<td colspan=3 style='vertical-align:bottom;'>
-				<button class='btn btn-primary btn-sm' type='button' name='abertos' value='Abertos' onclick='location.href=\"rel_tecnico.php?con=1&stat=open&tec=".$id_tec."&date1=".$data_ini2."&date2=".$data_fin2."\"' <i class='icon-white icon-trash'></i> ".__('Opened','dashboard'). " </button>
-				<button class='btn btn-primary btn-sm' type='button' name='fechados' value='Fechados' onclick='location.href=\"rel_tecnico.php?con=1&stat=close&tec=".$id_tec."&date1=".$data_ini2."&date2=".$data_fin2."\"' <i class='icon-white icon-trash'></i> ".__('Closed','dashboard')." </button>
-				<button class='btn btn-primary btn-sm' type='button' name='todos' value='Todos' onclick='location.href=\"rel_tecnico.php?con=1&stat=all&tec=".$id_tec."&date1=".$data_ini2."&date2=".$data_fin2."\"' <i class='icon-white icon-trash'></i> ".__('All','dashboard')." </button>
+				<button class='btn btn-primary btn-sm' type='button' name='abertos' value='Abertos' onclick='location.href=\"rel_tecnico.php?con=1&stat=open&sel_tec=".$id_tec."&date1=".$data_ini2."&date2=".$data_fin2."\"' <i class='icon-white icon-trash'></i> ".__('Opened','dashboard'). " </button>
+				<button class='btn btn-primary btn-sm' type='button' name='fechados' value='Fechados' onclick='location.href=\"rel_tecnico.php?con=1&stat=close&sel_tec=".$id_tec."&date1=".$data_ini2."&date2=".$data_fin2."\"' <i class='icon-white icon-trash'></i> ".__('Closed','dashboard')." </button>
+				<button class='btn btn-primary btn-sm' type='button' name='todos' value='Todos' onclick='location.href=\"rel_tecnico.php?con=1&stat=all&sel_tec=".$id_tec."&date1=".$data_ini2."&date2=".$data_fin2."\"' <i class='icon-white icon-trash'></i> ".__('All','dashboard')." </button>
 			</td>
 		</tr>
 	</table>
@@ -586,7 +613,7 @@ while($row = $DB->fetch_assoc($result_cham)){
 
 	if($satisfacao != '' || $satisfacao > 0) {
 
-		$query_satc = "SELECT `glpi_ticketsatisfactions`.satisfaction AS sat,  avg( glpi_ticketsatisfactions.satisfaction ) AS sat1
+		$query_satc = "SELECT `glpi_ticketsatisfactions`.satisfaction AS sat,  avg( glpi_ticketsatisfactions.satisfaction ) AS satavg
 		FROM `glpi_ticketsatisfactions`
 		WHERE glpi_ticketsatisfactions.tickets_id = ". $row['id'] ." ";
 
@@ -594,7 +621,7 @@ while($row = $DB->fetch_assoc($result_cham)){
 		$satc = $DB->fetch_assoc($result_satc);
 
 		$satc1 = $satc['sat'];
-		$nota1 = round(($satc1['sat1']/5)*100,1);
+		$nota1 = round(($satc['satavg']/5)*100,1);
 
 		echo "
 		<tr style='font-size:11px;'>
@@ -609,10 +636,9 @@ while($row = $DB->fetch_assoc($result_cham)){
 			<td style='vertical-align:middle; text-align:center;'>		
 				<span class='label' style=\"background:url('../img/stars/star". $satc1."_22.png') no-repeat;  
 				color:#000 !important; padding-left: 8px !important; padding-top: 4px; font-size:11px; \">".$satc1. "</span> 
-			</td>
-			
+			</td>		
 		</tr>";
-	    }
+	}
 
 	else {
 
@@ -720,6 +746,7 @@ else {
 		}
 }
 }
+
 ?>
 
 <script type="text/javascript" >

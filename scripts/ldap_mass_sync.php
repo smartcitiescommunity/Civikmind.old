@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 // Ensure current directory when run from crontab
 chdir(__DIR__);
 
@@ -46,6 +42,8 @@ if (isset($_SERVER['argv'])) {
    }
 }
 
+echo "Usage of this script is deprecated, please use 'bin/console ldap:sync' command.\n";
+
 if ((isset($_SERVER['argv']) && in_array('help', $_SERVER['argv']))
     || isset($_GET['help'])) {
    echo "Usage: php -q -f ldap_mass_sync.php [action=<option>]  [ldapservers_id=ID]\n";
@@ -55,7 +53,7 @@ if ((isset($_SERVER['argv']) && in_array('help', $_SERVER['argv']))
    echo "2: import & synchronize users\n";
    echo "before-days: restrict user import or synchronization to the last x days\n";
    echo "after-days: restrict user import or synchronization until the last x days\n";
-   echo "ldap_filter: ldap filter to use for the search. Value must be surrounded by \"\"\n";
+   echo "ldap_filter: ldap filter to use for the search. Value must be quoted and properly escaped for your shell\n";
    exit (0);
 }
 
@@ -99,7 +97,7 @@ if (!Toolbox::canUseLdap() || !countElementsInTable('glpi_authldaps')) {
 
 $sql = "SELECT `id`, `name`
         FROM `glpi_authldaps`
-        WHERE `is_active` = '1'";
+        WHERE `is_active` = 1";
 
 //Get the ldap server's id by his name
 if ($options['ldapservers_id'] != NOT_AVAILABLE) {
@@ -152,9 +150,9 @@ function import(array $options) {
    foreach ($actions_to_do as $action_to_do) {
       $options['mode']         = $action_to_do;
       $options['authldaps_id'] = $options['ldapservers_id'];
-      $authldap = new \AuthLdap();
+      $authldap = new \AuthLDAP();
       $authldap->getFromDB($options['authldaps_id']);
-      $users                   = AuthLdap::getAllUsers($options, $results, $limitexceeded);
+      $users                   = AuthLDAP::getAllUsers($options, $results, $limitexceeded);
       $contact_ok              = true;
 
       if (is_array($users)) {
@@ -169,10 +167,11 @@ function import(array $options) {
             }
             $dbuser = $authldap->getLdapExistingUser(
                $user['user'],
+               $options['authldaps_id'],
                $user_sync_field
             );
 
-            if ($dbuser && $action_to_do == AuthLdap::ACTION_IMPORT) {
+            if ($dbuser && $action_to_do == AuthLDAP::ACTION_IMPORT) {
                continue;
             }
 
@@ -185,7 +184,7 @@ function import(array $options) {
                $id_field   = $authldap->fields['sync_field'];
             }
 
-            $result = AuthLdap::ldapImportUserByServerId(
+            $result = AuthLDAP::ldapImportUserByServerId(
                [
                   'method'             => AuthLDAP::IDENTIFIER_LOGIN,
                   'value'              => $value,

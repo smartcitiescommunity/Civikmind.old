@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -29,10 +29,6 @@
  * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
  */
-
-/** @file
-* @brief
-*/
 
 $AJAX_INCLUDE = 1;
 if (strpos($_SERVER['PHP_SELF'], "uemailUpdate.php")) {
@@ -88,7 +84,7 @@ if ((isset($_POST['field']) && ($_POST["value"] > 0))
       }
    }
 
-   $rand = Dropdown::showYesNo($_POST['field'].'[use_notification][]', $default_notif);
+   Dropdown::showYesNo($_POST['field'].'[use_notification][]', $default_notif);
 
    $email_string = '';
    // Only one email
@@ -119,7 +115,7 @@ if ((isset($_POST['field']) && ($_POST["value"] > 0))
    }
 
    echo '<br>';
-   printf(__('%1$s: %2$s'), __('Email'), $email_string);
+   printf(__('%1$s: %2$s'), _n('Email', 'Emails', 1), $email_string);
 
 }
 

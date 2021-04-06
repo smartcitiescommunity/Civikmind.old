@@ -24,9 +24,24 @@ class PluginEscaladeHistory extends CommonDBTM {
       }
    }
 
+   static function getLastHistoryForTicketAndGroup($tickets_id, $groups_id, $previous_groups_id) {
+      $history = new self();
+      $history->getFromDBByRequest(['ORDER'   => 'date_mod DESC',
+                                                 'LIMIT'      => 1,
+                                                 'WHERE' =>
+                                                 [
+                                                   'tickets_id' => $tickets_id,
+                                                   'groups_id' => [$groups_id, $previous_groups_id],
+                                                   'previous_groups_id' => [$groups_id, $previous_groups_id]
+                                                 ]
+                                               ]);
+
+      return $history;
+   }
+
    static function getFullHistory($tickets_id) {
       $history = new self();
-      return $history->find("tickets_id = $tickets_id", "date_mod DESC");
+      return $history->find(['tickets_id' => $tickets_id], "date_mod DESC");
    }
 
 
@@ -42,13 +57,13 @@ class PluginEscaladeHistory extends CommonDBTM {
          $use_filter_assign_group = false;
       }
 
-      $plugin_dir = ($full_history) ? ".." : "../plugins/escalade";
+      $plugin_dir = ($full_history) ? ".." : Plugin::getWebDir('escalade');
 
       //get all line for this ticket
       $group = new Group();
 
       $history = new self();
-      $found = $history->find("tickets_id = $tickets_id", "date_mod DESC");
+      $found = $history->find(['tickets_id' => $tickets_id], "date_mod DESC");
       $nb_histories = count($found);
 
       //remove first line (current assign)
@@ -57,7 +72,7 @@ class PluginEscaladeHistory extends CommonDBTM {
       if ($full_history) {
          //show 1st group
          echo "<div class='escalade_active'>";
-         echo "&nbsp;<img src='".$CFG_GLPI['root_doc']."/pics/group.png' />&nbsp;";
+         echo "&nbsp;<i class='fas fa-users></i>'&nbsp;";
          if ($group->getFromDB($first_group['groups_id'])) {
             echo $group->getLink(true);
          }
@@ -83,7 +98,7 @@ class PluginEscaladeHistory extends CommonDBTM {
          }
 
          //group link
-         echo "&nbsp;<img src='".$CFG_GLPI['root_doc']."/pics/group.png' />&nbsp;";
+         echo "&nbsp;<i class='fas fa-users'></i>&nbsp;";
          if ($group->getFromDB($hline['groups_id'])) {
             echo self::showGroupLink($group, $full_history);
          }

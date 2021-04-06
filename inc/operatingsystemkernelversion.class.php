@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -45,7 +45,7 @@ class OperatingSystemKernelVersion extends CommonDropdown {
    function getAdditionalFields() {
       $fields   = parent::getAdditionalFields();
       $fields[] = [
-         'label'  => __('Kernel'),
+         'label'  => OperatingSystemKernel::getTypeName(1),
          'name'   => OperatingSystemKernel::getTypeName(Session::getPluralNumber()),
          'list'   => true,
          'type'   => 'oskernel'
@@ -60,18 +60,5 @@ class OperatingSystemKernelVersion extends CommonDropdown {
             OperatingSystemKernel::dropdown(['value' => $this->fields['operatingsystemkernels_id']]);
             break;
       }
-   }
-
-   function getRawName() {
-      $kernel = new OperatingSystemKernel();
-      $kname = $kernel->getRawName();
-      $kvname = parent::getRawName();
-
-      $name = str_replace(
-         ['%kernel', '%version'],
-         [$kname, $kvname],
-         '%kernel %version'
-      );
-      return trim($name);
    }
 }

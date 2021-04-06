@@ -219,7 +219,9 @@ else {
 		
 		<?php
 		
-		$con = $_GET['con'];
+		if(isset($_GET['con'])){$con = $_GET['con'];}
+		else {$con = '';}
+		
 		if($con == "1") {
 		
 		if(!isset($_REQUEST['date1']))
@@ -510,7 +512,7 @@ $content .= "
 			 </tr>				
 			 <tr>
 			 <td>". __('Tickets','dashboard')." ". __('By day')." - ". __('Average')."</td>
-			 <td align='right'>".round($total_cham / $numdias,1)."</td>
+			 <td align='right'>".round($total_cham / $numdias,0)."</td>
 			 </tr>			
 			 <tr>
 			 <td>". __('Average time to closure')."</td>
@@ -623,6 +625,10 @@ $content .= "</tbody></table></div> ";
 			}		
 		}
 
+	else {
+		$content =''; 
+	}		
+		
 //output report
 echo $content;
 ?>

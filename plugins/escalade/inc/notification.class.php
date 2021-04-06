@@ -119,7 +119,7 @@ class PluginEscaladeNotification {
 
                // task group
                case self::NTRGT_TASK_GROUP:
-                  $target->getAddressesByGroup(0, $item->getField('groups_id_tech'));
+                  $target->addForGroup(0, $item->getField('groups_id_tech'));
                   break;
 
                // escalation groups
@@ -130,8 +130,8 @@ class PluginEscaladeNotification {
                      $manager = 1;
                   }
                   $history = new PluginEscaladeHistory;
-                  foreach ($history->find("`tickets_id` = ".$ticket->getID()) as $found_history) {
-                     $target->getAddressesByGroup($manager, $found_history['groups_id']);
+                  foreach ($history->find(['tickets_id' => $ticket->getID()]) as $found_history) {
+                     $target->addForGroup($manager, $found_history['groups_id']);
                   }
                   break;
             }
@@ -154,9 +154,9 @@ class PluginEscaladeNotification {
                                      $manager = 0,
                                      $group_type = CommonITILActor::REQUESTER) {
       $group_ticket = new Group_Ticket;
-      foreach ($group_ticket->find("`tickets_id` = $tickets_id
-                                   AND `type` = $group_type") as $current) {
-         $target->getAddressesByGroup($manager, $current['groups_id']);
+      foreach ($group_ticket->find(['tickets_id' => $tickets_id,
+                                    'type' => $group_type]) as $current) {
+         $target->addForGroup($manager, $current['groups_id']);
       }
    }
 
@@ -173,12 +173,18 @@ class PluginEscaladeNotification {
                                     $user_type = CommonITILActor::REQUESTER) {
       $ticket_user = new Ticket_User;
       $user        = new User;
-      foreach ($ticket_user->find("`type` = $user_type
-                                  AND `tickets_id` = $tickets_id") as $current) {
+      foreach ($ticket_user->find(['type' => $user_type,
+                                   'tickets_id' => $tickets_id]) as $current) {
          if ($user->getFromDB($current['users_id'])) {
-            $target->addToAddressesList(['language' => $user->getField('language'),
-                                         'users_id' => $user->getField('id')]);
+            $target->addToRecipientsList(['language' => $user->getField('language'),
+                                          'users_id' => $user->getField('id')]);
          }
+      }
+   }
+
+   static function getEvents(NotificationTarget $target) {
+      if ($target instanceof NotificationTargetTicket) {
+         $target->events['update_solvedate'] = __('Solve date modification', 'escalade');
       }
    }
 }

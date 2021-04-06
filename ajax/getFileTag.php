@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,9 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-* @since version 0.85
-*/
+/**
+ * @since 0.85
+ */
 
 $AJAX_INCLUDE = 1;
 
@@ -45,7 +44,9 @@ Html::header_nocache();
 Session::checkLoginUser();
 
 if (isset($_POST['data'])) {
-   foreach ($_POST['data'] as $key =>  $values) {
+   $response = [];
+
+   foreach (array_keys($_POST['data']) as $key) {
       $unique_name = Rule::getUuid();
       $response[$key] = ['tag' => Document::getImageTag($unique_name), 'name' => $unique_name];
    }

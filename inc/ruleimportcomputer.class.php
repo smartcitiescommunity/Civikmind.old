@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,9 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -88,13 +85,13 @@ class RuleImportComputer extends Rule {
       $criterias['states_id']['is_global']       = true;
       $criterias['states_id']['allow_condition'] = [Rule::PATTERN_IS, Rule::PATTERN_IS_NOT];
 
-      $criterias['DOMAIN']['name']               = __('Domain');
+      $criterias['DOMAIN']['name']               = Domain::getTypename(1);
 
       $criterias['IPSUBNET']['name']             = __('Subnet');
 
       $criterias['MACADDRESS']['name']           = __('MAC address');
 
-      $criterias['IPADDRESS']['name']            = __('IP address');
+      $criterias['IPADDRESS']['name']            = _sn('IP address', 'IP addresses', 1);
 
       $criterias['name']['name']                 = __("Computer's name");
       $criterias['name']['allow_condition']      = [Rule::PATTERN_IS, Rule::PATTERN_IS_NOT,
@@ -106,10 +103,10 @@ class RuleImportComputer extends Rule {
       $criterias['serial']['name']               = __('Serial number');
 
       // Model as Text to allow text criteria (contains, regex, ...)
-      $criterias['model']['name']                = __('Model');
+      $criterias['model']['name']                = _n('Model', 'Models', 1);
 
       // Manufacturer as Text to allow text criteria (contains, regex, ...)
-      $criterias['manufacturer']['name']         = __('Manufacturer');
+      $criterias['manufacturer']['name']         = Manufacturer::getTypeName(1);
 
       return $criterias;
    }
@@ -251,14 +248,15 @@ class RuleImportComputer extends Rule {
       global $DB, $PLUGIN_HOOKS;
 
       $complex_criterias = [];
-      $sql_where         = '';
-      $sql_from          = '';
       $continue          = true;
       $global_criteria   = ['manufacturer', 'model', 'name', 'serial'];
 
       //Add plugin global criteria
       if (isset($PLUGIN_HOOKS['use_rules'])) {
          foreach ($PLUGIN_HOOKS['use_rules'] as $plugin => $val) {
+            if (!Plugin::isPluginActive($plugin)) {
+               continue;
+            }
             if (is_array($val) && in_array($this->getType(), $val)) {
                $global_criteria = Plugin::doOneHook($plugin, "ruleImportComputer_addGlobalCriteria",
                                                     $global_criteria);
@@ -299,29 +297,31 @@ class RuleImportComputer extends Rule {
 
       //Build the request to check if the machine exists in GLPI
       if (is_array($input['entities_id'])) {
-         $where_entity = implode($input['entities_id'], ',');
+         $where_entity = implode(',', $input['entities_id']);
       } else {
          $where_entity = $input['entities_id'];
       }
 
-      $sql_where = '1';
-      $sql_from  = '';
+      $it_criteria = [
+         'SELECT' => 'glpi_computers.id',
+         'WHERE'  => [], //to fill
+      ];
 
-      $needport = false;
-      $needip   = false;
       foreach ($complex_criterias as $criteria) {
          switch ($criteria->fields['criteria']) {
             case 'name' :
                if ($criteria->fields['condition'] == Rule::PATTERN_IS_EMPTY) {
-                  $sql_where .= " AND (`glpi_computers`.`name`=''
-                                       OR `glpi_computers`.`name` IS NULL) ";
+                  $it_criteria['WHERE']['OR'] = [
+                     ['glpi_computers.name' => ''],
+                     ['glpi_computers.name'   => null]
+                  ];
                } else {
-                  $sql_where .= " AND (`glpi_computers`.`name`='".$input['name']."') ";
+                  $it_criteria['WHERE'][] = ['glpi_computers.name' => $input['name']];
                }
                break;
 
             case 'serial' :
-               $sql_where .= " AND `glpi_computers`.`serial`='".$input["serial"]."'";
+               $it_criteria['WHERE'][] = ['glpi_computers.serial' => $input['serial']];
                break;
 
             case 'model' :
@@ -329,52 +329,58 @@ class RuleImportComputer extends Rule {
                $options    = ['manufacturer' => addslashes($input['manufacturer'])];
                $mid        = Dropdown::importExternal('ComputerModel', addslashes($input['model']), -1,
                                                       $options, '', false);
-               $sql_where .= " AND `glpi_computers`.`computermodels_id` = '$mid'";
+               $it_criteria['WHERE'][] = ['glpi_computers.computermodels_id' => $mid];
                break;
 
             case 'manufacturer' :
                // search for manufacturer, don't create it if not found
                $mid        = Dropdown::importExternal('Manufacturer', addslashes($input['manufacturer']), -1,
                                                       [], '', false);
-               $sql_where .= " AND `glpi_computers`.`manufacturers_id` = '$mid'";
+               $it_criteria['WHERE'][] = ['glpi_computers.manufacturers_id' => $mid];
                break;
 
             case 'states_id' :
+               $condition = ['glpi_computers.states_id' => $criteria->fields['pattern']];
                if ($criteria->fields['condition'] == Rule::PATTERN_IS) {
-                  $condition = " IN ";
+                  $it_criteria['WHERE'][] = $condition;
                } else {
-                  $condition = " NOT IN ";
+                  $it_criteria['WHERE'][] = ['NOT' => $condition];
                }
-               $sql_where .= " AND `glpi_computers`.`states_id`
-                                 $condition ('".$criteria->fields['pattern']."')";
                break;
          }
       }
 
       if (isset($PLUGIN_HOOKS['use_rules'])) {
          foreach ($PLUGIN_HOOKS['use_rules'] as $plugin => $val) {
+            if (!Plugin::isPluginActive($plugin)) {
+               continue;
+            }
             if (is_array($val) && in_array($this->getType(), $val)) {
                $params      = ['where_entity' => $where_entity,
                                     'input'        => $input,
                                     'criteria'     => $complex_criterias,
-                                    'sql_where'    => $sql_where,
-                                    'sql_from'     => $sql_from];
+                                    'sql_where'    => $it_criteria['WHERE'],
+                                    'sql_from'     => '',
+                                    'sql_leftjoin' => ''];
                $sql_results = Plugin::doOneHook($plugin, "ruleImportComputer_getSqlRestriction",
                                                 $params);
-               $sql_where   = $sql_results['sql_where'];
-               $sql_from    = $sql_results['sql_from'];
+
+               $sql_from['FROM']          = $sql_results['sql_from'];
+               $sql_where['WHERE']        = $sql_results['sql_where'];
+               $sql_leftjoin['LEFT JOIN'] = $sql_results['sql_leftjoin'];
+
+               $it_criteria = array_merge_recursive($it_criteria, $sql_from);
+               $it_criteria = array_merge_recursive($it_criteria, $sql_leftjoin);
+               $it_criteria = array_merge_recursive($it_criteria, $sql_where);
+
             }
          }
       }
 
-      $sql_glpi = "SELECT `glpi_computers`.`id`
-                   FROM $sql_from
-                   WHERE $sql_where
-                   ORDER BY `glpi_computers`.`is_deleted` ASC";
-      $result_glpi = $DB->query($sql_glpi);
+      $result_glpi = $DB->request($it_criteria);
 
-      if ($DB->numrows($result_glpi) > 0) {
-         while ($data = $DB->fetch_assoc($result_glpi)) {
+      if (count($result_glpi)) {
+         while ($data = $result_glpi->next()) {
             $this->criterias_results['found_computers'][] = $data['id'];
          }
          return true;
@@ -393,22 +399,12 @@ class RuleImportComputer extends Rule {
 
    }
 
-   /**
-    * Execute the actions as defined in the rule
-    *
-    * @see Rule::executeActions()
-    *
-    * @param $output the fields to manipulate
-    * @param $params parameters
-    *
-    * @return the $output array modified
-   **/
-   function executeActions($output, $params) {
+   function executeActions($output, $params, array $input = []) {
 
       if (count($this->actions)) {
          foreach ($this->actions as $action) {
             $executeaction = clone $this;
-            $ruleoutput    = $executeaction->executePluginsActions($action, $output, $params);
+            $ruleoutput    = $executeaction->executePluginsActions($action, $output, $params, $input);
             foreach ($ruleoutput as $key => $value) {
                $output[$key] = $value;
             }
@@ -433,7 +429,7 @@ class RuleImportComputer extends Rule {
       }
       if (!$entity_as_criteria) {
          echo "<tr class='tab_bg_1'>";
-         echo "<td colspan ='2'>".__('Entity')."</td>";
+         echo "<td colspan ='2'>".Entity::getTypeName(1)."</td>";
          echo "<td>";
          Dropdown::show('Entity');
          echo "</td></tr>";

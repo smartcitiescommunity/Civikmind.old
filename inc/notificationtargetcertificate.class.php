@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,8 +30,7 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
+/**
 * @since 9.2
 */
 
@@ -50,6 +49,16 @@ class NotificationTargetCertificate extends NotificationTarget {
       return ['alert' => __('Alarms on expired certificates')];
    }
 
+   function addAdditionalTargets($event = '') {
+      $this->addTarget(
+         Notification::ITEM_TECH_IN_CHARGE,
+         __('Technician in charge of the domain')
+      );
+      $this->addTarget(
+         Notification::ITEM_TECH_GROUP_IN_CHARGE,
+         __('Group in charge of the domain')
+      );
+   }
 
    function addDataForTemplate($event, $options = []) {
 
@@ -74,8 +83,8 @@ class NotificationTargetCertificate extends NotificationTarget {
             '##certificate.name##'           => $certificate['name'],
             '##certificate.serial##'         => $certificate['serial'],
             '##certificate.expirationdate##' => Html::convDate($certificate["date_expiration"]),
-            '##certificate.url'              => $this->formatURL($options['additionnaloption']['usertype'],
-                                                                 "Certificate".$id),
+            '##certificate.url##'            => $this->formatURL($options['additionnaloption']['usertype'],
+                                                                 "Certificate_".$id),
          ];
       }
 
@@ -94,7 +103,7 @@ class NotificationTargetCertificate extends NotificationTarget {
                'certificate.name'           => __('Name'),
                'certificate.serial'         => __('Serial number'),
                'certificate.url'            => __('URL'),
-               'certificate.entity'         => __('Entity'),
+               'certificate.entity'         => Entity::getTypeName(1),
                ];
 
       foreach ($tags as $tag => $label) {

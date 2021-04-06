@@ -9,7 +9,7 @@
  -------------------------------------------------------------------------
 
  LICENSE
-      
+
  This file is part of resources.
 
  resources is free software; you can redistribute it and/or modify
@@ -30,8 +30,8 @@
 include ('../../../inc/includes.php');
 
 //show list of employment linked with a resource
-if ($_SESSION['glpiactiveprofile']['interface'] == 'central') {
-   Html::header(PluginResourcesResource::getTypeName(2), '', "admin", "pluginresourcesresource");
+if (Session::getCurrentInterface() == 'central') {
+   Html::header(PluginResourcesResource::getTypeName(2), '', "admin", PluginResourcesMenu::getType());
 } else {
    Html::helpHeader(PluginResourcesResource::getTypeName(2));
 }
@@ -70,7 +70,7 @@ if ($recap->canView() || Session::haveRight("config", UPDATE)) {
          $_GET["criteria"][4]["value"]      = $_GET["employment_ranks_id"];
       }
 
-//by resource rank and profession
+      //by resource rank and profession
    } else if (isset($_GET["resource_professions_id"]) && !empty($_GET["resource_professions_id"])) {
 
       $_GET["criteria"][0]["field"]      = "4375";
@@ -108,9 +108,8 @@ if ($recap->canView() || Session::haveRight("config", UPDATE)) {
    Html::displayRightError();
 }
 
-if ($_SESSION['glpiactiveprofile']['interface'] == 'central') {
+if (Session::getCurrentInterface() == 'central') {
    Html::footer();
 } else {
    Html::helpFooter();
 }
-?>

@@ -21,7 +21,7 @@ else {
 }
 
 if(!isset($_POST["sel_sla"])) {
-	$id_sla = $_GET["sla"];
+	$id_sla = $_GET["sel_sla"];
 }
 
 else {
@@ -158,15 +158,17 @@ else {
 							$('#dp2').datepicker('update');
 						</script>
 						</td>
-						<td style="margin-top:2px;">	
+						<td style="margin-top:2px;">
+			
 						<?php
 			
 						// SLA list
 						$sql_loc = "
 						SELECT id, name AS name
-						FROM glpi_slms
+						FROM glpi_slas
 						".$entidade_s."
-						ORDER BY `name` ASC ";
+						AND type = 1
+						ORDER BY name ASC ";
 			
 						$result_loc = $DB->query($sql_loc);
 			
@@ -203,7 +205,8 @@ else {
 <?php
 
 //slas
-$con = $_GET['con'];
+if(isset($_GET['con'])){$con = $_GET['con'];}
+else {$con = '';}
 
 if($con == "1") {
 
@@ -219,14 +222,14 @@ else {
 }
 
 if(!isset($_POST["sel_sla"])) {
-	$id_sla = $_GET["sla"];
+	$id_sla = $_GET["sel_sla"];
 }
 
 else {
 	$id_sla = $_POST["sel_sla"];
 }
 
-if($id_sla == " " || $id_sla == 0) {
+if($id_sla == "" || $id_sla == 0) {
 	echo '<script language="javascript"> alert(" ' . __('Select a SLA', 'dashboard') . ' "); </script>';
 	echo '<script language="javascript"> location.href="rel_sltsa.php"; </script>';
 }
@@ -239,15 +242,7 @@ else {
 	$datas2 = "BETWEEN '".$data_ini2." 00:00:00' AND '".$data_fin2." 23:59:59'";
 }
 
-
-// distinguish between 0.90.x and 9.1 version
-if (GLPI_VERSION >= 9.1){
-	$slaid = "AND glpi_tickets.slas_tto_id = ".$id_sla."";	
-}
-
-else {
-	$slaid = "AND glpi_tickets.slas_id = ".$id_sla."";
-}	
+$slaid = "AND glpi_tickets.slas_id_tto = ".$id_sla."";	
 
 //status
 $status = "";
@@ -269,8 +264,8 @@ if(isset($_GET['stat'])) {
 }
 
 else {
-		$status = $status_all;
-	}
+	$status = $status_all;
+}
 
 // Chamados
 $sql_cham =
@@ -288,6 +283,7 @@ ORDER BY id DESC ";
 
 $result_cham = $DB->query($sql_cham);
 
+//var_dump($sql_cham);
 
 $conta_cons1 =
 "SELECT glpi_tickets.id AS total, FROM_UNIXTIME( UNIX_TIMESTAMP( `glpi_tickets`.`solvedate` ) , '%Y-%m' ) AS date_unix, AVG( glpi_tickets.solve_delay_stat ) AS time
@@ -319,6 +315,7 @@ $result_ab = $DB->query($sql_ab) or die ("erro_ab");
 $data_ab = $DB->numrows($result_ab);
 
 $abertos = $data_ab;
+$cor = '';
 
 	//barra de porcentagem
 	if($conta_cons > 0) {
@@ -343,15 +340,17 @@ $abertos = $data_ab;
 	
 		}
 	}
-	else { $barra = 0;}
+	else { 
+		$barra = 0; 
+		$cor = ''; 
+	}
 
 
 // sla name
 $sql_nm = "
 SELECT id , name AS name
-FROM `glpi_slms`
-WHERE id = ".$id_sla."
-";
+FROM `glpi_slas`
+WHERE id = ".$id_sla." ";
 
 $result_nm = $DB->query($sql_nm);
 $ent_name = $DB->fetch_assoc($result_nm);
@@ -387,13 +386,14 @@ $w = $conta_cons - $v;
 
 	$result_stat = $DB->query($query_stat);
 
-        $new = $DB->result($result_stat,0,'new') + 0;
-        $assig = $DB->result($result_stat,0,'assig') + 0;
-        $plan = $DB->result($result_stat,0,'plan') + 0;
-        $pend = $DB->result($result_stat,0,'pend') + 0;
-        $solve = $DB->result($result_stat,0,'solve') + 0;
-        $close = $DB->result($result_stat,0,'close') + 0;
-	
+  $new = $DB->result($result_stat,0,'new') + 0;
+  $assig = $DB->result($result_stat,0,'assig') + 0;
+  $plan = $DB->result($result_stat,0,'plan') + 0;
+  $pend = $DB->result($result_stat,0,'pend') + 0;
+  $solve = $DB->result($result_stat,0,'solve') + 0;
+  $close = $DB->result($result_stat,0,'close') + 0;
+
+
 //list tickets
 echo "
 
@@ -407,7 +407,7 @@ echo "
 		</td>
 		<td style='vertical-align:middle; width: 190px; '>
 			<div class='progress' style='margin-top: 19px;'>
-				<div class='progress-bar ". $cor ." progress-bar-striped active' role='progressbar' aria-valuenow='".$barra."' aria-valuemin='0' aria-valuemax='100' style='width: ".$barra."%;'>
+				<div class='progress-bar ". $cor ." ' role='progressbar' aria-valuenow='".$barra."' aria-valuemin='0' aria-valuemax='100' style='width: ".$barra."%;'>
 	    			".$barra." % ".__('Closed', 'dashboard') ."
 	    		</div>
 			</div>
@@ -418,9 +418,9 @@ echo "
 <table align='right' style='margin-bottom:10px;'>
 	<tr>
 		<td>
-			<button class='btn btn-primary btn-sm' type='button' name='abertos' value='Abertos' onclick='location.href=\"rel_sltsa.php?con=1&stat=open&sla=".$id_sla."&date1=".$data_ini2."&date2=".$data_fin2."\"' <i class='icon-white icon-trash'></i> ".__('Opened', 'dashboard')." </button>
-			<button class='btn btn-primary btn-sm' type='button' name='fechados' value='Fechados' onclick='location.href=\"rel_sltsa.php?con=1&stat=close&sla=".$id_sla."&date1=".$data_ini2."&date2=".$data_fin2."\"' <i class='icon-white icon-trash'></i> ".__('Closed', 'dashboard')." </button>
-			<button class='btn btn-primary btn-sm' type='button' name='todos' value='Todos' onclick='location.href=\"rel_sltsa.php?con=1&stat=all&sla=".$id_sla."&date1=".$data_ini2."&date2=".$data_fin2."\"' <i class='icon-white icon-trash'></i> ".__('All', 'dashboard')." </button>
+			<button class='btn btn-primary btn-sm' type='button' name='abertos' value='Abertos' onclick='location.href=\"rel_sltsa.php?con=1&stat=open&sel_sla=".$id_sla."&date1=".$data_ini2."&date2=".$data_fin2."\"' <i class='icon-white icon-trash'></i> ".__('Opened', 'dashboard')." </button>
+			<button class='btn btn-primary btn-sm' type='button' name='fechados' value='Fechados' onclick='location.href=\"rel_sltsa.php?con=1&stat=close&sel_sla=".$id_sla."&date1=".$data_ini2."&date2=".$data_fin2."\"' <i class='icon-white icon-trash'></i> ".__('Closed', 'dashboard')." </button>
+			<button class='btn btn-primary btn-sm' type='button' name='todos' value='Todos' onclick='location.href=\"rel_sltsa.php?con=1&stat=all&sel_sla=".$id_sla."&date1=".$data_ini2."&date2=".$data_fin2."\"' <i class='icon-white icon-trash'></i> ".__('All', 'dashboard')." </button>
 		</td>
 	</tr>
 	<tr>
@@ -532,8 +532,7 @@ while($row = $DB->fetch_assoc($result_cham)){
 	}
 
 	echo "
-		</tr>";		
-
+		</tr>";
 	}
 
 	echo "</tbody>

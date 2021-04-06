@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -56,7 +52,7 @@ class NotificationTemplateTranslation extends CommonDBChild {
 
 
    /**
-    * @since version 0.84
+    * @since 0.84
    **/
    function getForbiddenStandardMassiveAction() {
 
@@ -66,10 +62,7 @@ class NotificationTemplateTranslation extends CommonDBChild {
    }
 
 
-   /**
-    * @see CommonDBTM::getRawName()
-   **/
-   function getRawName() {
+   protected function computeFriendlyName() {
       global $CFG_GLPI;
 
       if ($this->getField('language') != '') {
@@ -93,7 +86,7 @@ class NotificationTemplateTranslation extends CommonDBChild {
 
 
    function showForm($ID, $options) {
-      global $DB, $CFG_GLPI;
+      global $CFG_GLPI;
 
       if (!Config::canUpdate()) {
          return false;
@@ -123,7 +116,7 @@ class NotificationTemplateTranslation extends CommonDBChild {
       $rand = mt_rand();
       Ajax::createIframeModalWindow("tags".$rand,
                                     $CFG_GLPI['root_doc']."/front/notification.tags.php?sub_type=".
-                                       $template->getField('itemtype'));
+                                       addslashes($template->getField('itemtype')));
       echo "<a class='vsubmit' href='#' onClick=\"".Html::jsGetElementbyID("tags".$rand).".dialog('open'); return false;\">".__('Show list of available tags')."</a>";
       echo "</td></tr>";
 
@@ -203,7 +196,7 @@ class NotificationTemplateTranslation extends CommonDBChild {
       echo "<tr class='tab_bg_1'>";
       if ($canedit) {
          echo "<th width='10'>";
-         Html::checkAllAsCheckbox('mass'.__CLASS__.$rand);
+         echo Html::getCheckAllAsCheckbox('mass'.__CLASS__.$rand);
          echo "</th>";
       }
       echo "<th>".__('Language')."</th></tr>";
@@ -274,7 +267,7 @@ class NotificationTemplateTranslation extends CommonDBChild {
    }
 
 
-   function getSearchOptionsNew() {
+   function rawSearchOptions() {
       $tab = [];
 
       $tab[] = [
@@ -297,7 +290,8 @@ class NotificationTemplateTranslation extends CommonDBChild {
          'field'              => 'subject',
          'name'               => __('Subject'),
          'massiveaction'      => false,
-         'datatype'           => 'string'
+         'datatype'           => 'string',
+         'autocomplete'       => true,
       ];
 
       $tab[] = [
@@ -328,8 +322,11 @@ class NotificationTemplateTranslation extends CommonDBChild {
    **/
    static function getAllUsedLanguages($language_id) {
 
-      $used_languages = getAllDatasFromTable('glpi_notificationtemplatetranslations',
-                                             'notificationtemplates_id='.$language_id);
+      $used_languages = getAllDataFromTable(
+         'glpi_notificationtemplatetranslations', [
+            'notificationtemplates_id' => $language_id
+         ]
+      );
       $used           = [];
 
       foreach ($used_languages as $used_language) {
@@ -344,8 +341,7 @@ class NotificationTemplateTranslation extends CommonDBChild {
     * @param $itemtype
    **/
    static function showAvailableTags($itemtype) {
-
-      $target = NotificationTarget::getInstanceByType($itemtype);
+      $target = NotificationTarget::getInstanceByType(stripslashes($itemtype));
       $target->getTags();
 
       echo "<div class='center'>";
@@ -353,7 +349,7 @@ class NotificationTemplateTranslation extends CommonDBChild {
       echo "<tr><th>".__('Tag')."</th>
                 <th>".__('Label')."</th>
                 <th>"._n('Event', 'Events', 1)."</th>
-                <th>".__('Type')."</th>
+                <th>"._n('Type', 'Types', 1)."</th>
                 <th>".__('Possible values')."</th>
             </tr>";
 
@@ -435,7 +431,7 @@ class NotificationTemplateTranslation extends CommonDBChild {
     * Display debug information for current object
     * NotificationTemplateTranslation => translation preview
     *
-    * @since version 0.84
+    * @since 0.84
    **/
    function showDebug() {
 
@@ -453,7 +449,7 @@ class NotificationTemplateTranslation extends CommonDBChild {
       echo "<table class='tab_cadre_fixe'>";
       echo "<tr><th colspan='2'>".__('Preview')."</th></tr>";
 
-      $oktypes = ['CartridgeItem', 'Change', 'ConsumableItem', 'Contract', 'Crontask',
+      $oktypes = ['CartridgeItem', 'Change', 'ConsumableItem', 'Contract', 'CronTask',
                        'Problem', 'Project', 'Ticket', 'User'];
 
       if (!in_array($itemtype, $oktypes)) {

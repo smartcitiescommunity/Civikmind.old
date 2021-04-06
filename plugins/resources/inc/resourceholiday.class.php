@@ -9,7 +9,7 @@
  -------------------------------------------------------------------------
 
  LICENSE
-      
+
  This file is part of resources.
 
  resources is free software; you can redistribute it and/or modify
@@ -31,269 +31,410 @@ if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access directly to this file");
 }
 
+/**
+ * Class PluginResourcesResourceHoliday
+ */
 class PluginResourcesResourceHoliday extends CommonDBTM {
 
    static $rightname = 'plugin_resources_holiday';
-   
-   public $dohistory=true;
-   
-   static function getTypeName($nb=0) {
+
+   public $dohistory = true;
+
+   /**
+    * Return the localized name of the current Type
+    * Should be overloaded in each new class
+    *
+    * @param integer $nb Number of items
+    *
+    * @return string
+    **/
+   static function getTypeName($nb = 0) {
 
       return _n('Holiday', 'Holidays', $nb, 'resources');
    }
-   
+
+   /**
+    * Have I the global right to "view" the Object
+    *
+    * Default is true and check entity if the objet is entity assign
+    *
+    * May be overloaded if needed
+    *
+    * @return booleen
+    **/
    static function canView() {
       return Session::haveRight(self::$rightname, READ);
    }
 
+   /**
+    * Have I the global right to "create" the Object
+    * May be overloaded if needed (ex KnowbaseItem)
+    *
+    * @return booleen
+    **/
    static function canCreate() {
-      return Session::haveRightsOr(self::$rightname, array(CREATE, UPDATE, DELETE));
+      return Session::haveRightsOr(self::$rightname, [CREATE, UPDATE, DELETE]);
    }
-   
+
+   /**
+    * Prepare input datas for adding the item
+    *
+    * @param array $input datas used to add the item
+    *
+    * @return array the modified $input array
+    **/
    function prepareInputForAdd($input) {
-      
+
       if (!isset ($input["date_begin"]) || $input["date_begin"] == 'NULL') {
          Session::addMessageAfterRedirect(__('The begin date of the forced holiday period must be filled', 'resources'), false, ERROR);
-         return array ();
+         return [];
       }
       if (!isset ($input["date_end"]) || $input["date_end"] == 'NULL') {
          Session::addMessageAfterRedirect(__('The end date of the forced holiday period must be filled', 'resources'), false, ERROR);
-         return array ();
+         return [];
       }
 
       return $input;
    }
-   
+
    function post_addItem() {
       global $CFG_GLPI;
-      
+
       Session::addMessageAfterRedirect(__('Forced holiday declaration of a resource performed', 'resources'));
-      
+
       $PluginResourcesResource = new PluginResourcesResource();
-      if ($CFG_GLPI["use_mailing"]) {
-         $options = array('holiday_id' => $this->fields["id"]);
+      if ($CFG_GLPI["notifications_mailing"]) {
+         $options = ['holiday_id' => $this->fields["id"]];
          if ($PluginResourcesResource->getFromDB($this->fields["plugin_resources_resources_id"])) {
-            NotificationEvent::raiseEvent("newholiday",$PluginResourcesResource,$options);  
+            NotificationEvent::raiseEvent("newholiday", $PluginResourcesResource, $options);
          }
       }
    }
-   
+
+   /**
+    * Prepare input datas for updating the item
+    *
+    * @param array $input data used to update the item
+    *
+    * @return array the modified $input array
+    **/
    function prepareInputForUpdate($input) {
       if (!isset ($input["date_begin"]) || $input["date_begin"] == 'NULL') {
          Session::addMessageAfterRedirect(__('The begin date of the forced holiday period must be filled', 'resources'), false, ERROR);
-         return array ();
+         return [];
       }
       if (!isset ($input["date_end"]) || $input["date_end"] == 'NULL') {
          Session::addMessageAfterRedirect(__('The end date of the forced holiday period must be filled', 'resources'), false, ERROR);
-         return array ();
+         return [];
       }
 
       //unset($input['picture']);
       $this->getFromDB($input["id"]);
-      
-      $input["_old_date_begin"]=$this->fields["date_begin"];
-      $input["_old_date_end"]=$this->fields["date_end"];
-      $input["_old_comment"]=$this->fields["comment"];
-      
+
+      $input["_old_date_begin"] = $this->fields["date_begin"];
+      $input["_old_date_end"]   = $this->fields["date_end"];
+      $input["_old_comment"]    = $this->fields["comment"];
+
       return $input;
    }
-   
-   function post_updateItem($history=1) {
+
+   /**
+    * Actions done after the UPDATE of the item in the database
+    *
+    * @param boolean $history store changes history ? (default 1)
+    *
+    * @return void
+    **/
+   function post_updateItem($history = 1) {
       global $CFG_GLPI;
-      
-      if ($CFG_GLPI["use_mailing"] && count($this->updates)) {
-         $options = array('holiday_id' => $this->fields["id"],
-                           'oldvalues' => $this->oldvalues);
+
+      if ($CFG_GLPI["notifications_mailing"] && count($this->updates)) {
+         $options                 = ['holiday_id' => $this->fields["id"],
+                                     'oldvalues'  => $this->oldvalues];
          $PluginResourcesResource = new PluginResourcesResource();
          if ($PluginResourcesResource->getFromDB($this->fields["plugin_resources_resources_id"])) {
-            NotificationEvent::raiseEvent("updateholiday",$PluginResourcesResource,$options);  
+            NotificationEvent::raiseEvent("updateholiday", $PluginResourcesResource, $options);
          }
       }
    }
-   
+
+   /**
+    * Actions done before the DELETE of the item in the database /
+    * Maybe used to add another check for deletion
+    *
+    * @return boolean true if item need to be deleted else false
+    **/
    function pre_deleteItem() {
       global $CFG_GLPI;
-      
-      if ($CFG_GLPI["use_mailing"]) {
+
+      if ($CFG_GLPI["notifications_mailing"]) {
          $PluginResourcesResource = new PluginResourcesResource();
-         $options = array('holiday_id' => $this->fields["id"]);
+         $options                 = ['holiday_id' => $this->fields["id"]];
          if ($PluginResourcesResource->getFromDB($this->fields["plugin_resources_resources_id"])) {
-            NotificationEvent::raiseEvent("deleteholiday",$PluginResourcesResource,$options);  
+            NotificationEvent::raiseEvent("deleteholiday", $PluginResourcesResource, $options);
          }
       }
       return true;
    }
-   
-   function getSearchOptions() {
 
-      $tab = array();
-    
-      $tab['common']             = self::getTypeName(2);
+   /**
+    * Provides search options configuration. Do not rely directly
+    * on this, @see CommonDBTM::searchOptions instead.
+    *
+    * @since 9.3
+    *
+    * This should be overloaded in Class
+    *
+    * @return array a *not indexed* array of search options
+    *
+    * @see https://glpi-developer-documentation.rtfd.io/en/master/devapi/search.html
+    **/
+   function rawSearchOptions() {
 
-      $tab[1]['table']           = 'glpi_plugin_resources_resources';
-      $tab[1]['field']           = 'name';
-      $tab[1]['name']            = __('Surname');
-      $tab[1]['datatype']        = 'itemlink';
-      $tab[1]['itemlink_type']   = $this->getType();
+      $tab = [];
+
+      $tab[] = [
+         'id'   => 'common',
+         'name' => self::getTypeName(2)
+      ];
+
+      $tab[] = [
+         'id'            => '1',
+         'table'         => 'glpi_plugin_resources_resources',
+         'field'         => 'name',
+         'name'          => __('Surname'),
+         'datatype'      => 'itemlink',
+         'itemlink_type' => $this->getType()
+      ];
+
       if (!Session::haveRight("plugin_resources_all", READ)) {
-         $tab[1]['searchtype']   = 'contains';
+         $tab[] = [
+            'id'         => '1',
+            'searchtype' => 'contains'
+         ];
       }
-      
-      $tab[2]['table']           = 'glpi_plugin_resources_resources';
-      $tab[2]['field']           = 'firstname';
-      $tab[2]['name']            = __('First name');
-      
 
-      $tab[3]['table']           = $this->getTable();
-      $tab[3]['field']           = 'date_begin';
-      $tab[3]['name']            = __('Begin date');
-      $tab[3]['datatype']        = 'date';
+      $tab[] = [
+         'id'    => '2',
+         'table' => 'glpi_plugin_resources_resources',
+         'field' => 'firstname',
+         'name'  => __('First name')
+      ];
 
-      $tab[4]['table']           = $this->getTable();
-      $tab[4]['field']           = 'date_end';
-      $tab[4]['name']            = __('End date');
-      $tab[4]['datatype']        = 'date';
-      
-      $tab[5]['table']           = $this->getTable();
-      $tab[5]['field']           = 'comment';
-      $tab[5]['name']            = __('Comments');
-      $tab[5]['datatype']        = 'text';
-      
-      $tab[30]['table']          = $this->getTable();
-      $tab[30]['field']          = 'id';
-      $tab[30]['name']           = __('ID');
-      $tab[30]['datatype']       = 'number';
-      $tab[30]['massiveaction']  = false;
-      
+      $tab[] = [
+         'id'       => '3',
+         'table'    => $this->getTable(),
+         'field'    => 'date_begin',
+         'name'     => __('Begin date'),
+         'datatype' => 'date'
+      ];
+
+      $tab[] = [
+         'id'       => '4',
+         'table'    => $this->getTable(),
+         'field'    => 'date_end',
+         'name'     => __('End date'),
+         'datatype' => 'date'
+      ];
+
+      $tab[] = [
+         'id'       => '5',
+         'table'    => $this->getTable(),
+         'field'    => 'comment',
+         'name'     => __('Comments'),
+         'datatype' => 'text'
+      ];
+
+      $tab[] = [
+         'id'            => '30',
+         'table'         => $this->getTable(),
+         'field'         => 'id',
+         'name'          => __('ID'),
+         'datatype'      => 'number',
+         'massiveaction' => false
+      ];
+
       return $tab;
    }
-   
-   //Show form from helpdesk to add holiday of a resource
-   function showForm($ID, $options=array()) {
+
+   /**
+    *Menu
+    */
+   function showMenu() {
       global $CFG_GLPI;
-      
-      $this->initForm($ID, $options);
-      
-      echo "<div align='center'>";
-      
-      echo "<form method='post' action=\"".$CFG_GLPI["root_doc"]."/plugins/resources/front/resourceholiday.form.php\">";
-      
-      echo "<table class='plugin_resources_wizard' style='margin-top:1px;'>";
-      echo "<tr>";
-      echo "<td class='plugin_resources_wizard_left_area' valign='top'>";
-      echo "<div class='plugin_resources_presentation_logo'>";
-      echo "<img src='../pics/holidayresource.png' alt='holidayresource' /></div>";
-      echo "</td>";
 
-      echo "<td class='plugin_resources_wizard_right_area' style='width: 500px' valign='top'>";
-      
-      $title = __('Declare a forced holiday', 'resources');
-      if ($ID > 0) {
-         $title = __('Detail of the forced holiday', 'resources');
-      }
-      
-      echo "<div class='plugin_resources_wizard_title'>";
-      echo $title;
-      echo "</div>";
-      
-      echo "<table>";
-      echo "<tr class='plugin_resources_wizard_explain'>";
-      echo "<td>".PluginResourcesResource::getTypeName(1)."</td>";
-      echo "<td class='left'>";
-      PluginResourcesResource::dropdown(array('name'   => 'plugin_resources_resources_id',
-                                              'value'  => $this->fields["plugin_resources_resources_id"],
-                                              'entity' => $_SESSION['glpiactiveentities']));
-      echo "</td></tr>";
-      echo "<tr class='plugin_resources_wizard_explain'><td>";
-      echo __('Begin date')."</td>";
-      echo "<td class='left'>";
-      Html::showDateFormItem("date_begin",$this->fields["date_begin"],true,true);
-      echo "</td></tr>";
-      echo "<tr class='plugin_resources_wizard_explain'><td>";
-      echo __('End date')."</td>";
-      echo "<td class='left'>";
-      Html::showDateFormItem("date_end",$this->fields["date_end"],true,true);
-      echo "</td></tr>";
-      
-      echo "<tr class='plugin_resources_wizard_explain'><td colspan='2'>";
-      echo __('Comments')."</td></tr>";
+      echo "<div align='center'><table class='tab_cadre' width='30%' cellpadding='5'>";
+      echo "<tr><th colspan='2'>" . __('Forced holiday management', 'resources') . "</th></tr>";
 
-      echo "<tr class='plugin_resources_wizard_explain'><td colspan='2'>";			
-      echo "<textarea cols='70' rows='4' name='comment' >".$this->fields["comment"]."</textarea>";
-      echo "</td></tr>";
-      
-      echo "</table>";
-      echo "</div></td>";
-      echo "</tr>";
-      
-      echo "<tr><td class='plugin_resources_wizard_button' colspan='2'>";
-      echo "<div class='preview'>";
-      echo "<a href=\"./resourceholiday.form.php\">";
-      _e('Declare a forced holiday','resources');
-      echo "</a>";
-      echo "&nbsp;/&nbsp;<a href=\"./resourceholiday.php\">";
-      _e('List of forced holidays','resources');
-      echo "</a>";
-      echo "</div>";
-      echo "<div class='next'>";
-      if ($ID > 0) {
-         echo "<input type='hidden' name='id' value='".$ID."' />";
-         echo "<input type='hidden' name='plugin_resources_resources_id' value='".$this->fields["plugin_resources_resources_id"]."' />";
-         echo "<input type='submit' name='updateholidayresources' value=\""._sx('button','Update')."\" class='submit' />";
-         echo "&nbsp;&nbsp;<input type='submit' name='deleteholidayresources' value=\""._sx('button','Delete permanently')."\" class='submit' />";
-      } else {
-         echo "<input type='submit' name='addholidayresources' value='"._sx('button','Add')."' class='submit' />";
+      $canholiday = Session::haveright('plugin_resources_holiday', UPDATE);
+
+      echo "<tr class='tab_bg_1'>";
+      if ($canholiday) {
+         echo "<td class='center'>";
+         echo "<a href=\"./resourceholiday.form.php\">";
+         echo "<img src='" . $CFG_GLPI["root_doc"] . "/plugins/resources/pics/holidayresource.png' alt='" . __('Declare a forced holiday', 'resources') . "'>";
+         echo "<br>" . __('Declare a forced holiday', 'resources') . "</a>";
+         echo "</td>";
+         echo "<td class='center'>";
+         echo "<a href=\"./resourceholiday.php\">";
+         echo "<img src='" . $CFG_GLPI["root_doc"] . "/plugins/resources/pics/holidaylist.png' alt='" . __('List of forced holidays', 'resources') . "'>";
+         echo "<br>" . __('List of forced holidays', 'resources') . "</a>";
+         echo "</td>";
       }
-      echo "</div>";
-      echo "</td></tr></table>";
+      echo "</tr></table>";
       Html::closeForm();
 
       echo "</div>";
 
    }
 
+   //Show form from helpdesk to add holiday of a resource
+
    /**
-   * Print generic search form
-   *
-   *@param $itemtype type to display the form
-   *@param $params parameters array may include field, contains, sort, is_deleted, link, link2, contains2, field2, type2
-   *
-   *@return nothing (displays)
-   *
-   **/
+    * @param       $ID
+    * @param array $options
+    */
+   function showForm($ID, $options = []) {
+      global $CFG_GLPI;
+
+      $this->initForm($ID, $options);
+
+      echo Html::css("/plugins/resources/css/style_bootstrap_main.css");
+      echo Html::css("/plugins/resources/css/style_bootstrap_ticket.css");
+      echo Html::script("/plugins/resources/lib/bootstrap/3.2.0/js/bootstrap.min.js");
+      echo "<div id ='content'>";
+      echo "<div class='bt-container resources_wizard_resp'> ";
+      echo "<div class='bt-block bt-features' > ";
+
+      echo "<form method='post' action=\"" . $CFG_GLPI["root_doc"] . "/plugins/resources/front/resourceholiday.form.php\">";
+
+      echo "<div class=\"bt-row\">";
+      echo "<div class=\"bt-feature bt-col-sm-12 bt-col-md-12 \" style='border-bottom: #CCC;border-bottom-style: solid;'>";
+      echo "<h4 class=\"bt-title-divider\">";
+      echo "<img class='resources_wizard_resp_img' src='" . $CFG_GLPI['root_doc'] . "/plugins/resources/pics/holidayresource.png' alt='holidayresource'/>&nbsp;";
+      $title = __('Declare a forced holiday', 'resources');
+      if ($ID > 0) {
+         $title = __('Detail of the forced holiday', 'resources');
+      }
+      echo $title;
+      echo "</h4></div></div>";
+
+      echo "<div class=\"bt-row\">";
+      echo "<div class=\"bt-feature bt-col-sm-4 bt-col-md-4 \">";
+      echo PluginResourcesResource::getTypeName(1);
+      echo "</div>";
+      echo "<div class=\"bt-feature bt-col-sm-4 bt-col-md-4 \">";
+      PluginResourcesResource::dropdown(['name'    => 'plugin_resources_resources_id',
+                                         'display' => true,
+                                         'value'   => $this->fields["plugin_resources_resources_id"],
+                                         'entity'  => $_SESSION['glpiactiveentities']]);
+      echo "</div>";
+      echo "</div>";
+
+      echo "<div class=\"bt-row\">";
+      echo "<div class=\"bt-feature bt-col-sm-4 bt-col-md-4 \">";
+      echo __('Begin date');
+      echo "</div>";
+      echo "<div class=\"bt-feature bt-col-sm-4 bt-col-md-4 \">";
+      Html::showDateField("date_begin", ['value' => $this->fields["date_begin"]]);
+      echo "</div>";
+      echo "</div>";
+
+      echo "<div class=\"bt-row\">";
+      echo "<div class=\"bt-feature bt-col-sm-4 bt-col-md-4 \">";
+      echo __('End date');
+      echo "</div>";
+      echo "<div class=\"bt-feature bt-col-sm-4 bt-col-md-4 \">";
+      Html::showDateField("date_end", ['value' => $this->fields["date_end"]]);
+      echo "</div>";
+      echo "</div>";
+
+      echo "<div class=\"bt-row\">";
+      echo "<div class=\"bt-feature bt-col-sm-4 bt-col-md-4 \">";
+      echo __('Comments');
+      echo "</div>";
+      echo "<div class=\"bt-feature bt-col-sm-4 bt-col-md-4 \">";
+      echo "<textarea cols='70' rows='4' name='comment' >" . $this->fields["comment"] . "</textarea>";
+      echo "</div>";
+      echo "</div>";
+
+      echo "<div class=\"bt-row\">";
+      echo "<div class=\"bt-feature bt-col-sm-12 bt-col-md-12 \">";
+      echo "<div class='preview'>";
+      echo "<a href=\"./resourceholiday.form.php\">";
+      echo __('Declare a forced holiday', 'resources');
+      echo "</a>";
+      echo "&nbsp;/&nbsp;<a href=\"./resourceholiday.php\">";
+      echo __('List of forced holidays', 'resources');
+      echo "</a>";
+      echo "</div>";
+      echo "</div></div>";
+
+      echo "<div class=\"bt-row\">";
+      echo "<div class=\"bt-feature bt-col-sm-12 bt-col-md-12 \">";
+      echo "<div class='next'>";
+      if ($ID > 0) {
+         echo "<input type='hidden' name='id' value='" . $ID . "' />";
+         echo Html::hidden('plugin_resources_resources_id', ['value' => $this->fields["plugin_resources_resources_id"]]);
+         echo "<input type='submit' name='updateholidayresources' value=\"" . _sx('button', 'Update') . "\" class='submit' />";
+         echo "&nbsp;&nbsp;<input type='submit' name='deleteholidayresources' value=\"" . _sx('button', 'Delete permanently') . "\" class='submit' />";
+      } else {
+         echo "<input type='submit' name='addholidayresources' value='" . _sx('button', 'Add') . "' class='submit' />";
+      }
+      echo "</div>";
+      echo "</div></div>";
+
+      Html::closeForm();
+
+      echo "</div>";
+      echo "</div>";
+      echo "</div>";
+
+   }
+
+   /**
+    * Print generic search form
+    *
+    * @param $itemtype type to display the form
+    * @param $params parameters array may include field, contains, sort, is_deleted, link, link2, contains2, field2,
+    *    type2
+    *
+    * @return nothing (displays)
+    *
+    **/
    function showGenericSearch($params) {
       global $CFG_GLPI;
-      
-      $itemtype = $this->getType();
+
+      $itemtype  = $this->getType();
       $itemtable = $this->getTable();
-      
+
       // Default values of parameters
-      $p['link']        = array();//
-      $p['field']       = array();
-      $p['contains']    = array();
-      $p['searchtype']  = array();
+      $p['link']        = [];//
+      $p['field']       = [];
+      $p['contains']    = [];
+      $p['searchtype']  = [];
       $p['sort']        = '';
       $p['is_deleted']  = 0;
       $p['link2']       = '';//
       $p['contains2']   = '';
       $p['field2']      = '';
       $p['itemtype2']   = '';
-      $p['searchtype2']  = '';
+      $p['searchtype2'] = '';
 
       foreach ($params as $key => $val) {
-         $p[$key]=$val;
+         $p[$key] = $val;
       }
 
-      $options=Search::getCleanedOptions("PluginResourcesResourceHoliday");
+      $options = Search::getCleanedOptions("PluginResourcesResourceHoliday");
       //$target = Toolbox::getItemTypeSearchURL($itemtype);
-      $target=$CFG_GLPI["root_doc"]."/plugins/resources/front/resourceholiday.php";
+      $target = $CFG_GLPI["root_doc"] . "/plugins/resources/front/resourceholiday.php";
       // Instanciate an object to access method
-      $item = NULL;
+      $item = null;
       if (class_exists($itemtype)) {
          $item = new $itemtype();
       }
 
-      $linked =  Search::getMetaItemtypeAvailable($itemtype);
+      $linked = Search::getMetaItemtypeAvailable($itemtype);
 
       echo "<form name='searchform$itemtype' method='get' action=\"$target\">";
       echo "<table class='tab_cadre_fixe' >";
@@ -302,39 +443,39 @@ class PluginResourcesResourceHoliday extends CommonDBTM {
       echo "<table>";
 
       // Display normal search parameters
-      for ($i=0 ; $i<$_SESSION["glpisearchcount"][$itemtype] ; $i++) {
+      for ($i = 0; $i < $_SESSION["glpisearchcount"][$itemtype]; $i++) {
          echo "<tr><td class='left' width='50%'>";
 
          // First line display add / delete images for normal and meta search items
-         if ($i==0) {
+         if ($i == 0) {
             echo "<input type='hidden' disabled  id='add_search_count' name='add_search_count' value='1'>";
             echo "<a href='#' onClick = \"document.getElementById('add_search_count').disabled=false;document.forms['searchform$itemtype'].submit();\">";
-            echo "<img src=\"".$CFG_GLPI["root_doc"]."/pics/plus.png\" alt='+' title='".
-                  __('Add a search criterion')."'></a>&nbsp;&nbsp;&nbsp;&nbsp;";
-            if ($_SESSION["glpisearchcount"][$itemtype]>1) {
+            echo "<img src=\"" . $CFG_GLPI["root_doc"] . "/pics/plus.png\" alt='+' title='" .
+                 __('Add a search criterion') . "'></a>&nbsp;&nbsp;&nbsp;&nbsp;";
+            if ($_SESSION["glpisearchcount"][$itemtype] > 1) {
                echo "<input type='hidden' disabled  id='delete_search_count' name='delete_search_count' value='1'>";
                echo "<a href='#' onClick = \"document.getElementById('delete_search_count').disabled=false;document.forms['searchform$itemtype'].submit();\">";
-               echo "<img src=\"".$CFG_GLPI["root_doc"]."/pics/moins.png\" alt='-' title='".
-                     __('Delete a search criterion')."'></a>&nbsp;&nbsp;&nbsp;&nbsp;";
+               echo "<img src=\"" . $CFG_GLPI["root_doc"] . "/pics/moins.png\" alt='-' title='" .
+                    __('Delete a search criterion') . "'></a>&nbsp;&nbsp;&nbsp;&nbsp;";
             }
-            if (is_array($linked) && count($linked)>0) {
+            if (is_array($linked) && count($linked) > 0) {
                echo "<input type='hidden' disabled id='add_search_count2' name='add_search_count2' value='1'>";
                echo "<a href='#' onClick = \"document.getElementById('add_search_count2').disabled=false;document.forms['searchform$itemtype'].submit();\">";
-               echo "<img src=\"".$CFG_GLPI["root_doc"]."/pics/meta_plus.png\" alt='+' title='".
-                      __('Add a global search criterion')."'></a>&nbsp;&nbsp;&nbsp;&nbsp;";
-               if ($_SESSION["glpisearchcount2"][$itemtype]>0) {
+               echo "<img src=\"" . $CFG_GLPI["root_doc"] . "/pics/meta_plus.png\" alt='+' title='" .
+                    __('Add a global search criterion') . "'></a>&nbsp;&nbsp;&nbsp;&nbsp;";
+               if ($_SESSION["glpisearchcount2"][$itemtype] > 0) {
                   echo "<input type='hidden' disabled  id='delete_search_count2' name='delete_search_count2' value='1'>";
                   echo "<a href='#' onClick = \"document.getElementById('delete_search_count2').disabled=false;document.forms['searchform$itemtype'].submit();\">";
-                  echo "<img src=\"".$CFG_GLPI["root_doc"]."/pics/meta_moins.png\" alt='-' title='".
-                        __('Delete a global search criterion')."'></a>&nbsp;&nbsp;&nbsp;&nbsp;";
+                  echo "<img src=\"" . $CFG_GLPI["root_doc"] . "/pics/meta_moins.png\" alt='-' title='" .
+                       __('Delete a global search criterion') . "'></a>&nbsp;&nbsp;&nbsp;&nbsp;";
                }
             }
-
-            $itemtable=getTableForItemType($itemtype);
+            $dbu       = new DbUtils();
+            $itemtable = $dbu->getTableForItemType($itemtype);
          }
 
          // Display link item
-         if ($i>0) {
+         if ($i > 0) {
             echo "<select name='link[$i]'>";
             echo "<option value='AND' ";
             if (is_array($p["link"]) && isset($p["link"][$i]) && $p["link"][$i] == "AND") {
@@ -362,35 +503,34 @@ class PluginResourcesResourceHoliday extends CommonDBTM {
             echo "</select>&nbsp;";
          }
 
-
          // display select box to define serach item
          echo "<select id='Search$itemtype$i' name=\"field[$i]\" size='1'>";
          echo "<option value='view' ";
          if (is_array($p['field']) && isset($p['field'][$i]) && $p['field'][$i] == "view") {
             echo "selected";
          }
-         echo ">".__('Items seen')."</option>\n";
+         echo ">" . __('Items seen') . "</option>\n";
 
          reset($options);
-         $first_group=true;
-         $selected='view';
+         $first_group = true;
+         $selected    = 'view';
          foreach ($options as $key => $val) {
             // print groups
             if (!is_array($val)) {
                if (!$first_group) {
                   echo "</optgroup>\n";
                } else {
-                  $first_group=false;
+                  $first_group = false;
                }
                echo "<optgroup label='$val'>";
             } else {
-               if (!isset($val['nosearch']) || $val['nosearch']==false) {
-                  echo "<option title=\"".Html::cleanInputText($val["name"])."\" value='$key'";
+               if (!isset($val['nosearch']) || $val['nosearch'] == false) {
+                  echo "<option title=\"" . Html::cleanInputText($val["name"]) . "\" value='$key'";
                   if (is_array($p['field']) && isset($p['field'][$i]) && $key == $p['field'][$i]) {
                      echo "selected";
-                     $selected=$key;
+                     $selected = $key;
                   }
-                  echo ">". Toolbox::substr($val["name"],0,28) ."</option>\n";
+                  echo ">" . Toolbox::substr($val["name"], 0, 28) . "</option>\n";
                }
             }
          }
@@ -401,37 +541,37 @@ class PluginResourcesResourceHoliday extends CommonDBTM {
          if (is_array($p['field']) && isset($p['field'][$i]) && $p['field'][$i] == "all") {
             echo "selected";
          }
-         echo ">".__('All')."</option>";
+         echo ">" . __('All') . "</option>";
          echo "</select>&nbsp;\n";
 
          echo "</td><td class='left'>";
          echo "<div id='SearchSpan$itemtype$i'>\n";
 
-         $_POST['itemtype']=$itemtype;
-         $_POST['num']=$i;
-         $_POST['field']=$selected;
-         $_POST['searchtype']=(is_array($p['searchtype']) && isset($p['searchtype'][$i])?$p['searchtype'][$i]:"" );
-         $_POST['value']=(is_array($p['contains']) && isset($p['contains'][$i])?stripslashes($p['contains'][$i]):"" );
-         include (GLPI_ROOT."/ajax/searchoption.php");
+         $_POST['itemtype']   = $itemtype;
+         $_POST['num']        = $i;
+         $_POST['field']      = $selected;
+         $_POST['searchtype'] = (is_array($p['searchtype']) && isset($p['searchtype'][$i]) ? $p['searchtype'][$i] : "");
+         $_POST['value']      = (is_array($p['contains']) && isset($p['contains'][$i]) ? stripslashes($p['contains'][$i]) : "");
+         include(GLPI_ROOT . "/ajax/searchoption.php");
          echo "</div>\n";
 
-      $params = array('field'       => '__VALUE__',
-                      'itemtype'    => $itemtype,
-                      'num'         => $i,
-                      'value'       => $_POST["value"],
-                      'searchtype'  => $_POST["searchtype"]);
-      Ajax::updateItemOnSelectEvent("Search$itemtype$i","SearchSpan$itemtype$i",
-                                  $CFG_GLPI["root_doc"]."/ajax/searchoption.php",$params,false);
+         $params = ['field'      => '__VALUE__',
+                    'itemtype'   => $itemtype,
+                    'num'        => $i,
+                    'value'      => $_POST["value"],
+                    'searchtype' => $_POST["searchtype"]];
+         Ajax::updateItemOnSelectEvent("Search$itemtype$i", "SearchSpan$itemtype$i",
+                                       $CFG_GLPI["root_doc"] . "/ajax/searchoption.php", $params, false);
 
          echo "</td></tr>\n";
       }
 
-      $metanames=array();
+      $metanames = [];
 
-      if (is_array($linked) && count($linked)>0) {
-         for ($i=0 ; $i<$_SESSION["glpisearchcount2"][$itemtype] ; $i++) {
+      if (is_array($linked) && count($linked) > 0) {
+         for ($i = 0; $i < $_SESSION["glpisearchcount2"][$itemtype]; $i++) {
             echo "<tr><td class='left'>";
-            $rand=mt_rand();
+            $rand = mt_rand();
 
             // Display link item (not for the first item)
             echo "<select name='link2[$i]'>";
@@ -454,43 +594,43 @@ class PluginResourcesResourceHoliday extends CommonDBTM {
             echo ">AND NOT</option>\n";
 
             echo "<option value='OR NOT' ";
-            if (is_array($p['link2'] )&& isset($p['link2'][$i]) && $p['link2'][$i] == "OR NOT") {
+            if (is_array($p['link2']) && isset($p['link2'][$i]) && $p['link2'][$i] == "OR NOT") {
                echo "selected";
             }
             echo ">OR NOT</option>\n";
             echo "</select>&nbsp;";
 
             // Display select of the linked item type available
-            echo "<select name='itemtype2[$i]' id='itemtype2_".$itemtype."_".$i."_$rand'>";
-            echo "<option value=''>".Dropdown::EMPTY_VALUE."</option>";
+            echo "<select name='itemtype2[$i]' id='itemtype2_" . $itemtype . "_" . $i . "_$rand'>";
+            echo "<option value=''>" . Dropdown::EMPTY_VALUE . "</option>";
             foreach ($linked as $key) {
                if (!isset($metanames[$key])) {
-                  $linkitem=new $key();
-                  $metanames[$key]=$linkitem->getTypeName();
+                  $linkitem        = new $key();
+                  $metanames[$key] = $linkitem->getTypeName();
                }
-               echo "<option value='$key'>".Toolbox::substr($metanames[$key],0,20)."</option>\n";
+               echo "<option value='$key'>" . Toolbox::substr($metanames[$key], 0, 20) . "</option>\n";
             }
             echo "</select>&nbsp;";
             echo "</td><td>";
             // Ajax script for display search met& item
-            echo "<span id='show_".$itemtype."_".$i."_$rand'>&nbsp;</span>\n";
+            echo "<span id='show_" . $itemtype . "_" . $i . "_$rand'>&nbsp;</span>\n";
 
-            $params=array('itemtype'=>'__VALUE__',
-                        'num'=>$i,
-                        'field'=>(is_array($p['field2']) && isset($p['field2'][$i])?$p['field2'][$i]:""),
-                        'value'=>(is_array($p['contains2']) && isset($p['contains2'][$i])?$p['contains2'][$i]:""),
-                        'searchtype2'=>(is_array($p['searchtype2']) && isset($p['searchtype2'][$i])?$p['searchtype2'][$i]:""));
+            $params = ['itemtype'    => '__VALUE__',
+                       'num'         => $i,
+                       'field'       => (is_array($p['field2']) && isset($p['field2'][$i]) ? $p['field2'][$i] : ""),
+                       'value'       => (is_array($p['contains2']) && isset($p['contains2'][$i]) ? $p['contains2'][$i] : ""),
+                       'searchtype2' => (is_array($p['searchtype2']) && isset($p['searchtype2'][$i]) ? $p['searchtype2'][$i] : "")];
 
-            Ajax::updateItemOnSelectEvent("itemtype2_".$itemtype."_".$i."_$rand","show_".$itemtype."_".
-                     $i."_$rand",$CFG_GLPI["root_doc"]."/ajax/updateMetaSearch.php",$params,false);
+            Ajax::updateItemOnSelectEvent("itemtype2_" . $itemtype . "_" . $i . "_$rand", "show_" . $itemtype . "_" .
+                                                                                          $i . "_$rand", $CFG_GLPI["root_doc"] . "/ajax/updateMetaSearch.php", $params, false);
 
             if (is_array($p['itemtype2']) && isset($p['itemtype2'][$i]) && !empty($p['itemtype2'][$i])) {
-               $params['itemtype']=$p['itemtype2'][$i];
-               Ajax::updateItem("show_".$itemtype."_".$i."_$rand",
-                              $CFG_GLPI["root_doc"]."/ajax/updateMetaSearch.php",$params,false);
+               $params['itemtype'] = $p['itemtype2'][$i];
+               Ajax::updateItem("show_" . $itemtype . "_" . $i . "_$rand",
+                                $CFG_GLPI["root_doc"] . "/ajax/updateMetaSearch.php", $params, false);
                echo "<script type='text/javascript' >";
-               echo "window.document.getElementById('itemtype2_".$itemtype."_".$i."_$rand').value='".
-                                                   $p['itemtype2'][$i]."';";
+               echo "window.document.getElementById('itemtype2_" . $itemtype . "_" . $i . "_$rand').value='" .
+                    $p['itemtype2'][$i] . "';";
                echo "</script>\n";
             }
             echo "</td></tr></table>";
@@ -509,12 +649,12 @@ class PluginResourcesResourceHoliday extends CommonDBTM {
 
       // Display submit button
       echo "<td width='80' class='center'>";
-      echo "<input type='submit' value=\""._sx('button', 'Search')."\" class='submit' >";
+      echo "<input type='submit' value=\"" . _sx('button', 'Search') . "\" class='submit' >";
       echo "</td><td>";
       //Bookmark::showSaveButton(Bookmark::SEARCH,$itemtype);
       echo "<a href='$target?reset=reset' >";
-      echo "&nbsp;&nbsp;<img title=\"".__s('Blank')."\" alt=\"".__s('Blank')."\" src='".
-            $CFG_GLPI["root_doc"]."/templates/infotel/pics/reset.png' class='calendrier'></a>";
+      echo "&nbsp;&nbsp;<img title=\"" . __s('Blank') . "\" alt=\"" . __s('Blank') . "\" src='" .
+           $CFG_GLPI["root_doc"] . "/templates/infotel/pics/reset.png' class='calendrier'></a>";
 
       echo "</td></tr></table>\n";
 
@@ -528,25 +668,28 @@ class PluginResourcesResourceHoliday extends CommonDBTM {
       echo "<input type='hidden' name='start' value='0'>";
       Html::closeForm();
    }
-   
+
+   /**
+    * @param $params
+    */
    function showMinimalList($params) {
-      global $DB,$CFG_GLPI;
-      
+      global $DB, $CFG_GLPI;
+
       // Instanciate an object to access method
-      $item = NULL;
-      
-      $itemtype = $this->getType();
+      $item = null;
+
+      $itemtype  = $this->getType();
       $itemtable = $this->getTable();
-      
+
       if (class_exists($itemtype)) {
          $item = new $itemtype();
       }
 
       // Default values of parameters
-      $p['link']        = array();//
-      $p['field']       = array();//
-      $p['contains']    = array();//
-      $p['searchtype']  = array();//
+      $p['link']        = [];//
+      $p['field']       = [];//
+      $p['contains']    = [];//
+      $p['searchtype']  = [];//
       $p['sort']        = '1'; //
       $p['order']       = 'ASC';//
       $p['start']       = 0;//
@@ -556,275 +699,275 @@ class PluginResourcesResourceHoliday extends CommonDBTM {
       $p['contains2']   = '';//
       $p['field2']      = '';//
       $p['itemtype2']   = '';
-      $p['searchtype2']  = '';
-      
+      $p['searchtype2'] = '';
+
       foreach ($params as $key => $val) {
-            $p[$key]=$val;
+         $p[$key] = $val;
       }
 
       if ($p['export_all']) {
-         $p['start']=0;
+         $p['start'] = 0;
       }
-      
+
       // Manage defautlt seachtype value : for bookmark compatibility
-      
+
       if (count($p['contains'])) {
          foreach ($p['contains'] as $key => $val) {
             if (!isset($p['searchtype'][$key])) {
-               $p['searchtype'][$key]='contains';
+               $p['searchtype'][$key] = 'contains';
             }
          }
       }
       if (is_array($p['contains2']) && count($p['contains2'])) {
          foreach ($p['contains2'] as $key => $val) {
             if (!isset($p['searchtype2'][$key])) {
-               $p['searchtype2'][$key]='contains';
+               $p['searchtype2'][$key] = 'contains';
             }
          }
       }
 
       //$target = Toolbox::getItemTypeSearchURL($itemtype);
-      $target=$CFG_GLPI["root_doc"]."/plugins/resources/front/resourceholiday.php";
+      $target = $CFG_GLPI["root_doc"] . "/plugins/resources/front/resourceholiday.php";
 
-      $limitsearchopt=Search::getCleanedOptions("PluginResourcesResourceHoliday");
-      
-      $LIST_LIMIT=$_SESSION['glpilist_limit'];
-      
+      $limitsearchopt = Search::getCleanedOptions("PluginResourcesResourceHoliday");
+
+      $LIST_LIMIT = $_SESSION['glpilist_limit'];
+
       // Set display type for export if define
-      $output_type=Search::HTML_OUTPUT;
+      $output_type = Search::HTML_OUTPUT;
       if (isset($_GET['display_type'])) {
-         $output_type=$_GET['display_type'];
+         $output_type = $_GET['display_type'];
          // Limit to 10 element
-         if ($_GET['display_type']==Search::GLOBAL_SEARCH) {
-            $LIST_LIMIT=Search::GLOBAL_DISPLAY_COUNT;
+         if ($_GET['display_type'] == Search::GLOBAL_SEARCH) {
+            $LIST_LIMIT = Search::GLOBAL_DISPLAY_COUNT;
          }
       }
       $PluginResourcesResource = new PluginResourcesResource();
-      $entity_restrict = $PluginResourcesResource->isEntityAssign();
-      
+      $entity_restrict         = $PluginResourcesResource->isEntityAssign();
+
       // Get the items to display
-      $toview=Search::addDefaultToView($itemtype);
-      
+      $toview = Search::addDefaultToView($itemtype);
+
       // Add items to display depending of personal prefs
-      $displaypref=DisplayPreference::getForTypeUser("PluginResourcesResourceHoliday",Session::getLoginUserID());
+      $displaypref = DisplayPreference::getForTypeUser("PluginResourcesResourceHoliday", Session::getLoginUserID());
       if (count($displaypref)) {
          foreach ($displaypref as $val) {
-            array_push($toview,$val);
+            array_push($toview, $val);
          }
       }
-      
+
       // Add searched items
-      if (count($p['field'])>0) {
-         foreach($p['field'] as $key => $val) {
-            if (!in_array($val,$toview) && $val!='all' && $val!='view') {
-               array_push($toview,$val);
+      if (count($p['field']) > 0) {
+         foreach ($p['field'] as $key => $val) {
+            if (!in_array($val, $toview) && $val != 'all' && $val != 'view') {
+               array_push($toview, $val);
             }
          }
       }
 
       // Add order item
-      if (!in_array($p['sort'],$toview)) {
-         array_push($toview,$p['sort']);
+      if (!in_array($p['sort'], $toview)) {
+         array_push($toview, $p['sort']);
       }
-      
+
       // Clean toview array
-      $toview=array_unique($toview);
+      $toview = array_unique($toview);
       foreach ($toview as $key => $val) {
          if (!isset($limitsearchopt[$val])) {
             unset($toview[$key]);
          }
       }
 
-      $toview_count=count($toview);
-      
+      $toview_count = count($toview);
+
       //// 1 - SELECT
-      $query = "SELECT ".Search::addDefaultSelect($itemtype);
+      $query = "SELECT " . Search::addDefaultSelect($itemtype);
 
       // Add select for all toview item
       foreach ($toview as $key => $val) {
-         $query.= Search::addSelect($itemtype,$val,$key,0);
+         $query .= Search::addSelect($itemtype, $val, 0);
       }
-      
-      $query .= "`".$itemtable."`.`id` AS id ";
-      
+
+      $query .= "`" . $itemtable . "`.`id` AS id ";
+
       //// 2 - FROM AND LEFT JOIN
       // Set reference table
-      $query.= " FROM `".$itemtable."`";
+      $query .= " FROM `" . $itemtable . "`";
 
       // Init already linked tables array in order not to link a table several times
-      $already_link_tables=array();
+      $already_link_tables = [];
       // Put reference table
-      array_push($already_link_tables,$itemtable);
+      array_push($already_link_tables, $itemtable);
 
       // Add default join
-      $COMMONLEFTJOIN = Search::addDefaultJoin($itemtype,$itemtable,$already_link_tables);
-      $query .= $COMMONLEFTJOIN;
+      $COMMONLEFTJOIN = Search::addDefaultJoin($itemtype, $itemtable, $already_link_tables);
+      $query          .= $COMMONLEFTJOIN;
 
-      $searchopt=array();
-      $searchopt[$itemtype]=&Search::getOptions($itemtype);
+      $searchopt            = [];
+      $searchopt[$itemtype] =& Search::getOptions($itemtype);
       // Add all table for toview items
       foreach ($toview as $key => $val) {
-         $query .= Search::addLeftJoin($itemtype,$itemtable,$already_link_tables,
-                              $searchopt[$itemtype][$val]["table"],
-                              $searchopt[$itemtype][$val]["linkfield"]);
+         $query .= Search::addLeftJoin($itemtype, $itemtable, $already_link_tables,
+                                       $searchopt[$itemtype][$val]["table"],
+                                       $searchopt[$itemtype][$val]["linkfield"]);
       }
 
       // Search all case :
-      if (in_array("all",$p['field'])) {
+      if (in_array("all", $p['field'])) {
          foreach ($searchopt[$itemtype] as $key => $val) {
             // Do not search on Group Name
             if (is_array($val)) {
-               $query .= Search::addLeftJoin($itemtype,$itemtable,$already_link_tables,
-                                    $searchopt[$itemtype][$key]["table"],
-                                    $searchopt[$itemtype][$key]["linkfield"]);
+               $query .= Search::addLeftJoin($itemtype, $itemtable, $already_link_tables,
+                                             $searchopt[$itemtype][$key]["table"],
+                                             $searchopt[$itemtype][$key]["linkfield"]);
             }
          }
       }
-      
+
       //// 3 - WHERE
 
       // default string
       $COMMONWHERE = Search::addDefaultWhere($itemtype);
-      $first=empty($COMMONWHERE);
+      $first       = empty($COMMONWHERE);
 
       // Add deleted if item have it
       if ($item && $item->maybeDeleted()) {
-         $LINK= " AND " ;
+         $LINK = " AND ";
          if ($first) {
-            $LINK=" ";
-            $first=false;
+            $LINK  = " ";
+            $first = false;
          }
-         $COMMONWHERE .= $LINK."`$itemtable`.`is_deleted` = '".$p['is_deleted']."' ";
+         $COMMONWHERE .= $LINK . "`$itemtable`.`is_deleted` = '" . $p['is_deleted'] . "' ";
       }
 
       // Remove template items
       if ($item && $item->maybeTemplate()) {
-         $LINK= " AND " ;
+         $LINK = " AND ";
          if ($first) {
-            $LINK=" ";
-            $first=false;
+            $LINK  = " ";
+            $first = false;
          }
-         $COMMONWHERE .= $LINK."`$itemtable`.`is_template` = '0' ";
+         $COMMONWHERE .= $LINK . "`$itemtable`.`is_template` = 0 ";
       }
 
       // Add Restrict to current entities
       if ($entity_restrict) {
-         $LINK= " AND " ;
+         $LINK = " AND ";
          if ($first) {
-            $LINK=" ";
-            $first=false;
+            $LINK  = " ";
+            $first = false;
          }
-
+         $dbu = new DbUtils();
          if ($itemtype == 'Entity') {
-            $COMMONWHERE .= getEntitiesRestrictRequest($LINK,$itemtable,'id','',true);
+            $COMMONWHERE .= $dbu->getEntitiesRestrictRequest($LINK, $itemtable, 'id', '', true);
          } else if (isset($CFG_GLPI["union_search_type"]["PluginResourcesResource"])) {
 
             // Will be replace below in Union/Recursivity Hack
-            $COMMONWHERE .= $LINK." ENTITYRESTRICT ";
+            $COMMONWHERE .= $LINK . " ENTITYRESTRICT ";
          } else {
-            $COMMONWHERE .= getEntitiesRestrictRequest($LINK,"glpi_plugin_resources_resources",'','',$PluginResourcesResource->maybeRecursive());
+            $COMMONWHERE .= $dbu->getEntitiesRestrictRequest($LINK, "glpi_plugin_resources_resources", '', '', $PluginResourcesResource->maybeRecursive());
          }
       }
-      
+
       ///R�cup�ration des groupes de l'utilisateur connect�
-      $who=Session::getLoginUserID();
-      
+      $who = Session::getLoginUserID();
+
       if (!Session::haveRight("plugin_resources_all", READ)) {
-         $LINK= " AND " ;
+         $LINK = " AND ";
          if ($first) {
-            $LINK=" ";
-            $first=false;
+            $LINK  = " ";
+            $first = false;
          }
-         $COMMONWHERE .= $LINK."(`glpi_plugin_resources_resources`.`users_id_recipient` = '$who' OR `glpi_plugin_resources_resources`.`users_id` = '$who') ";
+         $COMMONWHERE .= $LINK . "(`glpi_plugin_resources_resources`.`users_id_recipient` = '$who' OR `glpi_plugin_resources_resources`.`users_id` = '$who') ";
       }
-      
-      $WHERE="";
-      $HAVING="";
+
+      $WHERE  = "";
+      $HAVING = "";
 
       // Add search conditions
       // If there is search items
-      if ($_SESSION["glpisearchcount"][$itemtype]>0 && count($p['contains'])>0) {
-         for ($key=0 ; $key<$_SESSION["glpisearchcount"][$itemtype] ; $key++) {
+      if ($_SESSION["glpisearchcount"][$itemtype] > 0 && count($p['contains']) > 0) {
+         for ($key = 0; $key < $_SESSION["glpisearchcount"][$itemtype]; $key++) {
             // if real search (strlen >0) and not all and view search
-            if (isset($p['contains'][$key]) && strlen($p['contains'][$key])>0) {
+            if (isset($p['contains'][$key]) && strlen($p['contains'][$key]) > 0) {
                // common search
-               if ($p['field'][$key]!="all" && $p['field'][$key]!="view") {
-                  $LINK=" ";
-                  $NOT=0;
-                  $tmplink="";
+               if ($p['field'][$key] != "all" && $p['field'][$key] != "view") {
+                  $LINK    = " ";
+                  $NOT     = 0;
+                  $tmplink = "";
                   if (is_array($p['link']) && isset($p['link'][$key])) {
-                     if (strstr($p['link'][$key],"NOT")) {
-                        $tmplink=" ".str_replace(" NOT","",$p['link'][$key]);
-                        $NOT=1;
+                     if (strstr($p['link'][$key], "NOT")) {
+                        $tmplink = " " . str_replace(" NOT", "", $p['link'][$key]);
+                        $NOT     = 1;
                      } else {
-                        $tmplink=" ".$p['link'][$key];
+                        $tmplink = " " . $p['link'][$key];
                      }
                   } else {
-                     $tmplink=" AND ";
+                     $tmplink = " AND ";
                   }
 
                   if (isset($searchopt[$itemtype][$p['field'][$key]]["usehaving"])) {
                      // Manage Link if not first item
                      if (!empty($HAVING)) {
-                        $LINK=$tmplink;
+                        $LINK = $tmplink;
                      }
                      // Find key
-                     $item_num=array_search($p['field'][$key],$toview);
-                     $HAVING .= Search::addHaving($LINK,$NOT,$itemtype,$p['field'][$key],$p['searchtype'][$key],$p['contains'][$key],0,$item_num);
+                     $item_num = array_search($p['field'][$key], $toview);
+                     $HAVING   .= Search::addHaving($LINK, $NOT, $itemtype, $p['field'][$key], $p['searchtype'][$key], $p['contains'][$key], 0, $item_num);
                   } else {
                      // Manage Link if not first item
                      if (!empty($WHERE)) {
-                        $LINK=$tmplink;
+                        $LINK = $tmplink;
                      }
-                     $WHERE .= Search::addWhere($LINK,$NOT,$itemtype,$p['field'][$key],$p['searchtype'][$key],$p['contains'][$key]);
+                     $WHERE .= Search::addWhere($LINK, $NOT, $itemtype, $p['field'][$key], $p['searchtype'][$key], $p['contains'][$key]);
                   }
 
-               // view and all search
+                  // view and all search
                } else {
-                  $LINK=" OR ";
-                  $NOT=0;
-                  $globallink=" AND ";
+                  $LINK       = " OR ";
+                  $NOT        = 0;
+                  $globallink = " AND ";
                   if (is_array($p['link']) && isset($p['link'][$key])) {
                      switch ($p['link'][$key]) {
                         case "AND" :
-                           $LINK=" OR ";
-                           $globallink=" AND ";
+                           $LINK       = " OR ";
+                           $globallink = " AND ";
                            break;
 
                         case "AND NOT" :
-                           $LINK=" AND ";
-                           $NOT=1;
-                           $globallink=" AND ";
+                           $LINK       = " AND ";
+                           $NOT        = 1;
+                           $globallink = " AND ";
                            break;
 
                         case "OR" :
-                           $LINK=" OR ";
-                           $globallink=" OR ";
+                           $LINK       = " OR ";
+                           $globallink = " OR ";
                            break;
 
                         case "OR NOT" :
-                           $LINK=" AND ";
-                           $NOT=1;
-                           $globallink=" OR ";
+                           $LINK       = " AND ";
+                           $NOT        = 1;
+                           $globallink = " OR ";
                            break;
                      }
                   } else {
-                     $tmplink=" AND ";
+                     $tmplink = " AND ";
                   }
 
                   // Manage Link if not first item
                   if (!empty($WHERE)) {
                      $WHERE .= $globallink;
                   }
-                  $WHERE.= " ( ";
-                  $first2=true;
+                  $WHERE  .= " ( ";
+                  $first2 = true;
 
-                  $items=array();
-                  if ($p['field'][$key]=="all") {
-                     $items=$searchopt[$itemtype];
+                  $items = [];
+                  if ($p['field'][$key] == "all") {
+                     $items = $searchopt[$itemtype];
                   } else { // toview case : populate toview
                      foreach ($toview as $key2 => $val2) {
-                        $items[$val2]=$searchopt[$itemtype][$val2];
+                        $items[$val2] = $searchopt[$itemtype][$val2];
                      }
                   }
 
@@ -832,16 +975,16 @@ class PluginResourcesResourceHoliday extends CommonDBTM {
                      if (is_array($val2)) {
                         // Add Where clause if not to be done in HAVING CLAUSE
                         if (!isset($val2["usehaving"])) {
-                           $tmplink=$LINK;
+                           $tmplink = $LINK;
                            if ($first2) {
-                              $tmplink=" ";
-                              $first2=false;
+                              $tmplink = " ";
+                              $first2  = false;
                            }
-                           $WHERE .= Search::addWhere($tmplink,$NOT,$itemtype,$key2,$p['searchtype'][$key],$p['contains'][$key]);
+                           $WHERE .= Search::addWhere($tmplink, $NOT, $itemtype, $key2, $p['searchtype'][$key], $p['contains'][$key]);
                         }
                      }
                   }
-                  $WHERE.=" ) ";
+                  $WHERE .= " ) ";
                }
             }
          }
@@ -849,19 +992,19 @@ class PluginResourcesResourceHoliday extends CommonDBTM {
 
       if (!empty($WHERE) || !empty($COMMONWHERE)) {
          if (!empty($COMMONWHERE)) {
-            $WHERE =' WHERE '.$COMMONWHERE.(!empty($WHERE)?' AND ( '.$WHERE.' )':'');
+            $WHERE = ' WHERE ' . $COMMONWHERE . (!empty($WHERE) ? ' AND ( ' . $WHERE . ' )' : '');
          } else {
-            $WHERE =' WHERE '.$WHERE.' ';
+            $WHERE = ' WHERE ' . $WHERE . ' ';
          }
-         $first=false;
+         $first = false;
       }
-      $query.=$WHERE;
+      $query .= $WHERE;
 
       //// 7 - Manage GROUP BY
       $GROUPBY = "";
       // Meta Search / Search All / Count tickets
-      if (in_array('all',$p['field'])) {
-         $GROUPBY = " GROUP BY `".$itemtable."`.`id`";
+      if (in_array('all', $p['field'])) {
+         $GROUPBY = " GROUP BY `" . $itemtable . "`.`id`";
       }
 
       if (empty($GROUPBY)) {
@@ -870,146 +1013,148 @@ class PluginResourcesResourceHoliday extends CommonDBTM {
                break;
             }
             if (isset($searchopt[$itemtype][$val2]["forcegroupby"])) {
-               $GROUPBY = " GROUP BY `".$itemtable."`.`id`";
+               $GROUPBY = " GROUP BY `" . $itemtable . "`.`id`";
             }
          }
       }
-      $query.=$GROUPBY;
+      $query .= $GROUPBY;
       //// 4 - ORDER
-      $ORDER=" ORDER BY `id` ";
-      foreach($toview as $key => $val) {
-         if ($p['sort']==$val) {
-            $ORDER= Search::addOrderBy($itemtype,$p['sort'],$p['order'],$key);
+      $ORDER = " ORDER BY `id` ";
+      foreach ($toview as $key => $val) {
+         if ($p['sort'] == $val) {
+            $ORDER = Search::addOrderBy($itemtype, $p['sort'], $p['order'], $key);
          }
       }
-      $query.=$ORDER;
+      $query .= $ORDER;
 
-      // Get it from database	
-      
+      // Get it from database
+
       if ($result = $DB->query($query)) {
-         $numrows =  $DB->numrows($result);
-         
-         $globallinkto = Search::getArrayUrlLink("field",$p['field']).
-                        Search::getArrayUrlLink("link",$p['link']).
-                        Search::getArrayUrlLink("contains",$p['contains']).
-                        Search::getArrayUrlLink("field2",$p['field2']).
-                        Search::getArrayUrlLink("contains2",$p['contains2']).
-                        Search::getArrayUrlLink("itemtype2",$p['itemtype2']).
-                        Search::getArrayUrlLink("link2",$p['link2']);
+         $numrows = $DB->numrows($result);
 
-         $parameters = "sort=".$p['sort']."&amp;order=".$p['order'].$globallinkto;
-         
-         if ($output_type==Search::GLOBAL_SEARCH) {
+         $globallinkto = Search::getArrayUrlLink("field", $p['field']) .
+                         Search::getArrayUrlLink("link", $p['link']) .
+                         Search::getArrayUrlLink("contains", $p['contains']) .
+                         Search::getArrayUrlLink("field2", $p['field2']) .
+                         Search::getArrayUrlLink("contains2", $p['contains2']) .
+                         Search::getArrayUrlLink("itemtype2", $p['itemtype2']) .
+                         Search::getArrayUrlLink("link2", $p['link2']);
+
+         $parameters = "sort=" . $p['sort'] . "&amp;order=" . $p['order'] . $globallinkto;
+
+         if ($output_type == Search::GLOBAL_SEARCH) {
             if (class_exists($itemtype)) {
-               echo "<div class='center'><h2>".$this->getTypeName();
+               echo "<div class='center'><h2>" . $this->getTypeName();
                // More items
-               if ($numrows>$p['start']+Search::GLOBAL_DISPLAY_COUNT) {
-                  echo " <a href='$target?$parameters'>".__('All')."</a>";
+               if ($numrows > $p['start'] + Search::GLOBAL_DISPLAY_COUNT) {
+                  echo " <a href='$target?$parameters'>" . __('All') . "</a>";
                }
                echo "</h2></div>\n";
             } else {
                return false;
             }
          }
-           
-         if ($p['start']<$numrows) {
+
+         if ($p['start'] < $numrows) {
 
             // Pager
-            if ($output_type==Search::HTML_OUTPUT) {
-               Html::printPager($p['start'],$numrows,$target,$parameters,$itemtype);
+            if ($output_type == Search::HTML_OUTPUT) {
+               Html::printPager($p['start'], $numrows, $target, $parameters, $itemtype);
             }
-           
+
             //massive action
-            $sel="";
-            if (isset($_GET["select"])&&$_GET["select"]=="all") $sel="checked";
+            $sel = "";
+            if (isset($_GET["select"]) && $_GET["select"] == "all") {
+               $sel = "checked";
+            }
 
             // Add toview elements
-            $nbcols=$toview_count;
+            $nbcols = $toview_count;
 
-            if ($output_type==Search::HTML_OUTPUT) { // HTML display - massive modif
+            if ($output_type == Search::HTML_OUTPUT) { // HTML display - massive modif
                $nbcols++;
             }
 
             // Define begin and end var for loop
             // Search case
-            $begin_display=$p['start'];
-            $end_display=$p['start']+$LIST_LIMIT;
+            $begin_display = $p['start'];
+            $end_display   = $p['start'] + $LIST_LIMIT;
 
             // Export All case
             if ($p['export_all']) {
-               $begin_display=0;
-               $end_display=$numrows;
+               $begin_display = 0;
+               $end_display   = $numrows;
             }
 
             // Display List Header
-            echo Search::showHeader($output_type,$end_display-$begin_display+1,$nbcols);
-            
-            $header_num=1;
+            echo Search::showHeader($output_type, $end_display - $begin_display + 1, $nbcols);
+
+            $header_num = 1;
             // Display column Headers for toview items
             echo Search::showNewLine($output_type);
-                       
+
             // Display column Headers for toview items
             foreach ($toview as $key => $val) {
-               $linkto='';
+               $linkto = '';
                if (!isset($searchopt[$itemtype][$val]['nosort'])
-                     || !$searchopt[$itemtype][$val]['nosort']) {
-                  $linkto = "$target?itemtype=$itemtype&amp;sort=".$val."&amp;order=".($p['order']=="ASC"?"DESC":"ASC").
-                           "&amp;start=".$p['start'].$globallinkto;
+                   || !$searchopt[$itemtype][$val]['nosort']) {
+                  $linkto = "$target?itemtype=$itemtype&amp;sort=" . $val . "&amp;order=" . ($p['order'] == "ASC" ? "DESC" : "ASC") .
+                            "&amp;start=" . $p['start'] . $globallinkto;
                }
-               echo Search::showHeaderItem($output_type,$searchopt[$itemtype][$val]["name"],
-                                          $header_num,$linkto,$p['sort']==$val,$p['order']);
+               echo Search::showHeaderItem($output_type, $searchopt[$itemtype][$val]["name"],
+                                           $header_num, $linkto, $p['sort'] == $val, $p['order']);
             }
-            
-            // End Line for column headers		
+
+            // End Line for column headers
             echo Search::showEndLine($output_type);
 
-            $DB->data_seek($result,$p['start']);
-           
+            $DB->dataSeek($result, $p['start']);
+
             // Define begin and end var for loop
             // Search case
-            $i=$begin_display;
+            $i = $begin_display;
 
             // Init list of items displayed
-            if ($output_type==Search::HTML_OUTPUT) {
+            if ($output_type == Search::HTML_OUTPUT) {
                Session::initNavigateListItems($itemtype);
             }
 
             // Num of the row (1=header_line)
-            $row_num=1;
+            $row_num = 1;
             // Display Loop
-            while ($i < $numrows && $i<($end_display)) {
-               
-               $item_num=1;
-               $data=$DB->fetch_array($result);
+            while ($i < $numrows && $i < ($end_display)) {
+
+               $item_num = 1;
+               $data     = $DB->fetchArray($result);
                $i++;
                $row_num++;
-               
-               echo Search::showNewLine($output_type,($i%2));
-               
-               Session::addToNavigateListItems($itemtype,$data['id']);
-               
+
+               echo Search::showNewLine($output_type, ($i % 2));
+
+               Session::addToNavigateListItems($itemtype, $data['id']);
+
                foreach ($toview as $key => $val) {
-                  echo Search::showItem($output_type,Search::giveItem($itemtype,$val,$data,$key),$item_num,
-                                       $row_num,
-                           Search::displayConfigItem($itemtype,$val,$data,$key));
+                  echo Search::showItem($output_type, Search::giveItem($itemtype, $val, $data, $key), $item_num,
+                                        $row_num,
+                                        Search::displayConfigItem($itemtype, $val, $data, $key));
                }
-           
+
                echo Search::showEndLine($output_type);
             }
             // Close Table
-            $title="";
+            $title = "";
             // Create title
-            if ($output_type==Search::PDF_OUTPUT_PORTRAIT|| $output_type==Search::PDF_OUTPUT_LANDSCAPE) {
-               $title.=__('List of forced holidays', 'resources');
+            if ($output_type == Search::PDF_OUTPUT_PORTRAIT || $output_type == Search::PDF_OUTPUT_LANDSCAPE) {
+               $title .= __('List of forced holidays', 'resources');
             }
-           
+
             // Display footer
-            echo Search::showFooter($output_type,$title);
+            echo Search::showFooter($output_type, $title);
 
             // Pager
-            if ($output_type==Search::HTML_OUTPUT) {
-               echo "<br>";			
-               Html::printPager($p['start'],$numrows,$target,$parameters);
+            if ($output_type == Search::HTML_OUTPUT) {
+               echo "<br>";
+               Html::printPager($p['start'], $numrows, $target, $parameters);
             }
          } else {
             echo Search::showError($output_type);
@@ -1018,4 +1163,3 @@ class PluginResourcesResourceHoliday extends CommonDBTM {
    }
 }
 
-?>

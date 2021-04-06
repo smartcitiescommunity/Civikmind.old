@@ -26,7 +26,7 @@ class PluginMreportingPdf extends TCPDF {
 
       $this->SetAutoPageBreak(true);
 
-      $this->setHeaderFont(array(PDF_FONT_NAME_MAIN, '', PDF_FONT_SIZE_MAIN));
+      $this->setHeaderFont([PDF_FONT_NAME_MAIN, '', PDF_FONT_SIZE_MAIN]);
       $this->SetHeaderMargin(PDF_MARGIN_HEADER);
       $this->AddPage();
    }
@@ -39,19 +39,23 @@ class PluginMreportingPdf extends TCPDF {
    function Content($images) {
       $images_lengh = sizeof($images);
       $i = 0;
-      foreach($images as $image) {
+      foreach ($images as $image) {
          $i++;
          $file = '@' . base64_decode($image['base64']);
          $w    = 210 - PDF_MARGIN_LEFT * 2;
 
-         if ($image['width'] == 0) continue;
+         if ($image['width'] == 0) {
+            continue;
+         }
 
          $h    = floor(($image['height'] * $w) / $image['width']);
-         $this->Image($file, '', '',$w ,$h);
+         $this->Image($file, '', '', $w, $h);
          $this->Ln($h);
 
          $this->writeHTMLCell('', '', '', '', $image['title'], 0, 1, false, true, 'C');
-         if($i < $images_lengh) $this->AddPage();
+         if ($i < $images_lengh) {
+            $this->AddPage();
+         }
       }
    }
 
@@ -61,6 +65,6 @@ class PluginMreportingPdf extends TCPDF {
    function Footer() {
       $this->SetY(-15);
       $this->SetFontSize(8);
-      $this->writeHTMLCell('' , '', '', '', date('Y-m-d H:i:s'), 0, 0, false, true, 'R');
+      $this->writeHTMLCell('', '', '', '', date('Y-m-d H:i:s'), 0, 0, false, true, 'R');
    }
 }

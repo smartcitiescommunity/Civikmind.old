@@ -20,12 +20,12 @@ else {
     $data_fin = date("Y-m-d");
 }
 
-if(!isset($_POST["sel_grp"])) {
-	$id_grp = $_GET["grp"];
+if(!isset($_POST["sel_group"])) {
+	$id_grp = $_REQUEST["sel_group"];
 }
 
 else {
-	$id_grp = $_POST["sel_grp"];
+	$id_grp = $_POST["sel_group"];
 }
 
 
@@ -169,13 +169,12 @@ else {
 		
 							$DB->data_seek($result_grp, 0) ;
 		
-							while ($row_result = $DB->fetch_assoc($result_grp))
-							    {
-							   	$v_row_result = $row_result['id'];
-							    	$arr_grp[$v_row_result] = $row_result['name'] ." (". $row_result['id'] .")" ;
-							    }
+							while ($row_result = $DB->fetch_assoc($result_grp)){
+							   $v_row_result = $row_result['id'];
+							   $arr_grp[$v_row_result] = $row_result['name'] ." (". $row_result['id'] .")" ;
+							 }
 		
-							$name = 'sel_grp';
+							$name = 'sel_group';
 							$options = $arr_grp;
 							$selected = $id_grp;
 		
@@ -201,7 +200,8 @@ else {
 if(!isset($_POST['con'])) {
 
 //grupos
-$con = $_GET['con'];
+if(isset($_GET['con'])){$con = $_GET['con'];}
+else {$con = '';}
 
 if($con == "1") {
 
@@ -238,18 +238,18 @@ $status_all = "('1','2','3','4','5','6')";
 if(isset($_GET['stat'])) {
 
     if($_GET['stat'] == "open") {
-        $status = $status_open;
+      $status = $status_open;
     }
     elseif($_GET['stat'] == "close") {
-        $status = $status_close;
+      $status = $status_close;
     }
     else {
-    $status = $status_all;
+    	$status = $status_all;
     }
 }
 else {
-    $status = $status_all;
-    }
+	$status = $status_all;
+}
 
 
 // Chamados
@@ -261,6 +261,7 @@ FROM `glpi_groups_tickets` , glpi_tickets, glpi_groups
 WHERE glpi_groups_tickets.`groups_id` = ".$id_grp."
 AND glpi_groups_tickets.`groups_id` = glpi_groups.id
 AND glpi_groups_tickets.`tickets_id` = glpi_tickets.id
+AND glpi_groups_tickets.`type` = 2
 AND glpi_tickets.is_deleted = 0
 AND glpi_tickets.date ".$datas2."
 AND glpi_tickets.status IN ".$status."
@@ -282,12 +283,13 @@ SUM(case when glpi_tickets.status = 5 then 1 else 0 end) AS solve,
 SUM(case when glpi_tickets.status = 6 then 1 else 0 end) AS close
 FROM glpi_groups_tickets, glpi_tickets
 WHERE glpi_tickets.is_deleted = '0'
+AND glpi_groups_tickets.`type` = 2
 AND glpi_tickets.date ".$datas2."
 AND glpi_groups_tickets.groups_id = ".$id_grp."
 AND glpi_groups_tickets.`tickets_id` = glpi_tickets.id
 ".$entidade_t." ";
 
- $result_stat = $DB->query($query_stat);
+$result_stat = $DB->query($query_stat);
 
 $new = $DB->result($result_stat,0,'new') + 0;
 $assig = $DB->result($result_stat,0,'assig') + 0;
@@ -305,6 +307,7 @@ WHERE glpi_groups_tickets.groups_id = ".$id_grp."
 AND glpi_groups_tickets.groups_id = glpi_groups.id
 AND glpi_groups_tickets.tickets_id = glpi_tickets.id
 AND glpi_tickets.is_deleted = 0
+AND glpi_groups_tickets.`type` = 2
 AND glpi_tickets.date ".$datas2."
 AND glpi_tickets.status IN ".$status."
 ".$entidade_t."
@@ -312,7 +315,7 @@ GROUP BY id
 ORDER BY id DESC ";
 
 $result_cons1 = $DB->query($consulta1);
-$conta_cons = $DB->numrows($result_cons1);
+$conta_cons = $DB->numrows($result_cham);
 //$consulta = $conta_cons;
 
 $consulta = ($new + $plan + $assig + $pend + $solve + $close);
@@ -327,6 +330,7 @@ WHERE glpi_groups_tickets.groups_id = ".$id_grp."
 AND glpi_groups_tickets.groups_id = glpi_groups.id
 AND glpi_groups_tickets.tickets_id = glpi_tickets.id
 AND glpi_tickets.is_deleted = 0
+AND glpi_groups_tickets.`type` = 2
 AND glpi_tickets.date ".$datas2."
 AND glpi_tickets.status IN ".$status_open."
 ".$entidade_t." ";
@@ -339,24 +343,23 @@ $abertos = $data_ab;
 //barra de porcentagem
 if($conta_cons > 0) {
 
-if($status == $status_close ) {
-    $barra = 100;
-    $cor = "progress-bar-success";
-}
-
-else {
-
-	//porcentagem
-	$perc = round(($abertos*100)/$conta_cons,1);
-	$barra = 100 - $perc;
-
-	// cor barra
-	if($barra == 100) { $cor = "progress-bar-success"; }
-	if($barra >= 80 and $barra < 100) { $cor = " "; }
-	if($barra > 51 and $barra < 80) { $cor = "progress-bar-warning"; }
-	if($barra > 0 and $barra <= 50) { $cor = "progress-bar-danger"; }
-	if($barra < 0) { $cor = "progress-bar-danger"; $barra = 0; }
-
+	if($status == $status_close ) {
+	    $barra = 100;
+	    $cor = "progress-bar-success";
+	}
+	
+	else {
+	
+		//porcentagem
+		$perc = round(($abertos*100)/$conta_cons,1);
+		$barra = 100 - $perc;
+	
+		// cor barra
+		if($barra == 100) { $cor = "progress-bar-success"; }
+		if($barra >= 80 and $barra < 100) { $cor = " "; }
+		if($barra > 51 and $barra < 80) { $cor = "progress-bar-warning"; }
+		if($barra > 0 and $barra <= 50) { $cor = "progress-bar-danger"; }
+		if($barra < 0) { $cor = "progress-bar-danger"; $barra = 0; }	
 	}
 }
 else { $barra = 0;}
@@ -383,7 +386,7 @@ echo "
 		</td>
 		<td style='vertical-align:middle; width: 190px; '>
 		<div class='progress' style='margin-top: 19px;'>
-			<div class='progress-bar ". $cor ." progress-bar-striped active' role='progressbar' aria-valuenow='".$barra."' aria-valuemin='0' aria-valuemax='100' style='width: ".$barra."%;'>
+			<div class='progress-bar ". $cor ." ' role='progressbar' aria-valuenow='".$barra."' aria-valuemin='0' aria-valuemax='100' style='width: ".$barra."%;'>
     			".$barra." % ".__('Closed', 'dashboard') ."
     		</div>
 		</div>
@@ -395,9 +398,9 @@ echo "
 <table align='right' style='margin-bottom:10px;'>
 		<tr>
 			<td>
-				<button class='btn btn-primary btn-sm' type='button' name='abertos' value='Abertos' onclick='location.href=\"rel_grupo.php?con=1&stat=open&grp=".$id_grp."&date1=".$data_ini2."&date2=".$data_fin2."\"' <i class='icon-white icon-trash'></i> ".__('Opened', 'dashboard') ." </button>
-				<button class='btn btn-primary btn-sm' type='button' name='fechados' value='Fechados' onclick='location.href=\"rel_grupo.php?con=1&stat=close&grp=".$id_grp."&date1=".$data_ini2."&date2=".$data_fin2."\"' <i class='icon-white icon-trash'></i> ".__('Closed', 'dashboard')." </button>
-				<button class='btn btn-primary btn-sm' type='button' name='todos' value='Todos' onclick='location.href=\"rel_grupo.php?con=1&stat=all&grp=".$id_grp."&date1=".$data_ini2."&date2=".$data_fin2."\"' <i class='icon-white icon-trash'></i> ".__('All', 'dashboard')." </button>
+				<button class='btn btn-primary btn-sm' type='button' name='abertos' value='Abertos' onclick='location.href=\"rel_grupo.php?con=1&stat=open&sel_group=".$id_grp."&date1=".$data_ini2."&date2=".$data_fin2."\"' <i class='icon-white icon-trash'></i> ".__('Opened', 'dashboard') ." </button>
+				<button class='btn btn-primary btn-sm' type='button' name='fechados' value='Fechados' onclick='location.href=\"rel_grupo.php?con=1&stat=close&sel_group=".$id_grp."&date1=".$data_ini2."&date2=".$data_fin2."\"' <i class='icon-white icon-trash'></i> ".__('Closed', 'dashboard')." </button>
+				<button class='btn btn-primary btn-sm' type='button' name='todos' value='Todos' onclick='location.href=\"rel_grupo.php?con=1&stat=all&sel_group=".$id_grp."&date1=".$data_ini2."&date2=".$data_fin2."\"' <i class='icon-white icon-trash'></i> ".__('All', 'dashboard')." </button>
 			</td>
 		</tr>
 </table>
@@ -461,10 +464,10 @@ $result_user = $DB->query($sql_user);
 
 //grupo
 $sql_tec = "SELECT name
-FROM `glpi_groups` , `glpi_groups_tickets`
+FROM `glpi_groups`, `glpi_groups_tickets`
 WHERE `glpi_groups_tickets`.tickets_id = ".$row['id']."
 AND glpi_groups.id = glpi_groups_tickets.groups_id
-AND glpi_groups_tickets.type = 2
+AND glpi_groups_tickets.`type` = 2
 ".$entidade." ";
 
 $result_tec = $DB->query($sql_tec);

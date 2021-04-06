@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,16 +30,12 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
 
 /// Class RSSFeed_User
-/// @since version 0.84
+/// @since 0.84
 class RSSFeed_User extends CommonDBRelation {
 
    // From CommonDBRelation
@@ -63,11 +59,12 @@ class RSSFeed_User extends CommonDBRelation {
       global $DB;
 
       $users = [];
-      $query = "SELECT `glpi_rssfeeds_users`.*
-                FROM `glpi_rssfeeds_users`
-                WHERE `rssfeeds_id` = '$rssfeeds_id'";
+      $iterator = $DB->request([
+         'FROM'   => self::getTable(),
+         'WHERE'  => ['rssfeeds_id' => $rssfeeds_id]
+      ]);
 
-      foreach ($DB->request($query) as $data) {
+      while ($data = $iterator->next()) {
          $users[$data['users_id']][] = $data;
       }
       return $users;

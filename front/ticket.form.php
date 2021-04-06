@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -29,10 +29,6 @@
  * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
  */
-
-/** @file
-* @brief
-*/
 
 use Glpi\Event;
 
@@ -64,7 +60,7 @@ foreach ($date_fields as $date_field) {
 if (isset($_POST["add"])) {
    $track->check(-1, CREATE, $_POST);
 
-   if ($id = $track->add($_POST)) {
+   if ($track->add($_POST)) {
       if ($_SESSION['glpibackcreated']) {
          Html::redirect($track->getLinkURL());
       }
@@ -73,7 +69,6 @@ if (isset($_POST["add"])) {
 
 } else if (isset($_POST['update'])) {
    $track->check($_POST['id'], UPDATE);
-
    $track->update($_POST);
 
    if (isset($_POST['kb_linked_id'])) {
@@ -104,7 +99,7 @@ if (isset($_POST["add"])) {
       if (isset($_POST['_sol_to_kb']) && $_POST['_sol_to_kb']) {
          $toadd = "&_sol_to_kb=1";
       }
-      Html::redirect($CFG_GLPI["root_doc"]."/front/ticket.form.php?id=".$_POST["id"].$toadd);
+      Html::redirect(Ticket::getFormURLWithID($_POST["id"]).$toadd);
    }
    Session::addMessageAfterRedirect(__('You have been redirected because you no longer have access to this ticket'),
                                     true, ERROR);
@@ -146,7 +141,7 @@ if (isset($_POST["add"])) {
               //TRANS: %s is the user login
               sprintf(__('%s updates an item'), $_SESSION["glpiname"]));
 
-   Html::redirect($CFG_GLPI["root_doc"]."/front/ticket.form.php?id=".$_POST["id"]);
+   Html::redirect(Ticket::getFormURLWithID($_POST["id"]));
 
 } else if (isset($_POST['ola_delete'])) {
    $track->check($_POST["id"], UPDATE);
@@ -156,52 +151,58 @@ if (isset($_POST["add"])) {
               //TRANS: %s is the user login
               sprintf(__('%s updates an item'), $_SESSION["glpiname"]));
 
-   Html::redirect($CFG_GLPI["root_doc"]."/front/ticket.form.php?id=".$_POST["id"]);
+   Html::redirect(Ticket::getFormURLWithID($_POST["id"]));
 
 } else if (isset($_POST['addme_observer'])) {
-   $ticket_user = new Ticket_User();
    $track->check($_POST['tickets_id'], READ);
-   $input = ['tickets_id'       => $_POST['tickets_id'],
-                  'users_id'         => Session::getLoginUserID(),
-                  'use_notification' => 1,
-                  'type'             => CommonITILActor::OBSERVER];
-   $ticket_user->add($input);
-
+   $input = array_merge(Toolbox::addslashes_deep($track->fields), [
+      'id' => $_POST['tickets_id'],
+      '_itil_observer' => [
+         '_type' => "user",
+         'users_id' => Session::getLoginUserID(),
+         'use_notification' => 1,
+      ]
+   ]);
+   $track->update($input);
    Event::log($_POST['tickets_id'], "ticket", 4, "tracking",
               //TRANS: %s is the user login
               sprintf(__('%s adds an actor'), $_SESSION["glpiname"]));
-   Html::redirect($CFG_GLPI["root_doc"]."/front/ticket.form.php?id=".$_POST['tickets_id']);
+   Html::redirect(Ticket::getFormURLWithID($_POST['tickets_id']));
 
 } else if (isset($_POST['addme_assign'])) {
-   $ticket_user = new Ticket_User();
-
    $track->check($_POST['tickets_id'], READ);
-   $input = ['tickets_id'       => $_POST['tickets_id'],
-                  'users_id'         => Session::getLoginUserID(),
-                  'use_notification' => 1,
-                  'type'             => CommonITILActor::ASSIGN];
-   $ticket_user->add($input);
+   $input = array_merge(Toolbox::addslashes_deep($track->fields), [
+      'id' => $_POST['tickets_id'],
+      '_itil_assign' => [
+         '_type' => "user",
+         'users_id' => Session::getLoginUserID(),
+         'use_notification' => 1,
+      ]
+   ]);
+   $track->update($input);
    Event::log($_POST['tickets_id'], "ticket", 4, "tracking",
               //TRANS: %s is the user login
               sprintf(__('%s adds an actor'), $_SESSION["glpiname"]));
-   Html::redirect($CFG_GLPI["root_doc"]."/front/ticket.form.php?id=".$_POST['tickets_id']);
+   Html::redirect(Ticket::getFormURLWithID($_POST['tickets_id']));
 } else if (isset($_REQUEST['delete_document'])) {
+   $track->getFromDB((int)$_REQUEST['tickets_id']);
    $doc = new Document();
    $doc->getFromDB(intval($_REQUEST['documents_id']));
    if ($doc->can($doc->getID(), UPDATE)) {
       $document_item = new Document_Item;
-      $found_document_items = $document_item->find("itemtype = 'Ticket' ".
-                                                   " AND items_id = ".intval($_REQUEST['tickets_id']).
-                                                   " AND documents_id = ".$doc->getID());
+      $found_document_items = $document_item->find([
+         $track->getAssociatedDocumentsCriteria(),
+         'documents_id' => $doc->getID()
+      ]);
       foreach ($found_document_items  as $item) {
-         $document_item->delete($item, true);
+         $document_item->delete(Toolbox::addslashes_deep($item), true);
       }
    }
    Html::back();
 }
 
 if (isset($_GET["id"]) && ($_GET["id"] > 0)) {
-   if ($_SESSION["glpiactiveprofile"]["interface"] == "helpdesk") {
+   if (Session::getCurrentInterface() == "helpdesk") {
       Html::helpHeader(Ticket::getTypeName(Session::getPluralNumber()), '', $_SESSION["glpiname"]);
    } else {
       Html::header(Ticket::getTypeName(Session::getPluralNumber()), '', "helpdesk", "ticket");
@@ -221,8 +222,8 @@ if (isset($_GET["id"]) && ($_GET["id"] > 0)) {
 
    if (isset($_GET['_sol_to_kb'])) {
       Ajax::createIframeModalWindow('savetokb',
-                                    $CFG_GLPI["root_doc"].
-                                     "/front/knowbaseitem.form.php?_in_modal=1&item_itemtype=Ticket&item_items_id=".
+                                    KnowbaseItem::getFormURL().
+                                     "?_in_modal=1&item_itemtype=Ticket&item_items_id=".
                                      $_GET["id"],
                                     ['title'         => __('Save solution to the knowledge base'),
                                           'reloadonclose' => false]);
@@ -230,6 +231,11 @@ if (isset($_GET["id"]) && ($_GET["id"] > 0)) {
    }
 
 } else {
+   if (Session::getCurrentInterface() != 'central') {
+      Html::redirect($CFG_GLPI["root_doc"]."/front/helpdesk.public.php?create_ticket=1");
+      die;
+   }
+
    Html::header(__('New ticket'), '', "helpdesk", "ticket");
    unset($_REQUEST['id']);
    unset($_GET['id']);
@@ -250,7 +256,7 @@ if (isset($_GET["id"]) && ($_GET["id"] > 0)) {
 }
 
 
-if ($_SESSION["glpiactiveprofile"]["interface"] == "helpdesk") {
+if (Session::getCurrentInterface() == "helpdesk") {
    Html::helpFooter();
 } else {
    Html::footer();

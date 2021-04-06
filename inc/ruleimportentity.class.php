@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,9 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -55,13 +52,10 @@ class RuleImportEntity extends Rule {
    **/
    function maxActionsCount() {
       // Unlimited
-      return 2;
+      return 4;
    }
 
-   /**
-    * @see Rule::executeActions()
-   **/
-   function executeActions($output, $params) {
+   function executeActions($output, $params, array $input = []) {
 
       if (count($this->actions)) {
          foreach ($this->actions as $action) {
@@ -117,7 +111,7 @@ class RuleImportEntity extends Rule {
 
 
    /**
-    * @since version 0.84
+    * @since 0.84
     *
     * @see Rule::displayAdditionalRuleCondition()
    **/
@@ -127,6 +121,9 @@ class RuleImportEntity extends Rule {
       if ($criteria['field'] == '_source') {
          $tab = [];
          foreach ($PLUGIN_HOOKS['import_item'] as $plug => $types) {
+            if (!Plugin::isPluginActive($plug)) {
+               continue;
+            }
             $tab[$plug] = Plugin::getInfo($plug, 'name');
          }
          Dropdown::showFromArray($name, $tab);
@@ -137,14 +134,14 @@ class RuleImportEntity extends Rule {
 
 
    /**
-    * @since version 0.84
+    * @since 0.84
     *
     * @see Rule::getAdditionalCriteriaDisplayPattern()
    **/
    function getAdditionalCriteriaDisplayPattern($ID, $condition, $pattern) {
 
       $crit = $this->getCriteria($ID);
-      if ($crit['field'] == '_source') {
+      if (count($crit) && $crit['field'] == '_source') {
          $name = Plugin::getInfo($pattern, 'name');
          if (empty($name)) {
             return false;
@@ -161,16 +158,26 @@ class RuleImportEntity extends Rule {
 
       $actions                             = [];
 
-      $actions['entities_id']['name']      = __('Entity');
+      $actions['entities_id']['name']      = Entity::getTypeName(1);
       $actions['entities_id']['type']      = 'dropdown';
       $actions['entities_id']['table']     = 'glpi_entities';
 
-      $actions['locations_id']['name']     = __('Location');
+      $actions['locations_id']['name']     = Location::getTypeName(1);
       $actions['locations_id']['type']     = 'dropdown';
       $actions['locations_id']['table']    = 'glpi_locations';
 
       $actions['_ignore_import']['name']   = __('To be unaware of import');
       $actions['_ignore_import']['type']   = 'yesonly';
+
+      $actions['is_recursive']['name']     = __('Child entities');
+      $actions['is_recursive']['type']     = 'yesno';
+
+      $actions['groups_id_tech']['name']     = __('Group in charge of the hardware');
+      $actions['groups_id_tech']['type']     = 'dropdown';
+      $actions['groups_id_tech']['table']    = 'glpi_groups';
+
+      $actions['users_id_tech']['name']     = __('Technician in charge of the hardware');
+      $actions['users_id_tech']['type']     = 'dropdown_users';
 
       return $actions;
    }

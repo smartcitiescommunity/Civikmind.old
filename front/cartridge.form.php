@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -29,10 +29,6 @@
  * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
  */
-
-/** @file
-* @brief
-*/
 
 use Glpi\Event;
 
@@ -76,7 +72,7 @@ if (isset($_POST["add"])) {
          }
       }
    }
-   Html::redirect($CFG_GLPI["root_doc"]."/front/printer.form.php?id=".$_POST["printers_id"]);
+   Html::redirect(Printer::getFormURLWithID($_POST["printers_id"]));
 
 } else if (isset($_POST["update"])) {
    $cart->check($_POST["id"], UPDATE);

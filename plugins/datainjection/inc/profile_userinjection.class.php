@@ -1,6 +1,6 @@
 <?php
 /*
- * @version $Id$
+ * @version $Id: HEADER 14684 2011-06-11 06:32:40Z remi $
  LICENSE
 
  This file is part of the datainjection plugin.
@@ -20,23 +20,24 @@
  --------------------------------------------------------------------------
  @package   datainjection
  @author    the datainjection plugin team
- @copyright Copyright (c) 2010-2013 Datainjection plugin team
+ @copyright Copyright (c) 2010-2017 Datainjection plugin team
  @license   GPLv2+
             http://www.gnu.org/licenses/gpl.txt
- @link      https://forge.indepnet.net/projects/datainjection
+ @link      https://github.com/pluginsGLPI/datainjection
  @link      http://www.glpi-project.org/
  @since     2009
  ---------------------------------------------------------------------- */
 
 if (!defined('GLPI_ROOT')) {
-   die("Sorry. You can't access directly to this file");
+    die("Sorry. You can't access directly to this file");
 }
 
 class PluginDatainjectionProfile_UserInjection extends Profile_User
-                                               implements PluginDatainjectionInjectionInterface {
+                                               implements PluginDatainjectionInjectionInterface
+{
 
 
-   static function getTable() {
+   static function getTable($classname = null) {
 
       $parenttype = get_parent_class();
       return $parenttype::getTable();
@@ -44,19 +45,21 @@ class PluginDatainjectionProfile_UserInjection extends Profile_User
 
 
    function isPrimaryType() {
+
       return false;
    }
 
 
    function connectedTo() {
-      return array();
+
+      return [];
    }
 
 
-   /**
+    /**
     * @see plugins/datainjection/inc/PluginDatainjectionInjectionInterface::getOptions()
    **/
-   function getOptions($primary_type='') {
+   function getOptions($primary_type = '') {
 
       $tab = Search::getOptions(get_parent_class($this));
 
@@ -71,19 +74,19 @@ class PluginDatainjectionProfile_UserInjection extends Profile_User
 
       //Remove some options because some fields cannot be imported
       $blacklist     = PluginDatainjectionCommonInjectionLib::getBlacklistedOptions(get_parent_class($this));
-      $notimportable = array();
+      $notimportable = [];
 
       $options['ignore_fields'] = array_merge($blacklist, $notimportable);
-      $options['displaytype']   = array("bool"           => array(86));
+      $options['displaytype']   = ["bool"           => [86]];
 
       return PluginDatainjectionCommonInjectionLib::addToSearchOptions($tab, $options, $this);
    }
 
 
-   /**
+    /**
     * @see plugins/datainjection/inc/PluginDatainjectionInjectionInterface::addOrUpdateObject()
    **/
-   function addOrUpdateObject($values=array(), $options=array()) {
+   function addOrUpdateObject($values = [], $options = []) {
 
       $lib = new PluginDatainjectionCommonInjectionLib($this, $values, $options);
       $lib->processAddOrUpdate();
@@ -91,15 +94,14 @@ class PluginDatainjectionProfile_UserInjection extends Profile_User
    }
 
 
-   /**
+    /**
     * @param $primary_type
     * @param $values
    **/
-   function addSpecificNeededFields($primary_type,$values) {
+   function addSpecificNeededFields($primary_type, $values) {
 
       $fields['users_id'] = $values['User']['id'];
       return $fields;
    }
 
 }
-?>

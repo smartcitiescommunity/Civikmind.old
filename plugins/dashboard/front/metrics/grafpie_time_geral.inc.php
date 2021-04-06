@@ -1,13 +1,32 @@
 <?php
 
-$query2 = "
-SELECT count( id ) AS chamados , DATEDIFF( solvedate, date ) AS days
-FROM glpi_tickets
-WHERE solvedate IS NOT NULL
-AND is_deleted = 0
-$period
-$entidade
-GROUP BY days ";
+if($id_grp != '') {
+
+	$query2 = "
+	SELECT count( glpi_tickets.id ) AS chamados , DATEDIFF( glpi_tickets.solvedate, date ) AS days
+	FROM `glpi_groups_tickets`, glpi_tickets, glpi_groups, glpi_requesttypes
+	WHERE glpi_groups_tickets.`groups_id` = ".$id_grp."
+	AND glpi_groups_tickets.`groups_id` = glpi_groups.id
+	AND glpi_groups_tickets.`tickets_id` = glpi_tickets.id
+	AND glpi_tickets.is_deleted = 0
+	AND glpi_tickets.`requesttypes_id` = glpi_requesttypes.id
+	AND glpi_tickets.solvedate IS NOT NULL
+	$period
+	$entidade
+	GROUP BY days ";
+}
+
+else {
+
+	$query2 = "
+	SELECT count( glpi_tickets.id ) AS chamados , DATEDIFF( glpi_tickets.solvedate, date ) AS days
+	FROM glpi_tickets
+	WHERE glpi_tickets.solvedate IS NOT NULL
+	AND glpi_tickets.is_deleted = 0
+	$period
+	$entidade
+	GROUP BY days ";
+}
 		
 $result2 = $DB->query($query2) or die('erro');
 
@@ -25,7 +44,7 @@ $quant2 = array_values($arr_grf2);
 $conta = count($arr_grf2);
 
 
-for($i=0; $i < 8; $i++) {
+for($i=0; $i < 10; $i++) {
 
 	if($quant2[$i] != 0) {
 		$till[$i] = $quant2[$i];
@@ -36,6 +55,22 @@ for($i=0; $i < 8; $i++) {
 	
 	$arr_days[] += $till[$i];
 
+}
+
+$resto = 0;
+if ($conta > 10){
+	
+	for($i=10; $i < $conta; $i++) {
+
+		if($quant2[$i] != 0) {
+			$till[$i] = $quant2[$i];
+		}
+		else {
+			$till[$i] = 0;
+		}	
+	
+		$resto += $till[$i];
+	}
 }
 
 echo "
@@ -110,11 +145,13 @@ $(function () {
                 data: [  {
                         name: '< 1 " .__('day','dashboard')."',
                         y: ".$arr_days[0].",
-                        sliced: true,
-                        selected: true
+                        sliced: false,
+                        selected: false
                     }, ['1 - 2 " .__('days','dashboard')."',  ".$arr_days[1]." ], ['2 - 3 " .__('days','dashboard')."',  ".$arr_days[2]." ],
                 			['3 - 4 " .__('days','dashboard')."', ".$arr_days[3]." ], ['4 - 5 " .__('days','dashboard')."',  ".$arr_days[4]." ], 
-                			['5 - 6 " .__('days','dashboard')."',  ".$arr_days[5]." ], ['6 - 7 " .__('days','dashboard')."',  ".$arr_days[6]." ]		]
+                			['5 - 6 " .__('days','dashboard')."',  ".$arr_days[5]." ], ['6 - 7 " .__('days','dashboard')."',  ".$arr_days[6]." ],	
+							['7 - 8 " .__('days','dashboard')."',  ".$till[7]." ], ['8 - 9 " .__('days','dashboard')."',  ".$till[8]." ], 
+							['9 - 10 " .__('days','dashboard')."',  ".$till[9]." ], ['> 10 " .__('days','dashboard')."',  ".$resto." ],]
             }]
         });
     });

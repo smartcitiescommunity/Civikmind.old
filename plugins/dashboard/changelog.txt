@@ -1,15 +1,16 @@
-Versão 0.8.8:
+Versão 0.9.9:
 
-- GLPI 9.2 apenas;
-- Correção na página de ativos;
-- Correeção dos relatórios e gráficos de SLA;
+- GLPI 9.4.x
+
+- tempo de solução > 7 dias em métricas
 - Correção de bugs diversos;
 
 
-Version 0.8.8:
 
-- Only for GLPI 9.2;
-- Fix assets page;
-- Fix SLA reports and charts;
+Version 0.9.9:
+
+- GLPI 9.4.x
+
+
 - Fix minor bugs;
 

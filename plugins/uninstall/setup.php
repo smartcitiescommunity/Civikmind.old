@@ -28,7 +28,12 @@
  @since     2009
  ---------------------------------------------------------------------- */
 
-define ('PLUGIN_UNINSTALL_VERSION', '2.3.0');
+define ('PLUGIN_UNINSTALL_VERSION', '2.7.0');
+
+// Minimal GLPI version, inclusive
+define("PLUGIN_UNINSTALL_MIN_GLPI", "9.5");
+// Maximum GLPI version, exclusive
+define("PLUGIN_UNINSTALL_MAX_GLPI", "9.6");
 
 /**
  * Function Init
@@ -51,15 +56,37 @@ function plugin_init_uninstall() {
                                              'Printer'];
 
       if (Session::getLoginUserID()) {
-         if (Session::haveRight(PluginUninstallProfile::$rightname, READ)) {
+         // config page
+         Plugin::registerClass('PluginUninstallConfig', [
+            'addtabon' => 'Config'
+         ]);
+         $PLUGIN_HOOKS['config_page']['uninstall'] = 'front/config.form.php';
+         $uninstallconfig = PluginUninstallConfig::getConfig();
+
+         $PLUGIN_HOOKS['add_css']['uninstall'] = [
+            'css/uninstall.css',
+         ];
+
+         if ($uninstallconfig['replace_status_dropdown']) {
+            // replace item state by uninstall list
+            $PLUGIN_HOOKS['post_item_form']['uninstall'] = [
+               'PluginUninstallState', 'replaceState'
+            ];
+         } else {
+            // add tabs to items
+            foreach ($UNINSTALL_TYPES as $type) {
+               Plugin::registerClass('PluginUninstallUninstall', [
+                  'addtabon' => $type
+               ]);
+            }
+         }
+
+         if (Session::haveRight('uninstall:profile', READ)) {
             $PLUGIN_HOOKS['use_massive_action']['uninstall'] = true;
 
-            if (Session::haveRight('uninstall:profile', READ)) {
+            if (Session::haveRight('uninstall:profile', UPDATE)) {
                // Add link in GLPI plugins list :
                $PLUGIN_HOOKS["menu_toadd"]['uninstall'] = ['admin' => 'PluginUninstallModel'];
-
-               // add to 'Admin' menu :
-               $PLUGIN_HOOKS['config_page']['uninstall'] = "front/model.php";
             }
 
             //Item actions
@@ -80,32 +107,19 @@ function plugin_init_uninstall() {
 }
 
 function plugin_version_uninstall() {
-   return ['name'           => __("Item's uninstallation", 'uninstall'),
-           'author'         => 'Walid Nouh, François Legastelois, Remi Collet',
-           'license'        => '<a href="../plugins/uninstall/LICENSE" target="_blank">GPLv2+</a>',
-           'homepage'       => 'https://github.com/pluginsGLPI/uninstall',
-           'minGlpiVersion' => '9.2',
-           'version'        => PLUGIN_UNINSTALL_VERSION,
-           'license'        => 'GPLv2+',
-           'requirements'   => [
-              'glpi' => [
-                 'min' => '9.2',
-                 'max' => '9.3',
-                 'dev' => true
-              ]
-           ]
-         ];
-}
-
-function plugin_uninstall_check_prerequisites() {
-   $version = rtrim(GLPI_VERSION, '-dev');
-   if (version_compare($version, '9.2', 'lt')) {
-      echo "This plugin requires GLPI 9.2";
-      return false;
-   }
-   return true;
-}
-
-function plugin_uninstall_check_config($verbose=false) {
-   return true;
+   return [
+      'name'           => __("Item's Lifecycle (uninstall)", 'uninstall'),
+      'author'         => 'Walid Nouh, François Legastelois, Remi Collet',
+      'license'        => "GPLv2+",
+      'homepage'       => 'https://github.com/pluginsGLPI/uninstall',
+      'version'        => PLUGIN_UNINSTALL_VERSION,
+      'license'        => 'GPLv2+',
+      'requirements'   => [
+         'glpi' => [
+            'min' => PLUGIN_UNINSTALL_MIN_GLPI,
+            'max' => PLUGIN_UNINSTALL_MAX_GLPI,
+            'dev' => true, //Required to allow 9.2-dev
+         ]
+      ]
+   ];
 }

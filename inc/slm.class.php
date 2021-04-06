@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,9 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-* @since version 9.2
-*/
+/**
+ * @since 9.2
+ */
 
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
@@ -74,6 +73,7 @@ class SLM extends CommonDBTM {
 
       $ong = [];
       $this->addDefaultFormTab($ong);
+      $this->addImpactTab($ong, $options);
       $this->addStandardTab('SLA', $ong, $options);
       $this->addStandardTab('OLA', $ong, $options);
       $this->addStandardTab('Log', $ong, $options);
@@ -82,13 +82,13 @@ class SLM extends CommonDBTM {
    }
 
    function cleanDBonPurge() {
-      global $DB;
 
-      $sla = new Sla();
-      $sla->deleteByCriteria(['slms_id' => $this->getID()]);
-
-      $ola = new Ola();
-      $ola->deleteByCriteria(['slms_id' => $this->getID()]);
+      $this->deleteChildrenAndRelationsFromDb(
+         [
+            SLA::class,
+            OLA::class,
+         ]
+      );
    }
 
    /**
@@ -116,7 +116,7 @@ class SLM extends CommonDBTM {
             <textarea cols='45' rows='8' name='comment' >".$this->fields["comment"]."</textarea>";
       echo "</td></tr>";
 
-      echo "<tr class='tab_bg_1'><td>".__('Calendar')."</td>";
+      echo "<tr class='tab_bg_1'><td>"._n('Calendar', 'Calendars', 1)."</td>";
       echo "<td>";
 
       Calendar::dropdown(['value'      => $this->fields["calendars_id"],
@@ -130,7 +130,7 @@ class SLM extends CommonDBTM {
    }
 
 
-   function getSearchOptionsNew() {
+   function rawSearchOptions() {
       $tab = [];
 
       $tab[] = [
@@ -144,7 +144,8 @@ class SLM extends CommonDBTM {
          'field'              => 'name',
          'name'               => __('Name'),
          'datatype'           => 'itemlink',
-         'massiveaction'      => false
+         'massiveaction'      => false,
+         'autocomplete'       => true,
       ];
 
       $tab[] = [
@@ -160,8 +161,16 @@ class SLM extends CommonDBTM {
          'id'                 => '4',
          'table'              => 'glpi_calendars',
          'field'              => 'name',
-         'name'               => __('Calendar'),
+         'name'               => _n('Calendar', 'Calendars', 1),
          'datatype'           => 'dropdown'
+      ];
+
+      $tab[] = [
+         'id'                 => '16',
+         'table'              => $this->getTable(),
+         'field'              => 'comment',
+         'name'               => __('Comments'),
+         'datatype'           => 'text'
       ];
 
       return $tab;
@@ -171,27 +180,30 @@ class SLM extends CommonDBTM {
    static function getMenuContent() {
 
       $menu = [];
-      if (Config::canUpdate()) {
+      if (static::canView()) {
          $menu['title']           = self::getTypeName(2);
-         $menu['page']            = '/front/slm.php';
-         $menu['links']['search'] = '/front/slm.php';
-         $menu['links']['add']    = '/front/slm.form.php';
+         $menu['page']            = static::getSearchURL(false);
+         $menu['icon']            = static::getIcon();
+         $menu['links']['search'] = static::getSearchURL(false);
+         if (static::canCreate()) {
+            $menu['links']['add'] = SLM::getFormURL(false);
+         }
 
          $menu['options']['sla']['title']           = SLA::getTypeName(1);
-         $menu['options']['sla']['page']            = '/front/sla.php';
-         $menu['options']['sla']['links']['search'] = '/front/sla.php';
+         $menu['options']['sla']['page']            = SLA::getSearchURL(false);
+         $menu['options']['sla']['links']['search'] = SLA::getSearchURL(false);
 
          $menu['options']['ola']['title']           = OLA::getTypeName(1);
-         $menu['options']['ola']['page']            = '/front/ola.php';
-         $menu['options']['ola']['links']['search'] = '/front/ola.php';
+         $menu['options']['ola']['page']            = OLA::getSearchURL(false);
+         $menu['options']['ola']['links']['search'] = OLA::getSearchURL(false);
 
          $menu['options']['slalevel']['title']           = SlaLevel::getTypeName(Session::getPluralNumber());
-         $menu['options']['slalevel']['page']            = '/front/slalevel.php';
-         $menu['options']['slalevel']['links']['search'] = '/front/slalevel.php';
+         $menu['options']['slalevel']['page']            = SlaLevel::getSearchURL(false);
+         $menu['options']['slalevel']['links']['search'] = SlaLevel::getSearchURL(false);
 
          $menu['options']['olalevel']['title']           = OlaLevel::getTypeName(Session::getPluralNumber());
-         $menu['options']['olalevel']['page']            = '/front/olalevel.php';
-         $menu['options']['olalevel']['links']['search'] = '/front/olalevel.php';
+         $menu['options']['olalevel']['page']            = OlaLevel::getSearchURL(false);
+         $menu['options']['olalevel']['links']['search'] = OlaLevel::getSearchURL(false);
 
       }
       if (count($menu)) {
@@ -200,4 +212,8 @@ class SLM extends CommonDBTM {
       return false;
    }
 
+
+   static function getIcon() {
+      return "fas fa-file-contract";
+   }
 }

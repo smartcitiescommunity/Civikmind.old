@@ -9,7 +9,7 @@
  -------------------------------------------------------------------------
 
  LICENSE
-      
+
  This file is part of resources.
 
  resources is free software; you can redistribute it and/or modify
@@ -30,8 +30,8 @@
 include ('../../../inc/includes.php');
 
 //show list of users linked with a resource
-if ($_SESSION['glpiactiveprofile']['interface'] == 'central') {
-   Html::header(PluginResourcesResource::getTypeName(2), '', "admin", "pluginresourcesresource");
+if (Session::getCurrentInterface() == 'central') {
+   Html::header(PluginResourcesResource::getTypeName(2), '', "admin", PluginResourcesMenu::getType());
 } else {
    Html::helpHeader(PluginResourcesResource::getTypeName(2));
 }
@@ -39,22 +39,23 @@ if ($_SESSION['glpiactiveprofile']['interface'] == 'central') {
 $directory = new PluginResourcesDirectory();
 
 if (($directory->canView() || Session::haveRight("config", UPDATE))) {
-   if (empty($_GET["sort"]))
+   if (empty($_GET["sort"])) {
       $_GET["sort"] = "34";
-   if (empty($_GET["order"]))
+   }
+   if (empty($_GET["order"])) {
       $_GET["order"] = "ASC";
-   
-   $params = Search::manageParams("PluginResourcesDirectory", $_GET);
-   Search::showGenericSearch("PluginResourcesDirectory", $params);
-   $directory->showList("PluginResourcesDirectory", $params);
-   
+   }
+
+   $params = Search::manageParams(PluginResourcesDirectory::class, $_GET);
+   Search::showGenericSearch(PluginResourcesDirectory::class, $params);
+   $directory->showList(PluginResourcesDirectory::class, $params);
+
 } else {
    Html::displayRightError();
 }
 
-if ($_SESSION['glpiactiveprofile']['interface'] == 'central') {
+if (Session::getCurrentInterface() == 'central') {
    Html::footer();
 } else {
    Html::helpFooter();
 }
-?>

@@ -12,7 +12,6 @@ $mydate = isset($_POST["date1"]) ? $_POST["date1"] : "";
 <html> 
 <head>
 <title>GLPI - <?php echo __('Tickets','dashboard') .'  '. __('by Technician','dashboard').'s'  ?></title>
-<!-- <base href= "<?php $_SERVER['SERVER_NAME'] ?>" > -->
 <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
 <meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7" />
 <meta http-equiv="content-language" content="en-us" />
@@ -70,7 +69,10 @@ $datahoje = date("Y-m-d");
 <table border="0" cellspacing="0" cellpadding="2">
 	<tr>
 			<td style="width: 300px;">		
-			<?php			    
+			<?php	
+			$url = $_SERVER['REQUEST_URI'];
+			$arr_url = explode("?", $url);
+			$url2 = $arr_url[0];		    
 			echo'
 						<table style="margin-top:6px;" border=0>
 							<tr>

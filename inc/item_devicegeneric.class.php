@@ -7,7 +7,7 @@ if (!defined('GLPI_ROOT')) {
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -42,9 +42,6 @@ class Item_DeviceGeneric extends Item_Devices {
    static protected $notable = false;
 
 
-   /**
-    * @since version 0.85
-   **/
    static function getSpecificities($specif = '') {
       return ['serial' => parent::getSpecificities('serial'),
                    'otherserial' => parent::getSpecificities('otherserial'),

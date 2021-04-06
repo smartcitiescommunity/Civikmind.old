@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -53,61 +49,109 @@ class Group_User extends CommonDBRelation{
    static $items_id_2                 = 'groups_id';
 
    /**
-    * @param $users_id
-    * @param $condition    (default '')
+   * Check if a user belongs to a group
+   *
+   * @since 9.4
+   *
+   * @param integer $users_id  the user ID
+   * @param integer $groups_id the group ID
+   *
+   * @return boolean true if the user belongs to the group
+   */
+   static function isUserInGroup($users_id, $groups_id) {
+      return countElementsInTable(
+         'glpi_groups_users', [
+            'users_id' => $users_id,
+            'groups_id' => $groups_id
+         ]
+      ) > 0;
+   }
+
+   /**
+    * Get groups for a user
+    *
+    * @param integer $users_id  User id
+    * @param array   $condition Query extra condition (default [])
+    *
+    * @return array
    **/
-   static function getUserGroups($users_id, $condition = '') {
+   static function getUserGroups($users_id, $condition = []) {
       global $DB;
 
       $groups = [];
-      $query  = "SELECT `glpi_groups`.*,
-                        `glpi_groups_users`.`id` AS IDD,
-                        `glpi_groups_users`.`id` AS linkID,
-                        `glpi_groups_users`.`is_dynamic` AS is_dynamic,
-                        `glpi_groups_users`.`is_manager` AS is_manager,
-                        `glpi_groups_users`.`is_userdelegate` AS is_userdelegate
-                 FROM `glpi_groups_users`
-                 LEFT JOIN `glpi_groups` ON (`glpi_groups`.`id` = `glpi_groups_users`.`groups_id`)
-                 WHERE `glpi_groups_users`.`users_id` = '$users_id' ";
-      if (!empty($condition)) {
-         $query .= " AND $condition ";
+      $iterator = $DB->request([
+         'SELECT' => [
+            'glpi_groups.*',
+            'glpi_groups_users.id AS IDD',
+            'glpi_groups_users.id AS linkid',
+            'glpi_groups_users.is_dynamic AS is_dynamic',
+            'glpi_groups_users.is_manager AS is_manager',
+            'glpi_groups_users.is_userdelegate AS is_userdelegate'
+         ],
+         'FROM'   => self::getTable(),
+         'LEFT JOIN'    => [
+            Group::getTable() => [
+               'FKEY' => [
+                  Group::getTable() => 'id',
+                  self::getTable()  => 'groups_id'
+               ]
+            ]
+         ],
+         'WHERE'        => [
+            'glpi_groups_users.users_id' => $users_id
+         ] + $condition,
+         'ORDER'        => 'glpi_groups.name'
+      ]);
+      while ($row = $iterator->next()) {
+         $groups[] = $row;
       }
-      $query.=" ORDER BY `glpi_groups`.`name`";
 
-      foreach ($DB->request($query) as $data) {
-         $groups[] = $data;
-      }
       return $groups;
    }
 
 
    /**
-    * @since version 0.84
+    * Get users for a group
     *
-    * @param $groups_id
-    * @param $condition    (default '')
+    * @since 0.84
+    *
+    * @param integer $groups_id Group ID
+    * @param array   $condition Query extra condition (default [])
+    *
+    * @return array
    **/
-   static function getGroupUsers($groups_id, $condition = '') {
+   static function getGroupUsers($groups_id, $condition = []) {
       global $DB;
 
       $users = [];
-      $query = "SELECT `glpi_users`.*,
-                       `glpi_groups_users`.`id` AS IDD,
-                       `glpi_groups_users`.`id` AS linkID,
-                       `glpi_groups_users`.`is_dynamic` AS is_dynamic,
-                       `glpi_groups_users`.`is_manager` AS is_manager,
-                       `glpi_groups_users`.`is_userdelegate` AS is_userdelegate
-                FROM `glpi_groups_users`
-                LEFT JOIN `glpi_users` ON (`glpi_users`.`id` = `glpi_groups_users`.`users_id`)
-                WHERE `glpi_groups_users`.`groups_id` = '$groups_id'";
-      if (!empty($condition)) {
-         $query .= " AND $condition ";
-      }
-      $query .= "ORDER BY `glpi_users`.`name`";
 
-      foreach ($DB->request($query) as $data) {
-         $users[] = $data;
+      $iterator = $DB->request([
+         'SELECT' => [
+            'glpi_users.*',
+            'glpi_groups_users.id AS IDD',
+            'glpi_groups_users.id AS linkid',
+            'glpi_groups_users.is_dynamic AS is_dynamic',
+            'glpi_groups_users.is_manager AS is_manager',
+            'glpi_groups_users.is_userdelegate AS is_userdelegate'
+         ],
+         'FROM'   => self::getTable(),
+         'LEFT JOIN'    => [
+            User::getTable() => [
+               'FKEY' => [
+                  User::getTable() => 'id',
+                  self::getTable()  => 'users_id'
+               ]
+            ]
+         ],
+         'WHERE'        => [
+            'glpi_groups_users.groups_id' => $groups_id
+         ] + $condition,
+         'ORDER'        => 'glpi_users.name'
+      ]);
+      while ($row = $iterator->next()) {
+         $users[] = $row;
       }
+
       return $users;
    }
 
@@ -129,12 +173,13 @@ class Group_User extends CommonDBRelation{
 
       $rand    = mt_rand();
 
-      $groups  = self::getUserGroups($ID);
+      $iterator = self::getListForItem($user);
+      $groups = [];
+      //$groups  = self::getUserGroups($ID);
       $used    = [];
-      if (!empty($groups)) {
-         foreach ($groups as $data) {
-            $used[$data["id"]] = $data["id"];
-         }
+      while ($data = $iterator->next()) {
+         $used[$data["id"]] = $data["id"];
+         $groups[] = $data;
       }
 
       if ($canedit) {
@@ -147,30 +192,22 @@ class Group_User extends CommonDBRelation{
          echo "<tr class='tab_bg_2'><td class='center'>";
          echo "<input type='hidden' name='users_id' value='$ID'>";
 
-         // All entities "edited user" have access
-         $strict_entities = Profile_User::getUserEntities($ID, true);
-         $user_entities = $_SESSION['glpiactiveentities'];
-         // Keep only entities "connected user" have access
-         $strict_entities = array_intersect($strict_entities, $user_entities);
+         $params = [
+            'used'      => $used,
+            'condition' => [
+               'is_usergroup' => 1,
+            ] + getEntitiesRestrictCriteria(Group::getTable(), '', '', true)
+         ];
+         Group::dropdown($params);
+         echo "</td><td>".__('Manager')."</td><td>";
+         Dropdown::showYesNo('is_manager');
 
-         $nb = countElementsInTableForEntity("glpi_groups", $strict_entities, '`is_usergroup`', false);
-         if ($nb > count($used)) {
-            Group::dropdown(['entity'    => $strict_entities,
-                                  'used'      => $used,
-                                  'condition' => '`is_usergroup`']);
-            echo "</td><td>".__('Manager')."</td><td>";
-            Dropdown::showYesNo('is_manager');
+         echo "</td><td>".__('Delegatee')."</td><td>";
+         Dropdown::showYesNo('is_userdelegate');
 
-            echo "</td><td>".__('Delegatee')."</td><td>";
-            Dropdown::showYesNo('is_userdelegate');
-
-            echo "</td><td class='tab_bg_2 center'>";
-            echo "<input type='submit' name='addgroup' value=\""._sx('button', 'Add')."\"
-                   class='submit'>";
-
-         } else {
-            echo __('None');
-         }
+         echo "</td><td class='tab_bg_2 center'>";
+         echo "<input type='submit' name='addgroup' value=\""._sx('button', 'Add')."\"
+                class='submit'>";
 
          echo "</td></tr>";
          echo "</table>";
@@ -222,17 +259,8 @@ class Group_User extends CommonDBRelation{
 
             if ($canedit && count($used)) {
                echo "<td width='10'>";
-               Html::showMassiveActionCheckBox(__CLASS__, $data["linkID"]);
+               Html::showMassiveActionCheckBox(__CLASS__, $data["linkid"]);
                echo "</td>";
-            }
-            $link = $data["completename"];
-            if ($_SESSION["glpiis_ids_visible"]) {
-               $link = sprintf(__('%1$s (%2$s)'), $link, $data["id"]);
-            }
-            $href = "<a href='".$CFG_GLPI["root_doc"]."/front/group.form.php?id=".$data["id"]."'>".
-                      $link."</a>";
-            if ($data["is_dynamic"]) {
-               $href = sprintf(__('%1$s (%2$s)'), $href, "<span class='b'>".__('D')."</span>");
             }
             echo "<td>".$group->getLink()."</td>";
             echo "<td class='center'>";
@@ -272,7 +300,7 @@ class Group_User extends CommonDBRelation{
    /**
     * Show form to add a user in current group
     *
-    * @since version 0.83
+    * @since 0.83
     *
     * @param $group                    Group object
     * @param $used_ids        Array    of already add users
@@ -280,11 +308,9 @@ class Group_User extends CommonDBRelation{
     * @param $crit            String   for criteria (for default dropdown)
    **/
    private static function showAddUserForm(Group $group, $used_ids, $entityrestrict, $crit) {
-      global $CFG_GLPI, $DB;
-
       $rand = mt_rand();
-      $res  = User::getSqlSearchResult (true, "all", $entityrestrict, 0, $used_ids);
-      $nb   = ($res ? $DB->result($res, 0, "CPT") : 0);
+      $res  = User::getSqlSearchResult(true, "all", $entityrestrict, 0, $used_ids);
+      $nb = count($res);
 
       if ($nb) {
          echo "<form name='groupuser_form$rand' id='groupuser_form$rand' method='post'
@@ -319,13 +345,13 @@ class Group_User extends CommonDBRelation{
    /**
     * Retrieve list of member of a Group
     *
-    * @since version 0.83
+    * @since 0.83
     *
-    * @param $group              Group object
-    * @param $members   Array    filled on output of member (filtered)
-    * @param $ids       Array    of ids (not filtered)
-    * @param $crit      String   filter (is_manager, is_userdelegate) (default '')
-    * @param $tree      Boolean  true to include member of sub-group (default 0)
+    * @param Group           $group    Group object
+    * @param array           $members  Array filled on output of member (filtered)
+    * @param array           $ids      Array of ids (not filtered)
+    * @param string          $crit     Filter (is_manager, is_userdelegate) (default '')
+    * @param boolean|integer $tree     True to include member of sub-group (default 0)
     *
     * @return String tab of entity for restriction
    **/
@@ -346,42 +372,59 @@ class Group_User extends CommonDBRelation{
       }
 
       if ($tree) {
-         $restrict = "IN (".implode(',', getSonsOf('glpi_groups', $group->getID())).")";
+         $restrict = getSonsOf('glpi_groups', $group->getID());
       } else {
-         $restrict = "='".$group->getID()."'";
+         $restrict = $group->getID();
       }
 
       // All group members
-      $query = "SELECT DISTINCT `glpi_users`.`id`,
-                       `glpi_groups_users`.`id` AS linkID,
-                       `glpi_groups_users`.`groups_id`,
-                       `glpi_groups_users`.`is_dynamic` AS is_dynamic,
-                       `glpi_groups_users`.`is_manager` AS is_manager,
-                       `glpi_groups_users`.`is_userdelegate` AS is_userdelegate
-                FROM `glpi_groups_users`
-                INNER JOIN `glpi_users`
-                        ON (`glpi_users`.`id` = `glpi_groups_users`.`users_id`)
-                INNER JOIN `glpi_profiles_users`
-                        ON (`glpi_profiles_users`.`users_id`=`glpi_users`.`id`)
-                WHERE `glpi_groups_users`.`groups_id` $restrict ".
-                      getEntitiesRestrictRequest('AND', 'glpi_profiles_users', '',
-                                                 $entityrestrict, 1)."
-                ORDER BY `glpi_users`.`realname`,
-                         `glpi_users`.`firstname`,
-                         `glpi_users`.`name`";
+      $pu_table = Profile_User::getTable();
+      $iterator = $DB->request([
+         'SELECT' => [
+            'glpi_users.id',
+            'glpi_groups_users.id AS linkid',
+            'glpi_groups_users.groups_id',
+            'glpi_groups_users.is_dynamic AS is_dynamic',
+            'glpi_groups_users.is_manager AS is_manager',
+            'glpi_groups_users.is_userdelegate AS is_userdelegate'
+         ],
+         'DISTINCT'  => true,
+         'FROM'      => self::getTable(),
+         'LEFT JOIN' => [
+            User::getTable() => [
+               'ON' => [
+                  self::getTable() => 'users_id',
+                  User::getTable() => 'id'
+               ]
+            ],
+            $pu_table => [
+               'ON' => [
+                  $pu_table        => 'users_id',
+                  User::getTable() => 'id'
+               ]
+            ]
+         ],
+         'WHERE' => [
+            self::getTable() . '.groups_id'  => $restrict,
+            'OR' => [
+               "$pu_table.entities_id" => null
+            ] + getEntitiesRestrictCriteria($pu_table, '', $entityrestrict, 1)
+         ],
+         'ORDERBY' => [
+            User::getTable() . '.realname',
+            User::getTable() . '.firstname',
+            User::getTable() . '.name'
+         ]
+      ]);
 
-      $result = $DB->query($query);
-
-      if ($DB->numrows($result) > 0) {
-         while ($data=$DB->fetch_assoc($result)) {
-            // Add to display list, according to criterion
-            if (empty($crit) || $data[$crit]) {
-               $members[] = $data;
-            }
-            // Add to member list (member of sub-group are not member)
-            if ($data['groups_id'] == $group->getID()) {
-               $ids[]  = $data['id'];
-            }
+      while ($data = $iterator->next()) {
+         // Add to display list, according to criterion
+         if (empty($crit) || $data[$crit]) {
+            $members[] = $data;
+         }
+         // Add to member list (member of sub-group are not member)
+         if ($data['groups_id'] == $group->getID()) {
+            $ids[]  = $data['id'];
          }
       }
 
@@ -392,12 +435,12 @@ class Group_User extends CommonDBRelation{
    /**
     * Show users of a group
     *
-    * @since version 0.83
+    * @since 0.83
     *
     * @param $group  Group object: the group
    **/
    static function showForGroup(Group $group) {
-      global $DB, $CFG_GLPI;
+      global $CFG_GLPI;
 
       $ID = $group->getID();
       if (!User::canView()
@@ -415,6 +458,7 @@ class Group_User extends CommonDBRelation{
       $ids     = [];
 
       // Retrieve member list
+      // TODO: migrate to use CommonDBRelation::getListForItem()
       $entityrestrict = self::getDataForGroup($group, $used, $ids, $crit, $tree);
 
       if ($canedit) {
@@ -500,7 +544,7 @@ class Group_User extends CommonDBRelation{
             echo "\n<tr class='tab_bg_".($user->isDeleted() ? '1_2' : '1')."'>";
             if ($canedit) {
                echo "<td width='10'>";
-               Html::showMassiveActionCheckBox(__CLASS__, $data["linkID"]);
+               Html::showMassiveActionCheckBox(__CLASS__, $data["linkid"]);
                echo "</td>";
             }
             echo "<td>".$user->getLink();
@@ -551,17 +595,19 @@ class Group_User extends CommonDBRelation{
 
 
    /**
-    * @since version 0.85
+    * @since 0.85
     *
     * @see CommonDBRelation::getRelationMassiveActionsSpecificities()
    **/
    static function getRelationMassiveActionsSpecificities() {
-      global $CFG_GLPI;
-
       $specificities                           = parent::getRelationMassiveActionsSpecificities();
 
       $specificities['select_items_options_1'] = ['right'     => 'all'];
-      $specificities['select_items_options_2'] = ['condition' => '`is_usergroup`'];
+      $specificities['select_items_options_2'] = [
+         'condition' => [
+            'is_usergroup' => 1,
+         ] + getEntitiesRestrictCriteria(Group::getTable(), '', '', true)
+      ];
 
       // Define normalized action for add_item and remove_item
       $specificities['normalized']['add'][]    = 'add_supervisor';
@@ -576,11 +622,6 @@ class Group_User extends CommonDBRelation{
    }
 
 
-   /**
-    * @since version 0.85
-    *
-    * @see CommonDBRelation::getRelationInputForProcessingOfMassiveActions()
-   **/
    static function getRelationInputForProcessingOfMassiveActions($action, CommonDBTM $item,
                                                                  array $ids, array $input) {
       switch ($action) {
@@ -600,7 +641,7 @@ class Group_User extends CommonDBRelation{
     *
     * @return array of search option
    **/
-   function getSearchOptionsNew() {
+   function rawSearchOptions() {
       $tab = [];
 
       $tab[] = [
@@ -630,7 +671,7 @@ class Group_User extends CommonDBRelation{
          'id'                 => '4',
          'table'              => 'glpi_groups',
          'field'              => 'completename',
-         'name'               => __('Group'),
+         'name'               => Group::getTypeName(1),
          'massiveaction'      => false,
          'datatype'           => 'dropdown'
       ];
@@ -639,7 +680,7 @@ class Group_User extends CommonDBRelation{
          'id'                 => '5',
          'table'              => 'glpi_users',
          'field'              => 'name',
-         'name'               => __('User'),
+         'name'               => User::getTypeName(1),
          'massiveaction'      => false,
          'datatype'           => 'dropdown',
          'right'              => 'all'
@@ -670,8 +711,6 @@ class Group_User extends CommonDBRelation{
     * @param $only_dynamic (false by default
    **/
    static function deleteGroups($user_ID, $only_dynamic = false) {
-      global $DB;
-
       $crit['users_id'] = $user_ID;
       if ($only_dynamic) {
          $crit['is_dynamic'] = '1';
@@ -689,8 +728,7 @@ class Group_User extends CommonDBRelation{
             case 'User' :
                if (Group::canView()) {
                   if ($_SESSION['glpishow_count_on_tabs']) {
-                     $nb = countElementsInTable($this->getTable(),
-                                               ['users_id' => $item->getID()]);
+                     $nb = self::countForItem($item);
                   }
                   return self::createTabEntry(Group::getTypeName(Session::getPluralNumber()), $nb);
                }
@@ -699,8 +737,7 @@ class Group_User extends CommonDBRelation{
             case 'Group' :
                if (User::canView()) {
                   if ($_SESSION['glpishow_count_on_tabs']) {
-                     $nb = countElementsInTable("glpi_groups_users",
-                                               ['groups_id' => $item->getID()]);
+                     $nb = self::countForItem($item);
                   }
                   return self::createTabEntry(User::getTypeName(Session::getPluralNumber()), $nb);
                }
@@ -725,5 +762,127 @@ class Group_User extends CommonDBRelation{
       return true;
    }
 
+   /**
+    * Get linked items list for specified item
+    *
+    * @since 9.3.1
+    *
+    * @param CommonDBTM $item  Item instance
+    * @param boolean    $noent Flag to not compute entity informations (see Document_Item::getListForItemParams)
+    *
+    * @return array
+    */
+   protected static function getListForItemParams(CommonDBTM $item, $noent = false) {
+      $params = parent::getListForItemParams($item, $noent);
+      $params['SELECT'][] = self::getTable() . '.is_manager';
+      $params['SELECT'][] = self::getTable() . '.is_userdelegate';
+      return $params;
+   }
 
+
+   function post_addItem() {
+      global $DB;
+
+      // add new user to plannings
+      $groups_id  = $this->fields['groups_id'];
+      $planning_k = 'group_'.$groups_id.'_users';
+
+      // find users with the current group in their plannings
+      $user_inst = new User;
+      $users = $user_inst->find([
+         'plannings' => ['LIKE', "%$planning_k%"]
+      ]);
+
+      // add the new user to found plannings
+      $query = $DB->buildUpdate(
+         User::getTable(), [
+            'plannings' => new QueryParam(),
+         ], [
+            'id'        => new QueryParam()
+         ]
+      );
+      $stmt = $DB->prepare($query);
+      $in_transaction = $DB->inTransaction();
+      if (!$in_transaction) {
+         $DB->beginTransaction();
+      }
+      foreach ($users as $user) {
+         $users_id  = $user['id'];
+         $plannings = importArrayFromDB($user['plannings']);
+         $nb_users  = count($plannings['plannings'][$planning_k]['users']);
+
+         // add the planning for the user
+         $plannings['plannings'][$planning_k]['users']['user_'.$this->fields['users_id']]= [
+            'color'   => Planning::getPaletteColor('bg', $nb_users),
+            'display' => true,
+            'type'    => 'user'
+         ];
+
+         // if current user logged, append also to its session
+         if ($users_id == Session::getLoginUserID()) {
+            $_SESSION['glpi_plannings'] = $plannings;
+         }
+
+         // save the planning completed to db
+         $json_plannings = exportArrayToDB($plannings);
+         $stmt->bind_param('si', $json_plannings, $users_id);
+         $stmt->execute();
+      }
+
+      if (!$in_transaction) {
+         $DB->commit();
+      }
+      $stmt->close();
+   }
+
+
+   function post_purgeItem() {
+      global $DB;
+
+      // remove user from plannings
+      $groups_id  = $this->fields['groups_id'];
+      $planning_k = 'group_'.$groups_id.'_users';
+
+      // find users with the current group in their plannings
+      $user_inst = new User;
+      $users = $user_inst->find([
+         'plannings' => ['LIKE', "%$planning_k%"]
+      ]);
+
+      // remove the deleted user to found plannings
+      $query = $DB->buildUpdate(
+         User::getTable(), [
+            'plannings' => new QueryParam(),
+         ], [
+            'id'        => new QueryParam()
+         ]
+      );
+      $stmt = $DB->prepare($query);
+      $in_transaction = $DB->inTransaction();
+      if (!$in_transaction) {
+         $DB->beginTransaction();
+      }
+      foreach ($users as $user) {
+         $users_id  = $user['id'];
+         $plannings = importArrayFromDB($user['plannings']);
+
+         // delete planning for the user
+         unset($plannings['plannings'][$planning_k]['users']['user_'.$this->fields['users_id']]);
+
+         // if current user logged, append also to its session
+         if ($users_id == Session::getLoginUserID()) {
+            $_SESSION['glpi_plannings'] = $plannings;
+         }
+
+         // save the planning completed to db
+         $json_plannings = exportArrayToDB($plannings);
+         $stmt->bind_param('si', $json_plannings, $users_id);
+         $stmt->execute();
+      }
+
+      if (!$in_transaction) {
+         $DB->commit();
+      }
+      $stmt->close();
+   }
 }

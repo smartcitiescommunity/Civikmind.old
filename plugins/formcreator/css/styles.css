@@ -1,3 +1,32 @@
+/**
+ * ---------------------------------------------------------------------
+ * Formcreator is a plugin which allows creation of custom forms of
+ * easy access.
+ * ---------------------------------------------------------------------
+ * LICENSE
+ *
+ * This file is part of Formcreator.
+ *
+ * Formcreator is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Formcreator is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Formcreator. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
+ * @copyright Copyright © 2011 - 2021 Teclib'
+ * @license   http://www.gnu.org/licenses/gpl.txt GPLv3+
+ * @link      https://github.com/pluginsGLPI/formcreator/
+ * @link      https://pluginsglpi.github.io/formcreator/
+ * @link      http://plugins.glpi-project.org/#/plugin/formcreator
+ * ---------------------------------------------------------------------
+ */
 html, body {
     height: 100%;
 }
@@ -49,8 +78,6 @@ html, body {
       opacity: 0;
   }
 }
-
-
 
 a.submit_button, input.submit_button {
    display: inline-block;
@@ -124,36 +151,158 @@ input.submit_button:focus {
    background-color: #FFF;
 }
 
-form.formcreator_form {
+/*
+ * Form designer
+ */
+
+/* Sections */
+#plugin_formcreator_form.plugin_formcreator_form_design > ol {
+   list-style-type: none;
+   text-align: left;
+   padding-left: 0;
+}
+
+#plugin_formcreator_form.plugin_formcreator_form_design > ol > .plugin_formcreator_section {
+   line-height: 32px;
+   background: #CCC;
+   padding-bottom: 1px;
+   display: flex;
+   flex-wrap: wrap;
+   align-items: center;
+}
+
+#plugin_formcreator_form.plugin_formcreator_form_design > ol > .plugin_formcreator_section > a {
+   font-size: larger;
+   overflow: hidden;
+   white-space: nowrap;
+   text-overflow: ellipsis;
+   flex: 1;
+   margin: 5px 0 0 5px;
+}
+
+#plugin_formcreator_form.plugin_formcreator_form_design > ol > .plugin_formcreator_section:not(:first-of-type) {
+   margin-top: 20px;
+}
+
+#plugin_formcreator_form.plugin_formcreator_form_design > ol > .plugin_formcreator_section.not-sortable > a {
+   padding-left: 15px;
+}
+
+/* questions */
+#plugin_formcreator_form.plugin_formcreator_form_design .grid-stack {
+   list-style-type: none;
+   text-align: left;
+   padding-left: 0;
+   position: relative;
+   min-height: 32px;
+   flex: 1 0 100%;
+}
+
+#plugin_formcreator_form.plugin_formcreator_form_design .grid-stack-item {
+   line-height: 32px;
+}
+
+#plugin_formcreator_form.plugin_formcreator_form_design .grid-stack-item .grid-stack-item-content {
+   text-align: left;
+   padding-left: 16px;
+   padding-right: 14px;
+   margin: 0 2px;
+   background: #F0F0F0;
+   display: flex;
+   align-items: center;
+}
+
+#plugin_formcreator_form.plugin_formcreator_form_design .grid-stack-item .grid-stack-item-content a[data-field=name] {
+   flex-grow: 1;
+   overflow: hidden;
+   text-overflow: ellipsis;
+   white-space: nowrap;
+}
+
+#plugin_formcreator_form.plugin_formcreator_form_design .grid-stack-item.ui-draggable-dragging {
+   z-index: 100;
+}
+
+.form_section .grid-stack .grid-stack-item .grid-stack-item-content,
+.form_section .grid-stack .grid-stack-item .placeholder-content {
+	left: 0;
+	right: 0;
+}
+
+#plugin_formcreator_form.plugin_formcreator_form_design .grid-stack > .grid-stack-item > .ui-resizable-se {
+   right: 2px;
+   background-image: url("../pics/corner-handle.png");
+   transform: inherit;
+}
+
+#plugin_formcreator_form.plugin_formcreator_form_design .plugin_formcreator_question {
+   background: #F0F0F0;
+   margin: 5px 2px;
+   padding-left: 15px;
+   flex: 1;
+}
+
+/* actions on sections or questions */
+#plugin_formcreator_form.plugin_formcreator_form_design .form_control {
+   min-width: 20px;
+   min-height: 1px;
+   font-size: larger;
+}
+
+#plugin_formcreator_form.plugin_formcreator_form_design .form_control > i {
+   display: table-cell;
+   vertical-align: middle;
+   height: 32px;
+}
+
+/*
+* Form Render
+*/
+#plugin_formcreator_form.plugin_formcreator_form > ol {
+   list-style-type: none;
+   text-align: left;
+   padding-left: 0;
+}
+
+#plugin_formcreator_form.plugin_formcreator_form [data-itemtype = "PluginFormcreatorQuestion"]:not([hidden]),
+#plugin_formcreator_form.plugin_formcreator_form .plugin_formcreator_gap {
+   vertical-align: bottom;
+   display: inline-block;
+}
+
+form#plugin_formcreator_form {
    max-width: 950px;
    margin: 10px auto 50px !important;
    display: block;
    position: relative;
    line-height: 1.4em;
 }
-#bloc > .formcreator_form {
-   width: 850px;
-}
 
 .form_answer h1,
-.formcreator_form > h1 {
+#plugin_formcreator_form > h1 {
    text-align: center;
    font-weight: bold;
    font-size: 1.8em;
    margin: 0 0 15px;
 }
 
-.formcreator_form > .form_header {
+#plugin_formcreator_form > .form_header {
    padding: 10px 15px;
 }
-.formcreator_form > .refused_header, .formcreator_form > .accepted_header {
+
+/*
+ * Validation header
+ */
+#plugin_formcreator_form > .refused_header,
+#plugin_formcreator_form > .accepted_header {
    padding: 10px 15px;
    background: #EED0D0; /*#EEE;*/
    border-radius: 4px;
    box-shadow: 2px 2px 2px #CCC;
    margin: 0 0 10px;
 }
-.formcreator_form > .refused_header > div, .formcreator_form > .accepted_header > div {
+#plugin_formcreator_form > .refused_header > div,
+#plugin_formcreator_form > .accepted_header > div {
    padding: 3px 10px;
    border-left: 5px solid #A00;
    color: #C00;
@@ -161,29 +310,29 @@ form.formcreator_form {
    font-weight: bold;
    margin: 0 4px;
 }
-.formcreator_form > .accepted_header {
+#plugin_formcreator_form > .accepted_header {
    background: #C0DDC0; /*#EEE;*/
 }
-.formcreator_form > .accepted_header > div {
+#plugin_formcreator_form > .accepted_header > div {
    border-left: 5px solid #060;
    color: #060;
 }
 
-.formcreator_form > .form_header, .formcreator_form > .form_section {
-   background: #EEE; /*#EEE;*/
-   background: rgba(232, 232, 232, .8); /*#EEE;*/
-   box-shadow: 2px 2px 2px #CCC;
+#plugin_formcreator_form > .form_header,
+#plugin_formcreator_form [data-itemtype = "PluginFormcreatorSection"] {
+   background: #EEE;
+   /*box-shadow: 2px 2px 2px #CCC;*/
    margin: 0 0 10px;
 }
 
 
-.formcreator_form > .form_header > h1 {
+#plugin_formcreator_form > .form_header > h1 {
    font-size: 1.2em;
    margin: 0 0 10px;
 }
 
-.formcreator_form > .form_section > h2 {
-   background: #1B2F62; /*#E1D39E;*/
+#plugin_formcreator_form [data-itemtype = "PluginFormcreatorSection"] > h2 {
+   background: #1B2F62;
    color: #FFF;
    margin:  0 0 10px;
    padding: 5px 10px;
@@ -193,47 +342,44 @@ form.formcreator_form {
    line-height: 24px;
 }
 
-.formcreator_form .form-group {
+#plugin_formcreator_form .form-group {
    padding: 5px 15px;
 }
 
-.formcreator_form .form-group > label {
+#plugin_formcreator_form .form-group > label {
    display: block;
    font-size: 1.2em;
    line-height: 32px;
    font-weight: bold;
 }
-.formcreator_form .form-group:after {
+#plugin_formcreator_form .form-group:after {
    content: '';
    display: block;
 }
-.formcreator_form .form-group .form_field > input[type="file"] {
+#plugin_formcreator_form .form-group .form_field > input[type="file"] {
    height: 32px;
 }
 
-.formcreator_form .form-group .form_field {
-   width: 650px;
-   display: inline-block;
+#plugin_formcreator_form .form-group .form_field {
    text-align: justify;
    word-wrap: break-word;
 }
-#bloc > .formcreator_form .form-group .form_field {
-   width: 415px;
-}
-.formcreator_form .form-group .form_field .select2-container {
+
+#plugin_formcreator_form .form-group .form_field .select2-container {
    width: 100% !important;
 }
 
 
-.formcreator_form .description_field {
+#plugin_formcreator_form .description_field {
    border-left: 4px solid #999;
    margin: 10px 15px;
+   word-wrap: break-word;
 }
 
-.formcreator_form .form-group .form_field > input,
-.formcreator_form textarea,
-.formcreator_form select,
-.formcreator_form .form-group .form_field input.hasDatepicker {
+#plugin_formcreator_form .form-group .form_field > input,
+#plugin_formcreator_form textarea,
+#plugin_formcreator_form select,
+#plugin_formcreator_form .form-group .form_field input.hasDatepicker {
    background: #FFF;
    border-radius: 3px;
    line-height: 18px;
@@ -241,19 +387,19 @@ form.formcreator_form {
    height: 32px;
    padding: 1px 10px;
    margin: 0;
-   width: 650px;
+   width: 100%;
    color: #333;
    font-size: 1.1em;
    box-sizing: border-box;
 }
-.formcreator_form .form-group .form_field input.hasDatepicker {
+#plugin_formcreator_form .form-group .form_field input.hasDatepicker {
    width: 125px;
 }
-.formcreator_form .form-group img {
+#plugin_formcreator_form .form-group img {
    vertical-align: middle;
    margin: 4px;
 }
-.formcreator_form .select2-container .select2-choice {
+#plugin_formcreator_form .select2-container .select2-choice {
    height: 24px;
    line-height: 24px;
    padding-top: 3px;
@@ -261,10 +407,10 @@ form.formcreator_form {
    width: 637px;
    max-width: 637px;
 }
-#bloc > .formcreator_form .select2-container .select2-choice {
+#bloc > #plugin_formcreator_form .select2-container .select2-choice {
    width: 395px;
 }
-.formcreator_form .select2-container .select2-choice > .select2-chosen {
+#plugin_formcreator_form .select2-container .select2-choice > .select2-chosen {
    margin: 1px 0;
    line-height: 24px;
    color: #333;
@@ -273,88 +419,89 @@ form.formcreator_form {
 .select2-container .select2-choice .select2-arrow b {
    margin-top: 3px;
 }
-.formcreator_form textarea:focus,
-.formcreator_form select:focus,
-.formcreator_form .form-group .form_field > input:focus
+#plugin_formcreator_form textarea:focus,
+#plugin_formcreator_form select:focus,
+#plugin_formcreator_form .form-group .form_field > input:focus
 {
    border-color: #66afe9;
    box-shadow: inset 0 1px 1px rgba(0,0,0,.075),0 0 8px rgba(102,175,233,.6);
 }
 
-.formcreator_form input[type = checkbox]:focus + label,
-.formcreator_form input[type = radio]:focus + label,
-.formcreator_form input[type = file]:focus {
+#plugin_formcreator_form input[type = checkbox]:focus + label,
+#plugin_formcreator_form input[type = radio].new_radio:focus + label,
+#plugin_formcreator_form input[type = file]:focus {
    color: #66afe9;
    color: rgba(102,175,233, 1);
    border-bottom: #66afe9 dotted 1px !important;
    border-bottom: rgba(102,175,233,.8) dotted 1px !important;
 }
 
-.formcreator_form textarea {
+#plugin_formcreator_form textarea {
    min-height: 105px;
 }
 
-.formcreator_form div.checkbox {
+#plugin_formcreator_form div.checkbox {
    padding: 5px 0;
 }
-.formcreator_form div.checkbox label {
+#plugin_formcreator_form div.checkbox label {
    cursor: pointer;
 }
-.formcreator_form div.checkbox .form-group-checkbox {
+#plugin_formcreator_form div.checkbox .form-group-checkbox {
    margin-right: 4px;
 }
-.formcreator_form div.checkbox .label-checkbox .box {
+#plugin_formcreator_form div.checkbox .label-checkbox .box {
    background-color: #FFF;
    border: 2px solid #727272;
 }
 
-
-.formcreator_radios input[type = radio] {
+.plugin_formcreator_form div.radio {
+   padding: 3.7px 0;
+}
+.plugin_formcreator_form div.radio label {
+   cursor: pointer;
+}
+.radios .form-group-radio {
+   position: relative;
+   display: inline-block;
+   width: 16px;
+   height: 16px;
+}
+.radios .form-group-radio + label {
+   margin-left: 7px;
+}
+input[type = radio].new_radio {
    display: none;
 }
-.formcreator_radios input[type = radio] + label {
-   cursor: pointer;
-   padding-left: 22px;
-   position: relative;
-   display: block;
-   height: 26px;
+.label-radio .radio {
+   padding: 2px 0;
 }
-.formcreator_radios input[type = radio] + label:before,
-.formcreator_radios input[type = radio] + label:after {
+input[type = radio].new_radio + label.label-radio span {
+   display: inline-block;
    position: absolute;
-   content: "";
-   border-radius: 50%;
-   transition: all 0.3s ease;
+   width: 16px;
+   height: 16px;
 }
-.formcreator_radios input[type = radio] + label:before {
-   top: -1px;
-   left: 0;
-   width: 15px;
-   height: 15px;
-   background-color: #727272;
-   box-shadow: inset 0 0 0 13px #FFF;
+input[type = radio].new_radio + label.label-radio .box {
+   background-color: #fff;
    border: 2px solid #727272;
+   border-radius: 50%;
 }
-.formcreator_radios input[type = radio] + label:after {
-   top: 40%;
-   left: 9px;
-   width: 54px;
-   height: 54px;
-   background-color: rgba(50, 50, 50, 0.1);
-   transform: translate(-50%, -50%) scale(0);
+input[type = radio].new_radio + label.label-radio .check {
+   left: 4px;
+   top: 4px;
+   width: 0px;
+   height: 0px;
+   opacity: 0;
 }
-.formcreator_radios input[type = radio]:checked + label:before {
-   box-shadow: inset 0 0 0 2px #E0E0E0;
-}
-.formcreator_radios input[type = radio]:checked + label:after {
-   transform: translate(-50%, -50%) scale(1);
-   -moz-animation: ripple 1s forwards;
-   -webkit-animation: ripple 1s forwards;
-   animation: ripple 1s forwards;
+input[type = radio].new_radio:checked + label.label-radio .check {
+   border: 6px solid #727272;
+   border-radius: 50%;
+   transition: opacity 0.3s ease;
+   opacity: 1;
 }
 
 
-.formcreator_form .select2-container-multi .select2-choices  {
+#plugin_formcreator_form .select2-container-multi .select2-choices  {
    width: 650px;
    min-height: 24px;
    background: #FFF;
@@ -366,34 +513,30 @@ form.formcreator_form {
 .select2-drop {
     max-width: 650px;
 }
-#bloc > .formcreator_form .select2-container-multi .select2-choices  {
+#bloc > #plugin_formcreator_form .select2-container-multi .select2-choices  {
    width: 415px;
 }
-.formcreator_form .form-group option {
+#plugin_formcreator_form .form-group option {
    background: none;
    border: none;
 }
-.formcreator_form .form-group .form_field > input[type = file] {
+#plugin_formcreator_form .form-group .form_field > input[type = file] {
    background: none;
    border: none;
    box-shadow: none;
    width: auto;
 }
-.formcreator_form .form-group > .help-block {
+#plugin_formcreator_form .form-group > .help-block {
    font-size: 0.8em;
    color: #333;
    padding: 3px 0;
-   font-style: italic;
 }
-.formcreator_form .form-group > .help-block p {
+#plugin_formcreator_form .form-group > .help-block p {
    margin: 0;
    padding: 3px 0;
 }
 
-#bloc > .formcreator_form .form-group .form_field > input, #bloc > .formcreator_form textarea {
-   width: 545px;
-}
-#bloc > .formcreator_form select {
+#bloc > #plugin_formcreator_form select {
    width: 567px;
 }
 #footer-login {
@@ -402,18 +545,18 @@ form.formcreator_form {
    margin: 0 15px 0 0;
 }
 
-.formcreator_form .liste input[type = text] {
+#plugin_formcreator_form .liste input[type = text] {
    width: 100px;
 }
 
-.formcreator_form .liste span > select {
+#plugin_formcreator_form .liste span > select {
    width: 534px;
 }
 
-#bloc > .formcreator_form .liste input[type = text]  {
+#bloc > #plugin_formcreator_form .liste input[type = text]  {
    width: 60px;
 }
-#bloc > .formcreator_form .liste select  {
+#bloc > #plugin_formcreator_form .liste select  {
    width: 330px;
 }
 
@@ -428,10 +571,12 @@ form.formcreator_form {
    font-style: italic;
    margin: 0 4px;
 }
+
+/* CONDITIONS */
+
 .div_show_condition_field, .div_show_condition_operator,
 .div_show_condition_value, .div_show_condition_logic,
 .div_show_condition_add, .div_show_condition_remove {
-   //float: left;
    display: inline-block;
 }
 .div_show_condition_field .select2-container,
@@ -463,24 +608,18 @@ form.formcreator_form {
    width: 12px;
    vertical-align: middle;
 }
-/* jQuery UI Combobox*/
-.pq-select-multiple {
-   display: inline-block;
-   width: 85% !important;
+tr[data-itemtype="PluginFormcreatorCondition"] .div_show_condition_logic {
+   visibility: hidden;
 }
-
+tr[data-itemtype="PluginFormcreatorCondition"] ~ tr[data-itemtype="PluginFormcreatorCondition"] .div_show_condition_logic {
+   visibility: visible;
+}
 .select2-container + select {
    display: none !important;
 }
 
 #footer-login{
    display: none;
-}
-
-.validators_bloc .select2-container {
-   float: left;
-   width: 13% !important;
-   margin: 0 1% 0 0;
 }
 
 #tag_question_value .select2-container, #tag_specific_value .select2-container {
@@ -576,14 +715,14 @@ form.formcreator_form {
    left: 0;
    float: left;
 }
-.plugin_formcreator_page #plugin_formcreator_wizard_categories {
+#plugin_formcreator_wizard_categories {
    height: calc(100vh - 28px - 65px);
    background-color: #f8f7f3;
    border-right: 1px solid #DDD;
    position: relative;
 }
 
-.plugin_formcreator_page #plugin_formcreator_wizard_categories .slinky-menu {
+#plugin_formcreator_wizard_categories .slinky-menu {
    position: absolute;
    left: 0;
    right: -1px;
@@ -745,6 +884,109 @@ form.formcreator_form {
    background-color: inherit;
 }
 
+/* KB page */
+
+#plugin_formcreator_kb_categories div > a {
+   display: inline-block;
+   width: 100%;
+   padding: 14px;
+   box-sizing: border-box;
+}
+
+#plugin_formcreator_kb_categories {
+   width: 275px;
+   top: 0;
+   bottom: 0;
+   left: 0;
+   float: left;
+}
+#plugin_formcreator_kb_categories {
+   height: calc(100vh - 28px - 65px);
+   background-color: #f8f7f3;
+   border-right: 1px solid #DDD;
+   position: relative;
+}
+
+#plugin_formcreator_kb_categories .slinky-menu {
+   position: absolute;
+   left: 0;
+   right: -1px;
+}
+
+#plugin_formcreator_kb_categories a {
+   background-color: inherit;
+   font-size: 1.2em;
+}
+
+#plugin_formcreator_kb_categories  a[data-category-id]:not([data-parent-category-id="0"])  {
+   margin-left: 20px;
+}
+
+#plugin_formcreator_kb_categories .category_active:not(.next),
+#plugin_formcreator_kb_categories .category_active ~ul .header {
+   /* background-color: rgba(0, 0, 0, 0.05); */
+   border-bottom: 1px dashed #DDD;
+   position: relative;
+}
+
+#plugin_formcreator_kb_categories .category_active:not(.next):after,
+#plugin_formcreator_kb_categories .category_active ~ul .header:after {
+   position: absolute;
+   left: calc(100% - 45px);
+   top: 50%;
+   border: solid transparent;
+   content: " ";
+   height: 0;
+   width: 0;
+   border-right-color: #FFF;
+   border-width: 23px;
+   margin-top: -23px;
+   z-index: 20;
+}
+
+#plugin_formcreator_kb_categories .category_active:not(.next):before,
+#plugin_formcreator_kb_categories .category_active ~ul .header:before {
+   position: absolute;
+   left: calc(100% - 46px);
+   top: 50%;
+   border: solid transparent;
+   content: " ";
+   height: 0;
+   width: 0;
+   border-right-color: #DDD;
+   border-width: 23px;
+   margin-top: -23px;
+   z-index: 20;
+}
+
+#plugin_formcreator_kb_categories h2 {
+   margin: 0;
+   padding: 0.83em 0;
+   border-bottom: 1px solid #DDD;
+}
+
+#plugin_formcreator_kb_categories a, #plugin_formcreator_kb_categories h2 {
+   font-size: 1.2em;
+}
+
+#plugin_formcreator_kb_categories h2 {
+   margin: 0;
+   padding: 14px;
+   color: #000;
+}
+#plugin_formcreator_kb_categories .header h2 {
+   text-align: left;
+}
+#plugin_formcreator_kb_categories .header .back {
+   right: 20px;
+   color: #000;
+   left: inherit;
+}
+
+#plugin_formcreator_kb_categories li {
+   background-color: inherit;
+}
+
 .plugin_formcreator_card {
    background: #FFF;
    border-radius: 2px;
@@ -788,7 +1030,6 @@ form.formcreator_form {
    cursor: pointer;
    border-radius: 0;
    box-sizing: border-box;
-   background-color: #E7E7E7;
    animation-name: fadeInUp ;
    animation-iteration-count: 1;
    animation-timing-function: ease-in;
@@ -806,19 +1047,17 @@ a.plugin_formcreator_formTile_title {
    font-size: 1.1em;
    padding: 10px 40px 15px 10px;
    display: block;
-   background: transparent no-repeat top 10px right 10px;
 }
 
 .plugin_formcreator_formTile:hover a.plugin_formcreator_formTile_title {
    cursor: pointer;
 }
 
-.plugin_formcreator_formTile.form a.plugin_formcreator_formTile_title {
-   background-image: url(../pics/form.png);
-}
-
-.plugin_formcreator_formTile.faq a.plugin_formcreator_formTile_title {
-   background-image: url(../pics/faq.png);
+.plugin_formcreator_formTile  i.fa, .plugin_formcreator_formTile  i.fab, .plugin_formcreator_formTile  i.fas {
+   font-size: 2.5em;
+   margin-right: 10px;
+   float: left;
+   margin: 10px;
 }
 
 .plugin_formcreator_formTile_description {
@@ -846,9 +1085,10 @@ a.plugin_formcreator_formTile_title {
    min-width: 116px;
    overflow-x: hidden;
    overflow-y: auto;
-   padding: 10px 0 3px 23px;
+   padding: 0 0 3px 23px;
    margin: -10px 0 -3px -23px;
    background-color: #FFFFFF;
+   margin-left: 300px;
 }
 
 #plugin_formcreator_wizard_forms {
@@ -861,7 +1101,7 @@ a.plugin_formcreator_formTile_title {
 #plugin_formcreator_searchBar {
    position: relative;
    margin: 20px 25px 20px 6px;
-   padding: 10px 0 45px 0;
+   padding: 10px 0 10px 0;
    box-sizing: border-box;
 }
 
@@ -883,7 +1123,7 @@ a.plugin_formcreator_formTile_title {
    position: absolute;
    float: left;
    display: block;
-   top: 23%;
+   top: 34%;
    text-align: center;
    width: 100%;
    font-size: 1.2em;
@@ -902,13 +1142,13 @@ a.plugin_formcreator_formTile_title {
    font-size: 1em;
 }
 
-#formcreator_search_input_bar {
+#plugin_formcreator_search_input_bar {
    position:relative;
    display:block;
    width:100%;
 }
-#formcreator_search_input_bar:before,
-#formcreator_search_input_bar:after {
+#plugin_formcreator_search_input_bar:before,
+#plugin_formcreator_search_input_bar:after {
    content:'';
    position: absolute;
    width: 0;
@@ -917,14 +1157,14 @@ a.plugin_formcreator_formTile_title {
    transition:0.2s ease all;
    background-color: #3874BC;
 }
-#formcreator_search_input_bar:before {
+#plugin_formcreator_search_input_bar:before {
   left:50%;
 }
-#formcreator_search_input_bar:after {
+#plugin_formcreator_search_input_bar:after {
   right:50%;
 }
-#plugin_formcreator_searchBar input:focus ~ #formcreator_search_input_bar:before,
-#plugin_formcreator_searchBar input:focus ~ #formcreator_search_input_bar:after {
+#plugin_formcreator_searchBar input:focus ~ #plugin_formcreator_search_input_bar:before,
+#plugin_formcreator_searchBar input:focus ~ #plugin_formcreator_search_input_bar:after {
    width:50%;
 }
 
@@ -1001,7 +1241,7 @@ a.plugin_formcreator_formTile_title {
    opacity: 1;
    color: #3874BC;
 }
-.plugin_formcreator_sort:hover .formcreator_radios input[type = radio] + label:before {
+.plugin_formcreator_sort:hover .radios input[type = radio].new_radio + label:before {
    background-color: #3874BC;
    border: 2px solid #3874BC;
 }
@@ -1012,7 +1252,7 @@ a.plugin_formcreator_formTile_title {
    text-align: left;
    margin: 0 20px;
 }
-.plugin_formcreator_sort .formcreator_radios input[type = radio] + label {
+.plugin_formcreator_sort .radios input[type = radio].new_radio + label {
    display: inline-block;
    margin-right: 10px;
 }
@@ -1076,7 +1316,7 @@ a.plugin_formcreator_formTile_title {
 #c_menu li label {
    display: inline-block;
 }
-.toggle_menu #c_menu li label {
+.toggle_menu #c_menu li span.label {
    display: none;
 }
 .toggle_menu .plugin_formcreator_leftHeader#header .plugin_formcreator_leftMenu {
@@ -1106,8 +1346,7 @@ a.plugin_formcreator_formTile_title {
    clear: both;
    position: fixed;
    bottom: 0;
-   width:  100%;
-   padding: 5px 0;
+   width:  calc(100% - 10px);
 }
 
 .plugin_formcreator_leftHeader#header .plugin_formcreator_leftMenu {
@@ -1123,9 +1362,9 @@ a.plugin_formcreator_formTile_title {
 .plugin_formcreator_services li {
    padding:  5px 0 5px 13px;
    width: 100%;
-   height: 48px;
    line-height: 38px;
    box-sizing: border-box;
+   clear: left;
 }
 
 .plugin_formcreator_leftMenu .plugin_formcreator_services li a {
@@ -1183,11 +1422,13 @@ a.plugin_formcreator_formTile_title {
 
 span.fc_list_icon {
    width: 42px;
-   height: 24px;
-   display: inline-block;
+   height: 48px;
    vertical-align: middle;
    font-size: 1.7em;
    color: #FFFFFF;
+   float: left;
+   padding-top: 5px;
+   box-sizing: border-box;
 }
 
 .plugin_formcreator_entityProfile {
@@ -1219,7 +1460,6 @@ span.fc_list_icon {
 }
 
 #plugin_formcreator_avatar {
-   display: inline-block;
    border: 2px inset white;
    border-radius: 50%;
    padding: 2px;
@@ -1243,7 +1483,6 @@ span.fc_list_icon {
 
 .plugin_formcreator_userMenu_icons {
    float: right;
-   display: inline-block;
    margin: 12px 8px 0 8px;
 }
 
@@ -1303,6 +1542,7 @@ span.fc_list_icon {
    right: 0;
    left: 0;
    bottom: 0;
+   margin-bottom: 20px;
 }
 
 .plugin_formcreator_page .navigationheader .tab_cadre_pager {
@@ -1328,12 +1568,6 @@ span.fc_list_icon {
    background-color: #CCC;
 }
 
-.form_control {
-   width: 23px;
-   float: right;
-   min-height: 1px;
-}
-
 .form_header ul {
    list-style-type: disc;
    margin: inherit;
@@ -1352,25 +1586,51 @@ span.fc_list_icon {
    list-style-type: circle;
 }
 
+
+/* Active / inactive light for forms */
+.plugin-forcreator-active {
+   color: #009933;
+}
+
+.plugin-forcreator-inactive {
+   color: #a0a0a0;
+}
+
+.plugin_formcreator_cancel_my_ticket {
+   background: #fec95c;
+}
+
+/* Count of conditions in design view */
+.plugin_formcreator_conditions_count {
+   border-radius: 50%;
+   background-color: #FFF;
+   min-width: 18px;
+   height: 18px;
+   text-align: center;
+   vertical-align: middle;
+   padding: 4px;
+   margin-right: 5px;
+}
+
 /* ################--------------- Responsive  ---------------#################### */
 @media screen and (max-width: 700px) {
-   form.formcreator_form {
+   form#plugin_formcreator_form {
        width: 100%;
    }
 
-   .formcreator_form .form-group > label,
-   .formcreator_form .form-group .form_field,
-   .formcreator_form .form-group .form_field > input,
-   .formcreator_form textarea,
-   .formcreator_form select {
+   #plugin_formcreator_form .form-group > label,
+   #plugin_formcreator_form .form-group .form_field,
+   #plugin_formcreator_form .form-group .form_field > input,
+   #plugin_formcreator_form textarea,
+   #plugin_formcreator_form select {
       width: 100%;
    }
-   .formcreator_form .form-group .form_field input.hasDatepicker  {
+   #plugin_formcreator_form .form-group .form_field input.hasDatepicker  {
       width: 88%;
    }
 
-   .formcreator_form .select2-container .select2-choice,
-   .formcreator_form .select2-container-multi .select2-choices {
+   #plugin_formcreator_form .select2-container .select2-choice,
+   #plugin_formcreator_form .select2-container-multi .select2-choices {
       width: 96%;
    }
 

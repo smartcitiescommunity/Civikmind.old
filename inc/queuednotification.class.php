@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -41,7 +37,7 @@ if (!defined('GLPI_ROOT')) {
 
 /** QueuedNotification class
  *
- * @since version 0.85
+ * @since 0.85
 **/
 class QueuedNotification extends CommonDBTM {
 
@@ -155,13 +151,20 @@ class QueuedNotification extends CommonDBTM {
           && isset($input['items_id']) && ($input['items_id'] >= 0)
           && isset($input['notificationtemplates_id']) && !empty($input['notificationtemplates_id'])
           && isset($input['recipient'])) {
-         $query = "NOT `is_deleted`
-                   AND `itemtype` = '".$input['itemtype']."'
-                   AND `items_id` = '".$input['items_id']."'
-                   AND `entities_id` = '".$input['entities_id']."'
-                   AND `notificationtemplates_id` = '".$input['notificationtemplates_id']."'
-                   AND `recipient` = '".$input['recipient']."'";
-         foreach ($DB->request($this->getTable(), $query) as $data) {
+         $criteria = [
+            'FROM'   => $this->getTable(),
+            'WHERE'  => [
+               'is_deleted'   => 0,
+               'itemtype'     => $input['itemtype'],
+               'items_id'     => $input['items_id'],
+               'entities_id'  => $input['entities_id'],
+               'notificationtemplates_id' => $input['notificationtemplates_id'],
+               'recipient'                => $input['recipient']
+
+            ]
+         ];
+         $iterator = $DB->request($criteria);
+         while ($data = $iterator->next()) {
             $this->delete(['id' => $data['id']], 1);
          }
       }
@@ -170,7 +173,7 @@ class QueuedNotification extends CommonDBTM {
    }
 
 
-   function getSearchOptionsNew() {
+   function rawSearchOptions() {
       $tab = [];
 
       $tab[] = [
@@ -327,7 +330,7 @@ class QueuedNotification extends CommonDBTM {
          'id'                 => '20',
          'table'              => $this->getTable(),
          'field'              => 'itemtype',
-         'name'               => __('Type'),
+         'name'               => _n('Type', 'Types', 1),
          'datatype'           => 'itemtype',
          'massiveaction'      => false
       ];
@@ -367,7 +370,7 @@ class QueuedNotification extends CommonDBTM {
          'id'                 => '80',
          'table'              => 'glpi_entities',
          'field'              => 'completename',
-         'name'               => __('Entity'),
+         'name'               => Entity::getTypeName(1),
          'massiveaction'      => false,
          'datatype'           => 'dropdown'
       ];
@@ -447,26 +450,11 @@ class QueuedNotification extends CommonDBTM {
 
 
    /**
-    * Send mai lin queue
-    *
-    * @param $ID        integer ID of the item
-    *
-    * @return true if send false if not
-    *
-    * @deprecated 9.2 see QueuedNotification::sendById
-   **/
-   function sendMailById($ID) {
-      Toolbox::deprecated('sendMailById() method is deprecated');
-      return $this->sendById($ID);
-   }
-
-
-   /**
     * Give cron information
     *
     * @param $name : task's name
     *
-    * @return arrray of information
+    * @return array of information
    **/
    static function cronInfo($name) {
 
@@ -553,9 +541,7 @@ class QueuedNotification extends CommonDBTM {
     * @return integer either 0 or 1
    **/
    static function cronQueuedNotification($task = null) {
-      global $DB, $CFG_GLPI;
-
-      if (!$CFG_GLPI["notifications_mailing"]) {
+      if (!Notification_NotificationTemplate::hasActiveMode()) {
          return 0;
       }
       $cron_status = 0;
@@ -563,7 +549,6 @@ class QueuedNotification extends CommonDBTM {
       // Send notifications at least 1 minute after adding in queue to be sure that process on it is finished
       $send_time = date("Y-m-d H:i:s", strtotime("+1 minutes"));
 
-      $mail = new self();
       $pendings = self::getPendings(
          $send_time,
          $task->fields['param']
@@ -605,13 +590,13 @@ class QueuedNotification extends CommonDBTM {
       if ($task->fields['param'] > 0) {
          $secs      = $task->fields['param'] * DAY_TIMESTAMP;
          $send_time = date("U") - $secs;
-         $query_exp = "DELETE
-                       FROM `glpi_queuednotifications`
-                       WHERE `glpi_queuednotifications`.`is_deleted`
-                             AND UNIX_TIMESTAMP(send_time) < '".$send_time."'";
-
-         $DB->query($query_exp);
-         $vol = $DB->affected_rows();
+         $DB->delete(
+            self::getTable(), [
+               'is_deleted'   => 1,
+               new \QueryExpression('(UNIX_TIMESTAMP('.$DB->quoteName('send_time').') < '.$DB->quoteValue($send_time).')')
+            ]
+         );
+         $vol = $DB->affectedRows();
       }
 
       $task->setVolume($vol);
@@ -628,8 +613,6 @@ class QueuedNotification extends CommonDBTM {
     * @return void
    **/
    static function forceSendFor($itemtype, $items_id) {
-      global $DB;
-
       if (!empty($itemtype)
          && !empty($items_id)) {
          $pendings = self::getPendings(
@@ -659,8 +642,6 @@ class QueuedNotification extends CommonDBTM {
     * @return true if displayed  false if item not found or not right to display
    **/
    function showForm($ID, $options = []) {
-      global $CFG_GLPI;
-
       if (!Session::haveRight("queuednotification", READ)) {
          return false;
       }
@@ -670,7 +651,7 @@ class QueuedNotification extends CommonDBTM {
 
       $this->showFormHeader($options);
       echo "<tr class='tab_bg_1'>";
-      echo "<td>".__('Type')."</td>";
+      echo "<td>"._n('Type', 'Types', 1)."</td>";
 
       echo "<td>";
       if (!($item = getItemForItemtype($this->fields['itemtype']))) {
@@ -717,7 +698,7 @@ class QueuedNotification extends CommonDBTM {
       echo "<td>".$this->fields['sent_try']."</td>";
       echo "</tr>";
 
-      echo "<tr><th colspan='4'>".__('Email')."</th></tr>";
+      echo "<tr><th colspan='4'>"._n('Email', 'Emails', 1)."</th></tr>";
       echo "<tr class='tab_bg_1'>";
       echo "<td>".__('Sender email')."</td>";
       echo "<td>".$this->fields['sender']."</td>";
@@ -768,7 +749,7 @@ class QueuedNotification extends CommonDBTM {
 
 
    /**
-    * @since version 0.85
+    * @since 0.85
     *
     * @param $string
     **/
@@ -799,7 +780,10 @@ class QueuedNotification extends CommonDBTM {
          }
       }
       return nl2br($newstring, false);
-      return preg_replace($patterns, $replacements, $string);
    }
 
+
+   static function getIcon() {
+      return "far fa-list-alt";
+   }
 }

@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 include ('../inc/includes.php');
 
 Session ::checkLoginUser();
@@ -43,8 +39,12 @@ Html::header(__('Setup'), $_SERVER['PHP_SELF'], "config", "commondropdown");
 echo "<div class='center'>";
 
 $optgroup = Dropdown::getStandardDropdownItemTypes();
-Dropdown::showItemTypeMenu(_n('Dropdown', 'Dropdowns', 2), $optgroup);
-Dropdown::showItemTypeList($optgroup);
+if (count($optgroup) > 0) {
+   Dropdown::showItemTypeMenu(_n('Dropdown', 'Dropdowns', Session::getPluralNumber()), $optgroup);
+   Dropdown::showItemTypeList($optgroup);
+} else {
+   Html::displayRightError();
+}
 
 echo "</div>";
 Html::footer();

@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -29,10 +29,6 @@
  * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
  */
-
-/** @file
-* @brief
-*/
 
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
@@ -76,7 +72,7 @@ class NetworkPortMigration extends CommonDBChild {
       }
 
       if (countElementsInTable($this->getTable()) == 0) {
-         $query = "DROP TABLE `".$this->getTable()."`";
+         $query = "DROP TABLE ".$DB->quoteName($this->getTable());
          $DB->query($query);
       }
 
@@ -96,11 +92,6 @@ class NetworkPortMigration extends CommonDBChild {
       parent::post_deleteItem();
    }
 
-   /**
-    * @see CommonGLPI::defineTabs()
-    *
-    * @since version 0.85
-   **/
    function defineTabs($options = []) {
 
       $ong = [];
@@ -123,7 +114,7 @@ class NetworkPortMigration extends CommonDBChild {
 
 
    function showForm($ID, $options = []) {
-      global $CFG_GLPI, $DB;
+      global $DB;
 
       if (!self::canView()) {
          return false;
@@ -296,18 +287,17 @@ class NetworkPortMigration extends CommonDBChild {
       echo "<td>". __('Gateway') ."</td>\n";
       echo "<$gateway_cell>" . $this->fields['gateway'] . "</$gateway_cell></tr>\n";
 
-      echo "<tr class='tab_bg_1'><td>". __('Network interface') ."</td><$interface_cell>\n";
-      if ($DB->tableExists('glpi_networkinterfaces')) {
-         $query = "SELECT `name`
-                   FROM `glpi_networkinterfaces`
-                   WHERE `id`='".$this->fields['networkinterfaces_id']."'";
-         $result = $DB->query($query);
-         if ($DB->numrows($result) > 0) {
-            $row = $DB->fetch_assoc($result);
-            echo $row['name'];
-         } else {
-            echo __('Unknown interface');
-         }
+      echo "<tr class='tab_bg_1'><td>". NetworkInterface::getTypeName(1) ."</td><$interface_cell>\n";
+      $iterator = $DB->request([
+         'SELECT' => 'name',
+         'FROM'   => 'glpi_networkinterfaces',
+         'WHERE'  => ['id' => $this->fields['networkinterfaces_id']]
+      ]);
+      if (count($iterator)) {
+         $row = $iterator->next();
+         echo $row['name'];
+      } else {
+         echo __('Unknown interface');
       }
       echo "</$interface_cell>";
       echo "<$interface_cell></$interface_cell>";
@@ -317,9 +307,6 @@ class NetworkPortMigration extends CommonDBChild {
    }
 
 
-   /**
-    * @see CommonDBTM::getSpecificMassiveActions()
-   **/
    function getSpecificMassiveActions($checkitem = null) {
 
       $isadmin = static::canUpdate();
@@ -332,14 +319,7 @@ class NetworkPortMigration extends CommonDBChild {
    }
 
 
-   /**
-    * @since version 0.85
-    *
-    * @see CommonDBTM::showMassiveActionsSubForm()
-   **/
    static function showMassiveActionsSubForm(MassiveAction $ma) {
-      global $CFG_GLPI;
-
       switch ($ma->getAction()) {
          case 'transform_to' :
             Dropdown::showItemTypes('transform_to', NetworkPort::getNetworkPortInstantiations(),
@@ -352,15 +332,8 @@ class NetworkPortMigration extends CommonDBChild {
    }
 
 
-   /**
-    * @since version 0.85
-    *
-    * @see CommonDBTM::processMassiveActionsForOneItemtype()
-   **/
    static function processMassiveActionsForOneItemtype(MassiveAction $ma, CommonDBTM $item,
                                                        array $ids) {
-      global $DB;
-
       switch ($ma->getAction()) {
          case 'transform_to':
             $input = $ma->getInput();
@@ -404,9 +377,8 @@ class NetworkPortMigration extends CommonDBChild {
    }
 
 
-   function getSearchOptionsNew() {
-      global $DB;
-      $tab = parent::getSearchOptionsNew();
+   function rawSearchOptions() {
+      $tab = parent::rawSearchOptions();
 
       $optionIndex = 10;
       // From 10 to 14
@@ -454,15 +426,13 @@ class NetworkPortMigration extends CommonDBChild {
          'name'               => IPAddress::getTypeName(1)
       ];
 
-      if ($DB->tableExists('glpi_networkinterfaces')) {
-         $tab[] = [
-            'id'                 => '24',
-            'table'              => 'glpi_networkinterfaces',
-            'field'              => 'name',
-            'datatype'           => 'dropdown',
-            'name'               => __('Network interface')
-         ];
-      }
+      $tab[] = [
+         'id'                 => '24',
+         'table'              => 'glpi_networkinterfaces',
+         'field'              => 'name',
+         'datatype'           => 'dropdown',
+         'name'               => NetworkInterface::getTypeName(1)
+      ];
 
       return $tab;
    }

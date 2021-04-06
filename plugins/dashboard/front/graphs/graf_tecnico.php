@@ -30,7 +30,6 @@ global $DB;
 <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
 <meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7" />
 <meta http-equiv="content-language" content="en-us" />
-<!--  <meta http-equiv="refresh" content= "120"/> -->
 
 <link rel="icon" href="../img/dash.ico" type="image/x-icon" />
 <link rel="shortcut icon" href="../img/dash.ico" type="image/x-icon" />
@@ -50,7 +49,6 @@ global $DB;
     
 <link href="../css/datepicker.css" rel="stylesheet" type="text/css">
 
-<!-- <link href="../css/style-dash.css" rel="stylesheet" type="text/css" /> -->
 <?php echo '<link rel="stylesheet" type="text/css" href="../css/style-'.$_SESSION['style'].'">';  ?>
 <?php echo '<script src="../js/themes/'.$_SESSION['charts_colors'].'"></script>'; ?>
 
@@ -61,7 +59,6 @@ global $DB;
 </head>
 
 <body style="background-color: #e5e5e5; margin-left:0%;">
-
 <?php
 
 global $DB;
@@ -123,7 +120,6 @@ else {
 }
 
 //seleciona técnico
-
 $sql_tec = "
 
 SELECT DISTINCT glpi_users.`id` AS id , glpi_users.`firstname` AS name, glpi_users.`realname` AS sname									        										       										        
@@ -199,7 +195,7 @@ $selected = $id_tec;
 
 ?>
 
-<div id="datas-tec" class="col-md-12 fluid" > 
+<div id="datas-tec" class="col-md-12 col-sm-12 fluid" > 
 <form id="form1" name="form1" class="form2" method="post" action="?date1=<?php echo $data_ini ?>&date2=<?php echo $data_fin ?>&con=1"> 
 	<table border="0" cellspacing="0" cellpadding="1" bgcolor="#efefef">
 		<tr>
@@ -259,7 +255,10 @@ $selected = $id_tec;
 
 <?php
 
-$con = $_REQUEST['con'];
+if(isset($_REQUEST['con'])) {
+	$con = $_REQUEST['con'];
+}
+else { $con = ''; }
 
 if($con == "1") {
 
@@ -345,66 +344,66 @@ echo '<div id="name"  style="margin-top: 15px;">
 	
 <div class="row" style="margin: 10px 0px 0 0;" >	
 <div style="margin-top: 20px; height: 45px;">
-							<!-- COLUMN 1 -->															
-								  <div class="col-sm-3 col-md-3 stat" >
-									 <div class="dashbox shad panel panel-default db-blue">
-										<div class="panel-body_2">
-										   <div class="panel-left red" style = "margin-top: -5px; margin-left: -5px;">
-												<i class="fa fa-tags fa-3x fa2"></i>
-										   </div>
-										   <div class="panel-right">
-										     <div id="odometer1" class="odometer" style="font-size: 22px; margin-top: 1px;">  </div><p></p>
-                        				<span class="chamado">'. __('Tickets','dashboard').'</span><br>
-                        				<span class="date" style="font-size: 16px;"><b>'. _x('status', 'New').' + '.__('Assigned').'</b></span>												
-										   </div>
-										</div>
-									 </div>
-								  </div>
-								  
-								  <div class="col-sm-3 col-md-3">
-									 <div class="dashbox shad panel panel-default db-yellow">
-										<div class="panel-body_2">
-										   <div class="panel-left yellow" style = "margin-top: -5px; margin-left: -5px;">
-												<i class="fa fa-clock-o fa-3x fa2"></i>
-										   </div>
-										   <div class="panel-right">										 
-											<div id="odometer2" class="odometer" style="font-size: 22px; margin-top: 1px;">   </div><p></p>
-                        				<span class="chamado">'. __('Tickets','dashboard').'</span><br>
-                        				<span class="date"><b>'. __('Pending').'</b></span>
-										   </div>
-										</div>
-									 </div>
-								  </div>																		
-                     								
-								  <div class="col-sm-3 col-md-3">
-									 <div class="dashbox shad panel panel-default db-red">
-										<div class="panel-body_2">
-										   <div class="panel-left yellow" style = "margin-top: -5px; margin-left: -5px;">
-												<i class="fa fa-check-square fa-3x fa2"></i>
-										   </div>
-										   <div class="panel-right">
-												<div id="odometer3" class="odometer" style="font-size: 22px; margin-top: 1px;">   </div><p></p>
-                        				<span class="chamado">'. __('Tickets','dashboard').'</span><br>
-                        				<span class="date"><b>'. __('Solved','dashboard').'</b></span>
-										   </div>										   
-										</div>
-									 </div>
-								  </div>
-								  <div class="col-sm-3 col-md-3">
-									 <div class="dashbox shad panel panel-default db-orange">
-										<div class="panel-body_2">
-										   <div class="panel-left green" style = "margin-top: -5px; margin-left: -5px;">
-												<i class="fa fa-times-circle fa-3x fa2"></i>
-										   </div>
-								   		<div class="panel-right">
-												<div id="odometer4" class="odometer" style="font-size: 22px; margin-top: 1px;">   </div><p></p>
-                        				<span class="chamado">'. __('Tickets','dashboard').'</span><br>
-                        				<span class="date"><b>'. __('Closed','dashboard').'</b></span>
-										   </div>
-										</div>
-									 </div>
-								  </div>																	                          				                           							
-						</div>   		
+		<!-- COLUMN 1 -->															
+			  <div class="col-sm-3 col-md-3 stat" >
+				 <div class="dashbox shad panel panel-default db-blue">
+					<div class="panel-body_2">
+					   <div class="panel-left red bluebg" style = "margin-top: -5px; margin-left: -5px;">
+							<i class="fa fa-tags fa-3x fa2"></i>
+					   </div>
+					   <div class="panel-right">
+					     <div id="odometer1" class="odometer" style="font-size: 22px; margin-top: 1px;">  </div><p></p>
+         				<span class="chamado">'. __('Tickets','dashboard').'</span><br>
+         				<span class="date" style="font-size: 16px;"><b>'. _x('status', 'New').' + '.__('Assigned').'</b></span>												
+					   </div>
+					</div>
+				 </div>
+			  </div>
+			  
+			  <div class="col-sm-3 col-md-3">
+				 <div class="dashbox shad panel panel-default db-orange">
+					<div class="panel-body_2">
+					   <div class="panel-left orange orangebg " style = "margin-top: -5px; margin-left: -5px;">
+							<i class="fa fa-clock-o fa-3x fa2"></i>
+					   </div>
+					   <div class="panel-right">										 
+						<div id="odometer2" class="odometer" style="font-size: 22px; margin-top: 1px;">   </div><p></p>
+         				<span class="chamado">'. __('Tickets','dashboard').'</span><br>
+         				<span class="date"><b>'. __('Pending').'</b></span>
+					   </div>
+					</div>
+				 </div>
+			  </div>																		
+      								
+			  <div class="col-sm-3 col-md-3">
+				 <div class="dashbox shad panel panel-default db-red">
+					<div class="panel-body_2">
+					   <div class="panel-left yellow redbg" style = "margin-top: -5px; margin-left: -5px;">
+							<i class="fa fa-check-square fa-3x fa2"></i>
+					   </div>
+					   <div class="panel-right">
+							<div id="odometer3" class="odometer" style="font-size: 22px; margin-top: 1px;">   </div><p></p>
+         				<span class="chamado">'. __('Tickets','dashboard').'</span><br>
+         				<span class="date"><b>'. __('Solved','dashboard').'</b></span>
+					   </div>										   
+					</div>
+				 </div>
+			  </div>
+			  <div class="col-sm-3 col-md-3">
+				 <div class="dashbox shad panel panel-default db-yellow">
+					<div class="panel-body_2">
+					   <div class="panel-left yellow yellowbg" style = "margin-top: -5px; margin-left: -5px;">
+							<i class="fa fa-times-circle fa-3x fa2"></i>
+					   </div>
+			   		<div class="panel-right">
+							<div id="odometer4" class="odometer" style="font-size: 22px; margin-top: 1px;">   </div><p></p>
+         				<span class="chamado">'. __('Tickets','dashboard').'</span><br>
+         				<span class="date"><b>'. __('Closed','dashboard').'</b></span>
+					   </div>
+					</div>
+				 </div>
+			  </div>																	                          				                           							
+	</div>   		
 </div>
 </div>';
 ?>

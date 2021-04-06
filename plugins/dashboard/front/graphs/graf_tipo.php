@@ -8,7 +8,7 @@ Session::checkRight("profile", READ);
 
 global $DB;
    
-    switch (date("m")) {
+switch (date("m")) {
     case "01": $mes = __('January','dashboard'); break;
     case "02": $mes = __('February','dashboard'); break;
     case "03": $mes = __('March','dashboard'); break;
@@ -21,14 +21,12 @@ global $DB;
     case "10": $mes = __('October','dashboard'); break;
     case "11": $mes = __('November','dashboard'); break;
     case "12": $mes = __('December','dashboard'); break;
-    }
-
+}
 ?>
 
 <html> 
 <head>
 <title>GLPI - <?php echo __('Charts','dashboard'). " " . __('by Type','dashboard'); ?></title>
-<!-- <base href= "<?php $_SERVER['SERVER_NAME'] ?>" > -->
 <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
 <meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7" />
 <meta http-equiv="content-language" content="en-us" />
@@ -41,8 +39,8 @@ global $DB;
 <link href="../css/font-awesome.css" type="text/css" rel="stylesheet" />
 
 <script type="text/javascript" src="../js/jquery.min.js"></script>
-<link href="../inc/select2/select2.css" rel="stylesheet" type="text/css">
 <script src="../inc/select2/select2.js" type="text/javascript" language="javascript"></script>
+<link href="../inc/select2/select2.css" rel="stylesheet" type="text/css">
 
 <script src="../js/highcharts.js"></script>
 <script src="../js/modules/exporting.js"></script>
@@ -109,6 +107,7 @@ if($sel_ent == '' || $sel_ent == -1) {
 
 	$entidade = "WHERE entities_id IN (".$ent.")  ";
 	$entidade_a = "AND glpi_tickets.entities_id IN (".$ent.")";
+	$entidade_age = "AND glpi_tickets.entities_id IN (".$ent.")";
 	$entidade1 = "";
 	
 }
@@ -116,18 +115,8 @@ if($sel_ent == '' || $sel_ent == -1) {
 else {
 	$entidade = "WHERE entities_id IN (".$sel_ent.") ";
 	$entidade_a = "AND glpi_tickets.entities_id IN (".$sel_ent.")";
+	$entidade_age = "AND glpi_tickets.entities_id IN (".$sel_ent.")";
 }
-
-/*//seleciona grupo
-$sql_grp = "
-SELECT id, name
-FROM `glpi_groups`
-".$entidade."
-ORDER BY `name` ASC ";
-
-$result_grp = $DB->query($sql_grp);
-$grp = $DB->fetch_assoc($result_grp);
-*/
 
 // lista de grupos
 
@@ -150,25 +139,8 @@ function dropdown( $name, array $options, $selected=null )
     /*** and return the completed dropdown ***/
     return $dropdown;
 }
-
-
-/*$res_grp = $DB->query($sql_grp);
-$arr_grp = array();
-$arr_grp[0] = "-- ". __('Select a type','dashboard') . " --" ;
-
-$DB->data_seek($result_grp, 0);
-
-while ($row_result = $DB->fetch_assoc($result_grp))		
-{ 
-	$v_row_result = $row_result['id'];
-	$arr_grp[$v_row_result] = $row_result['name'] ;			
-} 	 
-
-$name = 'sel_type';
-$options = $arr_grp;
-$selected = $id_tip;*/
-
 ?>
+
 <div id='content' >
 <div id='container-fluid' style="margin: 0px 5% 0px 5%;"> 
 <div id="pad-wrapper" >
@@ -181,31 +153,32 @@ $selected = $id_tip;*/
    <?php echo __('Tickets','dashboard') ." ". __('by Type','dashboard'); ?> 
 	<span style="color:#8b1a1a; font-size:35pt; font-weight:bold;"> </span> 
 </div>
-<div id="datas-tec" class="col-md-12 col-sm-12 fluid" > 
+
+<div id="datas-tec" class="col-md-12 fluid" > 
 	<form id="form1" name="form1" class="form2" method="post" action="?date1=<?php echo $data_ini ?>&date2=<?php echo $data_fin ?>&con=1"> 
 		<table border="0" cellspacing="0" cellpadding="1" bgcolor="#efefef">
 		<tr>
 			<td>	
 			<?php 
 				echo'
-						<table>
-							<tr>
-								<td>
-								   <div class="input-group date" id="dp1" data-date="'.$data_ini.'" data-date-format="yyyy-mm-dd">
-								    	<input class="col-md-9 form-control" size="13" type="text" name="date1" value="'.$data_ini.'" >		    	
-								    	<span class="input-group-addon add-on"><i class="fa fa-calendar"></i></span>	    	
-							    	</div>
-								</td>
-								<td>&nbsp;</td>
-								<td>
-							   	<div class="input-group date" id="dp2" data-date="'.$data_fin.'" data-date-format="yyyy-mm-dd">
-								    	<input class="col-md-9 form-control" size="13" type="text" name="date2" value="'.$data_fin.'" >		    	
-								    	<span class="input-group-addon add-on"><i class="fa fa-calendar"></i></span>	    	
-							    	</div>
-								</td>
-								<td>&nbsp;</td>
-							</tr>
-						</table> ';
+					<table>
+						<tr>
+							<td>
+							   <div class="input-group date" id="dp1" data-date="'.$data_ini.'" data-date-format="yyyy-mm-dd">
+							    	<input class="col-md-9 form-control" size="13" type="text" name="date1" value="'.$data_ini.'" >		    	
+							    	<span class="input-group-addon add-on"><i class="fa fa-calendar"></i></span>	    	
+						    	</div>
+							</td>
+							<td>&nbsp;</td>
+							<td>
+						   	<div class="input-group date" id="dp2" data-date="'.$data_fin.'" data-date-format="yyyy-mm-dd">
+							    	<input class="col-md-9 form-control" size="13" type="text" name="date2" value="'.$data_fin.'" >		    	
+							    	<span class="input-group-addon add-on"><i class="fa fa-calendar"></i></span>	    	
+						    	</div>
+							</td>
+							<td>&nbsp;</td>
+						</tr>
+					</table> ';
 				?>	
 			</td>
 			<td style="margin-top:2px;">
@@ -243,16 +216,17 @@ $selected = $id_tip;*/
 <!-- DIV's -->
 
 <script type="text/javascript" >
-	$(document).ready(function() { $("#sel_type").select2({dropdownAutoWidth : true});});
-				
+	$(document).ready(function() { $("#sel_type").select2({dropdownAutoWidth : true});});				
 	$('#dp1').datepicker('update');
 	$('#dp2').datepicker('update');
 </script>
 
 <?php
 
-$con = $_REQUEST['con'];
-
+if(isset($_REQUEST['con'])) {
+	$con = $_REQUEST['con'];
+}
+else { $con = ''; }
 if($con == "1") {
 	
 if(!isset($_POST["sel_type"])) {
@@ -288,18 +262,6 @@ else {
 	$datas = "BETWEEN '".$data_ini2." 00:00:00' AND '".$data_fin2." 23:59:59'";	
 }
 
-// nome do grupo
-
-/*$sql_nm = "
-SELECT id, name
-FROM `glpi_groups`
-WHERE id = ".$id_tip."
-";
-
-$result_nm = $DB->query($sql_nm);
-$grp_name = $DB->fetch_assoc($result_nm);
-*/
-
 //type
 if($id_tip == 1) { 
 	$type = __('Incident');	 
@@ -312,11 +274,11 @@ else {
 //quant de chamados
 $query_quant = "
 SELECT count(glpi_tickets.id) AS total
-	FROM glpi_tickets	
-	".$entidade."
-	AND glpi_tickets.date ".$datas."
-	AND glpi_tickets.is_deleted = 0
-	AND glpi_tickets.type =".$id_tip." ";
+FROM glpi_tickets	
+".$entidade."
+AND glpi_tickets.date ".$datas."
+AND glpi_tickets.is_deleted = 0
+AND glpi_tickets.type =".$id_tip." ";
 
 $result_quant = $DB->query($query_quant);
 $total = $DB->fetch_assoc($result_quant);
@@ -324,8 +286,6 @@ $total = $DB->fetch_assoc($result_quant);
 echo '<div id="entidade" class="col-md-12 col-sm-12 fluid" >';
 echo $type." - <span> ".$total['total']." ".__('Tickets','dashboard')."</span>";
 echo "</div>";
-
-//var_dump($query_quant);
 
 ?>
 
@@ -357,9 +317,7 @@ echo "</div>";
 	<?php  include ("./inc/grafbar_user_tipo.inc.php"); ?>
 </div>
 
-
 <?php 
-
 }
 ?>
 

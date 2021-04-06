@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -49,11 +45,19 @@ class PrinterModel extends CommonDropdown {
    }
 
 
-   function cleanDBonPurge() {
-      // Temporary solution to clean wrong updated items
-      $cpm = new CartridgeItem_PrinterModel();
-      $cpm->deleteByCriteria(['printermodels_id' => $this->fields['id']]);
+   static function getFieldLabel() {
+      return _n('Model', 'Models', 1);
+   }
 
+
+   function cleanDBonPurge() {
+
+      // Temporary solution to clean wrong updated items
+      $this->deleteChildrenAndRelationsFromDb(
+         [
+            CartridgeItem_PrinterModel::class,
+         ]
+      );
    }
 
 }

@@ -4,7 +4,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -32,14 +32,10 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 /// Update from 0.72.1 to 0.72.2
 
 function update0721to0722() {
-   global $DB, $CFG_GLPI;
+   global $DB;
 
    //TRANS: %s is the number of new version
    echo "<h3>".sprintf(__('Update to %s'), '0.72.2')."</h3>";

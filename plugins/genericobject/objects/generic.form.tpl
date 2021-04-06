@@ -17,10 +17,10 @@
  --------------------------------------------------------------------------
  @package   genericobject
  @author    the genericobject plugin team
- @copyright Copyright (c) 2010-2011 Order plugin team
+ @copyright Copyright (c) 2010-2017 Genericobject plugin team
  @license   GPLv2+
             http://www.gnu.org/licenses/gpl.txt
- @link      https://forge.indepnet.net/projects/genericobject
+ @link      https://github.com/pluginsGLPI/genericobject
  @link      http://www.glpi-project.org/
  @since     2009
  ---------------------------------------------------------------------- */
@@ -32,4 +32,4 @@
 include ("../../../inc/includes.php");
 
 $item = new %%CLASSNAME%%();
-include (GLPI_ROOT."/plugins/genericobject/front/object.form.php");
+include (GENERICOBJECT_DIR."/front/object.form.php");

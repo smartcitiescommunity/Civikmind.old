@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -35,6 +35,10 @@ if (!defined('GLPI_ROOT')) {
 }
 
 class Telemetry extends CommonGLPI {
+
+   static function getTypeName($nb = 0) {
+      return __('Telemetry');
+   }
 
    /**
     * Grab telemetry informations
@@ -80,7 +84,7 @@ class Telemetry extends CommonGLPI {
             'avg_users'             => self::getAverage('User'),
             'avg_groups'            => self::getAverage('Group'),
             'ldap_enabled'          => AuthLDAP::useAuthLdap(),
-            'mailcollector_enabled' => (MailCollector::getNumberOfActiveMailCollectors() > 0),
+            'mailcollector_enabled' => (MailCollector::countActiveCollectors() > 0),
             'notifications_modes'   => []
          ]
       ];
@@ -114,9 +118,11 @@ class Telemetry extends CommonGLPI {
 
       $dbinfos = $DB->getInfo();
 
-      $size_res = $DB->query("SELECT ROUND(SUM(data_length + index_length) / 1024 / 1024, 1) dbsize
-         FROM information_schema.tables WHERE table_schema='" . $DB->dbdefault ."'");
-      $size_res = $DB->fetch_assoc($size_res);
+      $size_res = $DB->request([
+         'SELECT' => new \QueryExpression("ROUND(SUM(data_length + index_length) / 1024 / 1024, 1) AS dbsize"),
+         'FROM'   => 'information_schema.tables',
+         'WHERE'  => ['table_schema' => $DB->dbdefault]
+      ])->next();
 
       $db = [
          'engine'    => $dbinfos['Server Software'],
@@ -144,6 +150,15 @@ class Telemetry extends CommonGLPI {
       // check if host is present (do no throw php warning in contrary of get_headers)
       if (filter_var(gethostbyname(parse_url($CFG_GLPI['url_base'], PHP_URL_HOST)),
           FILTER_VALIDATE_IP)) {
+
+          // Issue #3180 - disable SSL certificate validation (wildcard, self-signed)
+          stream_context_set_default([
+            'ssl' => [
+                'verify_peer' => false,
+                'verify_peer_name' => false,
+                ]
+            ]);
+
          $headers = get_headers($CFG_GLPI['url_base']);
       }
 
@@ -199,12 +214,15 @@ class Telemetry extends CommonGLPI {
     * @return array
     */
    static public function grabOsInfos() {
+      $distro = false;
+      if (file_exists('/etc/redhat-release')) {
+         $distro = preg_replace('/\s+$/S', '', file_get_contents('/etc/redhat-release'));
+      }
       $os = [
          'family'       => php_uname('s'),
-         'distribution' => '',
+         'distribution' => ($distro ?: ''),
          'version'      => php_uname('r')
       ];
-
       return $os;
    }
 
@@ -217,7 +235,7 @@ class Telemetry extends CommonGLPI {
     * @return string
     */
    public static function getAverage($itemtype) {
-      $count = (int)countElementsInTable(getTableForItemtype($itemtype));
+      $count = (int)countElementsInTable(getTableForItemType($itemtype));
 
       if ($count <= 500) {
          return '0-500';
@@ -250,78 +268,34 @@ class Telemetry extends CommonGLPI {
    /**
     * Send telemetry informations
     *
-    * @param Crontask $task Crontask instance
+    * @param CronTask $task CronTask instance
     *
     * @return void
     */
    static public function cronTelemetry($task) {
-      global $CFG_GLPI;
-
       $data = self::getTelemetryInfos();
       $infos = json_encode(['data' => $data]);
 
-      $uri = GLPI_TELEMETRY_URI . '/telemetry';
-      $ch = curl_init($uri);
+      $url = GLPI_TELEMETRY_URI . '/telemetry';
       $opts = [
-         CURLOPT_URL             => $uri,
-         CURLOPT_USERAGENT       => "GLPI/".trim($CFG_GLPI["version"]),
-         CURLOPT_RETURNTRANSFER  => 1,
          CURLOPT_POSTFIELDS      => $infos,
          CURLOPT_HTTPHEADER      => ['Content-Type:application/json']
       ];
 
-      if (!empty($CFG_GLPI["proxy_name"])) {
-         // Connection using proxy
-         $opts += [
-            CURLOPT_PROXY           => $CFG_GLPI['proxy_name'],
-            CURLOPT_PROXYPORT       => $CFG_GLPI['proxy_port'],
-            CURLOPT_PROXYTYPE       => CURLPROXY_HTTP,
-            CURLOPT_HTTPPROXYTUNNEL => 1
-         ];
-
-         if (!empty($CFG_GLPI["proxy_user"])) {
-            $opts += [
-               CURLOPT_PROXYAUTH => CURLAUTH_BASIC,
-               CURLOPT_PROXYUSERPWD => $CFG_GLPI["proxy_user"] . ":" . self::decrypt($CFG_GLPI["proxy_passwd"], GLPIKEY)
-            ];
-         }
-
-      }
-
-      curl_setopt_array($ch, $opts);
-      $content = json_decode(curl_exec($ch));
-      $errstr = curl_error($ch);
-      curl_close($ch);
+      $errstr = null;
+      $content = json_decode(Toolbox::callCurl($url, $opts, $errstr));
 
       if ($content && property_exists($content, 'message')) {
          //all is OK!
-         return true;
+         return 1;
       } else {
          $message = 'Something went wrong sending telemetry informations';
          if ($errstr != '') {
             $message .= ": $errstr";
          }
-         throw new \RuntimeException($message);
+         Toolbox::logError($message);
+         return null; // null = Action aborted
       }
-
-   }
-
-   /**
-    * Get UUID
-    *
-    * @param string $type UUID type (either instance or registration)
-    *
-    * @return string
-    */
-   private static final function getUuid($type) {
-      $conf = Config::getConfigurationValues('core', [$type . '_uuid']);
-      $uuid = null;
-      if (!isset($conf[$type . '_uuid']) || empty($conf[$type . '_uuid'])) {
-         $uuid = self::generateUuid($type);
-      } else {
-         $uuid = $conf[$type . '_uuid'];
-      }
-      return $uuid;
    }
 
    /**
@@ -330,7 +304,7 @@ class Telemetry extends CommonGLPI {
     * @return string
     */
    public static final function getInstanceUuid() {
-      return self::getUuid('instance');
+      return Config::getUuid('instance');
    }
 
    /**
@@ -339,21 +313,7 @@ class Telemetry extends CommonGLPI {
     * @return string
     */
    public static final function getRegistrationUuid() {
-      return self::getUuid('registration');
-   }
-
-
-   /**
-    * Generates an unique identifier and store it
-    *
-    * @param string $type UUID type (either instance or registration)
-    *
-    * @return string
-    */
-   public static final function generateUuid($type) {
-      $uuid = Toolbox::getRandomString(40);
-      Config::setConfigurationValues('core', [$type . '_uuid' => $uuid]);
-      return $uuid;
+      return Config::getUuid('registration');
    }
 
    /**
@@ -362,7 +322,7 @@ class Telemetry extends CommonGLPI {
     * @return string
     */
    public static final function generateInstanceUuid() {
-      return self::generateUuid('instance');
+      return Config::generateUuid('instance');
    }
 
    /**
@@ -371,7 +331,7 @@ class Telemetry extends CommonGLPI {
     * @return string
     */
    public static final function generateRegistrationUuid() {
-      return self::generateUuid('registration');
+      return Config::generateUuid('registration');
    }
 
 
@@ -391,7 +351,7 @@ class Telemetry extends CommonGLPI {
             $.ajax({
                url:  $(this).attr('href'),
                success: function(data) {
-                  var _elt = $('<div/>');
+                  var _elt = $('<div></div>');
                   _elt.append(data);
                   $('body').append(_elt);
 
@@ -430,8 +390,11 @@ class Telemetry extends CommonGLPI {
     */
    public static function enable() {
       global $DB;
-      $query = 'UPDATE glpi_crontasks SET state = 1 WHERE name=\'telemetry\'';
-      $DB->query($query);
+      $DB->update(
+         'glpi_crontasks',
+         ['state' => 1],
+         ['name' => 'telemetry']
+      );
    }
 
    /**
@@ -460,12 +423,12 @@ class Telemetry extends CommonGLPI {
     * @return string
     */
    public static function showTelemetry() {
-      $out = "<h4><input type='checkbox' checked='checked' value='0' name='send_stats' id='send_stats'/>";
-      $out .= "<label for='send_stats'>" . __('Enviar "Estadisticas de uso"')  . "</label></h4>";
-      $out .= "<p><strong>" . __("Civikmind depende de tu ayuda para mejorar!") ."</strong></p>";
-      $out .= "<p>" . __("Se ha introducido la caracteristica “Telemetria”, que anonimamente con tu permiso, envia datos a el sitio web de telemetria de GLPI, aplicación CORE de Civikmind.") . " ";
-      $out .= __("una vez agregado, Las estadisticas de uso son agregadas y hechas disponibles para toda la comunidad de desarrolladores de GLPI.") . "</p>";
-      $out .= "<p>" . __("Si deseas hacerlo marca la opción antes de dar click en continuar!") . "</p>";
+      $out = "<h4><input type='checkbox' checked='checked' value='1' name='send_stats' id='send_stats'/>";
+      $out .= "<label for='send_stats'>" . __('Send "usage statistics"')  . "</label></h4>";
+      $out .= "<p><strong>" . __("We need your help to improve GLPI and the plugins ecosystem!") ."</strong></p>";
+      $out .= "<p>" . __("Since GLPI 9.2, we’ve introduced a new statistics feature called “Telemetry”, that anonymously with your permission, sends data to our telemetry website.") . " ";
+      $out .= __("Once sent, usage statistics are aggregated and made available to a broad range of GLPI developers.") . "</p>";
+      $out .= "<p>" . __("Let us know your usage to improve future versions of GLPI and its plugins!") . "</p>";
 
       $out .= "<p>" . self::getViewLink() . "</p>";
       return $out;
@@ -478,14 +441,14 @@ class Telemetry extends CommonGLPI {
     */
    public static function showReference() {
       $out = "<hr/>";
-      $out .= "<h4>" . __('Referencia tu Civikmind en la organización GLPI') . "</h4>";
+      $out .= "<h4>" . __('Reference your GLPI') . "</h4>";
       $out .= "<p>" . sprintf(
-         __("Si deseas contribuir a la comunidad de GLPI ".
-         "llena el formulario a continuación %1\$s."),
+         __("Besides, if you appreciate GLPI and its community, ".
+         "please take a minute to reference your organization by filling %1\$s."),
          sprintf(
             "<a href='" . GLPI_TELEMETRY_URI . "/reference?showmodal&uuid=" .
             self::getRegistrationUuid() . "' target='_blank'>%1\$s</a>",
-            __('Click aqui')
+            __('the following form')
          )
       ) . "</p>";
       return $out;

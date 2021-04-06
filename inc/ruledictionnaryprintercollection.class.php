@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,9 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -83,27 +80,40 @@ class RuleDictionnaryPrinterCollection extends RuleCollection {
       $i  = $offset;
 
       //Select all the differents software
-      $sql = "SELECT DISTINCT `glpi_printers`.`name`,
-                     `glpi_manufacturers`.`name` AS manufacturer,
-                     `glpi_printers`.`manufacturers_id` AS manufacturers_id,
-                     `glpi_printers`.`comment` AS comment
-              FROM `glpi_printers`
-              LEFT JOIN `glpi_manufacturers`
-                  ON (`glpi_manufacturers`.`id` = `glpi_printers`.`manufacturers_id`) ";
-
-      // Do not replay on dustbin and templates
-      $sql .= "WHERE `glpi_printers`.`is_deleted` = '0'
-                     AND `glpi_printers`.`is_template` = '0' ";
+      $criteria = [
+         'SELECT' => [
+            'glpi_printers.name',
+            'glpi_manufacturers.name AS manufacturer',
+            'glpi_printers.manufacturers_id AS manufacturers_id',
+            'glpi_printers.comment AS comment'
+         ],
+         'DISTINCT'  => true,
+         'FROM'      => 'glpi_printers',
+         'LEFT JOIN' => [
+            'glpi_manufacturers' => [
+               'ON'  => [
+                  'glpi_manufacturers' => 'id',
+                  'glpi_printers'      => 'manufacturers_id'
+               ]
+            ]
+         ],
+         'WHERE'     => [
+            // Do not replay on trashbin and templates
+            'glpi_printers.is_deleted'    => 0,
+            'glpi_printers.is_template'   => 0
+         ]
+      ];
 
       if ($offset) {
-         $sql .= " LIMIT " . intval($offset) . ",999999999";
+         $criteria['START'] = (int)$offset;
+         $criteria['LIMIT'] = 999999999;
       }
 
-      $res  = $DB->query($sql);
-      $nb   = $DB->numrows($res) + $offset;
-      $step = (($nb > 1000) ? 50 : (($nb > 20) ? floor($DB->numrows($res) / 20) : 1));
+      $iterator = $DB->request($criteria);
+      $nb   = count($iterator) + $offset;
+      $step = (($nb > 1000) ? 50 : (($nb > 20) ? floor(count($iterator) / 20) : 1));
 
-      while ($input = $DB->fetch_assoc($res)) {
+      while ($input = $iterator->next()) {
          if (!($i % $step)) {
             if (isCommandLine()) {
                //TRANS: %1$s is a date, %2$s is a row, %3$s is total row, %4$s is memory
@@ -128,15 +138,18 @@ class RuleDictionnaryPrinterCollection extends RuleCollection {
 
             $IDs = [];
             //Find all the printers in the database with the same name and manufacturer
-            $sql = "SELECT `id`
-                    FROM `glpi_printers`
-                    WHERE `name` = '" . $input["name"] . "'
-                          AND `manufacturers_id` = '" . $input["manufacturers_id"] . "'";
-            $res_printer = $DB->query($sql);
+            $print_iterator = $DB->request([
+               'SELECT' => 'id',
+               'FROM'   => 'glpi_printers',
+               'WHERE'  => [
+                  'name'               => $input['name'],
+                  'manufacturers_id'   => $input['manufacturers_id']
+               ]
+            ]);
 
-            if ($DB->numrows($res_printer) > 0) {
+            if (count($print_iterator)) {
                //Store all the printer's IDs in an array
-               while ($result = $DB->fetch_assoc($res_printer)) {
+               while ($result = $print_iterator->next()) {
                   $IDs[] = $result["id"];
                }
                //Replay dictionnary on all the printers
@@ -196,25 +209,34 @@ class RuleDictionnaryPrinterCollection extends RuleCollection {
       $new_printers  = [];
       $delete_ids    = [];
 
-      foreach ($IDs as $ID) {
-         $sql = "SELECT `glpi_printers`.`id`,
-                        `glpi_printers`.`name` AS name,
-                        `glpi_printers`.`entities_id` AS entities_id,
-                        `glpi_printers`.`is_global` AS is_global,
-                        `glpi_manufacturers`.`name` AS manufacturer
-                 FROM `glpi_printers`
-                 LEFT JOIN `glpi_manufacturers`
-                    ON (`glpi_printers`.`manufacturers_id` = `glpi_manufacturers`.`id`)
-                 WHERE `glpi_printers`.`is_template` = '0'
-                       AND `glpi_printers`.`id` = '$ID'";
+      $iterator = $DB->request([
+         'SELECT'    => [
+            'glpi_printers.id',
+            'glpi_printers.name',
+            'glpi_printers.entities_id AS entities_id',
+            'glpi_printers.is_global AS is_global',
+            'glpi_manufacturers.name AS manufacturer'
+         ],
+         'FROM'      => 'glpi_printers',
+         'LEFT JOIN' => [
+            'glpi_manufacturers'  => [
+               'FKEY'   => [
+                  'glpi_printers'      => 'manufacturers_id',
+                  'glpi_manufacturers' => 'id'
+               ]
+            ]
+         ],
+         'WHERE'     => [
+            'glpi_printers.is_template'   => 0,
+            'glpi_printers.id'            => $IDs
+         ]
+      ]);
 
-         $res_printer = $DB->query($sql);
-         if ($DB->numrows($res_printer)) {
-            $printer = $DB->fetch_assoc($res_printer);
-            //For each printer
-            $this->replayDictionnaryOnOnePrinter($new_printers, $res_rule, $printer, $delete_ids);
-         }
+      while ($printer = $iterator->next()) {
+         //For each printer
+         $this->replayDictionnaryOnOnePrinter($new_printers, $res_rule, $printer, $delete_ids);
       }
+
       //Delete printer if needed
       $this->putOldPrintersInTrash($delete_ids);
    }
@@ -238,12 +260,10 @@ class RuleDictionnaryPrinterCollection extends RuleCollection {
     * @param &$new_printers   array containing new printers already computed
     * @param $res_rule        array of rule results
     * @param $params          array
-    * @param &$printers_ids   array containing replay printer need to be dustbined
+    * @param &$printers_ids   array containing replay printer need to be put in trashbin
    **/
    function replayDictionnaryOnOnePrinter(array &$new_printers, array $res_rule,
                                           array $params, array &$printers_ids) {
-      global $DB;
-
       $p['id']           = 0;
       $p['name']         = '';
       $p['manufacturer'] = '';
@@ -277,7 +297,7 @@ class RuleDictionnaryPrinterCollection extends RuleCollection {
 
          //New printer not already present in this entity
          if (!isset($new_printers[$p['entity']][$res_rule["name"]])) {
-            // create new printer or restore it from dustbin
+            // create new printer or restore it from trashbin
             $new_printer_id = $printer->addOrRestoreFromTrash($res_rule["name"], $manufacturer,
                                                               $p['entity']);
             $new_printers[$p['entity']][$res_rule["name"]] = $new_printer_id;
@@ -315,16 +335,18 @@ class RuleDictionnaryPrinterCollection extends RuleCollection {
     * @param $ID                 the old printer's id
     * @param $new_printers_id    the new printer's id
     *
-    * @return nothing
+    * @return void
    **/
    function moveDirectConnections($ID, $new_printers_id) {
-      global $DB;
-
       $computeritem = new Computer_Item();
       //For each direct connection of this printer
-      foreach (getAllDatasFromTable("glpi_computers_items",
-                                    "`itemtype` = 'Printer'
-                                        AND `items_id` = '$ID'") as $connection) {
+      $connections = getAllDataFromTable(
+         'glpi_computers_items', [
+            'itemtype'  => 'Printer',
+            'items_id'  => $ID
+         ]
+      );
+      foreach ($connections as $connection) {
 
          //Direct connection exists in the target printer ?
          if (!countElementsInTable("glpi_computers_items",

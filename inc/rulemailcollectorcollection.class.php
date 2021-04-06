@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,9 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -80,9 +77,9 @@ class RuleMailCollectorCollection extends RuleCollection {
       }
 
       //Add all user's groups
-      if (in_array('groups', $fields)) {
+      if (in_array('_groups_id_requester', $fields)) {
          foreach (Group_User::getUserGroups($input['_users_id_requester']) as $group) {
-            $input['GROUPS'][] = $group['id'];
+            $input['_groups_id_requester'][] = $group['id'];
          }
       }
 
@@ -135,8 +132,7 @@ class RuleMailCollectorCollection extends RuleCollection {
    function canList() {
 
       return static::canView()
-             && Toolbox::canUseImapPop()
-             && MailCollector::getNumberOfMailCollectors();
+             && MailCollector::countCollectors();
    }
 
 }

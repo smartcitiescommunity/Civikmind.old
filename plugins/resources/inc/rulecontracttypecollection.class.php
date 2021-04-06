@@ -9,7 +9,7 @@
  -------------------------------------------------------------------------
 
  LICENSE
-      
+
  This file is part of resources.
 
  resources is free software; you can redistribute it and/or modify
@@ -31,29 +31,48 @@ if (!defined('GLPI_ROOT')) {
 }
 
 
+/**
+ * Class PluginResourcesRuleContracttypeCollection
+ */
 class PluginResourcesRuleContracttypeCollection extends RuleCollection {
+
+   static $rightname = 'plugin_resources';
 
    // From RuleCollection
    public $stop_on_first_match=true;
-   static public $right='entity_rule_ticket';
    public $menu_option='contracttypes';
-   
+
+   /**
+    * Get title used in list of rules
+    *
+    * @return Title of the rule collection
+    **/
    function getTitle() {
 
       return __('Assignment rule of fields to a contract type', 'resources');
    }
-   
-   function __construct($entity=0) {
+
+   /**
+    * PluginResourcesRuleContracttypeCollection constructor.
+    *
+    * @param int $entity
+    */
+   function __construct($entity = 0) {
       $this->entity = $entity;
    }
-   
+
+   /**
+    * @return bool
+    */
    function showInheritedTab() {
-      return Session::haveRightsOr(self::$rightname, array(CREATE, UPDATE, DELETE)) && ($this->entity);
+      return Session::haveRightsOr(self::$rightname, [CREATE, UPDATE, DELETE]) && ($this->entity);
    }
 
+   /**
+    * @return bool
+    */
    function showChildrensTab() {
-      return Session::haveRightsOr(self::$rightname, array(CREATE, UPDATE, DELETE)) && (count($_SESSION['glpiactiveentities']) > 1);
+      return Session::haveRightsOr(self::$rightname, [CREATE, UPDATE, DELETE]) && (count($_SESSION['glpiactiveentities']) > 1);
    }
 }
 
-?>

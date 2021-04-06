@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -29,10 +29,6 @@
  * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
  */
-
-/** @file
-* @brief
-*/
 
 /**
  * Update from 0.83 to 0.83.1
@@ -89,7 +85,7 @@ function update083to0831() {
 
       if ($result = $DB->query($query)) {
          if ($DB->numrows($result) > 0) {
-            while ($data = $DB->fetch_assoc($result)) {
+            while ($data = $DB->fetchAssoc($result)) {
                $query = "SELECT MAX(`rank`)
                          FROM `glpi_displaypreferences`
                          WHERE `users_id` = '".$data['users_id']."'

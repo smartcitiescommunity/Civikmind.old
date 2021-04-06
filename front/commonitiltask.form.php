@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,9 +30,10 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
+/**
+ * Following variables have to be defined before inclusion of this file:
+ * @var CommonITILTask $task
+ */
 
 use Glpi\Event;
 
@@ -59,7 +60,7 @@ if (isset($_POST["add"])) {
    Event::log($task->getField($fk), strtolower($itemtype), 4, "tracking",
               //TRANS: %s is the user login
               sprintf(__('%s adds a task'), $_SESSION["glpiname"]));
-   Html::redirect(Toolbox::getItemTypeFormURL($itemtype)."?id=".$task->getField($fk));
+   Html::redirect($itemtype::getFormURLWithID($task->getField($fk)));
 
 } else if (isset($_POST["purge"])) {
    $task->check($_POST['id'], PURGE);
@@ -68,7 +69,7 @@ if (isset($_POST["add"])) {
    Event::log($task->getField($fk), strtolower($itemtype), 4, "tracking",
               //TRANS: %s is the user login
               sprintf(__('%s purges a task'), $_SESSION["glpiname"]));
-   Html::redirect(Toolbox::getItemTypeFormURL($itemtype)."?id=".$task->getField($fk));
+   Html::redirect($itemtype::getFormURLWithID($task->getField($fk)));
 
 } else if (isset($_POST["update"])) {
    $task->check($_POST["id"], UPDATE);

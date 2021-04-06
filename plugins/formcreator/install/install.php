@@ -1,10 +1,72 @@
 <?php
+/**
+ * ---------------------------------------------------------------------
+ * Formcreator is a plugin which allows creation of custom forms of
+ * easy access.
+ * ---------------------------------------------------------------------
+ * LICENSE
+ *
+ * This file is part of Formcreator.
+ *
+ * Formcreator is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Formcreator is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Formcreator. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
+ * @copyright Copyright © 2011 - 2021 Teclib'
+ * @license   http://www.gnu.org/licenses/gpl.txt GPLv3+
+ * @link      https://github.com/pluginsGLPI/formcreator/
+ * @link      https://pluginsglpi.github.io/formcreator/
+ * @link      http://plugins.glpi-project.org/#/plugin/formcreator
+ * ---------------------------------------------------------------------
+ */
+
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
 
 class PluginFormcreatorInstall {
    protected $migration;
+
+   /**
+    * array of upgrade steps key => value
+    * key   is the version to upgrade from
+    * value is the version to upgrade to
+    *
+    * Exemple: an entry '2.0' => '2.1' tells that versions 2.0
+    * are upgradable to 2.1
+    *
+    * When possible avoid schema upgrade between bugfix releases. The schema
+    * version contains major.minor numbers only. If an upgrade of the schema
+    * occurs between bugfix releases, then the upgrade will start from the
+    * major.minor.0 version up to the end of the the versions list.
+    * Exemple: if previous version is 2.6.1 and current code is 2.6.3 then
+    * the upgrade will start from 2.6.0 to 2.6.3 and replay schema changes
+    * between 2.6.0 and 2.6.1. This means that upgrade must be _repeatable_.
+    *
+    * @var array
+    */
+   private $upgradeSteps = [
+      '0.0'    => '2.5',
+      '2.5'    => '2.6',
+      '2.6'    => '2.6.1',
+      '2.6.1'  => '2.6.3',
+      '2.6.3'  => '2.7',
+      '2.7'    => '2.8',
+      '2.8'    => '2.8.1',
+      '2.8.1'  => '2.9',
+      '2.9'    => '2.10',
+      '2.10'   => '2.10.2',
+      '2.10.2' => '2.11',
+   ];
 
    /**
     * Install the plugin
@@ -19,7 +81,12 @@ class PluginFormcreatorInstall {
       $this->configureExistingEntities();
       $this->createRequestType();
       $this->createDefaultDisplayPreferences();
+      $this->createCronTasks();
       $this->createNotifications();
+      Config::setConfigurationValues('formcreator', ['schema_version' => PLUGIN_FORMCREATOR_SCHEMA_VERSION]);
+
+      $task = new CronTask();
+      PluginFormcreatorIssue::cronSyncIssues($task);
 
       return true;
    }
@@ -29,42 +96,50 @@ class PluginFormcreatorInstall {
     */
    public function upgrade(Migration $migration) {
       $this->migration = $migration;
-      $fromSchemaVersion = $this->getSchemaVersion();
-
-      $this->installSchema();
-
-      // All cases are run starting from the one matching the current schema version
-      switch ($fromSchemaVersion) {
-         case '0.0':
-         case '2.5':
-            //Any schema version below or equal 2.5
-            require_once(__DIR__ . '/update_0.0_2.5.php');
-            plugin_formcreator_update_2_5($this->migration);
-
-         case '2.6':
-            //Any schema version below or equal 2.6
-            require_once(__DIR__ . '/update_2.5_2.6.php');
-            plugin_formcreator_update_2_6($this->migration);
-
-         default:
-            // Must be the last case
-            if ($this->endsWith(PLUGIN_FORMCREATOR_VERSION, "-dev")) {
-               if (is_readable(__DIR__ . "/update_dev.php") && is_file(__DIR__ . "/update_dev.php")) {
-                  include_once __DIR__ . "/update_dev.php";
-                  $updateDevFunction = 'plugin_formcreator_update_dev';
-                  if (function_exists($updateDevFunction)) {
-                     $updateDevFunction($this->migration);
-                  }
-               }
-            }
+      if (isset($_SESSION['plugin_formcreator']['cli']) && $_SESSION['plugin_formcreator']['cli'] == 'force-upgrade') {
+         // Might return false
+         $fromSchemaVersion = array_search(PLUGIN_FORMCREATOR_SCHEMA_VERSION, $this->upgradeSteps);
+      } else {
+         $fromSchemaVersion = $this->getSchemaVersion();
       }
+
+      while ($fromSchemaVersion && isset($this->upgradeSteps[$fromSchemaVersion])) {
+         $this->upgradeOneStep($this->upgradeSteps[$fromSchemaVersion]);
+         $fromSchemaVersion = $this->upgradeSteps[$fromSchemaVersion];
+      }
+
       $this->migration->executeMigration();
+      // if the schema contains new tables
+      $this->installSchema();
       $this->configureExistingEntities();
       $this->createRequestType();
       $this->createDefaultDisplayPreferences();
+      $this->createCronTasks();
       Config::setConfigurationValues('formcreator', ['schema_version' => PLUGIN_FORMCREATOR_SCHEMA_VERSION]);
 
       return true;
+   }
+
+   /**
+    * Proceed to upgrade of the plugin to the given version
+    *
+    * @param string $toVersion
+    */
+   protected function upgradeOneStep($toVersion) {
+      ini_set("max_execution_time", "0");
+      ini_set("memory_limit", "-1");
+
+      $suffix = str_replace('.', '_', $toVersion);
+      $includeFile = __DIR__ . "/upgrade_to_$toVersion.php";
+      if (is_readable($includeFile) && is_file($includeFile)) {
+         include_once $includeFile;
+         $updateClass = "PluginFormcreatorUpgradeTo$suffix";
+         $this->migration->addNewMessageArea("Upgrade to $toVersion");
+         $upgradeStep = new $updateClass();
+         $upgradeStep->upgrade($this->migration);
+         $this->migration->executeMigration();
+         $this->migration->displayMessage('Done');
+      }
    }
 
    /**
@@ -86,9 +161,15 @@ class PluginFormcreatorInstall {
     * @return string
     */
    protected function getSchemaVersionFromGlpiConfig() {
-      $config = Config::getConfigurationValues('formcreator', array('schema_version'));
+      global $DB;
+
+      $config = Config::getConfigurationValues('formcreator', ['schema_version']);
       if (!isset($config['schema_version'])) {
          // No schema version in GLPI config, then this is older than 2.5
+         if ($DB->tableExists('glpi_plugin_formcreator_items_targettickets')) {
+            // Workaround bug #794 where schema version was not saved
+            return '2.6';
+         }
          return '0.0';
       }
 
@@ -97,7 +178,7 @@ class PluginFormcreatorInstall {
    }
 
    /**
-    * is the plugin already isntalled ?
+    * is the plugin already installed ?
     *
     * @return boolean
     */
@@ -131,21 +212,17 @@ class PluginFormcreatorInstall {
 
       $this->migration->displayMessage("Configure existing entities");
 
-      $query = "SELECT `id` FROM `glpi_entities`
-                WHERE `id` NOT IN (
-                   SELECT `id` FROM `glpi_plugin_formcreator_entityconfigs`
-                )";
+      $query = "INSERT INTO glpi_plugin_formcreator_entityconfigs
+                  (id, replace_helpdesk)
+                SELECT ent.id, IF(ent.id = 0, 0, ".PluginFormcreatorEntityconfig::CONFIG_PARENT.")
+                FROM glpi_entities ent
+                LEFT JOIN glpi_plugin_formcreator_entityconfigs conf
+                  ON ent.id = conf.id
+                WHERE conf.id IS NULL";
       $result = $DB->query($query);
       if (!$result) {
          Toolbox::logInFile('sql-errors', $DB->error());
          die ($DB->error());
-      }
-      while ($row = $DB->fetch_assoc($result)) {
-         $entityConfig = new PluginFormcreatorEntityconfig();
-         $entityConfig->add([
-               'id'                 => $row['id'],
-               'replace_helpdesk'   => ($row['id'] == 0) ? 0 : PluginFormcreatorEntityconfig::CONFIG_PARENT
-         ]);
       }
    }
 
@@ -160,62 +237,29 @@ class PluginFormcreatorInstall {
       if (!$DB->numrows($result) > 0) {
          $query = "INSERT INTO `glpi_requesttypes` SET `name` = 'Formcreator';";
          $DB->query($query) or die ($DB->error());
-         $DB->insert_id();
+         if (version_compare(GLPI_VERSION, '9.5') < 0) {
+            $DB->insert_id();
+         } else {
+            $DB->insertId();
+         }
       }
    }
 
    protected function createDefaultDisplayPreferences() {
-      global $DB;
       $this->migration->displayMessage("create default display preferences");
-
-      // Create standard display preferences
-      $displayprefs = new DisplayPreference();
-      $found_dprefs = $displayprefs->find("`itemtype` = 'PluginFormcreatorForm_Answer'");
-      if (count($found_dprefs) == 0) {
-         $query = "INSERT IGNORE INTO `glpi_displaypreferences`
-                   (`id`, `itemtype`, `num`, `rank`, `users_id`) VALUES
-                   (NULL, 'PluginFormcreatorForm_Answer', 2, 2, 0),
-                   (NULL, 'PluginFormcreatorForm_Answer', 3, 3, 0),
-                   (NULL, 'PluginFormcreatorForm_Answer', 4, 4, 0),
-                   (NULL, 'PluginFormcreatorForm_Answer', 5, 5, 0),
-                   (NULL, 'PluginFormcreatorForm_Answer', 6, 6, 0)";
-         $DB->query($query) or die ($DB->error());
-      }
-
-      $displayprefs = new DisplayPreference;
-      $found_dprefs = $displayprefs->find("`itemtype` = 'PluginFormcreatorForm'");
-      if (count($found_dprefs) == 0) {
-         $query = "INSERT IGNORE INTO `glpi_displaypreferences`
-                   (`id`, `itemtype`, `num`, `rank`, `users_id`) VALUES
-                   (NULL, 'PluginFormcreatorForm', 30, 1, 0),
-                   (NULL, 'PluginFormcreatorForm', 3, 2, 0),
-                   (NULL, 'PluginFormcreatorForm', 10, 3, 0),
-                   (NULL, 'PluginFormcreatorForm', 7, 4, 0),
-                   (NULL, 'PluginFormcreatorForm', 8, 5, 0),
-                   (NULL, 'PluginFormcreatorForm', 9, 6, 0);";
-         $DB->query($query) or die ($DB->error());
-      }
-
-      $displayprefs = new DisplayPreference;
-      $found_dprefs = $displayprefs->find("`itemtype` = 'PluginFormcreatorIssue'");
-      if (count($found_dprefs) == 0) {
-         $query = "INSERT IGNORE INTO `glpi_displaypreferences`
-                   (`id`, `itemtype`, `num`, `rank`, `users_id`) VALUES
-                   (NULL, 'PluginFormcreatorIssue', 1, 1, 0),
-                   (NULL, 'PluginFormcreatorIssue', 2, 2, 0),
-                   (NULL, 'PluginFormcreatorIssue', 4, 3, 0),
-                   (NULL, 'PluginFormcreatorIssue', 5, 4, 0),
-                   (NULL, 'PluginFormcreatorIssue', 6, 5, 0),
-                   (NULL, 'PluginFormcreatorIssue', 7, 6, 0),
-                   (NULL, 'PluginFormcreatorIssue', 8, 7, 0)";
-         $DB->query($query) or die ($DB->error());
-      }
+      $this->migration->updateDisplayPrefs([
+         'PluginFormcreatorFormAnswer' => [2, 3, 4, 5, 6],
+         'PluginFormcreatorForm'       => [30, 3, 10, 7, 8, 9],
+         'PluginFormcreatorIssue'      => [1, 2, 4, 5, 6, 7, 8],
+      ]);
    }
 
    /**
     * Declares the notifications that the plugin handles
     */
    protected function createNotifications() {
+      global $DB;
+
       $this->migration->displayMessage("create notifications");
 
       $notifications = [
@@ -223,31 +267,31 @@ class PluginFormcreatorInstall {
                'name'     => __('A form has been created', 'formcreator'),
                'subject'  => __('Your request has been saved', 'formcreator'),
                'content'  => __('Hi,\nYour request from GLPI has been successfully saved with number ##formcreator.request_id## and transmitted to the helpdesk team.\nYou can see your answers onto the following link:\n##formcreator.validation_link##', 'formcreator'),
-               'notified' => PluginFormcreatorNotificationTargetForm_answer::AUTHOR,
+               'notified' => PluginFormcreatorNotificationTargetFormAnswer::AUTHOR,
             ],
             'plugin_formcreator_need_validation' => [
                'name'     => __('A form need to be validate', 'formcreator'),
                'subject'  => __('A form from GLPI need to be validate', 'formcreator'),
                'content'  => __('Hi,\nA form from GLPI need to be validate and you have been choosen as the validator.\nYou can access it by clicking onto this link:\n##formcreator.validation_link##', 'formcreator'),
-               'notified' => PluginFormcreatorNotificationTargetForm_answer::APPROVER,
+               'notified' => PluginFormcreatorNotificationTargetFormAnswer::APPROVER,
             ],
             'plugin_formcreator_refused'         => [
                'name'     => __('The form is refused', 'formcreator'),
                'subject'  => __('Your form has been refused by the validator', 'formcreator'),
                'content'  => __('Hi,\nWe are sorry to inform you that your form has been refused by the validator for the reason below:\n##formcreator.validation_comment##\n\nYou can still modify and resubmit it by clicking onto this link:\n##formcreator.validation_link##', 'formcreator'),
-               'notified' => PluginFormcreatorNotificationTargetForm_answer::AUTHOR,
+               'notified' => PluginFormcreatorNotificationTargetFormAnswer::AUTHOR,
             ],
             'plugin_formcreator_accepted'        => [
                'name'     => __('The form is accepted', 'formcreator'),
                'subject'  => __('Your form has been accepted by the validator', 'formcreator'),
                'content'  => __('Hi,\nWe are pleased to inform you that your form has been accepted by the validator.\nYour request will be considered soon.', 'formcreator'),
-               'notified' => PluginFormcreatorNotificationTargetForm_answer::AUTHOR,
+               'notified' => PluginFormcreatorNotificationTargetFormAnswer::AUTHOR,
             ],
             'plugin_formcreator_deleted'         => [
                'name'     => __('The form is deleted', 'formcreator'),
                'subject'  => __('Your form has been deleted by an administrator', 'formcreator'),
                'content'  => __('Hi,\nWe are sorry to inform you that your request cannot be considered and has been deleted by an administrator.', 'formcreator'),
-               'notified' => PluginFormcreatorNotificationTargetForm_answer::AUTHOR,
+               'notified' => PluginFormcreatorNotificationTargetFormAnswer::AUTHOR,
             ],
       ];
 
@@ -260,14 +304,21 @@ class PluginFormcreatorInstall {
 
       foreach ($notifications as $event => $data) {
          // Check if notification already exists
-         $exists = $notification->find("itemtype = 'PluginFormcreatorForm_Answer' AND event = '$event'");
+         $exists = $DB->request([
+            'COUNT'  => 'cpt',
+            'FROM'   => $notification::getTable(),
+            'WHERE'  => [
+               'itemtype' => 'PluginFormcreatorFormAnswer',
+               'event'    => $event,
+            ]
+         ])->next();
 
          // If it doesn't exists, create it
-         if (count($exists) == 0) {
+         if ($exists['cpt'] == 0) {
             $template_id = $template->add([
                'name'     => Toolbox::addslashes_deep($data['name']),
                'comment'  => '',
-               'itemtype' => 'PluginFormcreatorForm_Answer',
+               'itemtype' => PluginFormcreatorFormAnswer::class,
             ]);
 
             // Add a default translation for the template
@@ -286,7 +337,7 @@ class PluginFormcreatorInstall {
                'entities_id'              => 0,
                'is_recursive'             => 1,
                'is_active'                => 1,
-               'itemtype'                 => 'PluginFormcreatorForm_Answer',
+               'itemtype'                 => PluginFormcreatorFormAnswer::class,
                'notificationtemplates_id' => $template_id,
                'event'                    => $event,
                'mode'                     => 'mail',
@@ -309,6 +360,16 @@ class PluginFormcreatorInstall {
    }
 
    protected function deleteNotifications() {
+      global $DB;
+
+      $itemtypes = [
+         PluginFormcreatorFormAnswer::class,
+      ];
+
+      if (count($itemtypes) == 0) {
+         return;
+      }
+
       // Delete translations
       $translation = new NotificationTemplateTranslation();
       $translation->deleteByCriteria([
@@ -321,13 +382,13 @@ class PluginFormcreatorInstall {
             ]
          ],
          'WHERE' => [
-            NotificationTemplate::getTable() . '.itemtype' => PluginFormcreatorForm_Answer::class
+            NotificationTemplate::getTable() . '.itemtype' => $itemtypes
          ]
       ]);
 
       // Delete notification templates
       $template = new NotificationTemplate();
-      $template->deleteByCriteria(['itemtype' => 'PluginFormcreatorForm_Answer']);
+      $template->deleteByCriteria(['itemtype' => $itemtypes]);
 
       // Delete notification targets
       $target = new NotificationTarget();
@@ -341,58 +402,67 @@ class PluginFormcreatorInstall {
             ]
          ],
          'WHERE' => [
-            Notification::getTable() . '.itemtype' => PluginFormcreatorForm_Answer::class
+            Notification::getTable() . '.itemtype' => $itemtypes
          ],
       ]);
 
       // Delete notifications and their templates
       $notification = new Notification();
       $notification_notificationTemplate = new Notification_NotificationTemplate();
-      $rows = $notification->find("`itemtype` = 'PluginFormcreatorForm_Answer'");
+      $rows = $DB->request([
+         'SELECT' => ['id'],
+         'FROM'   => $notification::getTable(),
+         'WHERE'  => [
+            'itemtype' => $itemtypes
+         ]
+      ]);
       foreach ($rows as $row) {
          $notification_notificationTemplate->deleteByCriteria(['notifications_id' => $row['id']]);
          $notification->delete($row);
       }
 
-      $notification = new Notification();
-      $notification->deleteByCriteria(['itemtype' => 'PluginFormcreatorForm_Answer']);
+      $notification->deleteByCriteria(['itemtype' => $itemtypes]);
    }
 
    protected function deleteTicketRelation() {
       global $CFG_GLPI;
 
       // Delete relations with tickets with email notifications disabled
-      $use_mailing = PluginFormcreatorCommon::isNotificationEnabled();
-      PluginFormcreatorCommon::setNotification(false);
+      $use_mailing = $CFG_GLPI['use_notifications'] == 1;
+      $CFG_GLPI['use_notifications'] = 0;
 
       $item_ticket = new Item_Ticket();
-      $item_ticket->deleteByCriteria(['itemtype' => 'PluginFormcreatorForm_Answer']);
+      $item_ticket->deleteByCriteria(['itemtype' => PluginFormcreatorFormAnswer::class]);
 
-      PluginFormcreatorCommon::setNotification($use_mailing);
+      $CFG_GLPI['use_notifications'] = $use_mailing ? '1' : '0';
    }
 
+   /**
+    * Cleanups the database from plugin's itemtypes (tables and relations)
+    */
    protected function deleteTables() {
       global $DB;
 
-      // Drop tables
+      // Keep  these itemtypes as string because classes might not be available (if plugin is inactive)
       $itemtypes = [
          'PluginFormcreatorAnswer',
          'PluginFormcreatorCategory',
          'PluginFormcreatorEntityconfig',
-         'PluginFormcreatorForm_Answer',
+         'PluginFormcreatorFormAnswer',
          'PluginFormcreatorForm_Profile',
          'PluginFormcreatorForm_Validator',
          'PluginFormcreatorForm',
-         'PluginFormcreatorQuestion_Condition',
+         'PluginFormcreatorCondition',
          'PluginFormcreatorQuestion',
          'PluginFormcreatorSection',
-         'PluginFormcreatorTarget',
-         'PluginFormcreatorTargetChange_Actor',
          'PluginFormcreatorTargetChange',
-         'PluginFormcreatorTargetTicket_Actor',
          'PluginFormcreatorTargetTicket',
+         'PluginFormcreatorTarget_Actor',
          'PluginFormcreatorItem_TargetTicket',
          'PluginFormcreatorIssue',
+         'PluginFormcreatorQuestionDependency',
+         'PluginFormcreatorQuestionRange',
+         'PluginFormcreatorQuestionRegex',
       ];
 
       foreach ($itemtypes as $itemtype) {
@@ -410,7 +480,7 @@ class PluginFormcreatorInstall {
       $DB->query('DROP VIEW IF EXISTS `glpi_plugin_formcreator_issues`');
 
       $displayPreference = new DisplayPreference();
-      $displayPreference->deleteByCriteria(['itemtype' => 'PluginFormCreatorIssue']);
+      $displayPreference->deleteByCriteria(['itemtype' => PluginFormCreatorIssue::class]);
    }
 
    /**
@@ -419,7 +489,7 @@ class PluginFormcreatorInstall {
     * @param string $needle
     */
    protected function endsWith($haystack, $needle) {
-      // search forward starting from end minus needle length characters
+      // search foreward starting from end minus needle length characters
       return $needle === '' || (($temp = strlen($haystack) - strlen($needle)) >= 0 && strpos($haystack, $needle, $temp) !== false);
    }
 
@@ -433,5 +503,18 @@ class PluginFormcreatorInstall {
 
       $config = new Config();
       $config->deleteByCriteria(['context' => 'formcreator']);
+   }
+
+   /**
+    * Create cron tasks
+    */
+   protected function createCronTasks() {
+      CronTask::Register(PluginFormcreatorIssue::class, 'SyncIssues', HOUR_TIMESTAMP,
+         [
+            'comment'   => __('Formcreator - Sync service catalog issues', 'formcreator'),
+            'mode'      => CronTask::MODE_EXTERNAL,
+            'state'     => '0', // Deprecated since 2.11
+         ]
+      );
    }
 }

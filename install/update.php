@@ -1,8 +1,8 @@
 <?php
 /**
- * ---------------------------------------------------------------------
+ * --------------------------------------------------------------------- Civikmind
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,21 +30,32 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    define('GLPI_ROOT', realpath('..'));
 }
 
-include_once (GLPI_ROOT . "/inc/autoload.function.php");
+include_once (GLPI_ROOT . "/inc/based_config.php");
 include_once (GLPI_ROOT . "/inc/db.function.php");
 include_once (GLPI_CONFIG_DIR . "/config_db.php");
+
+global $DB, $GLPI, $GLPI_CACHE;
+
+$GLPI = new GLPI();
+$GLPI->initLogger();
+$GLPI->initErrorHandler();
+
+$GLPI_CACHE = Config::getCache('cache_db');
+$GLPI_CACHE->clear(); // Force cache cleaning to prevent usage of outdated cache data
+
+$translation_cache = Config::getCache('cache_trans');
+$translation_cache->clear(); // Force cache cleaning to prevent usage of outdated cache data
+
 Config::detectRootDoc();
 
 $DB = new DB();
 $DB->disableTableCaching(); //prevents issues on fieldExists upgrading from old versions
+
+Config::loadLegacyConfiguration();
 
 $update = new Update($DB);
 $update->initSession();
@@ -69,7 +80,7 @@ function displayMigrationMessage ($id, $msg = "") {
 
    if ($created != $id) {
       if (empty($msg)) {
-         $msg = __('Work in progress...');
+         $msg = __('Trabajo en proceso...');
       }
       echo "<div id='migration_message_$id'><p class='center'>$msg</p></div>";
       $created = $id;
@@ -77,7 +88,7 @@ function displayMigrationMessage ($id, $msg = "") {
 
    } else {
       if (empty($msg)) {
-         $msg = __('Task completed.');
+         $msg = __('Tarea Completada.');
       }
       $fin = time();
       $tps = Html::timestampToString($fin-$deb);
@@ -113,7 +124,7 @@ function update_importDropdown ($table, $name) {
              (`name`)
              VALUES ('".addslashes($name)."')";
    if ($result = $DB->query($query)) {
-      return $DB->insert_id();
+      return $DB->insertId();
    }
    return 0;
 }
@@ -122,15 +133,17 @@ function update_importDropdown ($table, $name) {
 /**
  * Display the form of content update (addslashes compatibility (V0.4))
  *
- * @return nothing (displays)
+ * @return void
  */
 function showContentUpdateForm() {
-
+   $_SESSION['do_content_update'] = true;
+   echo "<form action='update_content.php' method='post'>";
    echo "<div class='center'>";
-   echo "<h3>".__('Update successful, your database is up to date')."</h3>";
-   echo "<p>".__('You must now proceed to updating your database content')."</p></div>";
+   echo "<h3>".__('Actualización exitosa, su base de datos está actualizada')."</h3>";
+   echo "<p>".__('Ahora debe proceder a actualizar el contenido de su base de datos.')."</p></div>";
    echo "<p>";
-   echo "<a class='vsubmit' href='update_content.php'>".__('Continue?')."</a>";
+   echo "<input type='submit' class='vsubmit' value='.__('Continuar?').'/>";
+   echo "</form>";
 }
 
 
@@ -169,7 +182,7 @@ function display_new_locations() {
                     $SELECT_ALL
              FROM `glpi_dropdown_locations_new` AS location0
              $FROM_ALL
-             WHERE location0.`parentID` = '0'
+             WHERE location0.`parentID` = 0
              ORDER BY NAME0 $ORDER_ALL";
    $result = $DB->query($query);
 
@@ -181,7 +194,7 @@ function display_new_locations() {
    }
    echo "</tr>";
 
-   while ($data = $DB->fetch_assoc($result)) {
+   while ($data = $DB->fetchAssoc($result)) {
       echo "<tr class=tab_bg_1>";
       for ($i=0; $i<=$MAX_LEVEL; $i++) {
 
@@ -210,7 +223,7 @@ function display_new_locations() {
       $data_old=$data;
    }
 
-   $DB->free_result($result);
+   $DB->freeResult($result);
    echo "</table>";
 }
 
@@ -223,11 +236,11 @@ function display_old_locations() {
              ORDER BY `name`";
    $result = $DB->query($query);
 
-   while ($data = $DB->fetch_assoc($result)) {
+   while ($data = $DB->fetchAssoc($result)) {
       echo "<span class='b'>".$data['name']."</span> - ";
    }
 
-   $DB->free_result($result);
+   $DB->freeResult($result);
 }
 
 
@@ -264,7 +277,7 @@ function location_create_new($split_char, $add_first) {
       $root_ID = 0;
    }
 
-   while ($data =  $DB->fetch_assoc($result)) {
+   while ($data =  $DB->fetchAssoc($result)) {
 
       if (!empty($split_char)) {
          $splitter = explode($split_char, $data['name']);
@@ -301,7 +314,7 @@ function location_create_new($split_char, $add_first) {
       $result_insert=$DB->query($query_insert);
    }
 
-   $DB->free_result($result);
+   $DB->freeResult($result);
    $query_auto_inc = "ALTER TABLE `glpi_dropdown_locations_new`
                       CHANGE `ID` `ID` INT(11) NOT NULL AUTO_INCREMENT";
    $result_auto_inc = $DB->query($query_auto_inc);
@@ -343,17 +356,17 @@ function showLocationUpdateForm() {
 
    if (!isset($_POST["validate_location"])) {
       echo "<div class='center'>";
-      echo "<h4>".__('Locations update')."</h4>";
-      echo "<p>".__('The new structure is hierarchical')."</p>";
-      echo "<p>".__('Provide a delimiter in order to automate the new hierarchy generation.')."<br>";
-      echo __('You can also specify a root location which will include all the generated locations.');
+      echo "<h4>".__('Actualización de ubicaciones')."</h4>";
+      echo "<p>".__('La nueva estructura es jerárquica')."</p>";
+      echo "<p>".__('Proporcionar un delimitador para automatizar la nueva generación de jerarquías.')."<br>";
+      echo __('También puede especificar una ubicación raíz que incluirá todas las ubicaciones generadas.');
       echo "</p>";
       echo "<form action='".$CFG_GLPI["root_doc"]."/install/update.php' method='post'>";
-      echo "<p>".__('Delimiter')."&nbsp;".
+      echo "<p>".__('Delimitador')."&nbsp;".
             "<input type='text' name='car_sep' value='".$_POST['car_sep']."'></p>";
-      echo "<p>".__('Root location').'&nbsp;'.
+      echo "<p>".__('Ubicación Raíz').'&nbsp;'.
             "<input type='text' name='root' value='".$_POST['root']."'></p>";
-      echo "<input type='submit' class='submit' name='new_location' value=\""._sx('button', 'Post')."\">";
+      echo "<input type='submit' class='submit' name='new_location' value=\""._sx('button', 'Enviar')."\">";
       echo "<input type='hidden' name='from_update' value='from_update'>";
       Html::closeForm();
       echo "</div>";
@@ -361,15 +374,15 @@ function showLocationUpdateForm() {
 
    if (isset($_POST["new_location"])) {
       location_create_new($_POST['car_sep'], $_POST['root']);
-      echo "<h4>".__('Actual locations')." : </h4>";
+      echo "<h4>".__('Ubicaciones Actuales')." : </h4>";
       display_old_locations();
-      echo "<h4>".__('New hierarchy')." : </h4>";
+      echo "<h4>".__('Nueva jerarquía')." : </h4>";
       display_new_locations();
-      echo "<p>".__("This is the new hierarchy. If it's complete approve it.")."</p>";
+      echo "<p>".__("Ésta es la Nueva jerarquía. Si está completo apruebe.")."</p>";
       echo "<div class='center'>";
       echo "<form action='".$CFG_GLPI["root_doc"]."/install/update.php' method='post'>";
       echo "<input type='submit' class='submit' name='validate_location' value=\"".
-             _sx('button', 'Post')."\">";
+             _sx('button', 'Enviar')."\">";
       echo "<input type='hidden' name='from_update' value='from_update'>";
       echo "</div>";
       Html::closeForm();
@@ -411,19 +424,25 @@ function changeVarcharToID($table1, $table2, $chps) {
              ADD `temp` INT";
    $DB->queryOrDie($query);
 
-   $query = "SELECT `$table1`.`ID` AS row1,
-                    `$table2`.`ID` AS row2
-             FROM `$table1`, `$table2`
-             WHERE `$table2`.`name` = `$table1`.`$chps`";
-   $result = $DB->queryOrDie($query);
+   $iterator = $DB->request([
+      'SELECT' => [
+         "$table1.ID AS row1",
+         "$table2.ID AS row2",
+      ],
+      'FROM'   => [$table1, $table2],
+      'WHERE'  => [
+         "$table2.name" => new \QueryExpression(DBmysql::quoteName("$table1.$chps"))
+      ]
+   ]);
 
-   while ($line = $DB->fetch_assoc($result)) {
-      $query = "UPDATE `$table1`
-                SET `temp` = ". $line["row2"] ."
-                WHERE `ID` = '". $line["row1"] ."'";
-      $DB->queryOrDie($query);
+   while ($line = $iterator->next()) {
+      $DB->updateOrDie(
+         $table1,
+         ['temp' => $line['row2']],
+         ['ID' => $line['row1']]
+      );
    }
-   $DB->free_result($result);
+   $DB->freeResult($result);
 
    $query = "ALTER TABLE `$table1`
              DROP `$chps`";
@@ -438,7 +457,7 @@ function changeVarcharToID($table1, $table2, $chps) {
 
 //update database
 function doUpdateDb() {
-   global $DB, $migration, $update;
+   global $GLPI_CACHE, $migration, $update;
 
    $currents            = $update->getCurrents();
    $current_version     = $currents['version'];
@@ -455,6 +474,7 @@ function doUpdateDb() {
    }
 
    $update->doUpdates($current_version);
+   $GLPI_CACHE->clear();
 }
 
 
@@ -490,36 +510,61 @@ function updateTreeDropdown() {
    }
 }
 
+/**
+ * Display security key check form.
+ *
+ * @return void
+ */
+function showSecurityKeyCheckForm() {
+   global $CFG_GLPI, $update;
+
+   echo '<form action="update.php" method="post">';
+   echo '<input type="hidden" name="continuer" value="1" />';
+   echo '<input type="hidden" name="missing_key_warning_shown" value="1" />';
+   echo '<div class="center">';
+   echo '<h3>' . __('Falta el archivo de clave de seguridad') . '</h3>';
+   echo '<p>';
+   echo '<img src="' . $CFG_GLPI['root_doc'] . '/pics/ko_min.png" />';
+   echo sprintf(
+      __('Falta el archivo de claves "% s" utilizado para cifrar / descifrar datos confidenciales. Debe recuperarlo de su instalación anterior o los datos cifrados serán ilegibles.'),
+      $update->getExpectedSecurityKeyFilePath()
+   );
+   echo '</p>';
+   echo '<input type="submit" name="ignore" class="submit" value="' . __('Ignorar advertencia') . '" />';
+   echo '&nbsp;&nbsp;';
+   echo '<input type="submit" name="retry" class="submit" value="' . __('Intentar otra vez') . '" />';
+   echo '</form>';
+}
+
 //Debut du script
 $HEADER_LOADED = true;
 
 Session::start();
 
-Session::loadLanguage();
+Session::loadLanguage('', false);
 
 // Send UTF8 Headers
 header("Content-Type: text/html; charset=UTF-8");
 
 echo "<!DOCTYPE html>";
-echo "<html lang='fr'>";
+echo "<html lang='es'>";
 echo "<head>";
 echo "<meta charset='utf-8'>";
 echo "<meta http-equiv='Content-Script-Type' content='text/javascript'>";
 echo "<meta http-equiv='Content-Style-Type' content='text/css'>";
-echo "<title>Setup GLPI</title>";
+echo "<title>Configuración de Civikmind</title>";
 //JS
-echo Html::script("lib/jquery/js/jquery-1.10.2.min.js");
-echo Html::script('lib/jquery/js/jquery-ui-1.10.4.custom.js');
+echo Html::script("public/lib/base.js");
 // CSS
+echo Html::css('public/lib/base.css');
 echo Html::css('css/style_install.css');
-echo Html::css('lib/jquery/css/smoothness/jquery-ui-1.10.4.custom.css');
 echo "</head>";
 echo "<body>";
 echo "<div id='principal'>";
 echo "<div id='bloc'>";
 echo "<div id='logo_bloc'></div>";
-echo "<h2>GLPI SETUP</h2>";
-echo "<br><h3>".__('Upgrade')."</h3>";
+echo "<h2>Configuración de Civikmind</h2>";
+echo "<br><h3>".__('Actualizar')."</h3>";
 
 // step 1    avec bouton de confirmation
 
@@ -527,20 +572,20 @@ if (empty($_POST["continuer"]) && empty($_POST["from_update"])) {
 
    if (empty($from_install) && !isset($_POST["from_update"])) {
       echo "<div class='center'>";
-      echo "<h3><span class='migred'>".__('Impossible to accomplish an update by this way!')."</span>";
+      echo "<h3><span class='migred'>".__('¡Imposible realizar una actualización de esta manera!')."</span>";
       echo "<p>";
-      echo "<a class='vsubmit' href='../index.php'>".__('Go back to GLPI')."</a></p>";
+      echo "<a class='vsubmit' href='../index.php'>".__('Volver a Civikmind')."</a></p>";
       echo "</div>";
 
    } else {
       echo "<div class='center'>";
-      echo "<h3><span class='migred'>".sprintf(__('Caution! You will update the GLPI database named: %s'), $DB->dbdefault) ."</h3>";
+      echo "<h3><span class='migred'>".sprintf(__('¡Precaución! Actualizará la base de datos Civikmind llamada: %s'), $DB->dbdefault) ."</h3>";
 
       echo "<form action='update.php' method='post'>";
       if (strlen(GLPI_SCHEMA_VERSION) > 40) {
          echo Config::agreeDevMessage();
       }
-      echo "<input type='submit' class='submit' name='continuer' value=\"".__('Continue')."\">";
+      echo "<input type='submit' class='submit' name='continuer' value=\"".__('Continuar')."\">";
       Html::closeForm();
       echo "</div>";
    }
@@ -548,8 +593,19 @@ if (empty($_POST["continuer"]) && empty($_POST["from_update"])) {
 } else {
    // Step 2
    if (test_connect()) {
-      echo "<h3>".__('Database connection successful')."</h3>";
-      if (!isset($_POST["update_location"])) {
+      echo "<h3>".__('Conexión a la base de datos exitosa')."</h3>";
+      echo "<p class='center'>";
+      $result = Config::displayCheckDbEngine(true);
+      echo "</p>";
+      if ($result > 0) {
+         die(1);
+      }
+      if ($update->isExpectedSecurityKeyFileMissing()
+          && (!isset($_POST['missing_key_warning_shown']) || !isset($_POST['ignore']))) {
+         // Display missing security key file form if key file is missing
+         // unless it has already been displayed and user clicks on "ignore" button.
+         showSecurityKeyCheckForm();
+      } else if (!isset($_POST["update_location"])) {
          $current_version = "0.31";
          $config_table    = "glpi_config";
 
@@ -584,15 +640,23 @@ if (empty($_POST["continuer"]) && empty($_POST["from_update"])) {
                default:
                   echo "<form action='".$CFG_GLPI["root_doc"]."/install/update.php' method='post'>";
                   echo "<input type='hidden' name='update_end' value='1'/>";
+
+                  echo "<hr />";
+                  echo "<h2>".__('Una última cosa antes de empezar')."</h2>";
+                  echo "<p>";
+                  echo GLPINetwork::showInstallMessage();
+                  echo "</p>";
+                  echo "<a href='".GLPI_NETWORK_SERVICES."' target='_blank' class='vsubmit'>".
+                     __('Donativo')."</a><br /><br />";
+
                   if (!Telemetry::isEnabled()) {
-                     echo "<hr/>";
+                     echo "<hr />";
                      echo Telemetry::showTelemetry();
                   }
-
                   echo Telemetry::showReference();
 
                   echo "<p class='submit'><input type='submit' name='submit' class='submit' value='".
-                           __('Use GLPI')."'></p>";
+                           __('Usar Civikmind')."'></p>";
                   Html::closeForm();
             }
          }

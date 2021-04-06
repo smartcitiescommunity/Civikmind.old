@@ -18,10 +18,10 @@ if(!empty($_POST['submit']))
 else {
     $data_ini = date("Y-m-01");
     $data_fin = date("Y-m-d");
-    }
+}
 
 if(!isset($_POST["sel_ent"])) {
-    $id_ent = $_GET["tec"];
+    $id_ent = $_GET["sel_tec"];
 }
 
 else {
@@ -32,7 +32,6 @@ else {
 <html>
 <head>
 <title> GLPI - <?php echo _n('Task','Tasks',2) .'  '. __('by Entity', 'dashboard') ?> </title>
-<!-- <base href= "<?php $_SERVER['SERVER_NAME'] ?>" > -->
 <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
 <meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7" />
 <meta http-equiv="content-language" content="en-us" />
@@ -136,7 +135,11 @@ a:hover {
 			
 			<td style="margin-top:2px;">
 			<?php
-			
+
+				$url = $_SERVER['REQUEST_URI'];
+				$arr_url = explode("?", $url);
+				$url2 = $arr_url[0];		
+				
 				//seleciona entidade
 				$sql_e = "SELECT value FROM glpi_plugin_dashboard_config WHERE name = 'entity' AND users_id = ".$_SESSION['glpiID']."";
 				$result_e = $DB->query($sql_e);

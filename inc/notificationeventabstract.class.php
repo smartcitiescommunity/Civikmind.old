@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -39,7 +39,7 @@ abstract class NotificationEventAbstract {
     * Raise an ajax notification event
     *
     * @param string               $event              Event
-    * @param CommonDBTM           $item               Notification data
+    * @param CommonGLPI           $item               Notification data
     * @param array                $options            Options
     * @param string               $label              Label
     * @param array                $data               Notification data
@@ -51,23 +51,29 @@ abstract class NotificationEventAbstract {
     */
    static public function raise(
       $event,
-      CommonDBTM $item,
+      CommonGLPI $item,
       array $options,
       $label,
       array $data,
       NotificationTarget $notificationtarget,
       NotificationTemplate $template,
-      $notify_me
+      $notify_me,
+      $emitter = null
    ) {
       global $CFG_GLPI;
       if ($CFG_GLPI['notifications_' . $options['mode']]) {
          $entity = $notificationtarget->getEntity();
-         $processed    = [];
+         if (isset($options['processed'])) {
+            $processed = &$options['processed'];
+            unset($options['processed']);
+         } else { // Compat with GLPI < 9.4.2 TODO: remove in 9.5
+            $processed = [];
+         }
          $notprocessed = [];
 
-         $targets = getAllDatasFromTable(
+         $targets = getAllDataFromTable(
             'glpi_notificationtargets',
-            "notifications_id = {$data['id']}"
+            ['notifications_id' => $data['id']]
          );
 
          static::extraRaise([
@@ -88,7 +94,7 @@ abstract class NotificationEventAbstract {
             foreach ($notificationtarget->getTargets() as $users_infos) {
                $key = $users_infos[static::getTargetFieldName()];
                if ($label
-                     || $notificationtarget->validateSendTo($event, $users_infos, $notify_me)) {
+                     || $notificationtarget->validateSendTo($event, $users_infos, $notify_me, $emitter)) {
                   //If the user have not yet been notified
                   if (!isset($processed[$users_infos['language']][$key])) {
                      //If ther user's language is the same as the template's one
@@ -112,7 +118,9 @@ abstract class NotificationEventAbstract {
                            );
                            $send_data['_notificationtemplates_id'] = $data['notificationtemplates_id'];
                            $send_data['_itemtype']                 = $item->getType();
-                           $send_data['_items_id']                 = $item->getID();
+                           $send_data['_items_id']                 = method_exists($item, "getID")
+                              ? $item->getID()
+                              : 0;
                            $send_data['_entities_id']              = $entity;
                            $send_data['mode']                      = $data['mode'];
 

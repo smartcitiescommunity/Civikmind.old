@@ -21,7 +21,7 @@ else {
     }
 
 if(!isset($_POST["sel_tec"])) {
-    $id_tec = $_GET["tec"];
+    $id_tec = $_GET["sel_tec"];  
 }
 
 else {
@@ -119,9 +119,6 @@ SELECT DISTINCT glpi_users.`id` AS id , glpi_users.`firstname` AS name, glpi_use
 ".$entidade_u."
 ORDER BY name ASC ";
 
-//`glpi_profiles_users`.`is_recursive` = 1
-// AND 
-
 $result_tec = $DB->query($sql_tec);
 
 ?>
@@ -148,26 +145,26 @@ a:hover { color: #000099; }
 				$url = $_SERVER['REQUEST_URI'];
 				$arr_url = explode("?", $url);
 				$url2 = $arr_url[0];
-				
-							echo'
-							<table>
-								<tr>
-									<td>
-									   <div class="input-group date" id="dp1" data-date="'.$data_ini.'" data-date-format="yyyy-mm-dd">
-									    	<input class="col-md-9 form-control" size="13" type="text" name="date1" value="'.$data_ini.'" >
-									    	<span class="input-group-addon add-on"><i class="fa fa-calendar"></i></span>
-								    	</div>
-									</td>
-									<td>&nbsp;</td>
-									<td>
-								   	<div class="input-group date" id="dp2" data-date="'.$data_fin.'" data-date-format="yyyy-mm-dd">
-									    	<input class="col-md-9 form-control" size="13" type="text" name="date2" value="'.$data_fin.'" >
-									    	<span class="input-group-addon add-on"><i class="fa fa-calendar"></i></span>
-								    	</div>
-									</td>
-									<td>&nbsp;</td>
-								</tr>
-							</table> ';
+		
+					echo'
+					<table>
+						<tr>
+							<td>
+							   <div class="input-group date" id="dp1" data-date="'.$data_ini.'" data-date-format="yyyy-mm-dd">
+							    	<input class="col-md-9 form-control" size="13" type="text" name="date1" value="'.$data_ini.'" >
+							    	<span class="input-group-addon add-on"><i class="fa fa-calendar"></i></span>
+						    	</div>
+							</td>
+							<td>&nbsp;</td>
+							<td>
+						   	<div class="input-group date" id="dp2" data-date="'.$data_fin.'" data-date-format="yyyy-mm-dd">
+							    	<input class="col-md-9 form-control" size="13" type="text" name="date2" value="'.$data_fin.'" >
+							    	<span class="input-group-addon add-on"><i class="fa fa-calendar"></i></span>
+						    	</div>
+							</td>
+							<td>&nbsp;</td>
+						</tr>
+					</table> ';
 					?>
 				
 				<script language="Javascript">
@@ -186,10 +183,10 @@ a:hover { color: #000099; }
 		$DB->data_seek($result_tec, 0) ;
 		
 		while ($row_result = $DB->fetch_assoc($result_tec))
-		    {
-			    $v_row_result = $row_result['id'];
-		   	 $arr_tec[$v_row_result] = $row_result['name']." ".$row_result['sname']." (".$row_result['id'].")" ;
-		    }
+	    {
+		    $v_row_result = $row_result['id'];
+	   	 $arr_tec[$v_row_result] = $row_result['name']." ".$row_result['sname']." (".$row_result['id'].")" ;
+	    }
 		
 		$name = 'sel_tec';
 		$options = $arr_tec;
@@ -234,7 +231,7 @@ if($con == "1") {
 	}
 	
 	if(!isset($_POST["sel_tec"])) {
-		$id_tec = $_GET["tec"];
+		$id_tec = $_GET["sel_tec"];
 	}
 	
 	else {
@@ -398,56 +395,19 @@ if($con == "1") {
 			<td colspan='3' style='font-size: 18px; font-weight:bold; vertical-align:middle; width:200px;'><span style='font-size: 18px; color:#000;'>".__('Period', 'dashboard') .": </span> " . conv_data($data_ini2) ." a ". conv_data($data_fin2)."
 			<td style='vertical-align:middle; width: 190px; '>
 				<div class='progress' style='margin-top: 19px;'>
-					<div class='progress-bar ". $cor ." progress-bar-striped active' role='progressbar' aria-valuenow='".$barra."' aria-valuemin='0' aria-valuemax='100' style='width: ".$barra."%;'>
+					<div class='progress-bar ". $cor ." ' role='progressbar' aria-valuenow='".$barra."' aria-valuemin='0' aria-valuemax='100' style='width: ".$barra."%;'>
 			 			".$barra." % ".__('Closed', 'dashboard') ."
 			 		</div>
 				</div>
 			</td>
 		</tr>
-	</table> ";
-
- /*   //count by status
-   $query_stat = "
-	SELECT
-	SUM(case when glpi_tickets.status = 1 then 1 else 0 end) AS new,
-	SUM(case when glpi_tickets.status = 2 then 1 else 0 end) AS assig,
-	SUM(case when glpi_tickets.status = 3 then 1 else 0 end) AS plan,
-	SUM(case when glpi_tickets.status = 4 then 1 else 0 end) AS pend,
-	SUM(case when glpi_tickets.status = 5 then 1 else 0 end) AS solve,
-	SUM(case when glpi_tickets.status = 6 then 1 else 0 end) AS close
-	FROM glpi_tickets_users, glpi_tickets, glpi_ticketcosts
-	WHERE glpi_tickets.is_deleted = '0'
-	AND glpi_tickets.date ".$datas2."
-	AND glpi_tickets_users.users_id = ".$id_tec."
-	AND glpi_tickets_users.type = 2
-	AND glpi_tickets_users.tickets_id = glpi_tickets.id
-	AND glpi_tickets.id = glpi_ticketcosts.`tickets_id` ";
-
-    $result_stat = $DB->query($query_stat);
-
-    $new = $DB->result($result_stat,0,'new') + 0;
-    $assig = $DB->result($result_stat,0,'assig') + 0;
-    $plan = $DB->result($result_stat,0,'plan') + 0;
-    $pend = $DB->result($result_stat,0,'pend') + 0;
-    $solve = $DB->result($result_stat,0,'solve') + 0;
-    $close = $DB->result($result_stat,0,'close') + 0;
-*/
+	</table>\n ";
 
 	//total costs
 	$DB->data_seek($result_cham, 0);
 	while($row = $DB->fetch_assoc($result_cham)){
-			
-	$query_cost = "SELECT (SUM( gtc.`cost_time` ) + SUM( gtc.`cost_fixed` ) + SUM( gtc.`cost_material` )) AS costs
-	FROM glpi_ticketcosts gtc, glpi_tickets gt
-	WHERE gtc.`tickets_id` = gt.id
-	AND gt.is_deleted = 0
-	AND gtc.`tickets_id`  = ".$row['id']."	
-	GROUP BY gtc.`tickets_id` "; 
 	
-	$result_cost = $DB->query($query_cost);
-	$cost = $DB->result($result_cost,0,'costs');
-	
-	$total_cost += $cost; // number_format($number, 2, ',', ' ')  number_format($cost, 2, ',', ' ')
+	$total_cost += computeCost($row['id']);
 	
 	}
 
@@ -455,25 +415,18 @@ if($con == "1") {
 	<table align='right' style='margin-bottom:10px;'>
 		<tr>
 			<td colspan=3 style='vertical-align:bottom;'>
-				<button class='btn btn-primary btn-sm' type='button' name='abertos' value='Abertos' onclick='location.href=\"rel_custo_tec.php?con=1&stat=open&tec=".$id_tec."&date1=".$data_ini2."&date2=".$data_fin2."\"' <i class='icon-white icon-trash'></i> ".__('Opened','dashboard'). " </button>
-				<button class='btn btn-primary btn-sm' type='button' name='fechados' value='Fechados' onclick='location.href=\"rel_custo_tec.php?con=1&stat=close&tec=".$id_tec."&date1=".$data_ini2."&date2=".$data_fin2."\"' <i class='icon-white icon-trash'></i> ".__('Closed','dashboard')." </button>
-				<button class='btn btn-primary btn-sm' type='button' name='todos' value='Todos' onclick='location.href=\"rel_custo_tec.php?con=1&stat=all&tec=".$id_tec."&date1=".$data_ini2."&date2=".$data_fin2."\"' <i class='icon-white icon-trash'></i> ".__('All','dashboard')." </button>
+				<button class='btn btn-primary btn-sm' type='button' name='abertos' value='Abertos' onclick='location.href=\"rel_custo_tec.php?con=1&stat=open&sel_tec=".$id_tec."&date1=".$data_ini2."&date2=".$data_fin2."\"' <i class='icon-white icon-trash'></i> ".__('Opened','dashboard'). " </button>
+				<button class='btn btn-primary btn-sm' type='button' name='fechados' value='Fechados' onclick='location.href=\"rel_custo_tec.php?con=1&stat=close&sel_tec=".$id_tec."&date1=".$data_ini2."&date2=".$data_fin2."\"' <i class='icon-white icon-trash'></i> ".__('Closed','dashboard')." </button>
+				<button class='btn btn-primary btn-sm' type='button' name='todos' value='Todos' onclick='location.href=\"rel_custo_tec.php?con=1&stat=all&sel_tec=".$id_tec."&date1=".$data_ini2."&date2=".$data_fin2."\"' <i class='icon-white icon-trash'></i> ".__('All','dashboard')." </button>
 			</td>
 		</tr>
 	</table>
 
-<table style='font-size: 16px; font-weight:bold; width: 50%;' border=0>
-	<!-- <tr>
-		  <td><span style='color: #000;'>". _x('status','New').": </span><b>".$new." </b></td>
-        <td><span style='color: #000;'>". __('Assigned'). ": </span><b>". ($assig + $plan) ."</b></td>
-        <td><span style='color: #000;'>". __('Pending').": </span><b>".$pend." </b></td>
-        <td><span style='color: #000;'>". __('Solved','dashboard').": </span><b>".$solve." </b></td>
-        <td><span style='color: #000;'>". __('Closed').": </span><b>".$close." </b></td>
-	</tr> -->
-	<tr><td><span style='color: #000;'>". __('Total cost').":  </span><b>". number_format($total_cost, 2, ',', ' ') ." </b></td></tr>	 
-	<tr><td>&nbsp;</td></tr>
-	<tr><td>&nbsp;</td></tr>
-</table>
+	<table style='font-size: 16px; font-weight:bold; width: 50%;' border=0>
+		<tr><td><span style='color: #000;'>". __('Total cost').":  </span><b>". number_format($total_cost, 2, ',', ' ') ." </b></td></tr>	 
+		<tr><td>&nbsp;</td></tr>
+		<tr><td>&nbsp;</td></tr>
+	</table>
 
 	<table id='tec' class='display' style='font-size: 13px; font-weight:bold;' cellpadding = 2px >
 		<thead>
@@ -487,12 +440,7 @@ if($con == "1") {
 				<th style='text-align:center; cursor:pointer;' class='sum'> ". __('Cost') ."</th>
 			</tr>
 		</thead>
-		<tfoot>
-			<th colspan='6' class='right' style='background:#fff !important; color:#000 !important;'> ". __('Total cost') .": </th>
-			<th class='right' style='background:#fff !important; color:#000 !important;'></th>
-		</tfoot>
-	<tbody>
-	";
+	<tbody>\n";
 
 }
 
@@ -511,17 +459,8 @@ while($row = $DB->fetch_assoc($result_cham)){
 
 	$type = Ticket::getTicketTypeName($row['type']);
 	
+	$comp_cost = computeCost($row['id']);
 	
-	//costs by ticket
-	$query_cost = "SELECT (SUM( gtc.`cost_time` ) + SUM( gtc.`cost_fixed` ) + SUM( gtc.`cost_material` )) AS costs
-	FROM glpi_ticketcosts gtc, glpi_tickets gt
-	WHERE gtc.`tickets_id` = gt.id
-	AND gt.is_deleted = 0
-	AND gtc.`tickets_id`  = ".$row['id']."	
-	GROUP BY gtc.`tickets_id` "; 
-	
-	$result_cost = $DB->query($query_cost);
-	$cost = $DB->result($result_cost,0,'costs');		
 
 		echo "
 		<tr style='font-weight:normal;'>
@@ -531,13 +470,19 @@ while($row = $DB->fetch_assoc($result_cham)){
 			<td style='vertical-align:middle; text-align:center;'> ". conv_data_hora($row['date']) ." </td>
 			<td style='vertical-align:middle; text-align:center;'> ". conv_data_hora($row['closedate']) ." </td>
 			<td style='vertical-align:middle; text-align:right;'> ". time_ext($row['time']) ."</td>
-			<td style='vertical-align:middle; text-align:right;'> ". number_format($cost, 2, ',', ' ') ."</td>
-		</tr>";	    
+			<td style='vertical-align:middle; text-align:right;'> ". number_format($comp_cost, 2, ',', ' ') ."</td>			
+		</tr>\n";	    
+		
+	$comp_cost2 += computeCost($row['id']);
 }
 
 echo "</tbody>
+		<tfoot>
+			<th colspan='6' class='right' style='background:#fff !important; color:#000 !important;'> ". __('Total cost') .": </th>
+			<th class='right' style='background:#fff !important; color:#000 !important;'>". number_format($comp_cost2, 2, ',', ' ') ."</th>
+		</tfoot>
 		</table>
-		</div>"; ?>
+		</div>\n"; ?>
 
 <script type="text/javascript" charset="utf-8">
 
@@ -600,7 +545,7 @@ var table =  $('#tec').DataTable( {
     } );
 
 
-table.columns( '.sum' ).every( function () {
+table.columns( '.sumxx' ).every( function () {
     var sum = this
         .data()
         .reduce( function (a,b) {

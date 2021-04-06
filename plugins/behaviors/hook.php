@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: hook.php 234 2017-10-18 12:40:59Z yllen $
+ * @version $Id: hook.php 325 2020-09-03 09:01:30Z yllen $
  -------------------------------------------------------------------------
 
  LICENSE
@@ -22,7 +22,7 @@
 
  @package   behaviors
  @author    Remi Collet, Nelly Mahu-Lasson
- @copyright Copyright (c) 2010-2017 Behaviors plugin team
+ @copyright Copyright (c) 2010-2020 Behaviors plugin team
  @license   AGPL License 3.0 or (at your option) any later version
             http://www.gnu.org/licenses/agpl-3.0-standalone.html
  @link      https://forge.glpi-project.org/projects/behaviors
@@ -35,7 +35,7 @@
 
 function plugin_behaviors_install() {
 
-   $migration = new Migration(160);
+   $migration = new Migration(220);
 
    // No autoload when plugin is not activated
    require 'inc/config.class.php';
@@ -52,5 +52,11 @@ function plugin_behaviors_uninstall() {
    // No autoload when plugin is not activated
    require 'inc/config.class.php';
 
-   return PluginBehaviorsConfig::uninstall();
+   $migration = new Migration(220);
+
+   PluginBehaviorsConfig::uninstall($migration);
+
+   $migration->executeMigration();
+
+   return true;
 }

@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,15 +30,11 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 include ('../inc/includes.php');
 
 if (!$CFG_GLPI['notifications_mailing']
     || !countElementsInTable('glpi_notifications',
-                             "`itemtype`='User' AND `event`='passwordforget' AND `is_active`=1")) {
+                             ['itemtype' => 'User', 'event' => 'passwordforget', 'is_active' => 1])) {
    exit();
 }
 

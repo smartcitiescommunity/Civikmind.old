@@ -9,7 +9,7 @@
  -------------------------------------------------------------------------
 
  LICENSE
-      
+
  This file is part of resources.
 
  resources is free software; you can redistribute it and/or modify
@@ -32,37 +32,66 @@ if (!defined('GLPI_ROOT')) {
 }
 
 // Class for a Dropdown
+
+/**
+ * Class PluginResourcesContractNature
+ */
 class PluginResourcesContractNature extends CommonDropdown {
-   
+
    var $can_be_translated  = true;
-   
-   static function getTypeName($nb=0) {
+
+   /**
+    * @since 0.85
+    *
+    * @param $nb
+    **/
+   static function getTypeName($nb = 0) {
 
       return _n('Contract nature', 'Contract natures', $nb, 'resources');
    }
 
+   /**
+    * Have I the global right to "create" the Object
+    * May be overloaded if needed (ex KnowbaseItem)
+    *
+    * @return booleen
+    **/
    static function canCreate() {
-      if (Session::haveRight('dropdown',UPDATE)
-         && Session::haveRight('plugin_resources_dropdown_public', UPDATE)){
+      if (Session::haveRight('dropdown', UPDATE)
+         && Session::haveRight('plugin_resources_dropdown_public', UPDATE)) {
          return true;
       }
       return false;
    }
 
+   /**
+    * Have I the global right to "view" the Object
+    *
+    * Default is true and check entity if the objet is entity assign
+    *
+    * May be overloaded if needed
+    *
+    * @return booleen
+    **/
    static function canView() {
-      if (Session::haveRight('dropdown_public', READ)){
+      if (Session::haveRight('dropdown_public', READ)) {
          return true;
       }
       return false;
    }
 
+   /**
+    * Return Additional Fields for this type
+    *
+    * @return array
+    **/
    function getAdditionalFields() {
 
-      return array(array('name'  => 'code',
+      return [['name'  => 'code',
                          'label' => __('Code', 'resources'),
                          'type'  => 'text',
-                         'list'  => true)
-                  );
+                         'list'  => true]
+                  ];
    }
 
    /**
@@ -71,7 +100,7 @@ class PluginResourcesContractNature extends CommonDropdown {
     * @static
     * @param $options
     */
-   static function showContractnature($options){
+   static function showContractnature($options) {
 
       $resourceSituationId = $options['plugin_resources_resourcesituations_id'];
 
@@ -84,7 +113,7 @@ class PluginResourcesContractNature extends CommonDropdown {
 
          if ($isContractLinked = $resourceSituation->fields["is_contract_linked"]) {
             if ($isContractLinked == 1) {
-               Dropdown::show('PluginResourcesContractnature', array('entity' => $entity));
+               Dropdown::show('PluginResourcesContractnature', ['entity' => $entity]);
             }
          } else {
             echo "<select name='plugin_resources_contractnatures_id'
@@ -118,12 +147,12 @@ class PluginResourcesContractNature extends CommonDropdown {
 
          if ($result=$DB->query($query)) {
             if ($DB->numrows($result)) {
-               $data = $DB->fetch_assoc($result);
+               $data = $DB->fetchAssoc($result);
                $data = Toolbox::addslashes_deep($data);
                $input['name'] = $data['name'];
                $input['entities_id']  = $entity;
                $temp = new self();
-               $newID    = $temp->getID($input);
+               $newID    = $temp->getID();
 
                if ($newID<0) {
                   $newID = $temp->import($input);
@@ -136,17 +165,22 @@ class PluginResourcesContractNature extends CommonDropdown {
       return 0;
    }
 
-   function getSearchOptions() {
+   /**
+    * @return array
+    */
+   function rawSearchOptions() {
 
-      $tab = parent::getSearchOptions();
+      $tab = parent::rawSearchOptions();
 
-      $tab[14]['table']         = $this->getTable();
-      $tab[14]['field']         = 'code';
-      $tab[14]['name']          = __('Code', 'resources');
+      $tab[] = [
+         'id'       => '14',
+         'table'    => $this->getTable(),
+         'field'    => 'code',
+         'name'     => __('Code', 'resources')
+      ];
 
       return $tab;
    }
 
 }
 
-?>

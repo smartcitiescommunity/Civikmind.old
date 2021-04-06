@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,19 +30,15 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 include ('../inc/includes.php');
 
 Session::checkRight("device", READ);
 
-Html::header(_n('Component', 'Components', 2), $_SERVER['PHP_SELF'], "config", "commondevice");
+Html::header(_n('Component', 'Components', Session::getPluralNumber()), $_SERVER['PHP_SELF'], "config", "commondevice");
 echo "<div class='center'>";
 
 $optgroup = Dropdown::getDeviceItemTypes();
-Dropdown::showItemTypeMenu(_n('Component', 'Components', 2), $optgroup);
+Dropdown::showItemTypeMenu(_n('Component', 'Components', Session::getPluralNumber()), $optgroup);
 Dropdown::showItemTypeList($optgroup);
 
 echo "</div>";

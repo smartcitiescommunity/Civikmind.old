@@ -3,6 +3,14 @@
 class PluginFieldsLabelTranslation extends CommonDBTM {
    static $rightname = 'config';
 
+   static function canCreate() {
+      return self::canUpdate();
+   }
+
+   static function canPurge() {
+      return self::canUpdate();
+   }
+
    /**
     * Install or update fields
     *
@@ -30,7 +38,7 @@ class PluginFieldsLabelTranslation extends CommonDBTM {
                   KEY `plugin_fields_items_id` (`plugin_fields_items_id`),
                   KEY `language`               (`language`),
                   UNIQUE KEY `unicity` (`plugin_fields_itemtype`, `plugin_fields_items_id`, `language`)
-               ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;";
+               ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;";
             $DB->query($query) or die ($DB->error());
       }
 
@@ -63,15 +71,19 @@ class PluginFieldsLabelTranslation extends CommonDBTM {
       return true;
    }
 
-   function getTabNameForItem(CommonGLPI $item, $withtemplate=0) {
-      $nb = countElementsInTable(self::getTable(),
-                                 "`plugin_fields_itemtype` = '{$item::getType()}' AND
-                                  `plugin_fields_items_id` = '{$item->getID()}'");
+   function getTabNameForItem(CommonGLPI $item, $withtemplate = 0) {
+      $nb = countElementsInTable(
+         self::getTable(),
+         [
+            'plugin_fields_itemtype' => $item::getType(),
+            'plugin_fields_items_id' => $item->getID(),
+         ]
+      );
       return self::createTabEntry(self::getTypeName($nb), $nb);
 
    }
 
-   static function displayTabContentForItem(CommonGLPI $item, $tabnum=1, $withtemplate=0) {
+   static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0) {
        self::showTranslations($item);
    }
 
@@ -89,16 +101,20 @@ class PluginFieldsLabelTranslation extends CommonDBTM {
       $rand    = mt_rand();
       if ($canedit) {
          echo "<div id='viewtranslation".$item->getID()."$rand'></div>";
-         Html::scriptStart();
-         echo "addTranslation".$item->getID()."$rand = function() {";
-         Ajax::updateItemJsCode("viewtranslation" . $item->getID() . "$rand",
-                                $CFG_GLPI["root_doc"]."/plugins/fields/ajax/viewtranslations.php",
-                                ['type'       => __CLASS__,
-                                 'itemtype'   => $item::getType(),
-                                 'items_id'   => $item->fields['id'],
-                                 'id'         => -1]);
-         echo "};";
-         echo Html::scriptEnd();
+
+         echo Html::scriptBlock('
+            addTranslation' . $item->getID() . $rand . ' = function() {
+               $("#viewtranslation' . $item->getID() . $rand . '").load(
+                  "' . Plugin::getWebDir('fields') . '/ajax/viewtranslations.php",
+                  ' . json_encode([
+                     'type'     => __CLASS__,
+                     'itemtype' => $item::getType(),
+                     'items_id' => $item->fields['id'],
+                     'id'       => -1
+                  ]) . '
+               );
+            };
+         ');
 
          echo "<div class='center'>".
               "<a class='vsubmit' href='javascript:addTranslation".$item->getID()."$rand();'>".
@@ -107,9 +123,11 @@ class PluginFieldsLabelTranslation extends CommonDBTM {
 
       $obj   = new self;
       $found = $obj->find(
-          "`plugin_fields_itemtype` = '{$item::getType()}' AND
-           `plugin_fields_items_id`='{$item->getID()}'",
-         "`language` ASC"
+         [
+            'plugin_fields_itemtype' => $item::getType(),
+            'plugin_fields_items_id' => $item->getID(),
+         ],
+         "language ASC"
       );
 
       if (count($found) > 0) {
@@ -123,7 +141,7 @@ class PluginFieldsLabelTranslation extends CommonDBTM {
          echo "<th colspan='4'>".__("List of translations")."</th></tr>";
          if ($canedit) {
             echo "<th width='10'>";
-            Html::checkAllAsCheckbox('mass'.__CLASS__.$rand);
+            echo Html::getCheckAllAsCheckbox('mass'.__CLASS__.$rand);
             echo "</th>";
          }
          echo "<th>".__("Language", "fields")."</th>";
@@ -138,16 +156,19 @@ class PluginFieldsLabelTranslation extends CommonDBTM {
             }
             echo "<td>";
             if ($canedit) {
-               Html::scriptStart();
-               echo "viewEditTranslation". $data["id"]."$rand = function() {";
-               Ajax::updateItemJsCode("viewtranslation" . $item->getID() . "$rand",
-                                      $CFG_GLPI["root_doc"]."/plugins/fields/ajax/viewtranslations.php",
-                                      ['type'    => __CLASS__,
-                                       'itemtype' => $item::getType(),
-                                       'items_id' => $item->getID(),
-                                       'id'       => $data["id"]]);
-               echo "};";
-               echo Html::scriptEnd();
+               echo Html::scriptBlock('
+                  viewEditTranslation' . $data['id'] . $rand . ' = function() {
+                     $("#viewtranslation' . $item->getID() . $rand . '").load(
+                        "' . Plugin::getWebDir('fields') . '/ajax/viewtranslations.php",
+                        ' . json_encode([
+                           'type'     => __CLASS__,
+                           'itemtype' => $item::getType(),
+                           'items_id' => $item->getID(),
+                           'id'       => $data['id']
+                        ]) . '
+                     );
+                  };
+               ');
             }
             echo Dropdown::getLanguageName($data['language']);
             echo "</td><td>";
@@ -177,7 +198,7 @@ class PluginFieldsLabelTranslation extends CommonDBTM {
     *
     * @return void
     */
-   function showForm($itemtype, $items_id, $id=-1) {
+   function showForm($itemtype, $items_id, $id = -1) {
       global $CFG_GLPI;
 
       if ($id > 0) {
@@ -245,10 +266,9 @@ class PluginFieldsLabelTranslation extends CommonDBTM {
     */
    static public function getLabelFor(array $item) {
       $obj   = new self;
-      $found = $obj->find("`plugin_fields_itemtype` = '{$item['itemtype']}'
-                           AND `plugin_fields_items_id`='{$item['id']}'
-                           AND `language` = '{$_SESSION['glpilanguage']}'"
-      );
+      $found = $obj->find(['plugin_fields_itemtype' => $item['itemtype'],
+                           'plugin_fields_items_id' => $item['id'],
+                           'language' => $_SESSION['glpilanguage']]);
 
       if (count($found) > 0) {
          return array_values($found)[0]['label'];

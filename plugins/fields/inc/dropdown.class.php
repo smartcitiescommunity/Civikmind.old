@@ -13,6 +13,9 @@ class PluginFieldsDropdown {
     * @return void
     */
    static function install(Migration $migration, $version) {
+      $toolbox = new PluginFieldsToolbox();
+      $toolbox->fixFieldsNames($migration, ['type' => 'dropdown']);
+
       $migration->displayMessage(__("Updating generated dropdown files", "fields"));
       // -> 0.90-1.3: generated class moved
       // OLD path: GLPI_ROOT."/plugins/fields/inc/$class_filename"
@@ -20,22 +23,22 @@ class PluginFieldsDropdown {
       // OLD path: GLPI_ROOT."/plugins/fields/front/$class_filename"
       // NEW path: PLUGINFIELDS_FRONT_PATH . "/$class_filename"
       $obj = new PluginFieldsField;
-      $fields = $obj->find('type = "dropdown"');
+      $fields = $obj->find(['type' => 'dropdown']);
       foreach ($fields as $field) {
          //First, drop old fields from plugin directories
          $class_filename = $field['name']."dropdown.class.php";
-         if (file_exists(GLPI_ROOT."/plugins/fields/inc/$class_filename")) {
-            unlink(GLPI_ROOT."/plugins/fields/inc/$class_filename");
+         if (file_exists(PLUGINFIELDS_DIR."/inc/$class_filename")) {
+            unlink(PLUGINFIELDS_DIR."/inc/$class_filename");
          }
 
          $front_filename = $field['name']."dropdown.php";
-         if (file_exists(GLPI_ROOT."/plugins/fields/front/$front_filename")) {
-            unlink(GLPI_ROOT."/plugins/fields/front/$front_filename");
+         if (file_exists(PLUGINFIELDS_DIR."/front/$front_filename")) {
+            unlink(PLUGINFIELDS_DIR."/front/$front_filename");
          }
 
          $form_filename = $field['name']."dropdown.form.php";
-         if (file_exists(GLPI_ROOT."/plugins/fields/front/$form_filename")) {
-            unlink(GLPI_ROOT."/plugins/fields/front/$form_filename");
+         if (file_exists(PLUGINFIELDS_DIR."/front/$form_filename")) {
+            unlink(PLUGINFIELDS_DIR."/front/$form_filename");
          }
 
          //Second, create new files
@@ -52,7 +55,7 @@ class PluginFieldsDropdown {
       if ($DB->tableExists("glpi_plugin_fields_fields")) {
          require_once "field.class.php";
          $field = new PluginFieldsField;
-         $dropdowns = $field->find("`type` = 'dropdown'");
+         $dropdowns = $field->find(['type' => 'dropdown']);
          foreach ($dropdowns as $dropdown) {
             self::destroy($dropdown['name']);
          }
@@ -62,7 +65,7 @@ class PluginFieldsDropdown {
 
    static function create($input) {
       //get class template
-      $template_class = file_get_contents(GLPI_ROOT."/plugins/fields/templates/dropdown.class.tpl");
+      $template_class = file_get_contents(PLUGINFIELDS_DIR."/templates/dropdown.class.tpl");
       if ($template_class === false) {
          return false;
       }
@@ -98,7 +101,7 @@ class PluginFieldsDropdown {
       }
 
       //get front template
-      $template_front = file_get_contents(GLPI_ROOT."/plugins/fields/templates/dropdown.tpl");
+      $template_front = file_get_contents(PLUGINFIELDS_DIR."/templates/dropdown.tpl");
       if ($template_front === false) {
          Toolbox::logDebug("Error : get dropdown front template error");
          return false;
@@ -114,7 +117,7 @@ class PluginFieldsDropdown {
       }
 
       //get form template
-      $template_form = file_get_contents(GLPI_ROOT."/plugins/fields/templates/dropdown.form.tpl");
+      $template_form = file_get_contents(PLUGINFIELDS_DIR."/templates/dropdown.form.tpl");
       if ($template_form === false) {
          return false;
       }

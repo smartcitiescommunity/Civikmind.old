@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -29,10 +29,6 @@
  * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
  */
-
-/** @file
-* @brief
-*/
 
 // Direct access to file
 if (strpos($_SERVER['PHP_SELF'], "visibility.php")) {
@@ -107,10 +103,14 @@ if (isset($_POST['type']) && !empty($_POST['type'])
             $righttocheck = 'knowbase';
             $checkright   = KnowbaseItem::READFAQ;
          }
-         $params             = ['rand'      => $rand,
-                                     'name'      => $prefix.'profiles_id'.$suffix,
-                                     'condition' => "`glpi_profilerights`.`name` = '$righttocheck' ".
-                                                    " AND `glpi_profilerights`.`rights` & ".$checkright];
+         $params             = [
+            'rand'      => $rand,
+            'name'      => $prefix.'profiles_id'.$suffix,
+            'condition' => [
+               'glpi_profilerights.name'     => $righttocheck,
+               'glpi_profilerights.rights'   => ['&', $checkright]
+            ]
+         ];
          $params['toupdate'] = ['value_fieldname'
                                                   => 'value',
                                      'to_update'  => "subvisibility$rand",

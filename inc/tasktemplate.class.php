@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,17 +30,13 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
 
 /**
  * Template for task
- * @since version 9.1
+ * @since 9.1
 **/
 class TaskTemplate extends CommonDropdown {
 
@@ -61,9 +57,10 @@ class TaskTemplate extends CommonDropdown {
 
       return [['name'  => 'content',
                          'label' => __('Content'),
-                         'type'  => 'textarea'],
+                         'type'  => 'tinymce',
+                         'rows' => 10],
                    ['name'  => 'taskcategories_id',
-                         'label' => __('Task category'),
+                         'label' => TaskCategory::getTypeName(1),
                          'type'  => 'dropdownValue',
                          'list'  => true],
                    ['name'  => 'state',
@@ -79,14 +76,14 @@ class TaskTemplate extends CommonDropdown {
                          'label' => __('By'),
                          'type'  => 'users_id_tech'],
                    ['name'  => 'groups_id_tech',
-                         'label' => __('Group'),
+                         'label' => Group::getTypeName(1),
                          'type'  => 'groups_id_tech'],
                   ];
    }
 
 
-   function getSearchOptionsNew() {
-      $tab = parent::getSearchOptionsNew();
+   function rawSearchOptions() {
+      $tab = parent::rawSearchOptions();
 
       $tab[] = [
          'id'                 => '4',
@@ -99,7 +96,7 @@ class TaskTemplate extends CommonDropdown {
 
       $tab[] = [
          'id'                 => '3',
-         'name'               => __('Task category'),
+         'name'               => TaskCategory::getTypeName(1),
          'field'              => 'name',
          'table'              => getTableForItemType('TaskCategory'),
          'datatype'           => 'dropdown'
@@ -119,17 +116,19 @@ class TaskTemplate extends CommonDropdown {
             Planning::dropdownState("state", $this->fields["state"]);
             break;
          case 'users_id_tech' :
-            User::dropdown(['name'   => "users_id_tech",
-                            'right'  => "own_ticket",
-                            'value'  => $this->fields["users_id_tech"],
-                            'entity' => $this->fields["entities_id"],
+            User::dropdown([
+               'name'   => "users_id_tech",
+               'right'  => "own_ticket",
+               'value'  => $this->fields["users_id_tech"],
+               'entity' => $this->fields["entities_id"],
             ]);
             break;
          case 'groups_id_tech' :
-            Group::dropdown(['name'     => "groups_id_tech",
-                            'condition' => "is_task",
-                            'value'     => $this->fields["groups_id_tech"],
-                            'entity'    => $this->fields["entities_id"],
+            Group::dropdown([
+               'name'     => "groups_id_tech",
+               'condition' => ['is_task' => 1],
+               'value'     => $this->fields["groups_id_tech"],
+               'entity'    => $this->fields["entities_id"],
             ]);
             break;
          case 'actiontime' :
@@ -137,13 +136,16 @@ class TaskTemplate extends CommonDropdown {
             for ($i=9; $i<=100; $i++) {
                $toadd[] = $i*HOUR_TIMESTAMP;
             }
-            Dropdown::showTimeStamp("actiontime",
-                                    ['min'             => 0,
-                                          'max'             => 8*HOUR_TIMESTAMP,
-                                          'value'           => $this->fields["actiontime"],
-                                          'addfirstminutes' => true,
-                                          'inhours'         => true,
-                                          'toadd'           => $toadd]);
+            Dropdown::showTimeStamp(
+               "actiontime", [
+                  'min'             => 0,
+                  'max'             => 8*HOUR_TIMESTAMP,
+                  'value'           => $this->fields["actiontime"],
+                  'addfirstminutes' => true,
+                  'inhours'         => true,
+                  'toadd'           => $toadd
+               ]
+            );
             break;
       }
    }

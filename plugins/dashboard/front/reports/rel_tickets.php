@@ -19,9 +19,9 @@ else {
 	$data_fin = date("Y-m-d");	
 }  
 
-if(!isset($_POST["sel_ent"])) {
-	//$id_ent = $_REQUEST["sel_ent"];	
-	$id_ent = '';	
+if(!isset($_POST["sel_ent"])) {	
+	//$id_ent = $_GET["sel_ent"];	
+	$id_ent = "";	
 }
 
 else {
@@ -77,16 +77,16 @@ function margins() {
 						
 	//redirect to index
 	if($layout == '0')
-		{
-			// sidebar
-			$margin = '0px 3% 0px 5%';
-		}
+	{
+		// sidebar
+		$margin = '0px 5% 0px 5%';
+	}
 	
 	if($layout == 1 || $layout == '' )
-		{
-			//top menu
-			$margin = '0px 2% 0px 2%';
-		}
+	{
+		//top menu
+		$margin = '0px 2% 0px 2%';
+	}
 		
 	return $margin;	
 }
@@ -144,7 +144,7 @@ function margins() {
 <div id='content' >
 <div id='container-fluid' style="margin: <?php echo margins(); ?> ;">
 <div id="charts" class="fluid chart"> 
-<div id="head-lg" class="fluid" style="height: 450px;">
+<div id="head-lg" class="fluid" style="min-height: 320px;">
 
 <style type="text/css">
 	a:link, a:visited, a:active {text-decoration: none;}
@@ -204,10 +204,8 @@ function margins() {
 			else {
 				$ents = $sel_ent;
 			}
-
-			//echo "teste";
-			$user_ents = Profile_User::getUserEntities($_SESSION['glpiID'], true);
-			//var_dump($_SESSION['glpiactiveentities']);					
+			
+			$user_ents = Profile_User::getUserEntities($_SESSION['glpiID'], true);								
 				
 			// lista de entidades
 			$sql_ent = "
@@ -221,10 +219,7 @@ function margins() {
 			$arr_ent = array();
 			$arr_ent[-1] = "-----" ;
 			
-			//if(in_array(0,$user_ents)) {
-				$arr_ent[0] = __('All') ;
-			//}
-			//else { $arr_ent[0] = __('-----') ; }
+			$arr_ent[0] = __('All') ;
 			
 			while ($row_ent = $DB->fetch_assoc($result_ent)) { 
 				$v_row_ent = $row_ent['id'];
@@ -254,9 +249,7 @@ function margins() {
 					$id_sta = "AND glpi_tickets.status = ".$_REQUEST["sel_sta"] ;
 				}
 			}
-			else { $id_sta = ''; }
-			
-			//AND glpi_tickets.status LIKE '%".$id_sta."'
+			else { $id_sta = ''; }						
 			
 			if(isset($_REQUEST["sel_req"]) && $_REQUEST["sel_req"] != '0') { $id_req = $_REQUEST["sel_req"]; }
 			else { $id_req = ''; }
@@ -486,6 +479,9 @@ if($con == "1") {
 	//entity
 	if(!isset($_REQUEST["sel_ent"]) || $_REQUEST["sel_ent"] == 0 || $_REQUEST["sel_ent"] == "" ) 
 	{ 
+	   $id_ent = implode(',',$_SESSION['glpiactiveentities']);
+      $entidade = "AND glpi_tickets.entities_id IN (".$id_ent.")";
+
 		if(in_array(0,$user_ents)) {
 			$id_ent = 0 ;
 			$entidade = '';
@@ -512,11 +508,12 @@ if($con == "1") {
 		$datas2 = "BETWEEN '".$data_ini2." 00:00:00' AND '".$data_fin2." 23:59:59'";	
 	}	
 	
-	if($id_sta == 5) {
+	//date type
+	if($id_sta1 == 5) {
 		$period = "AND glpi_tickets.solvedate ".$datas2." ";	
 	}
 	
-	elseif($id_sta == 6) {
+	elseif($id_sta1 == 6) {
 		$period = "AND glpi_tickets.closedate ".$datas2." ";	
 	}	
 	
@@ -543,7 +540,7 @@ if($con == "1") {
 	$result_cham = $DB->query($sql_cham);
 	
 	$consulta1 = 
-	"SELECT glpi_tickets.id AS total
+	"SELECT COUNT(glpi_tickets.id) AS total
 	FROM glpi_tickets
 	WHERE glpi_tickets.is_deleted = 0
 	".$entidade."
@@ -556,7 +553,8 @@ if($con == "1") {
 	AND glpi_tickets.type LIKE '%".$id_tip."' ";
 	
 	$result_cons1 = $DB->query($consulta1);
-	$conta_cons = $DB->numrows($result_cons1);
+	//$conta_cons = $DB->numrows($result_cons1);
+	$conta_cons = $DB->result($result_cons1,0,'total');
 	
 	$consulta = $conta_cons;
 
@@ -714,7 +712,7 @@ if($consulta > 0) {
 			
 		//categoria	
 		$sql_cat = "SELECT glpi_tickets.id AS id, glpi_itilcategories.completename AS name
-		FROM `glpi_tickets` , glpi_itilcategories
+		FROM `glpi_tickets`, glpi_itilcategories
 		WHERE glpi_tickets.itilcategories_id = glpi_itilcategories.`id`
 		AND glpi_tickets.id = ". $row['id'] ." ";
 		
@@ -754,7 +752,7 @@ if($consulta > 0) {
 				
 					else {	
 						
-						if(!isset($row['solvedate']) AND $today > $row['duedate']) {
+						if(!isset($row['solvedate']) AND $today > $row['time_to_resolve']) {
 							echo "<td style='vertical-align:middle; text-align:center; color:red;'> ". conv_data_hora($row['time_to_resolve']) ." </td>";
 						}
 					
@@ -863,7 +861,7 @@ echo '</div><br>';
 else {
 	
 	echo "
-	<div id='nada_rel' class='well info_box fluid col-md-12'>
+	<div id='nada_tic' class='well info_box fluid col-md-12'>
 	<table class='table' style='font-size: 18px; font-weight:bold;' cellpadding = 1px>
 	<tr><td style='vertical-align:middle; text-align:center;'> <span style='color: #000;'>" . __('No ticket found', 'dashboard') . "</td></tr>
 	<tr></tr>

@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -52,7 +48,7 @@ class Calendar_Holiday extends CommonDBRelation {
 
 
    /**
-    * @since version 0.84
+    * @since 0.84
    **/
    function getForbiddenStandardMassiveAction() {
 
@@ -66,9 +62,11 @@ class Calendar_Holiday extends CommonDBRelation {
     * Show holidays for a calendar
     *
     * @param $calendar Calendar object
-   **/
+    *
+    * @return void|boolean (HTML display) False if there is a rights error.
+    */
    static function showForCalendar(Calendar $calendar) {
-      global $DB, $CFG_GLPI;
+      global $DB;
 
       $ID = $calendar->getField('id');
       if (!$calendar->can($ID, READ)) {
@@ -79,22 +77,33 @@ class Calendar_Holiday extends CommonDBRelation {
 
       $rand    = mt_rand();
 
-      $query = "SELECT DISTINCT `glpi_calendars_holidays`.`id` AS linkID,
-                                `glpi_holidays`.*
-                FROM `glpi_calendars_holidays`
-                LEFT JOIN `glpi_holidays`
-                     ON (`glpi_calendars_holidays`.`holidays_id` = `glpi_holidays`.`id`)
-                WHERE `glpi_calendars_holidays`.`calendars_id` = '$ID'
-                ORDER BY `glpi_holidays`.`name`";
-      $result = $DB->query($query);
+      $iterator = $DB->request([
+         'SELECT' => [
+            'glpi_calendars_holidays.id AS linkid',
+            'glpi_holidays.*'
+         ],
+         'DISTINCT'        => true,
+         'FROM'            => 'glpi_calendars_holidays',
+         'LEFT JOIN'       => [
+            'glpi_holidays'   => [
+               'ON' => [
+                  'glpi_calendars_holidays'  => 'holidays_id',
+                  'glpi_holidays'            => 'id'
+               ]
+            ]
+         ],
+         'WHERE'           => [
+            'glpi_calendars_holidays.calendars_id' => $ID
+         ],
+         'ORDERBY'         => 'glpi_holidays.name'
+      ]);
 
+      $numrows = count($iterator);
       $holidays = [];
       $used     = [];
-      if ($numrows = $DB->numrows($result)) {
-         while ($data = $DB->fetch_assoc($result)) {
-            $holidays[$data['id']] = $data;
-            $used[$data['id']]     = $data['id'];
-         }
+      while ($data = $iterator->next()) {
+         $holidays[$data['id']] = $data;
+         $used[$data['id']]     = $data['id'];
       }
 
       if ($canedit) {
@@ -128,7 +137,7 @@ class Calendar_Holiday extends CommonDBRelation {
       echo "<tr>";
       if ($canedit && $numrows) {
          echo "<th width='10'>";
-         Html::checkAllAsCheckbox('mass'.__CLASS__.$rand);
+         echo Html::getCheckAllAsCheckbox('mass'.__CLASS__.$rand);
          echo "</th>";
       }
       echo "<th>".__('Name')."</th>";
@@ -151,7 +160,7 @@ class Calendar_Holiday extends CommonDBRelation {
             echo "<tr class='tab_bg_1'>";
             if ($canedit) {
                echo "<td>";
-               Html::showMassiveActionCheckBox(__CLASS__, $data["linkID"]);
+               Html::showMassiveActionCheckBox(__CLASS__, $data["linkid"]);
                echo "</td>";
             }
             echo "<td><a href='".Toolbox::getItemTypeFormURL('Holiday')."?id=".$data['id']."'>".
@@ -172,21 +181,28 @@ class Calendar_Holiday extends CommonDBRelation {
       echo "</div>";
    }
 
-
    /**
     * Duplicate all holidays from a calendar to its clone
     *
-    * @param $oldid
-    * @param $newid
+    * @deprecated 9.5
+    *
+    * @param integer $oldid The ID of the calendar to copy from.
+    * @param integer $newid The ID of the calendar to copy to.
    **/
    static function cloneCalendar($oldid, $newid) {
       global $DB;
 
-      $query = "SELECT *
-                FROM `glpi_calendars_holidays`
-                WHERE `calendars_id` = '$oldid'";
+      Toolbox::deprecated('Use clone');
+      $result = $DB->request(
+         [
+            'FROM'   => self::getTable(),
+            'WHERE'  => [
+               'calendars_id' => $oldid,
+            ]
+         ]
+      );
 
-      foreach ($DB->request($query) as $data) {
+      foreach ($result as $data) {
          $ch                   = new self();
          unset($data['id']);
          $data['calendars_id'] = $newid;

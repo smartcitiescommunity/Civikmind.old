@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -42,10 +38,9 @@ if (!defined('GLPI_ROOT')) {
 /**
  * NotificationTargetPlanningRecall Class
  *
- * @since version 0.84
+ * @since 0.84
 **/
 class NotificationTargetPlanningRecall extends NotificationTarget {
-
 
    function getEvents() {
       return ['planningrecall' => __('Planning recall')];
@@ -56,8 +51,9 @@ class NotificationTargetPlanningRecall extends NotificationTarget {
     * @see NotificationTarget::addNotificationTargets()
    **/
    function addNotificationTargets($entity) {
-      $this->addTarget(Notification::AUTHOR, __('Requester'));
+      $this->addTarget(Notification::AUTHOR, _n('Requester', 'Requesters', 1));
       $this->addTarget(Notification::TASK_ASSIGN_TECH, __('Technician in charge of the task'));
+      $this->addTarget(Notification::PLANNING_EVENT_GUESTS, __('Guests'));
    }
 
    /**
@@ -71,6 +67,10 @@ class NotificationTargetPlanningRecall extends NotificationTarget {
                case Notification::TASK_ASSIGN_TECH :
                   $this->addTaskAssignUser($options);
                   break;
+
+               case Notification::PLANNING_EVENT_GUESTS :
+                  $this->addGuests($options);
+                  break;
             }
          break;
       }
@@ -78,17 +78,45 @@ class NotificationTargetPlanningRecall extends NotificationTarget {
 
    /**
     * Get tech related to the task
-    *
-    * @param $options array
    **/
    function addTaskAssignUser() {
       $item = new $this->obj->fields['itemtype'];
       if ($item->getFromDB($this->obj->fields['items_id'])) {
          $user = new User();
-         if ($item->isField('users_id_tech')
-             && $user->getFromDB($item->getField('users_id_tech'))) {
-            $this->addToRecipientsList(['language' => $user->getField('language'),
-                                            'users_id' => $user->getField('id')]);
+         $field = '';
+         if ($item->isField('users_id_tech')) {
+            $field = 'users_id_tech';
+         } else if (in_array($item->getType(), ['PlanningExternalEvent', 'Reminder'])
+                    && $item->isField('users_id')) {
+            $field = 'users_id';
+         }
+
+         if ($field != "" && $user->getFromDB($item->fields[$field])) {
+            $this->addToRecipientsList([
+               'language' => $user->fields['language'],
+               'users_id' => $user->fields['id']
+            ]);
+         }
+      }
+   }
+
+
+   /**
+    * Get guests related to external events
+   **/
+   function addGuests() {
+      $item = new $this->obj->fields['itemtype'];
+      if ($item->getFromDB($this->obj->fields['items_id'])) {
+         $user = new User();
+         if ($item->isField('users_id_guests')) {
+            foreach ($item->fields['users_id_guests'] as $users_id) {
+               if ($user->getFromDB($users_id)) {
+                  $this->addToRecipientsList([
+                     'language' => $user->fields['language'],
+                     'users_id' => $user->fields['id']
+                  ]);
+               }
+            }
          }
       }
    }

@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -44,7 +40,7 @@ class DeviceMemory extends CommonDevice {
    static protected $forward_entity_to = ['Item_DeviceMemory', 'Infocom'];
 
    static function getTypeName($nb = 0) {
-      return _n('Memory', 'Memories', $nb);
+      return _n('Memory', 'Memory', $nb);
    }
 
 
@@ -60,23 +56,24 @@ class DeviceMemory extends CommonDevice {
                                      'type'  => 'text',
                                      'unit'  => __('MHz')],
                                ['name'  => 'devicememorytypes_id',
-                                     'label' => __('Type'),
+                                     'label' => _n('Type', 'Types', 1),
                                      'type'  => 'dropdownValue'],
                                ['name'  => 'devicememorymodels_id',
-                                     'label' => __('Model'),
+                                     'label' => _n('Model', 'Models', 1),
                                      'type'  => 'dropdownValue']]);
    }
 
 
-   function getSearchOptionsNew() {
-      $tab = parent::getSearchOptionsNew();
+   function rawSearchOptions() {
+      $tab = parent::rawSearchOptions();
 
       $tab[] = [
          'id'                 => '11',
          'table'              => $this->getTable(),
          'field'              => 'size_default',
          'name'               => __('Size by default'),
-         'datatype'           => 'string'
+         'datatype'           => 'string',
+         'autocomplete'       => true,
       ];
 
       $tab[] = [
@@ -84,14 +81,15 @@ class DeviceMemory extends CommonDevice {
          'table'              => $this->getTable(),
          'field'              => 'frequence',
          'name'               => __('Frequency'),
-         'datatype'           => 'string'
+         'datatype'           => 'string',
+         'autocomplete'       => true,
       ];
 
       $tab[] = [
          'id'                 => '13',
          'table'              => 'glpi_devicememorytypes',
          'field'              => 'name',
-         'name'               => __('Type'),
+         'name'               => _n('Type', 'Types', 1),
          'datatype'           => 'dropdown'
       ];
 
@@ -99,7 +97,7 @@ class DeviceMemory extends CommonDevice {
          'id'                 => '14',
          'table'              => 'glpi_devicememorymodels',
          'field'              => 'name',
-         'name'               => __('Model'),
+         'name'               => _n('Model', 'Models', 1),
          'datatype'           => 'dropdown'
       ];
 
@@ -108,7 +106,7 @@ class DeviceMemory extends CommonDevice {
 
 
    /**
-    * @since version 0.85
+    * @since 0.85
     * @param $input
     *
     * @return number
@@ -124,29 +122,16 @@ class DeviceMemory extends CommonDevice {
    }
 
 
-   /**
-    * @since version 0.85
-    * @see CommonDropdown::prepareInputForAdd()
-   **/
    function prepareInputForAdd($input) {
-      return self::prepareInputForAddOrUpdate($input);
+      return $this->prepareInputForAddOrUpdate($input);
    }
 
 
-   /**
-    * @since version 0.85
-    * @see CommonDropdown::prepareInputForUpdate()
-   **/
    function prepareInputForUpdate($input) {
-      return self::prepareInputForAddOrUpdate($input);
+      return $this->prepareInputForAddOrUpdate($input);
    }
 
 
-   /**
-    * @since version 0.84
-    *
-    * @see CommonDevice::getHTMLTableHeader()
-   **/
    static function getHTMLTableHeader($itemtype, HTMLTableBase $base,
                                       HTMLTableSuperHeader $super = null,
                                       HTMLTableHeader $father = null, array $options = []) {
@@ -160,7 +145,7 @@ class DeviceMemory extends CommonDevice {
       switch ($itemtype) {
          case 'Computer' :
             Manufacturer::getHTMLTableHeader(__CLASS__, $base, $super, $father, $options);
-            $base->addHeader('devicememory_type', __('Type'), $super, $father);
+            $base->addHeader('devicememory_type', _n('Type', 'Types', 1), $super, $father);
             $base->addHeader('devicememory_frequency', __('Frequency'), $super, $father);
             break;
       }
@@ -168,11 +153,6 @@ class DeviceMemory extends CommonDevice {
    }
 
 
-   /**
-    * @since version 0.84
-    *
-    * @see CommonDevice::getHTMLTableCellForItem()
-   **/
    function getHTMLTableCellForItem(HTMLTableRow $row = null, CommonDBTM $item = null,
                                     HTMLTableCell $father = null, array $options = []) {
 
@@ -201,13 +181,6 @@ class DeviceMemory extends CommonDevice {
    }
 
 
-   /**
-    * Criteria used for import function
-    *
-    * @see CommonDevice::getImportCriteria()
-    *
-    * @since version 0.84
-   **/
    function getImportCriteria() {
 
       return ['designation'          => 'equal',
@@ -216,4 +189,52 @@ class DeviceMemory extends CommonDevice {
                    'frequence'            => 'delta:10'];
    }
 
+   public static function rawSearchOptionsToAdd($class, $main_joinparams) {
+      global $DB;
+
+      $tab = [];
+
+      $tab[] = [
+         'id'                 => '110',
+         'table'              => 'glpi_devicememories',
+         'field'              => 'designation',
+         'name'               => DeviceMemoryType::getTypeName(1),
+         'forcegroupby'       => true,
+         'usehaving'          => true,
+         'massiveaction'      => false,
+         'datatype'           => 'string',
+         'joinparams'         => [
+            'beforejoin'         => [
+               'table'              => 'glpi_items_devicememories',
+               'joinparams'         => $main_joinparams
+            ]
+         ]
+      ];
+
+      $tab[] = [
+         'id'                 => '111',
+         'table'              => 'glpi_items_devicememories',
+         'field'              => 'size',
+         'unit'               => 'auto',
+         'name'               => _n('Memory', 'Memories', 1),
+         'forcegroupby'       => true,
+         'usehaving'          => true,
+         'datatype'           => 'number',
+         'width'              => 100,
+         'massiveaction'      => false,
+         'joinparams'         => $main_joinparams,
+         'computation'        =>
+            '(SUM(' . $DB->quoteName('TABLE.size') . ') / COUNT(' .
+            $DB->quoteName('TABLE.id') . '))
+            * COUNT(DISTINCT ' . $DB->quoteName('TABLE.id') . ')',
+         'nometa'             => true, // cannot GROUP_CONCAT a SUM
+      ];
+
+      return $tab;
+   }
+
+
+   static function getIcon() {
+      return "fas fa-memory";
+   }
 }

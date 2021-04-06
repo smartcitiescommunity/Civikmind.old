@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -29,10 +29,6 @@
  * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
  */
-
-/** @file
-* @brief
-*/
 
 include ('../inc/includes.php');
 
@@ -67,11 +63,14 @@ if (isset($_GET['checkavailability'])) {
 } else if (isset($_GET['genical'])) {
    if (isset($_GET['token'])) {
       // Check user token
-      $user = new User();
-      if ($user->getFromDBByToken($_GET['token'])) {
+      $user = Session::authWithToken(
+         $_GET['token'],
+         'personal_token',
+         $_GET['entities_id'] ?? null,
+         $_GET['is_recursive'] ?? null
+      );
+      if ($user) {
          if (isset($_GET['entities_id']) && isset($_GET['is_recursive'])) {
-            $user->loadMinimalSession($_GET['entities_id'], $_GET['is_recursive']);
-
             // load entities & profiles
             // needed to pass canViewItem() in populatePlanning functions in case of ical export
             $_SESSION["glpidefault_entity"]  = $user->fields['entities_id'];
@@ -134,6 +133,7 @@ if (isset($_GET['checkavailability'])) {
 
          if ($ismine || $canview) {
             Planning::generateIcal($_GET["uID"], $_GET["gID"], $_GET["limititemtype"]);
+            Session::destroy();
          }
       }
    }

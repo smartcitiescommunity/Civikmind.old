@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -57,29 +53,29 @@ class NetworkPort_NetworkPort extends CommonDBRelation {
    /**
     * Retrieve an item from the database
     *
-    * @param $ID ID of the item to get
+    * @param integer $ID ID of the item to get
     *
-    * @return true if succeed else false
+    * @return boolean  true if succeed else false
    **/
    function getFromDBForNetworkPort($ID) {
 
-      return $this->getFromDBByQuery("WHERE `".$this->getTable()."`.`networkports_id_1` = '$ID'
-                                            OR `".$this->getTable()."`.`networkports_id_2` = '$ID'");
+      return $this->getFromDBByCrit([
+         'OR'  => [
+            $this->getTable() . '.networkports_id_1'  => $ID,
+            $this->getTable() . '.networkports_id_2'  => $ID
+         ]
+      ]);
    }
-
-
 
 
    /**
     * Get port opposite port ID
     *
-    * @param $ID networking port ID
+    * @param integer $ID networking port ID
     *
-    * @return integer ID of opposite port. false if not found
+    * @return integer|false  ID of opposite port. false if not found
    **/
    function getOppositeContact($ID) {
-      global $DB;
-
       if ($this->getFromDBForNetworkPort($ID)) {
          if ($this->fields['networkports_id_1'] == $ID) {
             return $this->fields['networkports_id_2'];

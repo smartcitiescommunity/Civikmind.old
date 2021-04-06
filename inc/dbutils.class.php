@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -53,7 +53,7 @@ final class DbUtils {
       if (!Toolbox::startsWith($table, 'glpi_')) {
          return "";
       }
-      return str_replace("glpi_", "", $table)."_id";
+      return substr($table, 5)."_id";
    }
 
 
@@ -99,6 +99,9 @@ final class DbUtils {
    public function getPlural($string) {
       $rules = [
          //'singular'         => 'plural'
+         // special case for acronym pdu (to avoid us rule)
+         'pdus$'              => 'pdus',
+         'pdu$'               => 'pdus',
          //FIXME: singular is criterion, plural is criteria
          'criterias$'         => 'criterias',// Special case (criterias) when getPlural is called on already plural form
          'ch$'                => 'ches',
@@ -119,6 +122,7 @@ final class DbUtils {
       ];
 
       foreach ($rules as $singular => $plural) {
+         $count = 0;
          $string = preg_replace("/$singular/", "$plural", $string, -1, $count);
          if ($count > 0) {
             break;
@@ -138,6 +142,7 @@ final class DbUtils {
 
       $rules = [
          //'plural'           => 'singular'
+         'pdus$'              => 'pdu', // special case for acronym pdu (to avoid us rule)
          'ches$'              => 'ch',
          'ch$'                => 'ch',
          'shes$'              => 'sh',
@@ -155,6 +160,7 @@ final class DbUtils {
       ]; // Add at the end if not exists
 
       foreach ($rules as  $plural => $singular) {
+         $count = 0;
          $string = preg_replace("/$plural/", "$singular", $string, -1, $count);
          if ($count > 0) {
             break;
@@ -195,7 +201,7 @@ final class DbUtils {
                $table = substr($table, \strlen(NS_GLPI));
             }
          }
-         $table = str_replace('\\', '_', $table);
+         $table = str_replace(['mock\\', '\\'], ['', '_'], $table);
          if (strstr($table, '_')) {
             $split = explode('_', $table);
 
@@ -234,6 +240,7 @@ final class DbUtils {
          $prefix    = "";
          $pref2     = NS_GLPI;
 
+         $matches = [];
          if (preg_match('/^plugin_([a-z0-9]+)_/', $table, $matches)) {
             $table  = preg_replace('/^plugin_[a-z0-9]+_/', '', $table);
             $prefix = "Plugin".Toolbox::ucfirst($matches[1]);
@@ -254,20 +261,22 @@ final class DbUtils {
 
          $itemtype = $prefix.$table;
          // Get real existence of itemtype
-         if (($item = $this->getItemForItemtype($itemtype))) {
+         if ($item = $this->getItemForItemtype($itemtype)) {
             $itemtype                                   = get_class($item);
             $CFG_GLPI['glpiitemtypetables'][$inittable] = $itemtype;
             $CFG_GLPI['glpitablesitemtype'][$itemtype]  = $inittable;
             return $itemtype;
          }
+
          // Namespaced item
          $itemtype = $pref2 . str_replace('_', '\\', $table);
-         if (($item = $this->getItemForItemtype($itemtype))) {
+         if ($item = $this->getItemForItemtype($itemtype)) {
             $itemtype                                   = get_class($item);
             $CFG_GLPI['glpiitemtypetables'][$inittable] = $itemtype;
             $CFG_GLPI['glpitablesitemtype'][$itemtype]  = $inittable;
             return $itemtype;
          }
+
          return "UNKNOWN";
       }
    }
@@ -285,21 +294,56 @@ final class DbUtils {
          //to avoid issues when pecl-event is installed...
          $itemtype = 'Glpi\\Event';
       }
-      if (class_exists($itemtype)) {
-         return new $itemtype();
+
+      // If itemtype starts with "Glpi\" or "GlpiPlugin\" followed by a "\",
+      // then it is a namespaced itemtype that has been "sanitized".
+      // Strip slashes to get its actual value.
+      $sanitized_namespaced_pattern = '/^'
+         . '(' . preg_quote(NS_GLPI, '/') . '|' . preg_quote(NS_PLUG, '/') . ')' // start with GLPI core or plugin namespace
+         . preg_quote('\\', '/') // followed by an additionnal \
+         . '/';
+      if (preg_match($sanitized_namespaced_pattern, $itemtype)) {
+         $itemtype = stripslashes($itemtype);
       }
-      return false;
+
+      if (!is_subclass_of($itemtype, CommonGLPI::class, true)) {
+         // Only CommonGLPI sublasses are valid itemtypes
+         return false;
+      }
+
+      $item_class = new ReflectionClass($itemtype);
+      if ($item_class->isAbstract()) {
+         trigger_error(
+            sprintf('Cannot instanciate "%s" as it is an abstract class.', $itemtype),
+            E_USER_WARNING
+         );
+         return false;
+      }
+
+      if (($constructor = $item_class->getConstructor()) !== null) {
+         foreach ($constructor->getParameters() as $parameter) {
+            if (!$parameter->isOptional()) {
+               trigger_error(
+                  sprintf('Cannot instanciate "%s" as its constructor has non optionnal parameters.', $itemtype),
+                  E_USER_WARNING
+               );
+               return false;
+            }
+         }
+      }
+
+      return new $itemtype();
    }
 
    /**
     * Count the number of elements in a table.
     *
     * @param string|array $table     table name(s)
-    * @param string|array $condition condition to use (default '') or array of criteria
+    * @param array        $condition array of criteria
     *
     * @return integer Number of elements in table
     */
-   public function countElementsInTable($table, $condition = "") {
+   public function countElementsInTable($table, $condition = []) {
       global $DB;
 
       if (!is_array($table)) {
@@ -315,9 +359,6 @@ final class DbUtils {
       if (!is_array($condition)) {
          if (empty($condition)) {
             $condition = [];
-         } else {
-            //TODO throw a warning?
-            $condition = ['WHERE' => $condition]; // Deprecated use case
          }
       }
       $condition['COUNT'] = 'cpt';
@@ -329,24 +370,22 @@ final class DbUtils {
    /**
     * Count the number of elements in a table.
     *
-    * @param string|array $table        table name(s)
-    * @param string       $field        field name
-    * @param string|array $condition condition to use (default '') or array of criteria
+    * @param string|array $table     table name(s)
+    * @param string       $field     field name
+    * @param array        $condition array of criteria
     *
     * @return int nb of elements in table
     */
-   public function countDistinctElementsInTable($table, $field, $condition = "") {
-      global $DB;
+   public function countDistinctElementsInTable($table, $field, $condition = []) {
 
       if (!is_array($condition)) {
          if (empty($condition)) {
             $condition = [];
-         } else {
-            $condition = ['WHERE' => $condition]; // Deprecated use case
          }
       }
       $condition['COUNT'] = 'cpt';
-      $condition['SELECT DISTINCT'] = $field;
+      $condition['FIELDS'] = $field;
+      $condition['DISTINCT'] = true;
 
       return $this->countElementsInTable($table, $condition);
    }
@@ -354,23 +393,19 @@ final class DbUtils {
    /**
     * Count the number of elements in a table for a specific entity
     *
-    * @param string|array $table        table name(s)
-    * @param string|array $condition condition to use (default '') or array of criteria
+    * @param string|array $table     table name(s)
+    * @param array        $condition array of criteria
     *
     * @return integer Number of elements in table
     */
-   public function countElementsInTableForMyEntities($table, $condition = '') {
+   public function countElementsInTableForMyEntities($table, $condition = []) {
 
       /// TODO clean it / maybe include when review of SQL requests
       $itemtype = $this->getItemTypeForTable($table);
       $item     = new $itemtype();
 
       $criteria = $this->getEntitiesRestrictCriteria($table, '', '', $item->maybeRecursive());
-      if (is_array($condition)) {
-         $criteria = array_merge($condition, $criteria);
-      } else if ($condition) {
-         $criteria[] = $condition;
-      }
+      $criteria = array_merge($condition, $criteria);
       return $this->countElementsInTable($table, $criteria);
    }
 
@@ -380,12 +415,12 @@ final class DbUtils {
     *
     * @param string|array $table     table name(s)
     * @param integer      $entity    the entity ID
-    * @param string|array $condition condition to use (default '') or array of criteria
+    * @param array        $condition condition to use (default '') or array of criteria
     * @param boolean      $recursive Whether to recurse or not. If true, will be conditionned on item recursivity
     *
     * @return integer number of elements in table
     */
-   public function countElementsInTableForEntity($table, $entity, $condition = '', $recursive = true) {
+   public function countElementsInTableForEntity($table, $entity, $condition = [], $recursive = true) {
 
       /// TODO clean it / maybe include when review of SQL requests
       $itemtype = $this->getItemTypeForTable($table);
@@ -396,55 +431,51 @@ final class DbUtils {
       }
 
       $criteria = $this->getEntitiesRestrictCriteria($table, '', $entity, $recursive);
-      if (is_array($condition)) {
-         $criteria = array_merge($condition, $criteria);
-      } else if ($condition) {
-         $criteria[] = $condition;
-      }
+      $criteria = array_merge($condition, $criteria);
       return $this->countElementsInTable($table, $criteria);
    }
 
    /**
-    * Get datas from a table in an array :
+    * Get data from a table in an array :
     * CAUTION TO USE ONLY FOR SMALL TABLES OR USING A STRICT CONDITION
     *
-    * @param string       $table     Table name
-    * @param string|array $condition Condition to use (default '') or array of criteria
-    * @param boolean      $usecache  Use cache (false by default)
-    * @param string       $order     Result order (default '')
+    * @param string  $table    Table name
+    * @param array   $criteria Request criteria
+    * @param boolean $usecache Use cache (false by default)
+    * @param string  $order    Result order (default '')
     *
     * @return array containing all the datas
     */
-   public function getAllDataFromTable($table, $condition = '', $usecache = false, $order = '') {
+   public function getAllDataFromTable($table, $criteria = [], $usecache = false, $order = '') {
       global $DB;
 
       static $cache = [];
 
-      if (empty($condition) && empty($order) && $usecache && isset($cache[$table])) {
+      if (empty($criteria) && empty($order) && $usecache && isset($cache[$table])) {
          return $cache[$table];
       }
 
       $data = [];
 
-      if (!is_array($condition)) {
-         if (empty($condition)) {
-            $condition = [];
-         } else {
-            $condition = ['WHERE' => $condition]; // Deprecated use case
+      if (!is_array($criteria)) {
+         Toolbox::Deprecated('Criteria must be an array!');
+         if (empty($criteria)) {
+            $criteria = [];
          }
       }
 
       if (!empty($order)) {
-         $condition['ORDER'] = $order; // Deprecated use case
+         Toolbox::Deprecated('Order should be defined in criteria!');
+         $criteria['ORDER'] = $order; // Deprecated use case
       }
 
-      $iterator = $DB->request($table, $condition);
+      $iterator = $DB->request($table, $criteria);
 
       while ($row = $iterator->next()) {
          $data[$row['id']] = $row;
       }
 
-      if (empty($condition) && empty($order) && $usecache) {
+      if (empty($criteria) && empty($order) && $usecache) {
          $cache[$table] = $data;
       }
       return $data;
@@ -469,7 +500,7 @@ final class DbUtils {
       $result = $DB->query("SHOW INDEX FROM `$table`");
 
       if ($result && $DB->numrows($result)) {
-         while ($data = $DB->fetch_assoc($result)) {
+         while ($data = $DB->fetchAssoc($result)) {
             if ($data["Key_name"] == $field) {
                return true;
             }
@@ -497,6 +528,7 @@ final class DbUtils {
     */
    public function getEntitiesRestrictRequest($separator = "AND", $table = "", $field = "", $value = '',
                                        $is_recursive = false, $complete_request = false) {
+      global $DB;
 
       $query = $separator ." ( ";
 
@@ -522,9 +554,9 @@ final class DbUtils {
          }
       }
       if (empty($table)) {
-         $field = "`$field`";
+         $field = $DB->quoteName($field);
       } else {
-         $field = "`$table`.`$field`";
+         $field = $DB->quoteName("$table.$field");
       }
 
       $query .= "$field";
@@ -545,7 +577,9 @@ final class DbUtils {
 
       if ($is_recursive) {
          $ancestors = [];
-         if (isset($_SESSION['glpiactiveentities']) && $value == $_SESSION['glpiactiveentities']) {
+         if (isset($_SESSION['glpiactiveentities'])
+             && isset($_SESSION['glpiparententities'])
+             && $value == $_SESSION['glpiactiveentities']) {
             $ancestors = $_SESSION['glpiparententities'];
          } else {
             if (is_array($value)) {
@@ -563,8 +597,8 @@ final class DbUtils {
             if ($table == 'glpi_entities') {
                $query .= " OR $field IN ('" . implode("','", $ancestors) . "')";
             } else {
-               $recur = (empty($table) ? '`is_recursive`' : "`$table`.`is_recursive`");
-               $query .= " OR ($recur='1' AND $field IN ('" . implode("','", $ancestors) . "'))";
+               $recur = $DB->quoteName((empty($table) ? 'is_recursive' : "$table.is_recursive"));
+               $query .= " OR ($recur='1' AND $field IN (" . implode(', ', $ancestors) . '))';
             }
          }
       }
@@ -616,7 +650,11 @@ final class DbUtils {
       }
 
       if (!is_array($value) && strlen($value) == 0) {
-         $value = $_SESSION['glpiactiveentities'];
+         if (isset($_SESSION['glpiactiveentities'])) {
+            $value = $_SESSION['glpiactiveentities'];
+         } else if (isCommandLine() || Session::isCron()) {
+            $value = '0'; // If value is not set, fallback to root entity in cron / command line
+         }
       }
 
       $crit = [$field => $value];
@@ -631,10 +669,7 @@ final class DbUtils {
       if ($is_recursive) {
          $ancestors = [];
          if (is_array($value)) {
-            foreach ($value as $val) {
-               $ancestors = array_unique(array_merge($this->getAncestorsOf('glpi_entities', $val),
-                     $ancestors));
-            }
+            $ancestors = $this->getAncestorsOf("glpi_entities", $value);
             $ancestors = array_diff($ancestors, $value);
 
          } else if (strlen($value) == 0) {
@@ -652,9 +687,12 @@ final class DbUtils {
                $crit = ['OR' => [$field => $value + $ancestors]];
             } else {
                $recur = (empty($table) ? 'is_recursive' : "$table.is_recursive");
-               $crit = ['OR' => [$field => $value,
-                                 'AND' => [$recur => 1,
-                                          $field => $ancestors]]];
+               $crit = [
+                  'OR' => [
+                     $field => $value,
+                     [$recur => 1, $field => $ancestors]
+                  ]
+               ];
             }
          }
       }
@@ -672,12 +710,12 @@ final class DbUtils {
    public function getSonsOf($table, $IDf) {
       global $DB, $GLPI_CACHE;
 
-      $ckey = $table . '_sons_cache_' . $IDf;
+      $ckey = 'sons_cache_' . $table . '_' . $IDf;
       $sons = false;
 
       if (Toolbox::useCache()) {
-         if ($GLPI_CACHE->hasItem($ckey)) {
-            $sons = $GLPI_CACHE->getItem($ckey);
+         if ($GLPI_CACHE->has($ckey)) {
+            $sons = $GLPI_CACHE->get($ckey);
             if ($sons !== null) {
                return $sons;
             }
@@ -706,7 +744,7 @@ final class DbUtils {
 
       if (!is_array($sons)) {
          // IDs to be present in the final array
-         $sons[$IDf] = "$IDf";
+         $sons[$IDf] = $IDf;
          // current ID found to be added
          $found = [];
          // First request init the  varriables
@@ -751,15 +789,18 @@ final class DbUtils {
          if ($use_cache
             && ($IDf > 0)) {
 
-            $query = "UPDATE `$table`
-                     SET `sons_cache`='".$this->exportArrayToDB($sons)."'
-                     WHERE `id` = '$IDf';";
-            $DB->query($query);
+            $DB->update(
+               $table, [
+                  'sons_cache' => $this->exportArrayToDB($sons)
+               ], [
+                  'id' => $IDf
+               ]
+            );
          }
       }
 
       if (Toolbox::useCache()) {
-         $GLPI_CACHE->addItem($ckey, $sons);
+         $GLPI_CACHE->set($ckey, $sons);
       }
 
       return $sons;
@@ -776,17 +817,17 @@ final class DbUtils {
    public function getAncestorsOf($table, $items_id) {
       global $DB, $GLPI_CACHE;
 
-      $ckey = $table . '_ancestors_cache_';
+      $ckey = 'ancestors_cache_';
       if (is_array($items_id)) {
-         $ckey .= implode('|', $items_id);
+         $ckey .= $table . '_' . md5(implode('|', $items_id));
       } else {
-         $ckey .= $items_id;
+         $ckey .= $table . '_' . $items_id;
       }
       $ancestors = [];
 
       if (Toolbox::useCache()) {
-         if ($GLPI_CACHE->hasItem($ckey)) {
-            $ancestors = $GLPI_CACHE->getItem($ckey);
+         if ($GLPI_CACHE->has($ckey)) {
+            $ancestors = $GLPI_CACHE->get($ckey);
             if ($ancestors !== null) {
                return $ancestors;
             }
@@ -830,10 +871,13 @@ final class DbUtils {
                   }
 
                   // Store cache datas in DB
-                  $query = "UPDATE `$table`
-                        SET `ancestors_cache` = '".$this->exportArrayToDB($loc_id_found)."'
-                        WHERE `id` = '".$row['id']."'";
-                  $DB->query($query);
+                  $DB->update(
+                     $table, [
+                        'ancestors_cache' => $this->exportArrayToDB($loc_id_found)
+                     ], [
+                        'id' => $row['id']
+                     ]
+                  );
 
                   $ancestors = array_replace($ancestors, $loc_id_found);
                }
@@ -871,7 +915,7 @@ final class DbUtils {
       }
 
       if (Toolbox::useCache()) {
-         $GLPI_CACHE->addItem($ckey, $ancestors);
+         $GLPI_CACHE->set($ckey, $ancestors);
       }
 
       return $ancestors;
@@ -880,7 +924,7 @@ final class DbUtils {
    /**
     * Get the sons and the ancestors of an item in a tree dropdown. Rely on getSonsOf and getAncestorsOf
     *
-    * @since version 0.84
+    * @since 0.84
     *
     * @param string $table table name
     * @param string $IDf   The ID of the father
@@ -909,57 +953,83 @@ final class DbUtils {
       $name    = "";
       $comment = "";
 
-      $SELECTNAME    = "`$table`.`name`, '' AS transname";
-      $SELECTCOMMENT = "`$table`.`comment`, '' AS transcomment";
-      $JOIN          = '';
+      $SELECTNAME    = new \QueryExpression("'' AS ". $DB->quoteName('transname'));
+      $SELECTCOMMENT = new \QueryExpression("'' AS " . $DB->quoteName('transcomment'));
+      $JOIN          = [];
+      $JOINS         = [];
       if ($translate) {
          if (Session::haveTranslations($this->getItemTypeForTable($table), 'name')) {
-            $SELECTNAME  = "`$table`.`name`, `namet`.`value` AS transname";
-            $JOIN       .= " LEFT JOIN `glpi_dropdowntranslations` AS namet
-                              ON (`namet`.`itemtype` = '".$this->getItemTypeForTable($table)."'
-                                 AND `namet`.`items_id` = `$table`.`id`
-                                 AND `namet`.`language` = '".$_SESSION['glpilanguage']."'
-                                 AND `namet`.`field` = 'name')";
+            $SELECTNAME = 'namet.value AS transname';
+            $JOINS['glpi_dropdowntranslations AS namet'] = [
+               'ON' => [
+                  'namet'  => 'items_id',
+                  $table   => 'id', [
+                     'AND' => [
+                        'namet.itemtype'  => $this->getItemTypeForTable($table),
+                        'namet.language'  => $_SESSION['glpilanguage'],
+                        'namet.field'     => 'name'
+                     ]
+                  ]
+               ]
+            ];
          }
          if (Session::haveTranslations($this->getItemTypeForTable($table), 'comment')) {
-            $SELECTCOMMENT  = "`$table`.`comment`, `namec`.`value` AS transcomment";
-            $JOIN          .= " LEFT JOIN `glpi_dropdowntranslations` AS namet
-                              ON (`namec`.`itemtype` = '".$this->getItemTypeForTable($table)."'
-                                 AND `namec`.`items_id` = `$table`.`id`
-                                 AND `namec`.`language` = '".$_SESSION['glpilanguage']."'
-                                 AND `namec`.`field` = 'comment')";
+            $SELECTCOMMENT = 'namec.value AS transcomment';
+            $JOINS['glpi_dropdowntranslations AS namec'] = [
+               'ON' => [
+                  'namec'  => 'items_id',
+                  $table   => 'id', [
+                     'AND' => [
+                        'namec.itemtype'  => $this->getItemTypeForTable($table),
+                        'namec.language'  => $_SESSION['glpilanguage'],
+                        'namec.field'     => 'comment'
+                     ]
+                  ]
+               ]
+            ];
          }
 
+         if (count($JOINS)) {
+            $JOIN = ['LEFT JOIN' => $JOINS];
+         }
       }
 
-      $query = "SELECT $SELECTNAME, $SELECTCOMMENT
-               FROM `$table`
-               $JOIN
-               WHERE `$table`.`id` = '$ID'";
+      $criteria = [
+         'SELECT' => [
+            "$table.name",
+            "$table.comment",
+            $SELECTNAME,
+            $SELECTCOMMENT
+         ],
+         'FROM'   => $table,
+         'WHERE'  => ["$table.id" => $ID]
+      ] + $JOIN;
+      $iterator = $DB->request($criteria);
+      $result = $iterator->next();
 
-      if ($result = $DB->query($query)) {
-         if ($DB->numrows($result) == 1) {
-            $transname = $DB->result($result, 0, "transname");
-            if ($translate && !empty($transname)) {
-               $name = $transname;
-            } else {
-               $name = $DB->result($result, 0, "name");
-            }
+      if (count($iterator) == 1) {
+         $transname = $result['transname'];
+         if ($translate && !empty($transname)) {
+            $name = $transname;
+         } else {
+            $name = $result['name'];
+         }
 
-            $comment      = $name." :<br>";
-            $transcomment = $DB->result($result, 0, "transcomment");
+         $comment      = $name." :<br/>";
+         $transcomment = $result['transcomment'];
 
-            if ($translate && !empty($transcomment)) {
-               $comment .= nl2br($transcomment);
-            } else {
-               $comment .= nl2br($DB->result($result, 0, "comment"));
-            }
+         if ($translate && !empty($transcomment)) {
+            $comment .= nl2br($transcomment);
+         } else {
+            $comment .= nl2br($result['comment']);
          }
       }
 
       if ($withcomment) {
-         return ["name"    => $name,
-                 "comment" => $comment];
+         return [
+            'name'      => $name,
+            'comment'   => $comment
+         ];
       }
       return $name;
    }
@@ -983,54 +1053,115 @@ final class DbUtils {
       $name    = "";
       $comment = "";
 
-      $SELECTNAME    = "`$table`.`completename`, '' AS transname";
-      $SELECTCOMMENT = "`$table`.`comment`, '' AS transcomment";
-      $JOIN          = '';
+      $SELECTNAME    = new \QueryExpression("'' AS ". $DB->quoteName('transname'));
+      $SELECTCOMMENT = new \QueryExpression("'' AS " . $DB->quoteName('transcomment'));
+      $JOIN          = [];
+      $JOINS         = [];
       if ($translate) {
          if (Session::haveTranslations($this->getItemTypeForTable($table), 'completename')) {
-            $SELECTNAME  = "`$table`.`completename`, `namet`.`value` AS transname";
-            $JOIN       .= " LEFT JOIN `glpi_dropdowntranslations` AS namet
-                              ON (`namet`.`itemtype` = '".$this->getItemTypeForTable($table)."'
-                                 AND `namet`.`items_id` = `$table`.`id`
-                                 AND `namet`.`language` = '".$_SESSION['glpilanguage']."'
-                                 AND `namet`.`field` = 'completename')";
+            $SELECTNAME = 'namet.value AS transname';
+            $JOINS['glpi_dropdowntranslations AS namet'] = [
+               'ON' => [
+                  'namet'  => 'items_id',
+                  $table   => 'id', [
+                     'AND' => [
+                        'namet.itemtype'  => $this->getItemTypeForTable($table),
+                        'namet.language'  => $_SESSION['glpilanguage'],
+                        'namet.field'     => 'completename'
+                     ]
+                  ]
+               ]
+            ];
          }
          if (Session::haveTranslations($this->getItemTypeForTable($table), 'comment')) {
-            $SELECTCOMMENT  = "`$table`.`comment`, `namec`.`value` AS transcomment";
-            $JOIN          .= " LEFT JOIN `glpi_dropdowntranslations` AS namec
-                                 ON (`namec`.`itemtype` = '".$this->getItemTypeForTable($table)."'
-                                    AND `namec`.`items_id` = `$table`.`id`
-                                    AND `namec`.`language` = '".$_SESSION['glpilanguage']."'
-                                    AND `namec`.`field` = 'comment')";
+            $SELECTCOMMENT = 'namec.value AS transcomment';
+            $JOINS['glpi_dropdowntranslations AS namec'] = [
+               'ON' => [
+                  'namec'  => 'items_id',
+                  $table   => 'id', [
+                     'AND' => [
+                        'namec.itemtype'  => $this->getItemTypeForTable($table),
+                        'namec.language'  => $_SESSION['glpilanguage'],
+                        'namec.field'     => 'comment'
+                     ]
+                  ]
+               ]
+            ];
          }
 
+         if (count($JOINS)) {
+            $JOIN = ['LEFT JOIN' => $JOINS];
+         }
       }
 
-      $query = "SELECT $SELECTNAME, $SELECTCOMMENT
-               FROM `$table`
-               $JOIN
-               WHERE `$table`.`id` = '$ID'";
+      $criteria = [
+         'SELECT' => [
+            "$table.completename",
+            "$table.comment",
+            $SELECTNAME,
+            $SELECTCOMMENT
+         ],
+         'FROM'   => $table,
+         'WHERE'  => ["$table.id" => $ID]
+      ] + $JOIN;
 
-      if ($result = $DB->query($query)) {
-         if ($DB->numrows($result) == 1) {
-            $transname = $DB->result($result, 0, "transname");
-            if ($translate && !empty($transname)) {
-               $name = $transname;
-            } else {
-               $name = $DB->result($result, 0, "completename");
+      if ($table == Location::getTable()) {
+         $criteria['SELECT'] = array_merge(
+            $criteria['SELECT'], [
+               "$table.address",
+               "$table.town",
+               "$table.country"
+            ]
+         );
+      }
+
+      $iterator = $DB->request($criteria);
+      $result = $iterator->next();
+
+      if (count($iterator) == 1) {
+         $transname = $result['transname'];
+         if ($translate && !empty($transname)) {
+            $name = $transname;
+         } else {
+            $name = $result['completename'];
+         }
+         if ($tooltip) {
+            $comment  = sprintf(__('%1$s: %2$s')."<br>",
+                              "<span class='b'>".__('Complete name')."</span>",
+                              $name);
+            if ($table == Location::getTable()) {
+               $acomment = '';
+               $address = $result['address'];
+               $town    = $result['town'];
+               $country = $result['country'];
+               if (!empty($address)) {
+                  $acomment .= $address;
+               }
+               if (!empty($address) &&
+                  (!empty($town) || !empty($country))
+               ) {
+                  $acomment .= '<br/>';
+               }
+               if (!empty($town)) {
+                  $acomment .= $town;
+               }
+               if (!empty($country)) {
+                  if (!empty($town)) {
+                     $acomment .= ' - ';
+                  }
+                  $acomment .= $country;
+               }
+               if (trim($acomment != '')) {
+                  $comment .= "<span class='b'>&nbsp;".__('Address:')."</span> " . $acomment . "<br/>";
+               }
             }
-            if ($tooltip) {
-               $comment  = sprintf(__('%1$s: %2$s')."<br>",
-                                 "<span class='b'>".__('Complete name')."</span>",
-                                 $name);
-               $comment .= "<span class='b'>&nbsp;".__('Comments')."&nbsp;</span>";
-            }
-            $transcomment = $DB->result($result, 0, "transcomment");
-            if ($translate && !empty($transcomment)) {
-               $comment .= nl2br($transcomment);
-            } else {
-               $comment .= nl2br($DB->result($result, 0, "comment"));
-            }
+            $comment .= "<span class='b'>&nbsp;".__('Comments')."&nbsp;</span>";
+         }
+         $transcomment = $result['transcomment'];
+         if ($translate && !empty($transcomment)) {
+            $comment .= nl2br($transcomment);
+         } else {
+            $comment .= nl2br($result['comment']);
          }
       }
 
@@ -1039,8 +1170,10 @@ final class DbUtils {
       }
 
       if ($withcomment) {
-         return ["name"    => $name,
-                     "comment" => $comment];
+         return [
+            'name'      => $name,
+            'comment'   => $comment
+         ];
       }
       return $name;
    }
@@ -1140,8 +1273,12 @@ final class DbUtils {
             }
          }
       }
-      $tree[$IDf]['name'] = Dropdown::getDropdownName($table, $IDf);
-      $tree[$IDf]['tree'] = $this->constructTreeFromList($id_found, $IDf);
+      $tree = [
+         $IDf => [
+            'name' => Dropdown::getDropdownName($table, $IDf),
+            'tree' => $this->constructTreeFromList($id_found, $IDf),
+         ],
+      ];
       return $tree;
    }
 
@@ -1201,9 +1338,11 @@ final class DbUtils {
     * @param string  $reallink real field to link ($table.id if not set) (default ='')
     *
     * @return string the query
+    *
+    * @Deprecated 9.5.0
     */
    public function getRealQueryForTreeItem($table, $IDf, $reallink = "") {
-      global $DB;
+      Toolbox::deprecated();
 
       if (empty($IDf)) {
          return "";
@@ -1237,190 +1376,15 @@ final class DbUtils {
 
       while ($data = $iterator->next()) {
          list($name, $level) = $this->getTreeValueName($table, $data['id']);
-         $query = "UPDATE `$table`
-                     SET `completename` = '".addslashes($name)."',
-                        `level` = '$level'
-                     WHERE `id` = '".$data['id']."'";
-         $DB->query($query);
+         $DB->update(
+            $table, [
+               'completename' => addslashes($name),
+               'level'        => $level
+            ], [
+               'id' => $data['id']
+            ]
+         );
       }
-   }
-
-
-   /**
-    * Get the ID of the next Item
-    *
-    * @param string  $table         table to search next item
-    * @param integer $ID            current ID
-    * @param string  $condition     condition to add to the search (default ='')
-    * @param string  $nextprev_item field used to sort (default ='name')
-    *
-    * @return the next ID, -1 if not exist
-    */
-   public function getNextItem($table, $ID, $condition = "", $nextprev_item = "name") {
-      global $DB, $CFG_GLPI;
-
-      if (empty($nextprev_item)) {
-         return false;
-      }
-
-      $itemtype = $this->getItemTypeForTable($table);
-      $item     = new $itemtype();
-      $search   = $ID;
-
-      if ($nextprev_item != "id") {
-         $iterator = $DB->request([
-            'SELECT' => $nextprev_item,
-            'FROM'   => $table,
-            'WHERE'  => ['id' => $ID]
-         ]);
-
-         if (count($iterator) > 0) {
-            $search = addslashes($iterator->next()[$nextprev_item]);
-         } else {
-            $nextprev_item = "id";
-         }
-      }
-
-      $LEFTJOIN = '';
-      if ($table == "glpi_users") {
-         $LEFTJOIN = " LEFT JOIN `glpi_profiles_users`
-                              ON (`glpi_users`.`id` = `glpi_profiles_users`.`users_id`)";
-      }
-
-      $query = "SELECT `$table`.`id`
-               FROM `$table`
-               $LEFTJOIN
-               WHERE (`$table`.`$nextprev_item` > '$search' ";
-
-      // Same name case
-      if ($nextprev_item != "id") {
-         $query .= " OR (`$table`.`".$nextprev_item."` = '$search'
-                        AND `$table`.`id` > '$ID') ";
-      }
-      $query .= ") ";
-
-      if (!empty($condition)) {
-         $query .= " AND $condition ";
-      }
-
-      if ($item->maybeDeleted()) {
-         $query .= " AND `$table`.`is_deleted` = '0' ";
-      }
-
-      if ($item->maybeTemplate()) {
-         $query .= " AND `$table`.`is_template` = '0' ";
-      }
-
-      // Restrict to active entities
-      if ($table == "glpi_entities") {
-         $query .= $this->getEntitiesRestrictRequest("AND", $table, '', '', true);
-
-      } else if ($item->isEntityAssign()) {
-         $query .= $this->getEntitiesRestrictRequest("AND", $table, '', '', $item->maybeRecursive());
-
-      } else if ($table == "glpi_users") {
-         $query .= $this->getEntitiesRestrictRequest("AND", "glpi_profiles_users");
-      }
-
-      $query .= " ORDER BY `$table`.`$nextprev_item` ASC,
-                           `$table`.`id` ASC";
-
-      $result = $DB->query($query);
-      if ($result
-         && ($DB->numrows($result) > 0)) {
-         return $DB->result($result, 0, "id");
-      }
-
-      return -1;
-   }
-
-
-   /**
-    * Get the ID of the previous Item
-    *
-    * @param string  $table         table to search next item
-    * @param integer $ID            current ID
-    * @param string  $condition     condition to add to the search (default ='')
-    * @param stgring $nextprev_item field used to sort (default ='name')
-    *
-    * @return the previous ID, -1 if not exist
-    */
-   public function getPreviousItem($table, $ID, $condition = "", $nextprev_item = "name") {
-      global $DB, $CFG_GLPI;
-
-      if (empty($nextprev_item)) {
-         return false;
-      }
-
-      $itemtype = $this->getItemTypeForTable($table);
-      $item     = new $itemtype();
-      $search   = $ID;
-
-      if ($nextprev_item != "id") {
-         $iterator = $DB->request([
-            'SELECT' => $nextprev_item,
-            'FROM'   => $table,
-            'WHERE'  => ['id' => $ID]
-         ]);
-
-         if (count($iterator) > 0) {
-            $search = addslashes($iterator->next()[$nextprev_item]);
-         } else {
-            $nextprev_item = "id";
-         }
-      }
-
-      $LEFTJOIN = '';
-      if ($table == "glpi_users") {
-         $LEFTJOIN = " LEFT JOIN `glpi_profiles_users`
-                              ON (`glpi_users`.`id` = `glpi_profiles_users`.`users_id`)";
-      }
-
-      $query = "SELECT `$table`.`id`
-               FROM `$table`
-               $LEFTJOIN
-               WHERE (`$table`.`$nextprev_item` < '$search' ";
-
-      // Same name case
-      if ($nextprev_item != "id") {
-         $query .= " OR (`$table`.`$nextprev_item` = '$search'
-                        AND `$table`.`id` < '$ID') ";
-      }
-      $query .= ") ";
-
-      if (!empty($condition)) {
-         $query .= " AND $condition ";
-      }
-
-      if ($item->maybeDeleted()) {
-         $query .= "AND `$table`.`is_deleted` = '0'";
-      }
-
-      if ($item->maybeTemplate()) {
-         $query .= "AND `$table`.`is_template` = '0'";
-      }
-
-      // Restrict to active entities
-      if ($table == "glpi_entities") {
-         $query .= $this->getEntitiesRestrictRequest("AND", $table, '', '', true);
-
-      } else if ($item->isEntityAssign()) {
-         $query .= $this->getEntitiesRestrictRequest("AND", $table, '', '', $item->maybeRecursive());
-
-      } else if ($table == "glpi_users") {
-         $query .= $this->getEntitiesRestrictRequest("AND", "glpi_profiles_users");
-      }
-
-      $query .= " ORDER BY `$table`.`$nextprev_item` DESC,
-                           `$table`.`id` DESC";
-
-      $result = $DB->query($query);
-      if ($result
-         && ($DB->numrows($result) > 0)) {
-         return $DB->result($result, 0, "id");
-      }
-
-      return -1;
    }
 
 
@@ -1437,7 +1401,7 @@ final class DbUtils {
     *
     * @return string formatted username
     */
-   public function formatUserName($ID, $login, $realname, $firstname, $link = 0, $cut = 0, $force_config = false) {
+   public function formatUserName($ID, $login, $realname, $firstname, $link = 1, $cut = 0, $force_config = false) {
       global $CFG_GLPI;
 
       $before = "";
@@ -1454,37 +1418,38 @@ final class DbUtils {
       }
 
       if (strlen($realname) > 0) {
-         $temp = $realname;
+         $formatted = $realname;
 
          if (strlen($firstname) > 0) {
             if ($order == User::FIRSTNAME_BEFORE) {
-               $temp = $firstname." ".$temp;
+               $formatted = $firstname." ".$formatted;
             } else {
-               $temp .= " ".$firstname;
+               $formatted .= " ".$firstname;
             }
          }
 
          if (($cut > 0)
-            && (Toolbox::strlen($temp) > $cut)) {
-            $temp = Toolbox::substr($temp, 0, $cut)." ...";
+            && (Toolbox::strlen($formatted) > $cut)) {
+            $formatted = Toolbox::substr($formatted, 0, $cut)." ...";
          }
 
       } else {
-         $temp = $login;
+         $formatted = $login;
       }
 
       if ($ID > 0
-         && ((strlen($temp) == 0) || $id_visible)) {
-         $temp = sprintf(__('%1$s (%2$s)'), $temp, $ID);
+         && ((strlen($formatted) == 0) || $id_visible)) {
+         $formatted = sprintf(__('%1$s (%2$s)'), $formatted, $ID);
       }
 
       if (($link == 1)
          && ($ID > 0)) {
-         $before = "<a title=\"".$temp."\" href='".$CFG_GLPI["root_doc"]."/front/user.form.php?id=".$ID."'>";
+         $before = "<a title=\"".Toolbox::addslashes_deep($formatted)."\"
+                       href='".User::getFormURLWithID($ID)."'>";
          $after  = "</a>";
       }
 
-      $username = $before.$temp.$after;
+      $username = $before.$formatted.$after;
       return $username;
    }
 
@@ -1499,7 +1464,7 @@ final class DbUtils {
     * @return string username string (realname if not empty and name if realname is empty).
     */
    public function getUserName($ID, $link = 0) {
-      global $DB, $CFG_GLPI;
+      global $DB;
 
       $user = "";
       if ($link == 2) {
@@ -1528,7 +1493,7 @@ final class DbUtils {
 
             if ($link == 2) {
                $user["name"]    = $username;
-               $user["link"]    = $CFG_GLPI["root_doc"]."/front/user.form.php?id=".$ID;
+               $user["link"]    = User::getFormURLWithID($ID);
                $user['comment'] = '';
 
                $comments        = [];
@@ -1542,12 +1507,12 @@ final class DbUtils {
 
                $email           = UserEmail::getDefaultForUser($ID);
                if (!empty($email)) {
-                  $comments[] = ['name'  => __('Email'),
+                  $comments[] = ['name'  => _n('Email', 'Emails', 1),
                                  'value' => $email];
                }
 
                if (!empty($data["phone"])) {
-                  $comments[] = ['name'  => __('Phone'),
+                  $comments[] = ['name'  => Phone::getTypeName(1),
                                  'value' => $data["phone"]];
                }
 
@@ -1557,7 +1522,7 @@ final class DbUtils {
                }
 
                if ($data["locations_id"] > 0) {
-                  $comments[] = ['name'  => __('Location'),
+                  $comments[] = ['name'  => Location::getTypeName(1),
                                  'value' => Dropdown::getDropdownName("glpi_locations",
                                                                            $data["locations_id"])];
                }
@@ -1574,7 +1539,6 @@ final class DbUtils {
                                                                            $data["usercategories_id"])];
                }
                if (count($comments)) {
-                  $user['comment'] = $user['comment'];
                   foreach ($comments as $datas) {
                      // Do not use SPAN here
                      $user['comment'] .= sprintf(__('%1$s: %2$s')."<br>",
@@ -1623,28 +1587,39 @@ final class DbUtils {
 
          if (preg_match( "/\\#{1,10}/", $autoNum, $mask)) {
             $global  = ((strpos($autoNum, '\\g') !== false) && ($itemtype != 'Infocom')) ? 1 : 0;
-            $autoNum = str_replace(['\\y',
-                                       '\\Y',
-                                       '\\m',
-                                       '\\d',
-                                       '_','%',
-                                       '\\g'],
-                                 [date('y'),
-                                       date('Y'),
-                                       date('m'),
-                                       date('d'),
-                                       '\\_',
-                                       '\\%',
-                                       ''],
-                                 $autoNum);
+
+            //do not add extra escapements for now
+            //substring position would be wrong if name contains "_"
+            $autoNum = str_replace(
+               [
+                  '\\y',
+                  '\\Y',
+                  '\\m',
+                  '\\d',
+                  '\\g'
+               ], [
+                  date('y'),
+                  date('Y'),
+                  date('m'),
+                  date('d'),
+                  ''
+               ],
+               $autoNum
+            );
+
             $mask = $mask[0];
             $pos  = strpos($autoNum, $mask) + 1;
+
+            //got substring position, add extra escapements
+            $autoNum = str_replace(
+               ['_', '%'],
+               ['\\_', '\\%'],
+               $autoNum
+            );
             $len  = Toolbox::strlen($mask);
             $like = str_replace('#', '_', $autoNum);
 
             if ($global == 1) {
-               $query = "";
-               $first = 1;
                $types = [
                   'Computer',
                   'Monitor',
@@ -1654,52 +1629,75 @@ final class DbUtils {
                   'Printer'
                ];
 
+               $subqueries = [];
                foreach ($types as $t) {
                   $table = $this->getTableForItemType($t);
-                  $query .= ($first ? "SELECT " : " UNION SELECT  ")." $field AS code
-                           FROM `$table`
-                           WHERE `$field` LIKE '$like'
-                                 AND `is_deleted` = '0'
-                                 AND `is_template` = '0'";
+                  $criteria = [
+                     'SELECT' => ["$field AS code"],
+                     'FROM'   => $table,
+                     'WHERE'  => [
+                        $field         => ['LIKE', $like],
+                        'is_deleted'   => 0,
+                        'is_template'  => 0
+                     ]
+                  ];
 
                   if ($CFG_GLPI["use_autoname_by_entity"]
                      && ($entities_id >= 0)) {
-                     $query .=" AND `entities_id` = '$entities_id' ";
+                     $criteria['WHERE']['entities_id'] = $entities_id;
                   }
 
-                  $first = 0;
+                  $subqueries[] = new \QuerySubQuery($criteria);
                }
 
-               $query = "SELECT CAST(SUBSTRING(code, $pos, $len) AS unsigned) AS no
-                        FROM ($query) AS codes";
-
+               $criteria = [
+                  'SELECT' => [
+                     new \QueryExpression(
+                        "CAST(SUBSTRING(".$DB->quoteName('code').", $pos, $len) AS " .
+                        "unsigned) AS " . $DB->quoteName('no')
+                     )
+                  ],
+                  'FROM'   => new \QueryUnion($subqueries, false, 'codes')
+               ];
             } else {
                $table = $this->getTableForItemType($itemtype);
-               $query = "SELECT CAST(SUBSTRING($field, $pos, $len) AS unsigned) AS no
-                        FROM `$table`
-                        WHERE `$field` LIKE '$like' ";
+               $criteria = [
+                  'SELECT' => [
+                     new \QueryExpression(
+                        "CAST(SUBSTRING(".$DB->quoteName($field).", $pos, $len) AS " .
+                        "unsigned) AS " . $DB->quoteName('no')
+                     )
+                  ],
+                  'FROM'   => $table,
+                  'WHERE'  => [
+                     $field   => ['LIKE', $like]
+                  ]
+               ];
 
                if ($itemtype != 'Infocom') {
-                  $query .= " AND `is_deleted` = '0'
-                              AND `is_template` = '0'";
+                  $criteria['WHERE']['is_deleted'] = 0;
+                  $criteria['WHERE']['is_template'] = 0;
 
                   if ($CFG_GLPI["use_autoname_by_entity"]
                      && ($entities_id >= 0)) {
-                     $query .= " AND `entities_id` = '$entities_id' ";
+                     $criteria['WHERE']['entities_id'] = $entities_id;
                   }
                }
             }
 
-            $query = "SELECT MAX(Num.no) AS lastNo
-                     FROM (".$query.") AS Num";
-            $resultNo = $DB->query($query);
+            $subquery = new \QuerySubQuery($criteria, 'Num');
+            $iterator = $DB->request([
+               'SELECT' => ['MAX' => 'Num.no AS lastNo'],
+               'FROM'   => $subquery
+            ]);
 
-            if ($DB->numrows($resultNo) > 0) {
-               $data  = $DB->fetch_assoc($resultNo);
-               $newNo = $data['lastNo'] + 1;
+            if (count($iterator)) {
+               $result = $iterator->next();
+               $newNo = $result['lastNo'] + 1;
             } else {
                $newNo = 0;
             }
+
             $objectName = str_replace(
                [
                   $mask,
@@ -1732,28 +1730,30 @@ final class DbUtils {
    }
 
    /**
-    * Add dates for request
+    * Get dates conditions to use in 'WHERE' clause
     *
     * @param string $field table.field to request
     * @param string $begin begin date
     * @param string $end   end date
     *
-    * @return string SQL
+    * @return array
     */
-   public function getDateRequest($field, $begin, $end) {
-      $sql = '';
+   public function getDateCriteria($field, $begin, $end) {
+      $criteria = [];
       if (!empty($begin)) {
-         $sql .= " $field >= '$begin' ";
+         $criteria[] = [$field => ['>=', $begin]];
       }
 
       if (!empty($end)) {
-         if (!empty($sql)) {
-            $sql .= " AND ";
-         }
-         $sql .= " $field <= ADDDATE('$end' , INTERVAL 1 DAY) ";
+         $end_expr = new QueryExpression(
+            'ADDDATE(\''.$end.'\', INTERVAL 1 DAY)'
+         );
+         $criteria[] = [$field => ['<=', $end_expr]];
       }
-      return " (".$sql.") ";
+
+      return $criteria;
    }
+
 
    /**
     * Export an array to be stored in a simple field in the database
@@ -1812,7 +1812,6 @@ final class DbUtils {
     * @return array the $RELATION array
     */
    function getDbRelations() {
-      global $CFG_GLPI;
 
       include (GLPI_ROOT . "/inc/relation.constant.php");
 

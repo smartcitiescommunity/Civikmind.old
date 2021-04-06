@@ -35,9 +35,9 @@ Html::header_nocache();
 $itemtypeisplugin = isPluginItemType($_REQUEST['itemtype']);
 $item             = new $_REQUEST['itemtype']();
 $table            = getTableForItemType($_REQUEST['itemtype']);
-$options          = array();
+$options          = [];
 $count            = 0;
-$datastoadd       = array();
+$datastoadd       = [];
 
 $displaywith = false;
 if (isset($_REQUEST['displaywith'])) {
@@ -62,8 +62,9 @@ if ($item->maybeTemplate()) {
    $where .= " AND `is_template` = '0' ";
 }
 
-if ((strlen($_REQUEST['searchText']) > 0)
-    && ($_REQUEST['searchText'] != $CFG_GLPI["ajax_wildcard"])) {
+if (isset($_REQUEST['searchText'])
+    && strlen($_REQUEST['searchText']) > 0
+    && $_REQUEST['searchText'] != $CFG_GLPI["ajax_wildcard"]) {
    $search = Search::makeTextSearch($_REQUEST['searchText']);
 
    $where .= " AND (`name` ".$search."
@@ -77,6 +78,14 @@ if (in_array($_REQUEST['itemtype'], $CFG_GLPI["helpdesk_visible_types"])) {
    $where .= " AND `is_helpdesk_visible` = '1' ";
 }
 
+if (isset($_REQUEST['used'])) {
+   $used = $_REQUEST['used'];
+
+   if (count($used)) {
+      $where .=" AND `$table`.`id` NOT IN ('".implode("','", $used)."' ) ";
+   }
+}
+
 if (isset($_REQUEST['current_item']) && ($_REQUEST['current_item'] > 0)) {
    $where .= " AND `id` != " . $_REQUEST['current_item'];
 }
@@ -84,7 +93,8 @@ if (isset($_REQUEST['current_item']) && ($_REQUEST['current_item'] > 0)) {
 $NBMAX = $CFG_GLPI["dropdown_max"];
 $LIMIT = "LIMIT 0,$NBMAX";
 
-if ($_REQUEST['searchText'] == $CFG_GLPI["ajax_wildcard"]) {
+if (isset($_REQUEST['searchText'])
+    && $_REQUEST['searchText'] == $CFG_GLPI["ajax_wildcard"]) {
    $LIMIT = "";
 }
 
@@ -94,7 +104,7 @@ $query = "SELECT *
           ORDER BY `name`
           $LIMIT";
 $result = $DB->query($query);
-while ($data = $DB->fetch_assoc($result)) {
+while ($data = $DB->fetchAssoc($result)) {
    $outputval = Toolbox::unclean_cross_side_scripting_deep($data["name"]);
 
    if ($displaywith) {
@@ -122,12 +132,12 @@ while ($data = $DB->fetch_assoc($result)) {
        || (strlen($outputval) == 0)) {
       $outputval = sprintf(__('%1$s (%2$s)'), $outputval, $ID);
    }
-   array_push($options, array('id'     => $ID,
-                               'text'  => $outputval,
-                               'title' => $title));
+   array_push($options, ['id'     => $ID,
+                         'text'  => $outputval,
+                         'title' => $title]);
    $count++;
 }
 
 
-echo json_encode(array('results' => $options,
-                      'count'    => $count));
+echo json_encode(['results' => $options,
+                  'count'    => $count]);

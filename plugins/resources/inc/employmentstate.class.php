@@ -9,7 +9,7 @@
  -------------------------------------------------------------------------
 
  LICENSE
-      
+
  This file is part of resources.
 
  resources is free software; you can redistribute it and/or modify
@@ -31,36 +31,64 @@ if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access directly to this file");
 }
 
+/**
+ * Class PluginResourcesEmploymentState
+ */
 class PluginResourcesEmploymentState extends CommonDropdown {
-   
+
    var $can_be_translated  = true;
-   
-   static function getTypeName($nb=0) {
+
+   /**
+    * @since 0.85
+    *
+    * @param $nb
+    **/
+   static function getTypeName($nb = 0) {
 
       return _n('Employment state', 'Employment states', $nb, 'resources');
    }
-   
+
+   /**
+    * Have I the global right to "create" the Object
+    * May be overloaded if needed (ex KnowbaseItem)
+    *
+    * @return booleen
+    **/
    static function canCreate() {
-      return Session::haveRight('dropdown',array(CREATE, UPDATE, DELETE));
+      return Session::haveRight('dropdown', [CREATE, UPDATE, DELETE]);
    }
 
+   /**
+    * Have I the global right to "view" the Object
+    *
+    * Default is true and check entity if the objet is entity assign
+    *
+    * May be overloaded if needed
+    *
+    * @return booleen
+    **/
    static function canView() {
       return Session::haveRight('plugin_resources_employment', READ);
    }
 
+   /**
+    * Return Additional Fields for this type
+    *
+    * @return array
+    **/
    function getAdditionalFields() {
 
-      return array(array('name'  => 'short_name',
-                        'label' => __('Short name',  'resources'),
+      return [['name'  => 'short_name',
+                        'label' => __('Short name', 'resources'),
                         'type'  => 'text',
-                        'list'  => true),
-                  array('name'  => 'is_active',
+                        'list'  => true],
+                  ['name'  => 'is_active',
                         'label' => __('Active'),
-                        'type'  => 'bool'),
-                  array('name'  => 'is_leaving_state',
+                        'type'  => 'bool'],
+                  ['name'  => 'is_leaving_state',
                         'label' => __("Employment state at leaving's resource", "resources"),
-                        'type'  => 'bool'),
-                  );
+                        'type'  => 'bool'],
+                  ];
    }
 
    /**
@@ -83,12 +111,12 @@ class PluginResourcesEmploymentState extends CommonDropdown {
 
          if ($result=$DB->query($query)) {
             if ($DB->numrows($result)) {
-               $data = $DB->fetch_assoc($result);
+               $data = $DB->fetchAssoc($result);
                $data = Toolbox::addslashes_deep($data);
                $input['name'] = $data['name'];
                $input['entities_id']  = $entity;
                $temp = new self();
-               $newID    = $temp->getID($input);
+               $newID    = $temp->getID();
 
                if ($newID<0) {
                   $newID = $temp->import($input);
@@ -101,24 +129,34 @@ class PluginResourcesEmploymentState extends CommonDropdown {
       return 0;
    }
 
-   function getSearchOptions() {
+   /**
+    * @return array
+    */
+   function rawSearchOptions() {
 
-      $tab = parent::getSearchOptions();
+      $tab = parent::rawSearchOptions();
 
-      $tab[14]['table']         = $this->getTable();
-      $tab[14]['field']         = 'short_name';
-      $tab[14]['name']          = __('Short name',  'resources');
-
-      $tab[15]['table']         = $this->getTable();
-      $tab[15]['field']         = 'is_active';
-      $tab[15]['name']          = __('Active');
-      $tab[15]['datatype']      = 'bool';
-
-      $tab[16]['table']         = $this->getTable();
-      $tab[16]['field']         = 'is_leaving_state';
-      $tab[16]['name']          = __("Employment state at leaving's resource", "resources");
-      $tab[16]['datatype']      = 'bool';
-      $tab[16]['massiveaction'] = false;
+      $tab[] = [
+         'id'    => '14',
+         'table' => $this->getTable(),
+         'field' => 'short_name',
+         'name'  => __('Short name', 'resources')
+      ];
+      $tab[] = [
+         'id'       => '15',
+         'table'    => $this->getTable(),
+         'field'    => 'is_active',
+         'name'     => __('Active'),
+         'datatype' => 'bool'
+      ];
+      $tab[] = [
+         'id'            => '17',
+         'table'         => $this->getTable(),
+         'field'         => 'is_leaving_state',
+         'name'          => __("Employment state at leaving's resource", "resources"),
+         'datatype'      => 'bool',
+         'massiveaction' => false
+      ];
 
       return $tab;
    }
@@ -133,7 +171,7 @@ class PluginResourcesEmploymentState extends CommonDropdown {
 
       if (isset($this->input["is_leaving_state"]) && $this->input["is_leaving_state"]) {
          $query = "UPDATE `".$this->getTable()."`
-                   SET `is_leaving_state` = '0'
+                   SET `is_leaving_state` = 0
                    WHERE `id` <> '".$this->fields['id']."'";
          $DB->query($query);
       }
@@ -146,14 +184,14 @@ class PluginResourcesEmploymentState extends CommonDropdown {
     * @param int $history
     * @return nothing|void
     */
-   function post_updateItem($history=1) {
+   function post_updateItem($history = 1) {
       global $DB;
 
-      if (in_array('is_leaving_state',$this->updates)) {
+      if (in_array('is_leaving_state', $this->updates)) {
 
          if ($this->input["is_leaving_state"]) {
             $query = "UPDATE `".$this->getTable()."`
-                      SET `is_leaving_state` = '0'
+                      SET `is_leaving_state` = 0
                       WHERE `id` <> '".$this->input['id']."'";
             $DB->query($query);
 
@@ -182,11 +220,10 @@ class PluginResourcesEmploymentState extends CommonDropdown {
    static function getDefault() {
       global $DB;
 
-      foreach ($DB->request('glpi_plugin_resources_employmentstates', array('is_leaving_state' => 1)) as $data) {
+      foreach ($DB->request('glpi_plugin_resources_employmentstates', ['is_leaving_state' => 1]) as $data) {
          return $data['id'];
       }
       return 0;
    }
 }
 
-?>

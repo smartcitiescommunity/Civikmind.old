@@ -32,7 +32,7 @@ if (!defined('GLPI_ROOT')) {
 class PluginGenericobjectTypeFamily extends CommonDropdown {
    var $can_be_translated       = true;
 
-   static function getTypeName($nb=0) {
+   static function getTypeName($nb = 0) {
       return __('Family of type of objects', 'genericobject');
    }
 
@@ -40,17 +40,17 @@ class PluginGenericobjectTypeFamily extends CommonDropdown {
       global $DB;
 
       $table = getTableForItemType(__CLASS__);
-      if (!TableExists($table)) {
+      if (!$DB->tableExists($table)) {
          $query = "CREATE TABLE `$table` (
                            `id` INT( 11 ) NOT NULL AUTO_INCREMENT,
                            `name` varchar(255) collate utf8_unicode_ci default NULL,
                            `comment` text NULL,
-                           `date_mod` DATETIME DEFAULT NULL,
-                           `date_creation` DATETIME DEFAULT NULL,
+                           `date_mod` TIMESTAMP NULL DEFAULT NULL,
+                           `date_creation` TIMESTAMP NULL DEFAULT NULL,
                            PRIMARY KEY (`id`),
                            KEY `date_mod` (`date_mod`),
                            KEY `date_creation` (`date_creation`)
-                           ) ENGINE = MYISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;";
+                           ) ENGINE = InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;";
          $DB->query($query) or die($DB->error());
       }
    }
@@ -59,7 +59,7 @@ class PluginGenericobjectTypeFamily extends CommonDropdown {
       global $DB;
 
       $table = getTableForItemType(__CLASS__);
-      if (TableExists($table)) {
+      if ($DB->tableExists($table)) {
          $query = "DROP TABLE IF EXISTS `$table`";
          $DB->query($query) or die($DB->error());
       }
@@ -75,11 +75,11 @@ class PluginGenericobjectTypeFamily extends CommonDropdown {
                     WHERE t.id IN (SELECT DISTINCT `id`
                                    FROM glpi_plugin_genericobject_types
                                    WHERE is_active=1)";
-      $families = array();
-      foreach($DB->request($query) as $fam) {
+      $families = [];
+      foreach ($DB->request($query) as $fam) {
          $itemtype = $fam['itemtype'];
          if ($itemtype::canCreate()) {
-           $families[$fam['id']] = $fam['name'];
+            $families[$fam['id']] = $fam['name'];
          }
       }
       return $families;
@@ -87,8 +87,12 @@ class PluginGenericobjectTypeFamily extends CommonDropdown {
 
 
    static function getItemtypesByFamily($families_id) {
-      return getAllDatasFromTable('glpi_plugin_genericobject_types',
-                                  "plugin_genericobject_typefamilies_id='$families_id'
-                                     AND is_active='1'");
+      return getAllDataFromTable(
+         'glpi_plugin_genericobject_types',
+         [
+            'plugin_genericobject_typefamilies_id' => $families_id,
+            'is_active' => 1
+         ]
+      );
    }
 }

@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -31,7 +31,7 @@
  */
 
 /**
- * @since version 9.2
+ * @since 9.2
  */
 
 if (!defined('GLPI_ROOT')) {
@@ -60,15 +60,16 @@ class LineOperator extends CommonDropdown {
       ];
    }
 
-   function getSearchOptionsNew() {
-      $tab = parent::getSearchOptionsNew();
+   function rawSearchOptions() {
+      $tab = parent::rawSearchOptions();
 
       $tab[] = [
             'id'                 => '11',
             'table'              => $this->getTable(),
             'field'              => 'mcc',
             'name'               => __('Mobile Country Code'),
-            'datatype'           => 'text'
+            'datatype'           => 'text',
+            'autocomplete'       => true,
       ];
 
       $tab[] = [
@@ -76,10 +77,44 @@ class LineOperator extends CommonDropdown {
             'table'              => $this->getTable(),
             'field'              => 'mnc',
             'name'               => __('Mobile Network Code'),
-            'datatype'           => 'text'
+            'datatype'           => 'text',
+            'autocomplete'       => true,
       ];
 
       return $tab;
    }
 
+   public function prepareInputForAdd($input) {
+      global $DB;
+
+      $input = parent::prepareInputForAdd($input);
+
+      if (!isset($input['mcc'])) {
+         $input['mcc'] = 0;
+      }
+      if (!isset($input['mnc'])) {
+         $input['mnc'] = 0;
+      }
+
+      //check for mcc/mnc unicity
+      $result = $DB->request([
+         'COUNT'  => 'cpt',
+         'FROM'   => self::getTable(),
+         'WHERE'  => [
+            'mcc' => $input['mcc'],
+            'mnc' => $input['mnc']
+         ]
+      ])->next();
+
+      if ($result['cpt'] > 0) {
+         Session::addMessageAfterRedirect(
+            __('Mobile country code and network code combination must be unique!'),
+            ERROR,
+            true
+         );
+         return false;
+      }
+
+      return $input;
+   }
 }

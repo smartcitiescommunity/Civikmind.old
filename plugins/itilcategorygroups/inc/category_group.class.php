@@ -8,7 +8,7 @@ class PluginItilcategorygroupsCategory_Group extends CommonDBChild {
       global $DB;
 
       $table = getTableForItemType(__CLASS__);
-      if (! TableExists($table)) {
+      if (!$DB->tableExists($table)) {
          $query = "CREATE TABLE IF NOT EXISTS `$table` (
          `id`                                      INT(11)    NOT NULL AUTO_INCREMENT,
          `plugin_itilcategorygroups_categories_id` INT(11)    NOT NULL DEFAULT '0',
@@ -21,32 +21,32 @@ class PluginItilcategorygroupsCategory_Group extends CommonDBChild {
          KEY `level`                                   (`level`),
          KEY `itilcategories_id`                       (`itilcategories_id`),
          KEY `groups_id`                               (`groups_id`)
-         ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1;";
+         ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1;";
          $DB->query($query);
       }
 
       $parent_table = "glpi_plugin_itilcategorygroups_categories";
 
       //we must migrate groups datas in sub table
-      if (FieldExists($parent_table, 'groups_id_levelone')) {
-         $all_lvl = $cat_groups = array();
+      if ($DB->fieldExists($parent_table, 'groups_id_levelone')) {
+         $all_lvl = $cat_groups = [];
 
          //foreach old levels
-         foreach (array(1=>'one', 2=>'two', 3=>'three', 4=>'four') as $lvl_num => $lvl_str) {
+         foreach ([1=>'one', 2=>'two', 3=>'three', 4=>'four'] as $lvl_num => $lvl_str) {
             $query = "SELECT id, itilcategories_id, groups_id_level$lvl_str FROM $parent_table";
             $res = $DB->query($query);
-            while ($data = $DB->fetch_assoc($res)) {
+            while ($data = $DB->fetchAssoc($res)) {
                //specific case (all group of this lvl), store it for further treatment
                if ($data["groups_id_level$lvl_str"] == -1) {
                   $all_lvl[$data['itilcategories_id']][$lvl_num] = $lvl_str;
                }
 
                if ($data["groups_id_level$lvl_str"] > 0) {
-                  $cat_groups[] = array(
+                  $cat_groups[] = [
                      'plugin_itilcategorygroups_categories_id' => $data['id'],
                      'level'                                   => $lvl_num,
                      'itilcategories_id'                       => $data['itilcategories_id'],
-                     'groups_id'                               => $data["groups_id_level$lvl_str"]);
+                     'groups_id'                               => $data["groups_id_level$lvl_str"]];
                }
             }
 

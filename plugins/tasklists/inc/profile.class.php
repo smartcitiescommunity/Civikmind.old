@@ -9,7 +9,7 @@
  -------------------------------------------------------------------------
 
  LICENSE
-      
+
  This file is part of Tasklists.
 
  Tasklists is free software; you can redistribute it and/or modify
@@ -69,7 +69,9 @@ class PluginTasklistsProfile extends Profile {
          $prof = new self();
 
          self::addDefaultProfileInfos($ID,
-                                      array('plugin_tasklists' => 0));
+                                      ['plugin_tasklists'         => 0,
+                                       'plugin_tasklists_see_all' => 0,
+                                       'plugin_tasklists_config'  => 0]);
          $prof->showForm($ID);
       }
       return true;
@@ -81,7 +83,9 @@ class PluginTasklistsProfile extends Profile {
    static function createFirstAccess($ID) {
       //85
       self::addDefaultProfileInfos($ID,
-                                   array('plugin_tasklists' => ALLSTANDARDRIGHT + READNOTE + UPDATENOTE), true);
+                                   ['plugin_tasklists'         => ALLSTANDARDRIGHT + READNOTE + UPDATENOTE,
+                                    'plugin_tasklists_see_all' => 1,
+                                    'plugin_tasklists_config'  => 1], true);
    }
 
    /**
@@ -96,11 +100,11 @@ class PluginTasklistsProfile extends Profile {
       $profileRight = new ProfileRight();
       foreach ($rights as $right => $value) {
          if ($dbu->countElementsInTable('glpi_profilerights',
-                                        "`profiles_id`='$profiles_id' AND `name`='$right'") && $drop_existing) {
-            $profileRight->deleteByCriteria(array('profiles_id' => $profiles_id, 'name' => $right));
+                                        ["profiles_id" => $profiles_id, "name" => $right]) && $drop_existing) {
+            $profileRight->deleteByCriteria(['profiles_id' => $profiles_id, 'name' => $right]);
          }
          if (!$dbu->countElementsInTable('glpi_profilerights',
-                                         "`profiles_id`='$profiles_id' AND `name`='$right'")) {
+                                         ["profiles_id" => $profiles_id, "name" => $right])) {
             $myright['profiles_id'] = $profiles_id;
             $myright['name']        = $right;
             $myright['rights']      = $value;
@@ -119,14 +123,14 @@ class PluginTasklistsProfile extends Profile {
     * @param bool $openform
     * @param bool $closeform
     *
-    * @return nothing
+    * @return void
     * @internal param int $items_id id of the profile
     * @internal param value $target url of target
     */
-   function showForm($profiles_id = 0, $openform = TRUE, $closeform = TRUE) {
+   function showForm($profiles_id = 0, $openform = true, $closeform = true) {
 
       echo "<div class='firstbloc'>";
-      if (($canedit = Session::haveRightsOr(self::$rightname, array(CREATE, UPDATE, PURGE)))
+      if (($canedit = Session::haveRightsOr(self::$rightname, [CREATE, UPDATE, PURGE]))
           && $openform
       ) {
          $profile = new Profile();
@@ -137,17 +141,38 @@ class PluginTasklistsProfile extends Profile {
       $profile->getFromDB($profiles_id);
       if ($profile->getField('interface') == 'central') {
          $rights = $this->getAllRights();
-         $profile->displayRightsChoiceMatrix($rights, array('canedit'       => $canedit,
-                                                            'default_class' => 'tab_bg_2',
-                                                            'title'         => __('General')));
+         $profile->displayRightsChoiceMatrix($rights, ['canedit'       => $canedit,
+                                                       'default_class' => 'tab_bg_2',
+                                                       'title'         => __('General')]);
       }
+
+      echo "<table class='tab_cadre_fixehov'>";
+      $effective_rights = ProfileRight::getProfileRights($profiles_id, ['plugin_tasklists_see_all']);
+
+      echo "<tr class='tab_bg_2'>";
+      echo "<td width='20%'>" . __('See and update all tasks', 'tasklists') . "</td>";
+      echo "<td colspan='5'>";
+      Html::showCheckbox(['name'    => '_plugin_tasklists_see_all',
+                          'checked' => $effective_rights['plugin_tasklists_see_all']]);
+      echo "</td></tr>\n";
+
+      $effective_rights = ProfileRight::getProfileRights($profiles_id, ['plugin_tasklists_config']);
+
+      echo "<tr class='tab_bg_2'>";
+      echo "<td width='20%'>" . __('Configure contexts and statuses', 'tasklists') . "</td>";
+      echo "<td colspan='5'>";
+      Html::showCheckbox(['name'    => '_plugin_tasklists_config',
+                          'checked' => $effective_rights['plugin_tasklists_config']]);
+      echo "</td></tr>\n";
+
+      echo "</table>";
 
       if ($canedit
           && $closeform
       ) {
          echo "<div class='center'>";
-         echo Html::hidden('id', array('value' => $profiles_id));
-         echo Html::submit(_sx('button', 'Save'), array('name' => 'update'));
+         echo Html::hidden('id', ['value' => $profiles_id]);
+         echo Html::submit(_sx('button', 'Save'), ['name' => 'update']);
          echo "</div>\n";
          Html::closeForm();
       }
@@ -160,13 +185,20 @@ class PluginTasklistsProfile extends Profile {
     * @return array
     */
    static function getAllRights($all = false) {
-      $rights = array(
-         array('itemtype' => 'PluginTasklistsTask',
-               'label'    => PluginTasklistsTask::getTypeName(2),
-               'field'    => 'plugin_tasklists'
-         ),
-      );
-
+      $rights = [
+         ['itemtype' => 'PluginTasklistsTask',
+          'label'    => PluginTasklistsTask::getTypeName(2),
+          'field'    => 'plugin_tasklists'
+         ],
+      ];
+      if ($all) {
+         $rights[] = ['itemtype' => 'PluginTasklistsTask',
+                      'label'    => __('See and update all tasks', 'tasklists'),
+                      'field'    => 'plugin_tasklists_see_all'];
+         $rights[] = ['itemtype' => 'PluginTasklistsTask',
+                      'label'    => __('Configure contexts and statuses', 'tasklists'),
+                      'field'    => 'plugin_tasklists_config'];
+      }
       return $rights;
    }
 
@@ -206,8 +238,8 @@ class PluginTasklistsProfile extends Profile {
       //Add new rights in glpi_profilerights table
       foreach ($profile->getAllRights(true) as $data) {
          if ($dbu->countElementsInTable("glpi_profilerights",
-                                        "`name` = '" . $data['field'] . "'") == 0) {
-            ProfileRight::addProfileRights(array($data['field']));
+                                        ["name" => $data['field']]) == 0) {
+            ProfileRight::addProfileRights([$data['field']]);
          }
       }
 

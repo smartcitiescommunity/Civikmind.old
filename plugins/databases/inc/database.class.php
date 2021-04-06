@@ -9,7 +9,7 @@
  -------------------------------------------------------------------------
 
  LICENSE
-      
+
  This file is part of databases.
 
  databases is free software; you can redistribute it and/or modify
@@ -40,7 +40,7 @@ class PluginDatabasesDatabase extends CommonDBTM {
    static    $rightname  = "plugin_databases";
    protected $usenotepad = true;
 
-   static $types = array('Computer', 'Software', 'SoftwareLicense');
+   static $types = ['Computer', 'Software', 'SoftwareLicense', 'Appliance'];
 
    /**
     * @param int $nb
@@ -94,138 +94,198 @@ class PluginDatabasesDatabase extends CommonDBTM {
    static function countForItem(CommonDBTM $item) {
       $dbu = new DbUtils();
       return $dbu->countElementsInTable('glpi_plugin_databases_databases',
-                                        "`suppliers_id` = '" . $item->getID() . "'");
+                                        ["suppliers_id" => $item->getID()]);
    }
 
-   //clean if databases are deleted
    /**
-    *
+    * clean if databases are deleted
     */
    function cleanDBonPurge() {
 
       $temp = new PluginDatabasesDatabase_Item();
-      $temp->deleteByCriteria(array('plugin_databases_databases_id' => $this->fields['id']));
+      $temp->deleteByCriteria(['plugin_databases_databases_id' => $this->fields['id']]);
    }
 
    /**
     * @return array
     */
-   function getSearchOptions() {
+   function rawSearchOptions() {
 
-      $tab = array();
+      $tab = [];
 
-      $tab['common'] = self::getTypeName(2);
+      $tab[] = [
+         'id'   => 'common',
+         'name' => self::getTypeName(2)
+      ];
 
-      $tab[1]['table']         = $this->getTable();
-      $tab[1]['field']         = 'name';
-      $tab[1]['name']          = __('Name');
-      $tab[1]['datatype']      = 'itemlink';
-      $tab[1]['itemlink_type'] = $this->getType();
+      $tab[] = [
+         'id'            => '1',
+         'table'         => $this->getTable(),
+         'field'         => 'name',
+         'name'          => __('Name'),
+         'datatype'      => 'itemlink',
+         'itemlink_type' => $this->getType()
+      ];
 
-      $tab[2]['table']    = 'glpi_plugin_databases_databasecategories';
-      $tab[2]['field']    = 'name';
-      $tab[2]['name']     = PluginDatabasesDatabaseCategory::getTypeName(1);
-      $tab[2]['datatype'] = 'dropdown';
+      $tab[] = [
+         'id'       => '2',
+         'table'    => 'glpi_plugin_databases_databasecategories',
+         'field'    => 'name',
+         'name'     => PluginDatabasesDatabaseCategory::getTypeName(1),
+         'datatype' => 'dropdown'
+      ];
 
-      $tab[3]['table']    = 'glpi_plugin_databases_servertypes';
-      $tab[3]['field']    = 'name';
-      $tab[3]['name']     = PluginDatabasesServerType::getTypeName(1);
-      $tab[3]['datatype'] = 'dropdown';
+      $tab[] = [
+         'id'       => '4',
+         'table'    => 'glpi_plugin_databases_servertypes',
+         'field'    => 'name',
+         'name'     => PluginDatabasesServerType::getTypeName(1),
+         'datatype' => 'dropdown'
+      ];
 
-      $tab[4]['table']    = 'glpi_locations';
-      $tab[4]['field']    = 'completename';
-      $tab[4]['name']     = __('Location');
-      $tab[4]['datatype'] = 'dropdown';
+      $tab = array_merge($tab, Location::rawSearchOptionsToAdd());
 
-      $tab[5]['table']    = 'glpi_suppliers';
-      $tab[5]['field']    = 'name';
-      $tab[5]['name']     = __('Supplier');
-      $tab[5]['datatype'] = 'dropdown';
+      $tab[] = [
+         'id'       => '5',
+         'table'    => 'glpi_suppliers',
+         'field'    => 'name',
+         'name'     => __('Supplier'),
+         'datatype' => 'dropdown'
+      ];
 
-      $tab[6]['table']    = 'glpi_manufacturers';
-      $tab[6]['field']    = 'name';
-      $tab[6]['name']     = __('Editor', 'databases');
-      $tab[6]['datatype'] = 'dropdown';
+      $tab[] = [
+         'id'       => '6',
+         'table'    => 'glpi_manufacturers',
+         'field'    => 'name',
+         'name'     => __('Editor', 'databases'),
+         'datatype' => 'dropdown'
+      ];
 
-      $tab[7]['table']         = 'glpi_plugin_databases_databases_items';
-      $tab[7]['field']         = 'items_id';
-      $tab[7]['nosearch']      = true;
-      $tab[7]['massiveaction'] = false;
-      $tab[7]['name']          = _n('Associated item', 'Associated items', 2);
-      $tab[7]['forcegroupby']  = true;
-      $tab[7]['joinparams']    = array('jointype' => 'child');
+      $tab[] = [
+         'id'            => '7',
+         'table'         => 'glpi_plugin_databases_databases_items',
+         'field'         => 'items_id',
+         'nosearch'      => true,
+         'massiveaction' => false,
+         'name'          => _n('Associated item', 'Associated items', 2),
+         'forcegroupby'  => true,
+         'joinparams'    => [
+            'jointype' => 'child'
+         ]
+      ];
 
-      $tab[8]['table']    = $this->getTable();
-      $tab[8]['field']    = 'is_recursive';
-      $tab[8]['name']     = __('Child entities');
-      $tab[8]['datatype'] = 'bool';
+      $tab[] = [
+         'id'       => '9',
+         'table'    => $this->getTable(),
+         'field'    => 'comment',
+         'name'     => __('Comments'),
+         'datatype' => 'text'
+      ];
 
-      $tab[9]['table']    = $this->getTable();
-      $tab[9]['field']    = 'comment';
-      $tab[9]['name']     = __('Comments');
-      $tab[9]['datatype'] = 'text';
+      $tab[] = [
+         'id'       => '10',
+         'table'    => 'glpi_plugin_databases_databasetypes',
+         'field'    => 'name',
+         'name'     => PluginDatabasesDatabaseType::getTypeName(1),
+         'datatype' => 'dropdown'
+      ];
 
-      $tab[10]['table']    = 'glpi_plugin_databases_databasetypes';
-      $tab[10]['field']    = 'name';
-      $tab[10]['name']     = PluginDatabasesDatabaseType::getTypeName(1);
-      $tab[10]['datatype'] = 'dropdown';
+      $tab[] = [
+         'id'        => '11',
+         'table'     => 'glpi_users',
+         'field'     => 'name',
+         'linkfield' => 'users_id',
+         'name'      => __('Technician in charge of the hardware'),
+         'datatype'  => 'dropdown',
+         'right'     => 'interface'
+      ];
 
-      $tab[11]['table']     = 'glpi_users';
-      $tab[11]['field']     = 'name';
-      $tab[11]['linkfield'] = 'users_id_tech';
-      $tab[11]['name']      = __('Technician in charge of the hardware');
-      $tab[11]['datatype']  = 'dropdown';
-      $tab[11]['right']     = 'interface';
+      $tab[] = [
+         'id'        => '12',
+         'table'     => 'glpi_groups',
+         'field'     => 'name',
+         'linkfield' => 'groups_id',
+         'name'      => __('Group in charge of the hardware'),
+         'condition' => '`is_assign`',
+         'datatype'  => 'dropdown'
+      ];
 
-      $tab[12]['table']     = 'glpi_groups';
-      $tab[12]['field']     = 'name';
-      $tab[12]['linkfield'] = 'groups_id_tech';
-      $tab[12]['name']      = __('Group in charge of the hardware');
-      $tab[12]['condition'] = '`is_assign`';
-      $tab[12]['datatype']  = 'dropdown';
+      $tab[] = [
+         'id'       => '13',
+         'table'    => $this->getTable(),
+         'field'    => 'is_helpdesk_visible',
+         'name'     => __('Associable to a ticket'),
+         'datatype' => 'bool'
+      ];
 
-      $tab[13]['table']    = $this->getTable();
-      $tab[13]['field']    = 'is_helpdesk_visible';
-      $tab[13]['name']     = __('Associable to a ticket');
-      $tab[13]['datatype'] = 'bool';
+      $tab[] = [
+         'id'            => '14',
+         'table'         => $this->getTable(),
+         'field'         => 'date_mod',
+         'massiveaction' => false,
+         'name'          => __('Last update'),
+         'datatype'      => 'datetime'
+      ];
 
-      $tab[14]['table']         = $this->getTable();
-      $tab[14]['field']         = 'date_mod';
-      $tab[14]['massiveaction'] = false;
-      $tab[14]['name']          = __('Last update');
-      $tab[14]['datatype']      = 'datetime';
+      $tab[] = [
+         'id'                 => '15',
+         'table'              => $this->getTable(),
+         'field'              => 'link',
+         'name'               => __('URL'),
+         'datatype'           => 'weblink'
+      ];
 
-      $tab[30]['table']    = $this->getTable();
-      $tab[30]['field']    = 'id';
-      $tab[30]['name']     = __('ID');
-      $tab[30]['datatype'] = 'number';
+      $tab[] = [
+         'id'       => '30',
+         'table'    => $this->getTable(),
+         'field'    => 'id',
+         'name'     => __('ID'),
+         'datatype' => 'number'
+      ];
 
-      $tab[80]['table']    = 'glpi_entities';
-      $tab[80]['field']    = 'completename';
-      $tab[80]['name']     = __('Entity');
-      $tab[80]['datatype'] = 'dropdown';
+      $tab[] = [
+         'id'       => '80',
+         'table'    => 'glpi_entities',
+         'field'    => 'completename',
+         'name'     => __('Entity'),
+         'datatype' => 'dropdown'
+      ];
 
-      $tab[81]['table'] = 'glpi_entities';
-      $tab[81]['field'] = 'entities_id';
-      $tab[81]['name']  = __('Entity') . "-" . __('ID');
+      $tab[] = [
+         'id'    => '81',
+         'table' => 'glpi_entities',
+         'field' => 'entities_id',
+         'name'  => __('Entity') . "-" . __('ID')
+      ];
+
+      $tab[] = [
+         'id'       => '86',
+         'table'    => $this->getTable(),
+         'field'    => 'is_recursive',
+         'name'     => __('Child entities'),
+         'datatype' => 'bool'
+      ];
 
       return $tab;
    }
 
    //define header form
+
    /**
     * @param array $options
     *
     * @return array
     */
-   function defineTabs($options = array()) {
+   function defineTabs($options = []) {
 
-      $ong = array();
+      $ong = [];
       $this->addDefaultFormTab($ong);
+      $this->addImpactTab($ong, $options);
       $this->addStandardTab('PluginDatabasesDatabase_Item', $ong, $options);
       $this->addStandardTab('PluginDatabasesInstance', $ong, $options);
       $this->addStandardTab('PluginDatabasesScript', $ong, $options);
       $this->addStandardTab('Ticket', $ong, $options);
+      $this->addStandardTab('KnowbaseItem_Item', $ong, $options);
       $this->addStandardTab('Item_Problem', $ong, $options);
       $this->addStandardTab('Document_Item', $ong, $options);
       $this->addStandardTab('Notepad', $ong, $options);
@@ -254,7 +314,7 @@ class PluginDatabasesDatabase extends CommonDBTM {
     *
     * @return bool
     */
-   function showForm($ID, $options = array()) {
+   function showForm($ID, $options = []) {
 
       $this->initForm($ID, $options);
       $this->showFormHeader($options);
@@ -268,9 +328,9 @@ class PluginDatabasesDatabase extends CommonDBTM {
 
       echo "<td>" . PluginDatabasesDatabaseCategory::getTypeName(1) . "</td>";
       echo "<td>";
-      Dropdown::show('PluginDatabasesDatabaseCategory', array('name'   => "plugin_databases_databasecategories_id",
-                                                              'value'  => $this->fields["plugin_databases_databasecategories_id"],
-                                                              'entity' => $this->fields["entities_id"]));
+      Dropdown::show('PluginDatabasesDatabaseCategory', ['name'   => "plugin_databases_databasecategories_id",
+                                                         'value'  => $this->fields["plugin_databases_databasecategories_id"],
+                                                         'entity' => $this->fields["entities_id"]]);
       echo "</td>";
 
       echo "</tr>";
@@ -279,14 +339,14 @@ class PluginDatabasesDatabase extends CommonDBTM {
 
       echo "<td>" . __('Location') . "</td>";
       echo "<td>";
-      Location::dropdown(array('value'  => $this->fields["locations_id"],
-                               'entity' => $this->fields["entities_id"]));
+      Location::dropdown(['value'  => $this->fields["locations_id"],
+                          'entity' => $this->fields["entities_id"]]);
       echo "</td>";
 
       echo "<td>" . PluginDatabasesServerType::getTypeName(1) . "</td>";
       echo "<td>";
-      Dropdown::show('PluginDatabasesServerType', array('name'  => "plugin_databases_servertypes_id",
-                                                        'value' => $this->fields["plugin_databases_servertypes_id"]));
+      Dropdown::show('PluginDatabasesServerType', ['name'  => "plugin_databases_servertypes_id",
+                                                   'value' => $this->fields["plugin_databases_servertypes_id"]]);
       echo "</td>";
 
       echo "</tr>";
@@ -294,17 +354,17 @@ class PluginDatabasesDatabase extends CommonDBTM {
       echo "<tr class='tab_bg_1'>";
 
       echo "<td>" . __('Technician in charge of the hardware') . "</td><td>";
-      User::dropdown(array('name'   => "users_id_tech",
-                           'value'  => $this->fields["users_id_tech"],
-                           'entity' => $this->fields["entities_id"],
-                           'right'  => 'interface'));
+      User::dropdown(['name'   => "users_id",
+                      'value'  => $this->fields["users_id"],
+                      'entity' => $this->fields["entities_id"],
+                      'right'  => 'interface']);
       echo "</td>";
 
       echo "<td>" . PluginDatabasesDatabaseType::getTypeName(1) . "</td>";
       echo "<td>";
-      Dropdown::show('PluginDatabasesDatabaseType', array('name'   => "plugin_databases_databasetypes_id",
-                                                          'value'  => $this->fields["plugin_databases_databasetypes_id"],
-                                                          'entity' => $this->fields["entities_id"]));
+      Dropdown::show('PluginDatabasesDatabaseType', ['name'   => "plugin_databases_databasetypes_id",
+                                                     'value'  => $this->fields["plugin_databases_databasetypes_id"],
+                                                     'entity' => $this->fields["entities_id"]]);
       echo "</td>";
 
       echo "</tr>";
@@ -312,17 +372,17 @@ class PluginDatabasesDatabase extends CommonDBTM {
       echo "<tr class='tab_bg_1'>";
 
       echo "<td>" . __('Group in charge of the hardware') . "</td><td>";
-      Group::dropdown(array('name'      => 'groups_id_tech',
-                            'value'     => $this->fields['groups_id_tech'],
-                            'entity'    => $this->fields['entities_id'],
-                            'condition' => '`is_assign`'));
+      Group::dropdown(['name'      => 'groups_id',
+                       'value'     => $this->fields['groups_id'],
+                       'entity'    => $this->fields['entities_id'],
+                       'condition' => ['is_assign' => 1]]);
       echo "</td>";
 
       echo "<td>" . __('Editor', 'databases') . "</td>";
       echo "<td>";
-      Dropdown::show('Manufacturer', array('name'   => "manufacturers_id",
-                                           'value'  => $this->fields["manufacturers_id"],
-                                           'entity' => $this->fields["entities_id"]));
+      Dropdown::show('Manufacturer', ['name'   => "manufacturers_id",
+                                      'value'  => $this->fields["manufacturers_id"],
+                                      'entity' => $this->fields["entities_id"]]);
       echo "</td>";
 
       echo "</tr>";
@@ -331,13 +391,26 @@ class PluginDatabasesDatabase extends CommonDBTM {
 
       echo "<td>" . __('Supplier') . "</td>";
       echo "<td>";
-      Dropdown::show('Supplier', array('name'   => "suppliers_id",
-                                       'value'  => $this->fields["suppliers_id"],
-                                       'entity' => $this->fields["entities_id"]));
+      Dropdown::show('Supplier', ['name'   => "suppliers_id",
+                                  'value'  => $this->fields["suppliers_id"],
+                                  'entity' => $this->fields["entities_id"]]);
       echo "</td>";
 
       echo "<td>" . __('Associable to a ticket') . "</td><td>";
       Dropdown::showYesNo('is_helpdesk_visible', $this->fields['is_helpdesk_visible']);
+      echo "</td>";
+
+      echo "</tr>";
+      echo "<tr class='tab_bg_1'>";
+
+      echo "<td>" . __('URL') . "</td>";
+      echo "<td>";
+      Html::autocompletionTextField($this, "link");
+      echo "&nbsp;<a target='_blank' href='" . $this->getField("link") . "'><i class=\"fas fa-link\"></i></a>";
+      echo "</td>";
+
+      echo "<td></td><td>";
+
       echo "</td>";
 
       echo "</tr>";
@@ -381,13 +454,12 @@ class PluginDatabasesDatabase extends CommonDBTM {
     *
     * @return nothing (print out an HTML select box)
     **/
-   static function dropdownDatabase($options = array()) {
+   static function dropdownDatabase($options = []) {
       global $DB, $CFG_GLPI;
-
 
       $p['name']    = 'plugin_databases_databases_id';
       $p['entity']  = '';
-      $p['used']    = array();
+      $p['used']    = [];
       $p['display'] = true;
 
       if (is_array($options) && count($options)) {
@@ -395,9 +467,9 @@ class PluginDatabasesDatabase extends CommonDBTM {
             $p[$key] = $val;
          }
       }
-
+      $dbu   = new DbUtils();
       $where = " WHERE `glpi_plugin_databases_databases`.`is_deleted` = '0' " .
-               getEntitiesRestrictRequest("AND", "glpi_plugin_databases_databases", '', $p['entity'], true);
+               $dbu->getEntitiesRestrictRequest("AND", "glpi_plugin_databases_databases", '', $p['entity'], true);
 
       $p['used'] = array_filter($p['used']);
       if (count($p['used'])) {
@@ -412,33 +484,33 @@ class PluginDatabasesDatabase extends CommonDBTM {
                 ORDER BY `name`";
       $result = $DB->query($query);
 
-      $values = array(0 => Dropdown::EMPTY_VALUE);
+      $values = [0 => Dropdown::EMPTY_VALUE];
 
-      while ($data = $DB->fetch_assoc($result)) {
+      while ($data = $DB->fetchAssoc($result)) {
          $values[$data['id']] = $data['name'];
       }
       $rand     = mt_rand();
-      $out      = Dropdown::showFromArray('_databasetype', $values, array('width'   => '30%',
-                                                                          'rand'    => $rand,
-                                                                          'display' => false));
+      $out      = Dropdown::showFromArray('_databasetype', $values, ['width'   => '30%',
+                                                                     'rand'    => $rand,
+                                                                     'display' => false]);
       $field_id = Html::cleanId("dropdown__databasetype$rand");
 
-      $params = array('databasetype' => '__VALUE__',
-                      'entity'       => $p['entity'],
-                      'rand'         => $rand,
-                      'myname'       => $p['name'],
-                      'used'         => $p['used']);
+      $params = ['databasetype' => '__VALUE__',
+                 'entity'       => $p['entity'],
+                 'rand'         => $rand,
+                 'myname'       => $p['name'],
+                 'used'         => $p['used']];
 
       $out .= Ajax::updateItemOnSelectEvent($field_id, "show_" . $p['name'] . $rand,
-                                            $CFG_GLPI["root_doc"] . "/plugins/databases/ajax/dropdownTypeDatabases.php",
+                                            $CFG_GLPI["root_doc"].PLUGIN_DATABASES_DIR_NOFULL . "/ajax/dropdownTypeDatabases.php",
                                             $params, false);
       $out .= "<span id='show_" . $p['name'] . "$rand'>";
       $out .= "</span>\n";
 
       $params['databasetype'] = 0;
-      $out .= Ajax::updateItem("show_" . $p['name'] . $rand,
-                               $CFG_GLPI["root_doc"] . "/plugins/databases/ajax/dropdownTypeDatabases.php",
-                               $params, false);
+      $out                    .= Ajax::updateItem("show_" . $p['name'] . $rand,
+                                                  $CFG_GLPI["root_doc"].PLUGIN_DATABASES_DIR_NOFULL . "/ajax/dropdownTypeDatabases.php",
+                                                  $params, false);
       if ($p['display']) {
          echo $out;
          return $rand;
@@ -449,10 +521,10 @@ class PluginDatabasesDatabase extends CommonDBTM {
    /**
     * For other plugins, add a type to the linkable types
     *
-    * @since version 1.3.0
-    *
     * @param $type string class name
-    **/
+    **@since version 1.3.0
+    *
+    */
    static function registerType($type) {
       if (!in_array($type, self::$types)) {
          self::$types[] = $type;
@@ -498,12 +570,13 @@ class PluginDatabasesDatabase extends CommonDBTM {
 
       $item    = new Supplier();
       $canread = $item->can($ID, READ);
+      $dbu     = new DbUtils();
 
       $query = "SELECT `glpi_plugin_databases_databases`.* "
                . "FROM `glpi_plugin_databases_databases` "
                . " LEFT JOIN `glpi_entities` ON (`glpi_entities`.`id` = `glpi_plugin_databases_databases`.`entities_id`) "
                . " WHERE `suppliers_id` = '$ID' "
-               . getEntitiesRestrictRequest(" AND ", "glpi_plugin_databases_databases", '', '', $this->maybeRecursive());
+               . $dbu->getEntitiesRestrictRequest(" AND ", "glpi_plugin_databases_databases", '', '', $this->maybeRecursive());
       $query .= " ORDER BY `glpi_plugin_databases_databases`.`name` ";
 
       $result = $DB->query($query);
@@ -515,34 +588,42 @@ class PluginDatabasesDatabase extends CommonDBTM {
          $colsup = 0;
       }
 
-      if ($withtemplate != 2) echo "<form method='post' action=\"" . $CFG_GLPI["root_doc"] . "/plugins/databases/front/database.form.php\">";
+      if ($withtemplate != 2) {
+         echo "<form method='post' action=\"" . $CFG_GLPI["root_doc"].PLUGIN_DATABASES_DIR_NOFULL . "/front/database.form.php\">";
+      }
 
       echo "<div align='center'><table class='tab_cadre_fixe'>";
       echo "<tr><th colspan='" . (4 + $colsup) . "'>" . _n('Database associated', 'Databases associated', 2, 'databases') . "</th></tr>";
       echo "<tr><th>" . __('Name') . "</th>";
-      if (Session::isMultiEntitiesMode())
+      if (Session::isMultiEntitiesMode()) {
          echo "<th>" . __('Entity') . "</th>";
+      }
       echo "<th>" . PluginDatabasesDatabaseCategory::getTypeName(1) . "</th>";
       echo "<th>" . __('Type') . "</th>";
       echo "<th>" . __('Comments') . "</th>";
 
       echo "</tr>";
 
-      while ($data = $DB->fetch_array($result)) {
+      while ($data = $DB->fetchArray($result)) {
 
          echo "<tr class='tab_bg_1" . ($data["is_deleted"] == '1' ? "_2" : "") . "'>";
          if ($withtemplate != 3 && $canread && (in_array($data['entities_id'], $_SESSION['glpiactiveentities']) || $data["is_recursive"])) {
-            echo "<td class='center'><a href='" . $CFG_GLPI["root_doc"] . "/plugins/databases/front/database.form.php?id=" . $data["id"] . "'>" . $data["name"];
-            if ($_SESSION["glpiis_ids_visible"]) echo " (" . $data["id"] . ")";
+            echo "<td class='center'><a href='" . $CFG_GLPI["root_doc"].PLUGIN_DATABASES_DIR_NOFULL . "/front/database.form.php?id=" . $data["id"] . "'>" . $data["name"];
+            if ($_SESSION["glpiis_ids_visible"]) {
+               echo " (" . $data["id"] . ")";
+            }
             echo "</a></td>";
          } else {
             echo "<td class='center'>" . $data["name"];
-            if ($_SESSION["glpiis_ids_visible"]) echo " (" . $data["id"] . ")";
+            if ($_SESSION["glpiis_ids_visible"]) {
+               echo " (" . $data["id"] . ")";
+            }
             echo "</td>";
          }
          echo "</a></td>";
-         if (Session::isMultiEntitiesMode())
+         if (Session::isMultiEntitiesMode()) {
             echo "<td class='center'>" . Dropdown::getDropdownName("glpi_entities", $data['entities_id']) . "</td>";
+         }
          echo "<td>" . Dropdown::getDropdownName("glpi_plugin_databases_databasetypes", $data["plugin_databases_databasetypes_id"]) . "</td>";
          echo "<td>" . Dropdown::getDropdownName("glpi_plugin_databases_servertypes", $data["plugin_databases_servertypes_id"]) . "</td>";
          echo "<td>" . $data["comment"] . "</td></tr>";
@@ -552,19 +633,19 @@ class PluginDatabasesDatabase extends CommonDBTM {
    }
 
    /**
+    * @param null $checkitem
+    *
+    * @return array
     * @since version 0.85
     *
     * @see CommonDBTM::getSpecificMassiveActions()
     *
-    * @param null $checkitem
-    *
-    * @return an
     */
-   function getSpecificMassiveActions($checkitem = NULL) {
+   function getSpecificMassiveActions($checkitem = null) {
       $isadmin = static::canUpdate();
       $actions = parent::getSpecificMassiveActions($checkitem);
 
-      if ($_SESSION['glpiactiveprofile']['interface'] == 'central') {
+      if (Session::getCurrentInterface() == 'central') {
          if ($isadmin) {
             $actions['PluginDatabasesDatabase' . MassiveAction::CLASS_ACTION_SEPARATOR . 'install']   = _x('button', 'Associate');
             $actions['PluginDatabasesDatabase' . MassiveAction::CLASS_ACTION_SEPARATOR . 'uninstall'] = _x('button', 'Dissociate');
@@ -580,46 +661,46 @@ class PluginDatabasesDatabase extends CommonDBTM {
    }
 
    /**
+    * @param MassiveAction $ma
+    *
+    * @return bool|false
     * @since version 0.85
     *
     * @see CommonDBTM::showMassiveActionsSubForm()
     *
-    * @param MassiveAction $ma
-    *
-    * @return bool|false
     */
    static function showMassiveActionsSubForm(MassiveAction $ma) {
 
       switch ($ma->getAction()) {
          case 'plugin_databases_add_item':
-            self::dropdownDatabase(array());
+            self::dropdownDatabase([]);
             echo "&nbsp;" .
-                 Html::submit(_x('button', 'Post'), array('name' => 'massiveaction'));
+                 Html::submit(_x('button', 'Post'), ['name' => 'massiveaction']);
             return true;
             break;
          case "install" :
-            Dropdown::showSelectItemFromItemtypes(array('items_id_name' => 'item_item',
-                                                        'itemtype_name' => 'typeitem',
-                                                        'itemtypes'     => self::getTypes(true),
-                                                        'checkright'
-                                                                        => true,
-                                                  ));
-            echo Html::submit(_x('button', 'Post'), array('name' => 'massiveaction'));
+            Dropdown::showSelectItemFromItemtypes(['items_id_name' => 'item_item',
+                                                   'itemtype_name' => 'typeitem',
+                                                   'itemtypes'     => self::getTypes(true),
+                                                   'checkright'
+                                                                   => true,
+                                                  ]);
+            echo Html::submit(_x('button', 'Post'), ['name' => 'massiveaction']);
             return true;
             break;
          case "uninstall" :
-            Dropdown::showSelectItemFromItemtypes(array('items_id_name' => 'item_item',
-                                                        'itemtype_name' => 'typeitem',
-                                                        'itemtypes'     => self::getTypes(true),
-                                                        'checkright'
-                                                                        => true,
-                                                  ));
-            echo Html::submit(_x('button', 'Post'), array('name' => 'massiveaction'));
+            Dropdown::showSelectItemFromItemtypes(['items_id_name' => 'item_item',
+                                                   'itemtype_name' => 'typeitem',
+                                                   'itemtypes'     => self::getTypes(true),
+                                                   'checkright'
+                                                                   => true,
+                                                  ]);
+            echo Html::submit(_x('button', 'Post'), ['name' => 'massiveaction']);
             return true;
             break;
          case "transfer" :
             Dropdown::show('Entity');
-            echo Html::submit(_x('button', 'Post'), array('name' => 'massiveaction'));
+            echo Html::submit(_x('button', 'Post'), ['name' => 'massiveaction']);
             return true;
             break;
       }
@@ -628,15 +709,15 @@ class PluginDatabasesDatabase extends CommonDBTM {
 
 
    /**
-    * @since version 0.85
-    *
-    * @see CommonDBTM::processMassiveActionsForOneItemtype()
-    *
     * @param MassiveAction $ma
     * @param CommonDBTM    $item
     * @param array         $ids
     *
     * @return nothing|void
+    * @since version 0.85
+    *
+    * @see CommonDBTM::processMassiveActionsForOneItemtype()
+    *
     */
    static function processMassiveActionsForOneItemtype(MassiveAction $ma, CommonDBTM $item,
                                                        array $ids) {
@@ -647,9 +728,9 @@ class PluginDatabasesDatabase extends CommonDBTM {
          case "plugin_databases_add_item":
             $input = $ma->getInput();
             foreach ($ids as $id) {
-               $input = array('plugin_databases_databasetypes_id' => $input['plugin_databases_databasetypes_id'],
-                              'items_id'                          => $id,
-                              'itemtype'                          => $item->getType());
+               $input = ['plugin_databases_databasetypes_id' => $input['plugin_databases_databasetypes_id'],
+                         'items_id'                          => $id,
+                         'itemtype'                          => $item->getType()];
                if ($database_item->can(-1, UPDATE, $input)) {
                   if ($database_item->add($input)) {
                      $ma->itemDone($item->getType(), $id, MassiveAction::ACTION_OK);
@@ -691,9 +772,9 @@ class PluginDatabasesDatabase extends CommonDBTM {
             $input = $ma->getInput();
             foreach ($ids as $key) {
                if ($item->can($key, UPDATE)) {
-                  $values = array('plugin_databases_databases_id' => $key,
-                                  'items_id'                      => $input["item_item"],
-                                  'itemtype'                      => $input['typeitem']);
+                  $values = ['plugin_databases_databases_id' => $key,
+                             'items_id'                      => $input["item_item"],
+                             'itemtype'                      => $input['typeitem']];
                   if ($database_item->add($values)) {
                      $ma->itemDone($item->getType(), $key, MassiveAction::ACTION_OK);
                   } else {

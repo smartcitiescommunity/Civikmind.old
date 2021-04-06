@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -29,10 +29,6 @@
  * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
  */
-
-/** @file
-* @brief
-*/
 
 use Glpi\Event;
 
@@ -65,10 +61,17 @@ class Central extends CommonGLPI {
    function getTabNameForItem(CommonGLPI $item, $withtemplate = 0) {
 
       if ($item->getType() == __CLASS__) {
-         $tabs[1] = __('Personal View');
-         $tabs[2] = __('Group View');
-         $tabs[3] = __('Global View');
-         $tabs[4] = _n('RSS feed', 'RSS feeds', Session::getPluralNumber());
+         $tabs = [
+            1 => __('Personal View'),
+            2 => __('Group View'),
+            3 => __('Global View'),
+            4 => _n('RSS feed', 'RSS feeds', Session::getPluralNumber()),
+         ];
+
+         $grid = new Glpi\Dashboard\Grid('central');
+         if ($grid->canViewOneDashboard()) {
+            array_unshift($tabs, __('Dashboard'));
+         }
 
          return $tabs;
       }
@@ -80,7 +83,11 @@ class Central extends CommonGLPI {
 
       if ($item->getType() == __CLASS__) {
          switch ($tabnum) {
-            case 1 : // all
+            case 0 :
+               $item->showGlobalDashboard();
+               break;
+
+            case 1 :
                $item->showMyView();
                break;
 
@@ -98,6 +105,18 @@ class Central extends CommonGLPI {
          }
       }
       return true;
+   }
+
+   public function showGlobalDashboard() {
+      echo "<table class='tab_cadre_central'>";
+      Plugin::doHook('display_central');
+      echo "</table>";
+
+      self::showMessages();
+
+      $default   = Glpi\Dashboard\Grid::getDefaultDashboardForMenu('central');
+      $dashboard = new Glpi\Dashboard\Grid($default);
+      $dashboard->show();
    }
 
 
@@ -147,8 +166,6 @@ class Central extends CommonGLPI {
     * Show the central personal view
    **/
    static function showMyView() {
-      global $DB, $CFG_GLPI;
-
       $showticket  = Session::haveRightsOr("ticket",
                                            [Ticket::READMY, Ticket::READALL, Ticket::READASSIGN]);
 
@@ -158,58 +175,9 @@ class Central extends CommonGLPI {
 
       Plugin::doHook('display_central');
 
-      $warnings = [];
-      if (Session::haveRight("config", UPDATE)) {
-         $logins = User::checkDefaultPasswords();
-         $user   = new User();
-         if (!empty($logins)) {
-            $accounts = [];
-            foreach ($logins as $login) {
-               $user->getFromDBbyName($login);
-               $accounts[] = $user->getLink();
-            }
-            $warnings[] = sprintf(__('For security reasons, please change the password for the default users: %s'),
-                               implode(" ", $accounts));
-         }
-         if (file_exists(GLPI_ROOT . "/install/install.php")) {
-            $warnings[] = sprintf(__('For security reasons, please remove file: %s'),
-                               "install/install.php");
-         }
-      }
-
-      if ($_SESSION['glpi_use_mode'] == Session::DEBUG_MODE) {
-         if (!DBMysql::isMySQLStrictMode($comment)) {
-            $warnings[] = sprintf(__('SQL strict mode is not fully enabled, recommended for development: %s'), $comment);
-         }
-      }
-
-      if ($_SESSION['glpi_use_mode'] == Session::DEBUG_MODE) {
-         $crashedtables = DBMysql::checkForCrashedTables();
-         if (!empty($crashedtables)) {
-            $tables = [];
-            foreach ($crashedtables as $crashedtable) {
-               $tables[] = $crashedtable['table'];
-            }
-            $message = __('The following SQL tables are marked as crashed:');
-            $message.= implode(',', $tables);
-            $warnings[] = $message;
-         }
-      }
-
-      if ($DB->isSlave()
-          && !$DB->first_connection) {
-         $warnings[] = __('SQL replica: read only');
-      }
-
-      if (count($warnings)) {
-         echo "<tr><th colspan='2'>";
-         echo "<div class='warning'>";
-         echo "<i class='fa fa-exclamation-triangle fa-5x'></i>";
-         echo "<ul><li>" . implode('</li><li>', $warnings) . "</li></ul>";
-         echo "<div class='sep'></div>";
-         echo "</div>";
-         echo "</th></tr>";
-      }
+      echo "<tr><th colspan='2'>";
+      self::showMessages();
+      echo "</th></tr>";
 
       echo "<tr class='noHover'><td class='top' width='50%'><table class='central'>";
       echo "<tr class='noHover'><td>";
@@ -224,7 +192,8 @@ class Central extends CommonGLPI {
 
          Ticket::showCentralList(0, "survey", false);
 
-         Ticket::showCentralList(0, "rejected", false);
+         Ticket::showCentralList(0, "validation.rejected", false);
+         Ticket::showCentralList(0, "solution.rejected", false);
          Ticket::showCentralList(0, "requestbyself", false);
          Ticket::showCentralList(0, "observed", false);
 
@@ -255,7 +224,7 @@ class Central extends CommonGLPI {
    /**
     * Show the central RSS view
     *
-    * @since version 0.84
+    * @since 0.84
    **/
    static function showRSSView() {
 
@@ -311,6 +280,76 @@ class Central extends CommonGLPI {
       }
       echo "</td></tr>";
       echo "</table></td></tr></table>";
+   }
+
+
+   static function showMessages() {
+      global $DB, $CFG_GLPI;
+
+      $warnings = [];
+
+      $user = new User();
+      $user->getFromDB(Session::getLoginUserID());
+      if ($user->fields['authtype'] == Auth::DB_GLPI && $user->shouldChangePassword()) {
+         $expiration_msg = sprintf(
+            __('Your password will expire on %s.'),
+            Html::convDateTime(date('Y-m-d H:i:s', $user->getPasswordExpirationTime()))
+         );
+         $warnings[] = $expiration_msg
+            . ' '
+            . '<a href="' . $CFG_GLPI['root_doc'] . '/front/updatepassword.php">'
+            . __('Update my password')
+            . '</a>';
+      }
+
+      if (Session::haveRight("config", UPDATE)) {
+         $logins = User::checkDefaultPasswords();
+         $user   = new User();
+         if (!empty($logins)) {
+            $accounts = [];
+            foreach ($logins as $login) {
+               $user->getFromDBbyNameAndAuth($login, Auth::DB_GLPI, 0);
+               $accounts[] = $user->getLink();
+            }
+            $warnings[] = sprintf(__('For security reasons, please change the password for the default users: %s'),
+                               implode(" ", $accounts));
+         }
+
+         if (file_exists(GLPI_ROOT . "/install/install.php")) {
+            $warnings[] = sprintf(__('For security reasons, please remove file: %s'),
+                               "install/install.php");
+         }
+
+         $myisam_tables = $DB->getMyIsamTables();
+         if (count($myisam_tables)) {
+            $warnings[] = sprintf(
+               __('%1$s tables not migrated to InnoDB engine.'),
+               count($myisam_tables)
+            );
+         }
+         if ($DB->areTimezonesAvailable()) {
+            $not_tstamp = $DB->notTzMigrated();
+            if ($not_tstamp > 0) {
+                $warnings[] = sprintf(
+                    __('%1$s columns are not compatible with timezones usage.'),
+                    $not_tstamp
+                );
+            }
+         }
+      }
+
+      if ($DB->isSlave()
+          && !$DB->first_connection) {
+         $warnings[] = __('SQL replica: read only');
+      }
+
+      if (count($warnings)) {
+         echo "<div class='warning'>";
+         echo "<i class='fa fa-exclamation-triangle fa-5x'></i>";
+         echo "<ul><li>" . implode('</li><li>', $warnings) . "</li></ul>";
+         echo "<div class='sep'></div>";
+         echo "</div>";
+      }
    }
 
 }

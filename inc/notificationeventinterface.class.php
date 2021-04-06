@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -40,7 +40,7 @@ interface NotificationEventInterface {
     * Raise a notification event
     *
     * @param string               $event              Event
-    * @param CommonDBTM           $item               Item
+    * @param CommonGLPI           $item               Item
     * @param array                $options            Options
     * @param string               $label              Label
     * @param array                $data               Notification data
@@ -52,13 +52,14 @@ interface NotificationEventInterface {
     */
    static public function raise(
       $event,
-      CommonDBTM $item,
+      CommonGLPI $item,
       array $options,
       $label,
       array $data,
       NotificationTarget $notificationtarget,
       NotificationTemplate $template,
-      $notify_me
+      $notify_me,
+      $emitter = null
    );
 
 

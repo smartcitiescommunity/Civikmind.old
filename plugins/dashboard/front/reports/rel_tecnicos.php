@@ -8,7 +8,6 @@ global $DB, $con;
 Session::checkLoginUser();
 Session::checkRight("profile", READ);
 
-
 function dropdown( $name, array $options, $selected=null )
 {
     /*** begin the select ***/
@@ -44,25 +43,21 @@ function margins() {
 						$layout = $DB->result($result_lay,0,'value');
 						
 	//redirect to index
-	if($layout == '0')
-		{
-			// sidebar
-			$margin = '0px 3% 0px 5%';
-		}
+	// sidebar
+	if($layout == '0') {$margin = '0px 2% 0px 4%';}
 	
-	if($layout == 1 || $layout == '' )
-		{
-			//top menu
-			$margin = '0px 2% 0px 2%';
-		}
+	//top menu
+	if($layout == 1 || $layout == '' ) {$margin = '0px 1% 0px 1%';}
 		
 	return $margin;	
 }
 
 
-if(!empty($_POST['submit'])){
+//if(!empty($_POST['submit'])){
+if(!empty($_REQUEST['date1'])) {	
   	$data_ini = $_REQUEST['date1'];
   	$data_fin = $_REQUEST['date2'];
+  	$sel_group = $_REQUEST['sel_group'];
 }
 
 else {
@@ -92,12 +87,11 @@ else {
 	$entidade_u = "AND glpi_profiles_users.entities_id IN (".$sel_ent.") ";
 	$entidade_g = "WHERE entities_id IN (".$sel_ent.") OR is_recursive = 1";
 }
-
 ?>
 
 <html>
 <head>
-<title> GLPI - <?php echo __('Tickets','dashboard') .'  '. __('by Technician','dashboard') ?> </title>
+<title> GLPI - <?php echo __('Tickets','dashboard') .'  '. __('Technician group') ?> </title>
 <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
 <meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7" />
 <meta http-equiv="content-language" content="en-us" />
@@ -140,103 +134,108 @@ else {
 	table.dataTable { empty-cells: show; }
    a:link, a:visited, a:active { text-decoration: none;}
 	a:hover { color: #000099;}
+	.label-md {
+  		min-width: 45px !important;
+ 		display: inline-block !important
+	}
 </style>
 
 <?php echo '<link rel="stylesheet" type="text/css" href="../css/style-'.$_SESSION['style'].'">';  ?>
-
 </head>
 
 <body style="background-color: #e5e5e5;" >
-
 <div id='content' >
 <div id='container-fluid' style="margin: <?php echo margins(); ?> ;">
 <div id="charts" class="fluid chart" >
 	<div id="pad-wrapper" >
 		<div id="head-rel" class="fluid">
 			<a href="../index.php"><i class="fa fa-home" style="font-size:14pt; margin-left:25px;"></i><span></span></a>
-				<div id="titulo_rel" > <?php echo __('Tickets','dashboard') .'  '. __('by Technician','dashboard') ?> </div>
+				<div id="titulo_rel" > <?php echo __('Tickets','dashboard') .'  '. __('Technician group') ?> </div>
 					<div id="datas-tec" class="col-md-12 col-sm-12 fluid" >
 					<form id="form1" name="form1" class="form_rel" method="post" action="rel_tecnicos.php?con=1">
 
 						<table border="0" cellspacing="0" cellpadding="3" bgcolor="#efefef" >
-						    		<tr>
-										<td style="width: 310px;">
-										<?php
-										$url = $_SERVER['REQUEST_URI'];
-										$arr_url = explode("?", $url);
-										$url2 = $arr_url[0];
+				    		<tr>
+								<td style="width: 310px;">
+								<?php
+								$url = $_SERVER['REQUEST_URI'];
+								$arr_url = explode("?", $url);
+								$url2 = $arr_url[0];
 
-										echo'
-												<table>
-													<tr>
-														<td>
-														   <div class="input-group date" id="dp1" data-date="'.$data_ini.'" data-date-format="yyyy-mm-dd">
-														    	<input class="col-md-9 form-control" size="13" type="text" name="date1" value="'.$data_ini.'" >
-														    	<span class="input-group-addon add-on"><i class="fa fa-calendar"></i></span>
-													    	</div>
-														</td>
-														<td>&nbsp;</td>
-														<td>
-													   	<div class="input-group date" id="dp2" data-date="'.$data_fin.'" data-date-format="yyyy-mm-dd">
-														    	<input class="col-md-9 form-control" size="13" type="text" name="date2" value="'.$data_fin.'" >
-														    	<span class="input-group-addon add-on"><i class="fa fa-calendar"></i></span>
-													    	</div>
-														</td>
-														<td>&nbsp;</td>
-													</tr>
-												</table> ';
-										?>
+								echo'
+									<table>
+										<tr>
+											<td>
+											   <div class="input-group date" id="dp1" data-date="'.$data_ini.'" data-date-format="yyyy-mm-dd">
+											    	<input class="col-md-9 form-control" size="13" type="text" name="date1" value="'.$data_ini.'" >
+											    	<span class="input-group-addon add-on"><i class="fa fa-calendar"></i></span>
+										    	</div>
+											</td>
+											<td>&nbsp;</td>
+											<td>
+										   	<div class="input-group date" id="dp2" data-date="'.$data_fin.'" data-date-format="yyyy-mm-dd">
+											    	<input class="col-md-9 form-control" size="13" type="text" name="date2" value="'.$data_fin.'" >
+											    	<span class="input-group-addon add-on"><i class="fa fa-calendar"></i></span>
+										    	</div>
+											</td>
+											<td>&nbsp;</td>
+										</tr>
+									</table> ';
+								?>
 
-										<script language="Javascript">
-											$('#dp1').datepicker('update');
-											$('#dp2').datepicker('update');
-										</script>
-										</td>
+								<script language="Javascript">
+									$('#dp1').datepicker('update');
+									$('#dp2').datepicker('update');
+								</script>
+								</td>
 
-										<td style="margin-top:2px;">
+								<td style="margin-top:2px;">
 
-										<?php
+								<?php
 
-										// lista de grupos
-										$sql_techs = "
-										SELECT id AS id, name AS name
-										FROM `glpi_groups`
-										".$entidade_g."
-										ORDER BY `name` ASC";
+								// lista de grupos
+								$sql_techs = "
+								SELECT id AS id, name AS name
+								FROM `glpi_groups`
+								".$entidade_g."
+								ORDER BY `name` ASC";
 
-										$result_techs = $DB->query($sql_techs);
-										$grp = $DB->fetch_assoc($result_techs);
+								$result_techs = $DB->query($sql_techs);
+								$grp = $DB->fetch_assoc($result_techs);
 
-										$res_techs = $DB->query($sql_techs);
-										$arr_techs = array();										
-										$arr_techs[0] = "". __('All') . "" ;
+								$res_techs = $DB->query($sql_techs);
+								$arr_techs = array();										
+								$arr_techs[0] = "". __('All') . "" ;
 
-										$DB->data_seek($result_techs, 0) ;
+								$DB->data_seek($result_techs, 0) ;
 
-										while ($row_result = $DB->fetch_assoc($result_techs)) {										
-										   $v_row_result = $row_result['id'];
-										   $arr_techs[$v_row_result] = $row_result['name'] ;										      
-										}
+								while ($row_result = $DB->fetch_assoc($result_techs)) {										
+								   $v_row_result = $row_result['id'];
+								   $arr_techs[$v_row_result] = $row_result['name'] ;										      
+								}
 
-										$name = 'sel_group';
-										$options = $arr_techs;
-										$selected = 0;										
-										echo dropdown( $name, $options, $selected );
+								$name = 'sel_group';
+								$options = $arr_techs;
+								
+								if($sel_group != 0 ) { $selected = $sel_group;}										
+								else { $selected = 0; }	
+																	
+								echo dropdown( $name, $options, $selected );
 
-										?>
-										</td>
-									</tr>
-									<tr><td height="15px"></td></tr>
-									<tr>
-										<td colspan="2" align="center">
-											<button class="btn btn-primary btn-sm" type="submit" name="submit" value="Atualizar" ><i class="fa fa-search"></i>&nbsp; <?php echo __('Consult','dashboard'); ?> </button>
-											<button class="btn btn-primary btn-sm" type="button" name="Limpar" value="Limpar" onclick="location.href='<?php echo $url2 ?>'" ><i class="fa fa-trash-o"></i>&nbsp; <?php echo __('Clean','dashboard'); ?> </button>
-										</td>
-									</tr>
-					   		 </table>
+								?>
+								</td>
+							</tr>
+							<tr><td height="15px"></td></tr>
+							<tr>
+								<td colspan="2" align="center">
+									<button class="btn btn-primary btn-sm" type="submit" name="submit" value="Atualizar" ><i class="fa fa-search"></i>&nbsp; <?php echo __('Consult','dashboard'); ?> </button>
+									<button class="btn btn-primary btn-sm" type="button" name="Limpar" value="Limpar" onclick="location.href='<?php echo $url2 ?>'" ><i class="fa fa-trash-o"></i>&nbsp; <?php echo __('Clean','dashboard'); ?> </button>
+								</td>
+							</tr>
+			   	</table>
 					<?php Html::closeForm(); ?>
 					<!-- </form> -->
-					</div>
+				</div>
 		</div>
 <?php
 
@@ -247,12 +246,15 @@ if(isset($_GET['con'])) {
 	
 	if($con == "1") {
 
-	if(!isset($_POST['date1'])) {
+	if(!isset($_REQUEST['date1'])) {
 		  $data_ini2 = $data_ini; 
 		  $data_fin2 = $data_fin; 
-		  $grupo = "";
-		  $grupo1 = "";
+		  $grupo_tec = "";
+		  $grupo_tec1 = "";
+		  $grupo_tic = "";
+		  $grupo_tic1 = "";
 		  $glpi_techs = "";
+		  $glpi_groups = "";
 		  $id_techs = 0;
 	}
 
@@ -263,14 +265,21 @@ if(isset($_GET['con'])) {
 	    	$id_techs  = $_REQUEST["sel_group"];
 
 	    if($id_techs > 0) {
-		 	$grupo = "AND glpi_groups_users.users_id = glpi_tickets_users.users_id" ;
-		 	$grupo1 = "AND glpi_groups_users.groups_id = ". $id_techs ."" ;
+		 	$grupo_tec = "AND glpi_groups_users.users_id = glpi_tickets_users.users_id" ;
+		 	$grupo_tec1 = "AND glpi_groups_users.groups_id = ". $id_techs ."" ;
 	    	$glpi_techs = " , glpi_groups_users";
+	    	$glpi_groups = " , glpi_groups_tickets";
+	    	$grupo_tic = "AND glpi_groups_tickets.tickets_id = glpi_tickets.id ";
+	    	$grupo_tic1 = "AND glpi_groups_tickets.groups_id = ". $id_techs ."" ;
+			//$sel_group = $_REQUEST['sel_group'];	
 		 }
 		 if($id_techs == 0 || $id_techs == '') {
-		   $grupo = "";
-		   $grupo1 = "";
+		   $grupo_tec = "";
+		   $grupo_tec1 = "";
+   		$grupo_tic = "";
+		   $grupo_tic1 = "";
 		   $glpi_techs = "";
+		   $glpi_groups = "";
 		   $id_techs = 0;
 		 }
 
@@ -285,7 +294,6 @@ if(isset($_GET['con'])) {
 	}
 
 $sql_tec = "
-
 SELECT DISTINCT glpi_users.id AS id , glpi_users.firstname AS fname, glpi_users.realname AS rname, COUNT(glpi_tickets.id) AS chamados, glpi_users.picture
 FROM glpi_users , glpi_tickets_users, glpi_profiles_users, glpi_tickets". $glpi_techs ."
 WHERE glpi_tickets_users.users_id = glpi_users.id
@@ -295,8 +303,8 @@ AND glpi_tickets.is_deleted = 0
 AND glpi_tickets_users.type = 2
 AND glpi_tickets.date ". $datas2 ."
 ". $entidade_u ."
-". $grupo ."
-". $grupo1 ."
+". $grupo_tec ."
+". $grupo_tec1 ."
 GROUP BY id
 ORDER BY fname ASC ";
 
@@ -336,12 +344,12 @@ echo "
 				<th style='text-align:center; cursor:pointer;'> ". __('Technician','dashboard') ." </th>
 				<th style='font-size: 12px; font-weight:bold; text-align: center; cursor:pointer;'> ".__('Tickets')." </th>
 				<th style='text-align:center; cursor:pointer;'> ". __('Opened','dashboard') ."</th>
+				<th style='text-align:center; cursor:pointer;'> ". __('Late') ."</th>
 				<th style='text-align:center; cursor:pointer;'> ". __('Solved','dashboard') ."</th>
 				<th style='text-align:center; cursor:pointer;'> ". __('Closed','dashboard') ."</th>				
 				<th style='text-align:center; '> % ". __('Closed','dashboard') ."</th> 
-				<th style='text-align:center; cursor:pointer;'> ". __('Late') ."</th>
-				<th style='text-align:center; '> % ". __('Late') . "</th> 
-				<!--<th style='text-align:center; cursor:pointer;'> ". __('Tasks sum','dashboard') ."</th>-->";
+				<th style='text-align:center; cursor:pointer;'> ". __('Backlog','dashboard') ."</th>";
+				
 				if($sats != '') {
 					echo "<th style='text-align:center; '> ". __('Satisfaction','dashboard') ."</th>";
 				}
@@ -352,9 +360,28 @@ echo "
 
 while($id_tec = $DB->fetch_assoc($result_tec)) {
 
+//chamados total
+$sql_total = "SELECT count( glpi_tickets.id ) AS total, glpi_tickets_users.users_id AS id
+FROM glpi_tickets_users, glpi_tickets, glpi_users". $glpi_groups ."
+WHERE glpi_tickets.id = glpi_tickets_users.tickets_id
+AND glpi_tickets.date ".$datas2."
+AND glpi_tickets_users.users_id = ".$id_tec['id']."
+AND glpi_tickets_users.users_id = glpi_users.id
+AND glpi_tickets.is_deleted = 0
+AND glpi_tickets_users.type = 2
+". $entidade ."
+". $grupo_tic ."
+". $grupo_tic1 ." " ;
+
+$result_total = $DB->query($sql_total) or die ("erro_total");
+$data_total = $DB->fetch_assoc($result_total);
+
+$total = $data_total['total'];
+
+
 //chamados abertos
 $sql_ab = "SELECT count( glpi_tickets.id ) AS total, glpi_tickets_users.users_id AS id
-FROM glpi_tickets_users, glpi_tickets, glpi_users". $glpi_techs ."
+FROM glpi_tickets_users, glpi_tickets, glpi_users". $glpi_groups ."
 WHERE glpi_tickets.id = glpi_tickets_users.tickets_id
 AND glpi_tickets.date ".$datas2."
 AND glpi_tickets_users.users_id = ".$id_tec['id']."
@@ -363,8 +390,8 @@ AND glpi_tickets_users.users_id = glpi_users.id
 AND glpi_tickets.is_deleted = 0
 AND glpi_tickets_users.type = 2
 ". $entidade ."
-". $grupo ."
-". $grupo1 ." " ;
+". $grupo_tic ."
+". $grupo_tic1 ." " ;
 
 $result_ab = $DB->query($sql_ab) or die ("erro_ab");
 $data_ab = $DB->fetch_assoc($result_ab);
@@ -374,19 +401,19 @@ $abertos = $data_ab['total'];
 
 //chamados solucionados
 $sql_sol = "SELECT count( glpi_tickets.id ) AS total, glpi_tickets_users.users_id AS id
-FROM glpi_tickets_users, glpi_tickets, glpi_users". $glpi_techs ."
+FROM glpi_tickets_users, glpi_tickets, glpi_users". $glpi_groups ."
 WHERE glpi_tickets.id = glpi_tickets_users.tickets_id
-AND glpi_tickets.date ".$datas2."
+AND glpi_tickets.solvedate ".$datas2."
 AND glpi_tickets_users.users_id = ".$id_tec['id']."
 AND glpi_tickets.status = 5
 AND glpi_tickets_users.users_id = glpi_users.id
 AND glpi_tickets.is_deleted = 0
 AND glpi_tickets_users.type = 2
 ". $entidade ."
-". $grupo ."
-". $grupo1 ." " ;
+". $grupo_tic ."
+". $grupo_tic1 ." " ;
 
-$result_sol = $DB->query($sql_sol) or die ("erro_ab");
+$result_sol = $DB->query($sql_sol) or die ("erro_sol");
 $data_sol = $DB->fetch_assoc($result_sol);
 
 $solucionados = $data_sol['total'];
@@ -394,19 +421,19 @@ $solucionados = $data_sol['total'];
 
 //chamados fechados
 $sql_clo = "SELECT count( glpi_tickets.id ) AS total, glpi_tickets_users.users_id AS id
-FROM glpi_tickets_users, glpi_tickets, glpi_users". $glpi_techs ."
+FROM glpi_tickets_users, glpi_tickets, glpi_users". $glpi_groups ."
 WHERE glpi_tickets.id = glpi_tickets_users.tickets_id
-AND glpi_tickets.date ".$datas2."
+AND glpi_tickets.closedate ".$datas2."
 AND glpi_tickets_users.users_id = ".$id_tec['id']."
 AND glpi_tickets.status = 6
 AND glpi_tickets_users.users_id = glpi_users.id
 AND glpi_tickets.is_deleted = 0
 AND glpi_tickets_users.type = 2
 ". $entidade ."
-". $grupo ."
-". $grupo1 ." " ;
+". $grupo_tic ."
+". $grupo_tic1 ." " ;
 
-$result_clo = $DB->query($sql_clo) or die ("erro_ab");
+$result_clo = $DB->query($sql_clo) or die ("erro_clo");
 $data_clo = $DB->fetch_assoc($result_clo);
 
 $fechados = $data_clo['total'];
@@ -415,25 +442,26 @@ $fechados = $data_clo['total'];
 //satisfação por tecnico   , glpi_users.firstname AS fname , glpi_users.realname AS rname, glpi_users.name
 $query_sat = "
 SELECT glpi_users.id, avg( glpi_ticketsatisfactions.satisfaction ) AS media
-FROM glpi_tickets, glpi_ticketsatisfactions, glpi_tickets_users, glpi_users". $glpi_techs ."
+FROM glpi_tickets, glpi_ticketsatisfactions, glpi_tickets_users, glpi_users". $glpi_groups ."
 WHERE glpi_tickets.is_deleted = '0'
 AND glpi_ticketsatisfactions.tickets_id = glpi_tickets.id
 AND glpi_ticketsatisfactions.tickets_id = glpi_tickets_users.tickets_id
 AND glpi_users.id = glpi_tickets_users.users_id
 AND glpi_tickets_users.type = 2
-AND glpi_tickets.date ".$datas2."
+AND glpi_tickets.closedate ".$datas2." 
 AND glpi_tickets_users.users_id = ".$id_tec['id']."
 ".$entidade."
-".$grupo."
-".$grupo1." ";
+".$grupo_tic."
+".$grupo_tic1." ";
 
-$result_sat = $DB->query($query_sat) or die('erro');
+$result_sat = $DB->query($query_sat) or die('erro_sat');
 $media = $DB->fetch_assoc($result_sat);
 
 $satisfacao = round(($media['media']/5)*100,1);
 $nota = round($media['media'],0);
 
 
+$total_cham = $abertos + $solucionados + $fechados;
 
 //barra de porcentagem
 if($conta_cons > 0) {
@@ -446,10 +474,11 @@ if($conta_cons > 0) {
 	else {
 	
 		//porcentagem
-		$perc = round(($abertos*100)/$id_tec['chamados'],1);
-		$barra = 100 - $perc;
+		$barra = round(($fechados*100)/$total,0);
+		$width = $barra;
 	
 		// cor barra
+		if($barra >= 100) { $cor = "progress-bar-success"; $text_color="#fff"; $width = 100; }
 		if($barra == 100) { $cor = "progress-bar-success"; $text_color="#fff"; }
 		if($barra >= 80 and $barra < 100) { $cor = " "; $text_color="#fff"; }
 		if($barra > 51 and $barra < 80) { $cor = "progress-bar-warning"; $text_color="#fff"; }
@@ -464,11 +493,10 @@ else { $barra = 0;}
 //chamados atrasados
 $sql_due = "
 SELECT count( glpi_tickets.id ) AS total, glpi_tickets.id as ID
-FROM glpi_tickets_users, glpi_tickets, glpi_users". $glpi_techs ."
+FROM glpi_tickets_users, glpi_tickets, glpi_users". $glpi_groups ."
 WHERE glpi_tickets.id = glpi_tickets_users.tickets_id
 AND `glpi_tickets`.`time_to_resolve` IS NOT NULL 
 AND `glpi_tickets`.`status` <> 4
-
 AND 
 (
   `glpi_tickets`.`solvedate` > `glpi_tickets`.`time_to_resolve`  
@@ -482,28 +510,57 @@ AND glpi_tickets_users.users_id = glpi_users.id
 AND glpi_tickets.is_deleted = 0
 AND glpi_tickets.solvedate ".$datas2."
 ". $entidade ."
-". $grupo ."
-". $grupo1 ." " ;
+". $grupo_tic ."
+". $grupo_tic1 ." " ;
 
-$result_due = $DB->query($sql_due) or die ("erro_ab");
-
+$result_due = $DB->query($sql_due) or die ("erro_late");
 $data_due = $DB->fetch_assoc($result_due);
  
 $atrasados = $data_due['total'];
 
 
+// backlog acumulado
+$sql_bac = "SELECT count( glpi_tickets.id ) AS total, glpi_tickets_users.users_id AS id
+FROM glpi_tickets_users, glpi_tickets, glpi_users". $glpi_groups ."
+WHERE glpi_tickets.id = glpi_tickets_users.tickets_id
+AND glpi_tickets.date < '".$data_ini." 00:00:00' 
+AND glpi_tickets_users.users_id = ".$id_tec['id']."
+AND glpi_tickets.status <> 6
+AND glpi_tickets_users.users_id = glpi_users.id
+AND glpi_tickets.is_deleted = 0
+AND glpi_tickets_users.type = 2
+". $entidade ."
+". $grupo_tic ."
+". $grupo_tic1 ." " ;			
+
+$result_bac = $DB->query($sql_bac) or die ("erro_ab");
+$data_bac = $DB->fetch_assoc($result_bac);
+
+$back_ac = $data_bac['total'];		
+
+
+//backlog
+$backlog = ($total - $fechados);
+			
+if($backlog >= 1) { $back_cor = 'label label-md label-danger'; }
+if($backlog == 0) { $back_cor = 'label label-md label-primary'; }
+if($backlog <= -1) { $back_cor = 'label label-md label-success'; }
+
+$backlog_ac = ($back_ac + $backlog);		
+				
+if($backlog_ac >= 1) { $back_cor_ac = 'label label-md label-danger'; }
+if($backlog_ac == 0) { $back_cor_ac = 'label label-md label-primary'; }
+if($backlog_ac <= -1) { $back_cor_ac = 'label label-md label-success'; }
+
 //barra de porcentagem - Chamados no prazo
 if($conta_cons > 0) {
 
 		//porcentagem
-		$perc_due = round(($atrasados*100)/($solucionados+$fechados+$abertos),1);
+		$perc_due = round(($atrasados*100)/($solucionados+$fechados+$abertos),0);
 		//$perc_due = round(($atrasados*100)/($solucionados+$fechados),1);
 		$barra_due = $perc_due;
 		//$barra_due = 100 - $perc;		
 		
-	/**
-	* To-do: Turn values below configurable
-	*/
 		// cor barra_due
 		//if($barra_due == 100) { $cor_due = "progress-bar-danger"; }
 		if($barra_due > 80 and $barra_due <= 100) { $cor_due = "progress-bar-danger"; $text_color_due = "#fff"; }
@@ -515,37 +572,45 @@ if($conta_cons > 0) {
 
 else { $barra_due = 0;}
 
-$total_cham = $abertos + $solucionados + $fechados;
-
 		echo "
 		<tr>
 			<td style='vertical-align:middle; text-align:left;'><i class='del fa fa-times' style='cursor:pointer;' title='". __('Hide') ."'>&nbsp;&nbsp;&nbsp; </i>
-			<img class='avatar2' width='40px' height='43px' src='".User::getURLForPicture($id_tec['picture'])."'></img>&nbsp;&nbsp;
-			<a href='rel_tecnico.php?con=1&tec=". $id_tec['id'] ."&date1=".$data_ini."&date2=".$data_fin."' target='_blank' >" . $id_tec['fname'].' '.$id_tec['rname']. ' ('.$id_tec['id'].")</a>
+				<img class='avatar2' width='40px' height='43px' src='".User::getURLForPicture($id_tec['picture'])."'></img>&nbsp;&nbsp;
+				<a href='rel_tecnico.php?con=1&sel_tec=". $id_tec['id'] ."&date1=".$data_ini."&date2=".$data_fin."' target='_blank' >" . $id_tec['fname'].' '.$id_tec['rname']. ' ('.$id_tec['id'].")</a>
 			</td>
-			<td style='vertical-align:middle; text-align:center;'> ". $total_cham ." </td>
+			<td style='vertical-align:middle; text-align:center;'> ". $total ." </td>
 			<td style='vertical-align:middle; text-align:center;'> ". $abertos ." </td>
+		   <td style='vertical-align:middle; text-align:center;'> ". $atrasados ." </td>
 			<td style='vertical-align:middle; text-align:center;'> ". $solucionados ." </td>
 			<td style='vertical-align:middle; text-align:center;'> ". $fechados ." </td>			
 			<td style='vertical-align:middle; text-align:center;'>
 				<div class='progress' style='margin-top: 5px; margin-bottom: 5px;'>
-					<div class='progress-bar ". $cor ." progress-bar-striped active' role='progressbar' aria-valuenow='".$barra."' aria-valuemin='0' aria-valuemax='100' style='color:".$text_color."; width: ".$barra."%;'>
+					<div class='progress-bar ". $cor ." ' role='progressbar' aria-valuenow='".$barra."' aria-valuemin='0' aria-valuemax='100' style='color:".$text_color."; width: ".$width."%;'>
 			 			".$barra."%
 			 		</div>
 				</div>
 		   </td>
-		   <td style='vertical-align:middle; text-align:center;'> ". $atrasados ." </td>
-		   <td style='vertical-align:middle; text-align:center;'>
+		   
+		   </td>
+			<td style='vertical-align:middle; text-align:center;'><h4><span class='".$back_cor_ac."'>". $backlog_ac ."</span></h4></td> ";			
+
+/*
+<td style='vertical-align:middle; text-align:center;'>
 				<div class='progress' style='margin-top: 5px; margin-bottom: 5px;'>
-					<div class='progress-bar ". $cor_due ." progress-bar-striped active' role='progressbar' aria-valuenow='".$barra_due."' aria-valuemin='0' aria-valuemax='100' style='color:".$text_color_due."; width: ".$barra_due."%;'>
+					<div class='progress-bar ". $cor_due ." ' role='progressbar' aria-valuenow='".$barra_due."' aria-valuemin='0' aria-valuemax='100' style='color:".$text_color_due."; width: ".$barra_due."%;'>
 			 			".$barra_due."%
 			 		</div>
 				</div>
-		   </td> ";
+		   </td> 
+
+			<td style='vertical-align:middle; text-align:center;'><h4><span class='".$back_cor."'>". $backlog ."</span></h4></td>
+*/
+
 		   
 if($sats != '') {
-		echo "<td style='vertical-align:middle; text-align:center;'>
-					<img src='../img/s". $nota .".png' alt='".$satisfacao." %' title='".$satisfacao." %'>
+		echo "<td style='vertical-align:middle; text-align:center;'>		
+					<span class='label' style=\"background:url('../img/stars/star". $nota."_22.png') no-repeat;  
+					color:#000 !important; padding-left: 8px !important; padding-top: 4px; font-size:11px; \">".$nota. "</span> 
 				</td>";
 			}
 
@@ -561,6 +626,7 @@ echo "</tbody>
 }
 }
 
+//var_dump($sql_total);
 
 if($sats != '') {
 	$sort = "[[1,'desc'],[0,'desc'],[2,'desc'],[3,'desc'],[4,'desc'],[5,'desc'],[6,'desc']],";

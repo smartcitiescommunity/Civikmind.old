@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -29,10 +29,6 @@
  * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
  */
-
-/** @file
-* @brief
-*/
 
 include ('../inc/includes.php');
 
@@ -84,10 +80,10 @@ echo "<form method='get' name='form' action='stat.location.php'>";
 echo "<input type='hidden' name='itemtype' value='". $_GET['itemtype'] ."'>";
 
 echo "<table class='tab_cadre_fixe' ><tr class='tab_bg_2'><td rowspan='2' width='30%'>";
-$values = [_n('Dropdown', 'Dropdowns', 2) => ['ComputerType'    => __('Type'),
-                                                       'ComputerModel'   => __('Model'),
-                                                       'OperatingSystem' => __('Operating system'),
-                                                       'Location'        => __('Location')],
+$values = [_n('Dropdown', 'Dropdowns', Session::getPluralNumber()) => ['ComputerType'    => _n('Type', 'Types', 1),
+                                                       'ComputerModel'   => _n('Model', 'Models', 1),
+                                                       'OperatingSystem' => OperatingSystem::getTypeName(1),
+                                                       'Location'        => Location::getTypeName(1)],
                ];
 $devices = Dropdown::getDeviceItemTypes();
 foreach ($devices as $label => $dp) {
@@ -139,7 +135,6 @@ if (!($item instanceof CommonDevice)) {
 } else {
    //   echo "Device";
    $type  = "device";
-   $field = $_GET["dropdown"];
 
    $val = Stat::getItems($_GET['itemtype'], $_GET["date1"], $_GET["date2"], $_GET["dropdown"]);
    $params = ['type'     => $type,
@@ -189,7 +184,6 @@ if (!$_GET['showgraph']) {
 
    if (isset($data['solved']) && is_array($data['solved'])) {
       $count = 0;
-      $cleandata = [];
       $labels = [];
       $series = [];
       foreach ($data['solved'] as $key => $val) {

@@ -9,7 +9,7 @@
  -------------------------------------------------------------------------
 
  LICENSE
-      
+
  This file is part of moreticket.
 
  moreticket is free software; you can redistribute it and/or modify
@@ -27,58 +27,60 @@
  --------------------------------------------------------------------------
  */
 
+define('PLUGIN_MORETICKET_VERSION', '1.6.0');
+
 // Init the hooks of the plugins -Needed
 function plugin_init_moreticket() {
    global $PLUGIN_HOOKS;
 
-   $PLUGIN_HOOKS['add_css']['moreticket']        = 'moreticket.css';
+   $PLUGIN_HOOKS['add_css']['moreticket'][]        = 'css/moreticket.css';
    $PLUGIN_HOOKS['csrf_compliant']['moreticket'] = true;
-   $PLUGIN_HOOKS['change_profile']['moreticket'] = array('PluginMoreticketProfile', 'initProfile');
-
+   $PLUGIN_HOOKS['change_profile']['moreticket'] = ['PluginMoreticketProfile', 'initProfile'];
 
    if (Session::getLoginUserID()) {
-      Plugin::registerClass('PluginMoreticketProfile', array('addtabon' => 'Profile'));
+      Plugin::registerClass('PluginMoreticketProfile', ['addtabon' => 'Profile']);
 
       if (class_exists('PluginMoreticketProfile')) { // only if plugin activated
          $config = new PluginMoreticketConfig();
 
-         $PLUGIN_HOOKS['add_javascript']['moreticket'] = array("scripts/moreticket.js");
+         $PLUGIN_HOOKS['add_javascript']['moreticket'] = ["scripts/moreticket.js"];
+
+         if ($config->useDurationSolution() == true) {
+
+            $PLUGIN_HOOKS['pre_item_add']['moreticket'] = ['ITILSolution'   => ['PluginMoreticketSolution', 'beforeAdd']];
+         }
 
          if (Session::haveRight("plugin_moreticket", UPDATE) || Session::haveRight("plugin_moreticket_justification", READ)) {
             if (strpos($_SERVER['REQUEST_URI'], "ticket.form.php") !== false
                 || strpos($_SERVER['REQUEST_URI'], "helpdesk.public.php") !== false
                 || strpos($_SERVER['REQUEST_URI'], "tracking.injector.php") !== false
-                   && ($config->useWaiting() == true || $config->useSolution() == true || $config->useUrgency() == true)
-            ) {
-               if ('lefttab' == $_SESSION['glpilayout']) {
-                  $PLUGIN_HOOKS['add_javascript']['moreticket'][] = 'scripts/moreticket_load_scripts_lefttab.js';
-               } else {
+                   && ($config->useWaiting() == true || $config->useSolution() == true || $config->useQuestion() == true
+                       || $config->useUrgency() == true || $config->useDurationSolution() == true)) {
                   $PLUGIN_HOOKS['add_javascript']['moreticket'][] = 'scripts/moreticket_load_scripts.js';
-
-               }
             }
 
             $PLUGIN_HOOKS['config_page']['moreticket'] = 'front/config.form.php';
 
-            $PLUGIN_HOOKS['pre_item_update']['moreticket'] = array('TicketTask'     => array('PluginMoreticketTicketTask', 'beforeUpdate'),
-                                                                   'TicketFollowup' => array('PluginMoreticketTicketFollowup', 'beforeUpdate'));
-            $PLUGIN_HOOKS['pre_item_add']['moreticket']    = array('TicketTask'     => array('PluginMoreticketTicketTask', 'beforeAdd'),
-                                                                   'TicketFollowup' => array('PluginMoreticketTicketFollowup', 'beforeAdd'));
+            $PLUGIN_HOOKS['pre_item_update']['moreticket'] = ['TicketTask'     => ['PluginMoreticketTicketTask', 'beforeUpdate'],
+                                                              'ITILFollowup' => ['PluginMoreticketTicketFollowup', 'beforeUpdate']];
+            $PLUGIN_HOOKS['post_prepareadd']['moreticket'] = ['TicketTask'     => ['PluginMoreticketTicketTask', 'beforeAdd'],
+                                                              'ITILFollowup' => ['PluginMoreticketTicketFollowup', 'beforeAdd']];
 
-            $PLUGIN_HOOKS['item_empty']['moreticket'] = array('Ticket' => array('PluginMoreticketTicket', 'emptyTicket'));
+            $PLUGIN_HOOKS['item_empty']['moreticket'] = ['Ticket' => ['PluginMoreticketTicket', 'emptyTicket']];
+
+            $PLUGIN_HOOKS['pre_item_update']['moreticket']['Ticket'] = ['PluginMoreticketTicket', 'beforeUpdate'];
+            $PLUGIN_HOOKS['pre_item_add']['moreticket']['Ticket']    = ['PluginMoreticketTicket', 'beforeAdd'];
+            $PLUGIN_HOOKS['item_add']['moreticket']['Ticket']        = ['PluginMoreticketTicket', 'afterAdd'];
+            $PLUGIN_HOOKS['item_update']['moreticket']['Ticket']     = ['PluginMoreticketTicket', 'afterUpdate'];
          }
 
-         if (Session::haveRight("plugin_moreticket_justification", READ) || Session::haveRight("plugin_moreticket", UPDATE)) {
-
-            $PLUGIN_HOOKS['pre_item_update']['moreticket']['Ticket'] = array('PluginMoreticketTicket', 'beforeUpdate');
-            $PLUGIN_HOOKS['pre_item_add']['moreticket']['Ticket']    = array('PluginMoreticketTicket', 'beforeAdd');
-            $PLUGIN_HOOKS['item_add']['moreticket']                  = array('Ticket' => array('PluginMoreticketTicket', 'afterAdd'));
-            $PLUGIN_HOOKS['item_update']['moreticket']               = array('Ticket' => array('PluginMoreticketTicket', 'afterUpdate'));
+         if (Session::haveRight("plugin_moreticket_hide_task_duration", READ)) {
+            $PLUGIN_HOOKS['add_css']['moreticket'][] = 'css/hide_task_duration.css';
          }
 
          if (Session::haveRight('plugin_moreticket', READ)) {
-            Plugin::registerClass('PluginMoreticketWaitingTicket', array('addtabon' => 'Ticket'));
-            Plugin::registerClass('PluginMoreticketCloseTicket', array('addtabon' => 'Ticket'));
+            Plugin::registerClass('PluginMoreticketWaitingTicket', ['addtabon' => 'Ticket']);
+            Plugin::registerClass('PluginMoreticketCloseTicket', ['addtabon' => 'Ticket']);
          }
       }
    }
@@ -90,14 +92,19 @@ function plugin_init_moreticket() {
  */
 function plugin_version_moreticket() {
 
-   return array(
+   return [
       'name'           => __('More ticket', 'moreticket'),
-      'version'        => "1.3.0",
-      'author'         => "<a href='http://infotel.com/services/expertise-technique/glpi/'>Infotel</a>",
+      'version'        => PLUGIN_MORETICKET_VERSION,
+      'author'         => "<a href='http://blogglpi.infotel.com'>Infotel</a>",
       'homepage'       => "https://github.com/InfotelGLPI/moreticket",
       'license'        => 'GPLv2+',
-      'minGlpiVersion' => "9.2"
-   );
+      'requirements'   => [
+         'glpi' => [
+            'min' => '9.4',
+            'dev' => false
+         ]
+      ]
+   ];
 }
 
 // Optional : check prerequisites before install : may print errors or add to message after redirect
@@ -105,8 +112,11 @@ function plugin_version_moreticket() {
  * @return bool
  */
 function plugin_moreticket_check_prerequisites() {
-   if (version_compare(GLPI_VERSION, '9.2', 'lt') || version_compare(GLPI_VERSION, '9.3', 'ge')) {
-      echo __('This plugin requires GLPI >= 9.2');
+   if (version_compare(GLPI_VERSION, '9.4', 'lt')
+       || version_compare(GLPI_VERSION, '9.6', 'ge')) {
+      if (method_exists('Plugin', 'messageIncompatible')) {
+         echo Plugin::messageIncompatible('core', '9.4');
+      }
       return false;
    }
    return true;

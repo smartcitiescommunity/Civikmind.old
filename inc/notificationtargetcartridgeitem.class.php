@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -42,7 +38,7 @@ if (!defined('GLPI_ROOT')) {
 /**
  * NotificationTargetCartridgeItem Class
  *
- * @since version 0.84
+ * @since 0.84
 **/
 class NotificationTargetCartridgeItem extends NotificationTarget {
 
@@ -52,7 +48,7 @@ class NotificationTargetCartridgeItem extends NotificationTarget {
    }
 
 
-   function addtDataForTemplate($event, $options = []) {
+   function addDataForTemplate($event, $options = []) {
 
       $events = $this->getAllEvents();
 
@@ -64,7 +60,7 @@ class NotificationTargetCartridgeItem extends NotificationTarget {
          $tmp                            = [];
          $tmp['##cartridge.item##']      = $cartridge['name'];
          $tmp['##cartridge.reference##'] = $cartridge['ref'];
-         $tmp['##cartridge.remaining##'] = cartridge::getUnusedNumber($id);
+         $tmp['##cartridge.remaining##'] = Cartridge::getUnusedNumber($id);
          $tmp['##cartridge.url##']       = $this->formatURL($options['additionnaloption']['usertype'],
                                                             "CartridgeItem_".$id);
          $this->data['cartridges'][] = $tmp;
@@ -83,10 +79,10 @@ class NotificationTargetCartridgeItem extends NotificationTarget {
 
       $tags = ['cartridge.action'    => _n('Event', 'Events', 1),
                     'cartridge.reference' => __('Reference'),
-                    'cartridge.item'      => __('Cartridge model'),
+                    'cartridge.item'      => CartridgeItem::getTypeName(1),
                     'cartridge.remaining' => __('Remaining'),
                     'cartridge.url'       => __('URL'),
-                    'cartridge.entity'    => __('Entity')];
+                    'cartridge.entity'    => Entity::getTypeName(1)];
 
       foreach ($tags as $tag => $label) {
          $this->addTagToList(['tag'   => $tag,

@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,9 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-* @since version 0.83
-*/
+/**
+ * @since 0.83
+ */
 
 use Glpi\Event;
 
@@ -49,7 +48,14 @@ Html::popHeader(__('Email followup'), $_SERVER['PHP_SELF']);
 
 if (isset($_POST["update"])) {
    $link->check($_POST["id"], UPDATE);
-   $link->update($_POST);
+
+   if ($link->update($_POST)) {
+      echo "<script type='text/javascript' >\n";
+      echo "window.parent.location.reload();";
+      echo "</script>";
+   } else {
+      Html::back();
+   }
 
 } else if (isset($_POST['delete'])) {
    $link->check($_POST['id'], DELETE);
@@ -60,7 +66,7 @@ if (isset($_POST["update"])) {
               sprintf(__('%s deletes an actor'), $_SESSION["glpiname"]));
 
    if ($item->can($link->fields["problems_id"], READ)) {
-      Html::redirect($CFG_GLPI["root_doc"]."/front/problem.form.php?id=".$link->fields['problems_id']);
+      Html::redirect($item->getFormURLWithID($link->fields['problems_id']));
    }
    Session::addMessageAfterRedirect(__('You have been redirected because you no longer have access to this item'),
                                     true, ERROR);

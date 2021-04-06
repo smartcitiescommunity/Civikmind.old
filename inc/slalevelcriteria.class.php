@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,9 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-* @since version 0.84
-*/
+/**
+ * @since 0.84
+ */
 
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
@@ -53,6 +52,11 @@ class SlaLevelCriteria extends RuleCriteria {
    **/
    function __construct() {
       // Override in order not to use glpi_rules table.
+   }
+
+   function rawSearchOptions() {
+      // RuleCriteria search options requires value of rules_id field which does not exists here
+      return [];
    }
 
 }

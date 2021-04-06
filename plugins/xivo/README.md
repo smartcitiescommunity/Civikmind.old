@@ -1,10 +1,4 @@
-![Logo GLPI](./img/glpi.png) 
-
-![Logo XIVO](./img/xivo.png) 
-
-![Logo WAZO](./img/wazo.png) 
-
-Connector for [GLPI](http://glpi-project.org) with [XIVO](https://www.xivo.solutions/) or [WAZO](http://wazo.community/)
+Connector for [GLPI](http://glpi-project.org) with [XIVO](https://www.xivo.solutions/)
 
 **[DOWNLOAD the plugin](https://github.com/pluginsGLPI/xivo/releases)**
 
@@ -14,9 +8,9 @@ Here is the list of currently working/planned features:
 
 - [x] Phones inventory
 - [x] Lines inventory
-- [ ] Users presence
-- [ ] Auto-open tickets or users form
-- [ ] Click2Call
+- [x] Users presence (since xivo deneb version)
+- [x] Auto-open tickets or users form
+- [x] Click2Call (requires xivo client to handle `callto:` links)
 - [ ] Call logs
 - [ ] Directory
 
@@ -24,7 +18,7 @@ Please contact [Teclib'](http://www.teclib-group.com) by [mail](http://www.tecli
 
 ## Configuration
 
-This plugin was tested with a xivo version 16.12 and should working correctly for versions above 16.04
+This plugin was tested with xivo versions [16.12, 2018.05.03, 2019.12.03] and should work correctly for versions above 16.04.
 
 ### Inventory
 
@@ -48,3 +42,5 @@ We need a webservices user with these minimal acl:
 
 <img src="https://github.com/pluginsGLPI/xivo/blob/master/screenshots/inventory_phones.png?raw=true" alt="inventory of phones"  style="width: 250px;"/>
 <img src="https://github.com/pluginsGLPI/xivo/blob/master/screenshots/inventory_lines.png?raw=true" alt="inventory of lines"  style="width: 250px;"/>
+<img src="https://github.com/pluginsGLPI/xivo/blob/master/screenshots/xuc_integration.png?raw=true" alt="XUC integration"  style="width: 250px;"/>
+<img src="https://raw.githubusercontent.com/pluginsGLPI/xivo/master/screenshots/click2call.png" alt="Click2Call"  style="width: 250px;"/>

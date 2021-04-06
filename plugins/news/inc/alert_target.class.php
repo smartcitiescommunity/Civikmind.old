@@ -26,17 +26,21 @@ if (!defined('GLPI_ROOT')) {
 }
 
 class PluginNewsAlert_Target extends CommonDBTM {
-   static $rightname = 'entity';
+   static $rightname = 'reminder_public';
 
    static function getTypeName($nb = 0) {
       return _n('Target', 'Targets', $nb);
    }
 
    static function canDelete() {
-      return self::canPurge();
+      return self::canUpdate();
    }
 
-   static function getSpecificValueToDisplay($field, $values, array $options=array()) {
+   static function canPurge() {
+      return self::canUpdate();
+   }
+
+   static function getSpecificValueToDisplay($field, $values, array $options = []) {
 
       if (!is_array($values)) {
          $values = [$field => $values];
@@ -61,13 +65,15 @@ class PluginNewsAlert_Target extends CommonDBTM {
 
    function getTabNameForItem(CommonGLPI $item, $withtemplate = 0) {
       if ($item instanceof PluginNewsAlert) {
-         $nb = countElementsInTable(self::getTable(),
-                                    "`plugin_news_alerts_id` = ".$item->getID());
+         $nb = countElementsInTable(
+            self::getTable(),
+            ['plugin_news_alerts_id' => $item->getID()]
+         );
          return self::createTabEntry(self::getTypeName(Session::getPluralNumber()), $nb);
       }
    }
 
-   static function displayTabContentForItem(CommonGLPI $item, $tabnum=1, $withtemplate=0) {
+   static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0) {
       if ($item instanceof PluginNewsAlert) {
          self::showForAlert($item);
       }
@@ -81,7 +87,7 @@ class PluginNewsAlert_Target extends CommonDBTM {
       echo "<form method='post' action='".Toolbox::getItemTypeFormURL('PluginNewsAlert')."'>";
       echo "<input type='hidden' name='plugin_news_alerts_id' value='".$alert->getID()."'>";
 
-      $types = array('Group', 'Profile', 'User');
+      $types = ['Group', 'Profile', 'User'];
       echo "<table class='plugin_news_alert-visibility'>";
       echo "<tr>";
       echo "<td>";
@@ -93,7 +99,7 @@ class PluginNewsAlert_Target extends CommonDBTM {
                   'is_recursive' => $alert->fields['is_recursive']
                   ];
       Ajax::updateItemOnSelectEvent("dropdown_itemtype".$addrand, "visibility$rand",
-                                    $CFG_GLPI["root_doc"]."/plugins/news/ajax/targets.php",
+                                    Plugin::getWebDir('news')."/ajax/targets.php",
                                     $params);
       echo "<td>";
       echo "<span id='visibility$rand'></span>";
@@ -104,7 +110,7 @@ class PluginNewsAlert_Target extends CommonDBTM {
 
       echo "<div class='spaced'>";
       $target       = new self();
-      $found_target = $target->find("`plugin_news_alerts_id` = ".$alert->getID());
+      $found_target = $target->find(['plugin_news_alerts_id' => $alert->getID()]);
       if ($nb = count($found_target) > 0) {
          Html::openMassiveActionsForm('mass'.__CLASS__.$rand);
          $massiveactionparams

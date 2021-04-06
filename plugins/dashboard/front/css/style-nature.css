@@ -120,6 +120,17 @@ a { color: #8E9E82; }
 	margin-top: -10px;
 }
 
+#datas-tec3 {
+	min-width: 900px;
+	width: 950px;
+	margin-left: -500px;
+	left: 46%; 
+	position: relative; 
+	text-align: center;
+	margin-bottom: 12px;
+	margin-top: -10px;
+}
+
 #datas-cham {
 	min-width: 900px;
 	width: 950px;
@@ -132,9 +143,6 @@ a { color: #8E9E82; }
 }
 
 .form1 {
-	/*width: 900px;
-	margin-left: -500px;
-	left: 52%; */
 	position: relative; 
 	text-align: center;
 	margin-bottom: 5px;
@@ -145,8 +153,7 @@ a { color: #8E9E82; }
 }
 
 .form2 {
-	/*margin-left: -500px;
-	left: 52%; */
+
 	position: relative; 
 	text-align: center;
    margin-bottom: 5px;
@@ -1703,7 +1710,11 @@ td > a:hover {
 
 #graf_linhas {margin-top: 25px;}
 
-.head-asset {width: 98%;}
+.head-asset {
+	width: 98%;
+	margin-bottom: 20px;
+	margin-top: 30px;	
+}
 
 .mapkey {
 	height:320px; 
@@ -1712,4 +1723,36 @@ td > a:hover {
 	float:none; 
 	text-align:left; 
 	font-size:14pt;
+}
+
+
+.navbar-collapse.in {
+	background-color: #CACCB6 !important;
+}
+
+
+@media (max-width: 768px) {
+	.menu1 > li > a,
+	.menu1 > li > a:hover,
+	.dropdown-menu > li > a {
+		color: #000 !important;
+		text-decoration: none;
+	}
+	.list-unstyled > li > a {
+		color:#fff;
+	}
+	
+	#head {
+		width: 120%;
+		margin-left: -9.5%;
+		margin-top: -3%;
+	}
+}
+
+
+.sons {
+	width: 300px; 
+	padding-left: 15px; 
+	text-align: left;
+	color: #000;
 }

@@ -9,7 +9,7 @@
  -------------------------------------------------------------------------
 
  LICENSE
-      
+
  This file is part of resources.
 
  resources is free software; you can redistribute it and/or modify
@@ -32,18 +32,17 @@ include ('../../../inc/includes.php');
 $resource = new PluginResourcesResource();
 
 if ($resource->canView() || Session::haveRight("config", UPDATE)) {
-   if ($_SESSION['glpiactiveprofile']['interface'] == 'central') {
-      Html::header(PluginResourcesResource::getTypeName(2), '', "admin", "pluginresourcesresource");
+   if (Session::getCurrentInterface() == 'central') {
+      Html::header(PluginResourcesResource::getTypeName(2), '', "admin", PluginResourcesMenu::getType());
    } else {
       Html::helpHeader(PluginResourcesResource::getTypeName(2));
    }
 
    $resource->listOfTemplates($CFG_GLPI["root_doc"]."/plugins/resources/front/resource.form.php", $_GET["add"]);
 
-   if ($_SESSION['glpiactiveprofile']['interface'] == 'central') {
+   if (Session::getCurrentInterface() == 'central') {
       Html::footer();
    } else {
       Html::helpFooter();
    }
 }
-?>

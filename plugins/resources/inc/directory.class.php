@@ -9,7 +9,7 @@
  -------------------------------------------------------------------------
 
  LICENSE
-      
+
  This file is part of resources.
 
  resources is free software; you can redistribute it and/or modify
@@ -31,121 +31,206 @@ if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access directly to this file");
 }
 
+/**
+ * Class PluginResourcesDirectory
+ */
 class PluginResourcesDirectory extends CommonDBTM {
 
    static $rightname = 'plugin_resources';
    static protected $notable = true;
    private $table = "glpi_users";
 
+   /**
+    * Return the localized name of the current Type
+    * Should be overloaded in each new class
+    *
+    * @param integer $nb Number of items
+    *
+    * @return string
+    **/
    static function getTypeName($nb = 0) {
 
       return _n('Directory', 'Directories', $nb, 'resources');
    }
 
+   /**
+    * Have I the global right to "view" the Object
+    *
+    * Default is true and check entity if the objet is entity assign
+    *
+    * May be overloaded if needed
+    *
+    * @return booleen
+    **/
    static function canView() {
       return Session::haveRight(self::$rightname, READ);
    }
 
+   /**
+    * Have I the global right to "create" the Object
+    * May be overloaded if needed (ex KnowbaseItem)
+    *
+    * @return booleen
+    **/
    static function canCreate() {
-      return Session::haveRightsOr(self::$rightname, array(CREATE, UPDATE, DELETE));
+      return Session::haveRightsOr(self::$rightname, [CREATE, UPDATE, DELETE]);
    }
 
-   function getSearchOptions() {
+   /**
+    * Provides search options configuration. Do not rely directly
+    * on this, @see CommonDBTM::searchOptions instead.
+    *
+    * @since 9.3
+    *
+    * This should be overloaded in Class
+    *
+    * @return array a *not indexed* array of search options
+    *
+    * @see https://glpi-developer-documentation.rtfd.io/en/master/devapi/search.html
+    **/
+   function rawSearchOptions() {
 
-      $tab = array();
+      $tab = [];
 
-      $tab['common'] = self::getTypeName(2);
+      $tab[] = [
+         'id'   => 'common',
+         'name' => self::getTypeName(2)
+      ];
 
-      $tab[1]['table'] = $this->table;
-      $tab[1]['field'] = 'registration_number';
-      $tab[1]['name'] = __('Administrative number');
-      $tab[1]['datatype'] = 'string';
+      $tab[] = [
+         'id'                 => '1',
+         'table'              => $this->table,
+         'field'              => 'registration_number',
+         'name'               => __('Administrative number'),
+         'datatype'           => 'string'
+      ];
 
-      $tab[2]['table'] = $this->table;
-      $tab[2]['field'] = 'id';
-      $tab[2]['name'] = __('ID');
-      $tab[2]['massiveaction'] = false;
-      $tab[2]['datatype'] = 'number';
+      $tab[] = [
+         'id'                 => '2',
+         'table'              => $this->table,
+         'field'              => 'id',
+         'name'               => __('ID'),
+         'massiveaction'      => false,
+         'datatype'           => 'number'
+      ];
 
-      $tab[34]['table'] = $this->table;
-      $tab[34]['field'] = 'realname';
-      $tab[34]['name'] = __('Surname');
-      $tab[34]['datatype'] = 'string';
+      $tab[] = [
+         'id'                 => '34',
+         'table'              => $this->table,
+         'field'              => 'realname',
+         'name'               => __('Surname'),
+         'datatype'           => 'string'
+      ];
 
-      $tab[9]['table'] = $this->table;
-      $tab[9]['field'] = 'firstname';
-      $tab[9]['name'] = __('First name');
-      $tab[9]['datatype'] = 'string';
+      $tab[] = [
+         'id'                 => '9',
+         'table'              => $this->table,
+         'field'              => 'firstname',
+         'name'               => __('First name'),
+         'datatype'           => 'string'
+      ];
 
-      $tab[5]['table'] = 'glpi_useremails';
-      $tab[5]['field'] = 'email';
-      $tab[5]['name'] = _n('Email', 'Emails', 2);
-      $tab[5]['datatype'] = 'email';
-      $tab[5]['joinparams'] = array('jointype' => 'child');
-      $tab[5]['forcegroupby'] = true;
-      $tab[5]['massiveaction'] = false;
+      $tab[] = [
+         'id'                 => '5',
+         'table'              => 'glpi_useremails',
+         'field'              => 'email',
+         'name'               => _n('Email', 'Emails', 2),
+         'datatype'           => 'email',
+         'joinparams'         => ['jointype' => 'child'],
+         'forcegroupby'       => true,
+         'massiveaction'      => false
+      ];
 
-      $tab += Location::getSearchOptionsToAdd();
+      $tab = array_merge($tab, Location::rawSearchOptionsToAdd());
 
-      $tab[6]['table'] = $this->table;
-      $tab[6]['field'] = 'phone';
-      $tab[6]['name'] = __('Phone');
-      $tab[6]['datatype'] = 'string';
+      $tab[] = [
+         'id'                 => '6',
+         'table'              => $this->table,
+         'field'              => 'phone',
+         'name'               => __('Phone'),
+         'datatype'           => 'string'
+      ];
 
-      $tab[10]['table'] = $this->table;
-      $tab[10]['field'] = 'phone2';
-      $tab[10]['name'] = __('Phone 2');
-      $tab[10]['datatype'] = 'string';
+      $tab[] = [
+         'id'                 => '10',
+         'table'              => $this->table,
+         'field'              => 'phone2',
+         'name'               => __('Phone 2'),
+         'datatype'           => 'string'
+      ];
 
-      $tab[11]['table'] = $this->table;
-      $tab[11]['field'] = 'mobile';
-      $tab[11]['name'] = __('Mobile phone');
-      $tab[11]['datatype'] = 'string';
+      $tab[] = [
+         'id'                 => '11',
+         'table'              => $this->table,
+         'field'              => 'mobile',
+         'name'               => __('Mobile phone'),
+         'datatype'           => 'string'
+      ];
 
-      // FROM employee
+      $tab[] = [
+         'id'                 => '4313',
+         'table'              => 'glpi_plugin_resources_employers',
+         'field'              => 'completename',
+         'name'               => PluginResourcesEmployer::getTypeName(1),
+         'datatype'           => 'dropdown'
+      ];
 
-      $tab[4313]['table'] = 'glpi_plugin_resources_employers';
-      $tab[4313]['field'] = 'completename';
-      $tab[4313]['name'] = PluginResourcesEmployer::getTypeName(1);
-      $tab[4313]['datatype'] = 'dropdown';
+      $tab[] = [
+         'id'                 => '4314',
+         'table'              => 'glpi_plugin_resources_clients',
+         'field'              => 'name',
+         'name'               => PluginResourcesClient::getTypeName(1),
+         'datatype'           => 'dropdown'
+      ];
 
-      $tab[4314]['table'] = 'glpi_plugin_resources_clients';
-      $tab[4314]['field'] = 'name';
-      $tab[4314]['name'] = PluginResourcesClient::getTypeName(1);
-      $tab[4314]['datatype'] = 'dropdown';
-      // FROM resources
+      $tab[] = [
+         'id'                 => '4315',
+         'table'              => 'glpi_plugin_resources_contracttypes',
+         'field'              => 'name',
+         'name'               => PluginResourcesContractType::getTypeName(1),
+         'datatype'           => 'dropdown'
+      ];
 
-      $tab[4315]['table'] = 'glpi_plugin_resources_contracttypes';
-      $tab[4315]['field'] = 'name';
-      $tab[4315]['name'] = PluginResourcesContractType::getTypeName(1);
-      $tab[4315]['datatype'] = 'dropdown';
+      $tab[] = [
+         'id'                 => '4316',
+         'table'              => 'glpi_plugin_resources_managers',
+         'field'              => 'name',
+         'name'               => __('Resource manager', 'resources'),
+         'searchtype'         => 'contains',
+         'datatype'           => 'dropdown'
+      ];
 
-      $tab[4316]['table'] = 'glpi_plugin_resources_managers';
-      $tab[4316]['field'] = 'name';
-      $tab[4316]['name'] = __('Resource manager', 'resources');
-      $tab[4316]['searchtype'] = 'contains';
-      $tab[4316]['datatype'] = 'dropdown';
+      $tab[] = [
+         'id'                 => '4317',
+         'table'              => 'glpi_plugin_resources_resources',
+         'field'              => 'date_begin',
+         'name'               => __('Arrival date', 'resources'),
+         'datatype'           => 'date'
+      ];
 
-      $tab[4317]['table'] = 'glpi_plugin_resources_resources';
-      $tab[4317]['field'] = 'date_begin';
-      $tab[4317]['name'] = __('Arrival date', 'resources');
-      $tab[4317]['datatype'] = 'date';
+      $tab[] = [
+         'id'                 => '4318',
+         'table'              => 'glpi_plugin_resources_resources',
+         'field'              => 'date_end',
+         'name'               => __('Departure date', 'resources'),
+         'datatype'           => 'date'
+      ];
 
-      $tab[4318]['table'] = 'glpi_plugin_resources_resources';
-      $tab[4318]['field'] = 'date_end';
-      $tab[4318]['name'] = __('Departure date', 'resources');
-      $tab[4318]['datatype'] = 'date';
+      $tab[] = [
+         'id'                 => '4319',
+         'table'              => 'glpi_plugin_resources_departments',
+         'field'              => 'name',
+         'name'               => PluginResourcesDepartment::getTypeName(1),
+         'datatype'           => 'dropdown'
+      ];
 
-      $tab[4319]['table'] = 'glpi_plugin_resources_departments';
-      $tab[4319]['field'] = 'name';
-      $tab[4319]['name'] = PluginResourcesDepartment::getTypeName(1);
-      $tab[4319]['datatype'] = 'dropdown';
-
-      $tab[4320]['table'] = 'glpi_plugin_resources_resourcestates';
-      $tab[4320]['field'] = 'name';
-      $tab[4320]['name'] = PluginResourcesResourceState::getTypeName(1);
-      $tab[4320]['datatype'] = 'dropdown';
-
+      $tab[] = [
+         'id'                 => '4320',
+         'table'              => 'glpi_plugin_resources_resourcestates',
+         'field'              => 'name',
+         'name'               => PluginResourcesResourceState::getTypeName(1),
+         'datatype'           => 'dropdown'
+      ];
       return $tab;
    }
 
@@ -161,10 +246,10 @@ class PluginResourcesDirectory extends CommonDBTM {
 
       $data = Search::prepareDatasForSearch($itemtype, $params);
       self::constructSQL($data);
-      Search::constructDatas($data);
-      Search::displayDatas($data);
+      Search::constructData($data);
+      Search::displayData($data);
    }
-   
+
    /**
     * Construct SQL request depending of search parameters
     *
@@ -187,16 +272,15 @@ class PluginResourcesDirectory extends CommonDBTM {
          return false;
       }
 
-      $data['sql']['count']  = array();
+      $data['sql']['count']  = [];
       $data['sql']['search'] = '';
 
       $searchopt        = &Search::getOptions($data['itemtype']);
+      $dbu = new DbUtils();
+      $blacklist_tables = [];
 
-      $blacklist_tables = array();
+      $itemtable = $dbu->getTableForItemType("User");
 
-      $itemtable = getTableForItemType("User");
-      
-      
       $PluginResourcesResource = new PluginResourcesResource();
 
       $entity_restrict = $PluginResourcesResource->isEntityAssign();
@@ -209,7 +293,7 @@ class PluginResourcesDirectory extends CommonDBTM {
 
       // Add select for all toview item
       foreach ($data['toview'] as $key => $val) {
-         $SELECT .= Search::addSelect($data['itemtype'], $val, $key, 0);
+         $SELECT .= Search::addSelect($data['itemtype'], $val, 0);
       }
 
       //// 2 - FROM AND LEFT JOIN
@@ -217,7 +301,7 @@ class PluginResourcesDirectory extends CommonDBTM {
       $FROM = " FROM `".$itemtable."`";
 
       // Init already linked tables array in order not to link a table several times
-      $already_link_tables = array();
+      $already_link_tables = [];
       // Put reference table
       array_push($already_link_tables, $itemtable);
 
@@ -234,7 +318,7 @@ class PluginResourcesDirectory extends CommonDBTM {
                                        $searchopt[$val]["field"]);
          }
       }
-      
+
       // Search all case :
       if ($data['search']['all_search']) {
          foreach ($searchopt as $key => $val) {
@@ -261,7 +345,7 @@ class PluginResourcesDirectory extends CommonDBTM {
 
       // Add deleted if item have it
       if ($data['item'] && $data['item']->maybeDeleted()) {
-         $LINK = " AND " ;
+         $LINK = " AND ";
          if ($first) {
             $LINK  = " ";
             $first = false;
@@ -271,7 +355,7 @@ class PluginResourcesDirectory extends CommonDBTM {
 
       // Remove template items
       if ($data['item'] && $data['item']->maybeTemplate()) {
-         $LINK = " AND " ;
+         $LINK = " AND ";
          if ($first) {
             $LINK  = " ";
             $first = false;
@@ -281,12 +365,12 @@ class PluginResourcesDirectory extends CommonDBTM {
 
       // Add Restrict to current entities
       if ($entity_restrict) {
-         $LINK = " AND " ;
+         $LINK = " AND ";
          if ($first) {
             $LINK  = " ";
             $first = false;
          }
-         
+
          $COMMONWHERE .= " `glpi_profiles_users`.`entities_id` IN ('".implode("','", $_SESSION['glpiactiveentities'])."')";
       }
       $WHERE  = "";
@@ -295,7 +379,7 @@ class PluginResourcesDirectory extends CommonDBTM {
       // Add search conditions
       // If there is search items
       if (count($data['search']['criteria'])) {
-         foreach  ($data['search']['criteria'] as $key => $criteria) {
+         foreach ($data['search']['criteria'] as $key => $criteria) {
             // if real search (strlen >0) and not all and view search
             if (isset($criteria['value']) && (strlen($criteria['value']) > 0)) {
                // common search
@@ -304,8 +388,8 @@ class PluginResourcesDirectory extends CommonDBTM {
                   $NOT     = 0;
                   $tmplink = "";
                   if (isset($criteria['link'])) {
-                     if (strstr($criteria['link'],"NOT")) {
-                        $tmplink = " ".str_replace(" NOT","",$criteria['link']);
+                     if (strstr($criteria['link'], "NOT")) {
+                        $tmplink = " ".str_replace(" NOT", "", $criteria['link']);
                         $NOT     = 1;
                      } else {
                         $tmplink = " ".$criteria['link'];
@@ -333,7 +417,7 @@ class PluginResourcesDirectory extends CommonDBTM {
                                               $criteria['searchtype'], $criteria['value']);
                   }
 
-               // view and all search
+                  // view and all search
                } else {
                   $LINK       = " OR ";
                   $NOT        = 0;
@@ -375,7 +459,7 @@ class PluginResourcesDirectory extends CommonDBTM {
                   $WHERE .= " ( ";
                   $first2 = true;
 
-                  $items = array();
+                  $items = [];
 
                   if ($criteria['field'] == "all") {
                      $items = $searchopt;
@@ -409,7 +493,6 @@ class PluginResourcesDirectory extends CommonDBTM {
          }
       }
 
-
       //// 4 - ORDER
       $ORDER = " ORDER BY `id` ";
       foreach ($data['tocompute'] as $key => $val) {
@@ -423,7 +506,7 @@ class PluginResourcesDirectory extends CommonDBTM {
       // Preprocessing
       if (count($data['search']['metacriteria'])) {
          // Already link meta table in order not to linked a table several times
-         $already_link_tables2 = array();
+         $already_link_tables2 = [];
          $metanum              = count($data['toview'])-1;
 
          foreach ($data['search']['metacriteria'] as $key => $metacriteria) {
@@ -436,11 +519,11 @@ class PluginResourcesDirectory extends CommonDBTM {
 
                 // a - SELECT
                $SELECT .= Search::addSelect($metacriteria['itemtype'], $metacriteria['field'],
-                                          $metanum, 1, $metacriteria['itemtype']);
+                                          1, $metacriteria['itemtype']);
 
                // b - ADD LEFT JOIN
                // Link reference tables
-               if (!in_array(getTableForItemType($metacriteria['itemtype']),
+               if (!in_array($dbu->getTableForItemType($metacriteria['itemtype']),
                                                  $already_link_tables2)) {
                   $FROM .= Search::addMetaLeftJoin($data['itemtype'], $metacriteria['itemtype'],
                                                  $already_link_tables2,
@@ -453,7 +536,7 @@ class PluginResourcesDirectory extends CommonDBTM {
                              $already_link_tables2)) {
 
                   $FROM .= self::addLeftJoin($metacriteria['itemtype'],
-                                             getTableForItemType($metacriteria['itemtype']),
+                                             $dbu->getTableForItemType($metacriteria['itemtype']),
                                              $already_link_tables2, $sopt["table"],
                                              $sopt["linkfield"], 1, $metacriteria['itemtype'],
                                              $sopt["joinparams"], $sopt["field"]);
@@ -461,12 +544,12 @@ class PluginResourcesDirectory extends CommonDBTM {
                // Where
                $LINK = "";
                // For AND NOT statement need to take into account all the group by items
-               if (strstr($metacriteria['link'],"AND NOT")
+               if (strstr($metacriteria['link'], "AND NOT")
                    || isset($sopt["usehaving"])) {
 
                   $NOT = 0;
-                  if (strstr($metacriteria['link'],"NOT")) {
-                     $tmplink = " ".str_replace(" NOT","",$metacriteria['link']);
+                  if (strstr($metacriteria['link'], "NOT")) {
+                     $tmplink = " ".str_replace(" NOT", "", $metacriteria['link']);
                      $NOT     = 1;
                   } else {
                      $tmplink = " ".$metacriteria['link'];
@@ -482,7 +565,7 @@ class PluginResourcesDirectory extends CommonDBTM {
                   $NOT  = 0;
                   // Manage Link if not first item
                   if (isset($metacriteria['link'])
-                      && strstr($metacriteria['link'],"NOT")) {
+                      && strstr($metacriteria['link'], "NOT")) {
 
                      $tmplink = " ".str_replace(" NOT", "", $metacriteria['link']);
                      $NOT     = 1;
@@ -510,7 +593,6 @@ class PluginResourcesDirectory extends CommonDBTM {
       if (!empty($itemtable)) {
          $SELECT .= "`$itemtable`.`id` AS id ";
       }
-
 
       //// 7 - Manage GROUP BY
       $GROUPBY = "";
@@ -552,14 +634,13 @@ class PluginResourcesDirectory extends CommonDBTM {
          $HAVING = ' HAVING '.$HAVING;
       }
 
-
       // Create QUERY
       if (isset($CFG_GLPI["union_search_type"][$data['itemtype']])) {
          $first = true;
          $QUERY = "";
          foreach ($CFG_GLPI[$CFG_GLPI["union_search_type"][$data['itemtype']]] as $ctype) {
-            $ctable = getTableForItemType($ctype);
-            if (($citem = getItemForItemtype($ctype))
+            $ctable = $dbu->getTableForItemType($ctype);
+            if (($citem = $dbu->getItemForItemtype($ctype))
                 && $citem->canView()) {
                if ($first) {
                   $first = false;
@@ -577,12 +658,12 @@ class PluginResourcesDirectory extends CommonDBTM {
 
                   // Add deleted if item have it
                   if ($citem && $citem->maybeDeleted()) {
-                     $tmpquery .= " AND `$ctable`.`is_deleted` = '0' ";
+                     $tmpquery .= " AND `$ctable`.`is_deleted` = 0 ";
                   }
 
                   // Remove template items
                   if ($citem && $citem->maybeTemplate()) {
-                     $tmpquery .= " AND `$ctable`.`is_template` = '0' ";
+                     $tmpquery .= " AND `$ctable`.`is_template` = 0 ";
                   }
 
                   $tmpquery.= $GROUPBY.
@@ -593,7 +674,7 @@ class PluginResourcesDirectory extends CommonDBTM {
                   $tmpquery = str_replace($data['itemtype'], $ctype, $tmpquery);
 
                } else {// Ref table case
-                  $reftable = getTableForItemType($data['itemtype']);
+                  $reftable = $dbu->getTableForItemType($data['itemtype']);
 
                   $tmpquery = $SELECT.", '$ctype' AS TYPE,
                                       `$reftable`.`id` AS refID, "."
@@ -606,7 +687,6 @@ class PluginResourcesDirectory extends CommonDBTM {
                                              "`$reftable`.`is_deleted`", $tmpquery);
                   }
 
-
                   $replace = "FROM `$reftable`"."
                               INNER JOIN `$ctable`"."
                                  ON (`$reftable`.`items_id`=`$ctable`.`id`"."
@@ -618,7 +698,7 @@ class PluginResourcesDirectory extends CommonDBTM {
                                           $ctable, $tmpquery);
                }
                $tmpquery = str_replace("ENTITYRESTRICT",
-                                       getEntitiesRestrictRequest('', $ctable, '', '',
+                                       $dbu->getEntitiesRestrictRequest('', $ctable, '', '',
                                                                   $citem->maybeRecursive()),
                                        $tmpquery);
 
@@ -664,13 +744,14 @@ class PluginResourcesDirectory extends CommonDBTM {
     * @return Left join string
    **/
    static function addLeftJoin($itemtype, $ref_table, array &$already_link_tables, $new_table,
-                               $linkfield, $meta=0, $meta_type=0, $joinparams=array(), $field='') {
+                               $linkfield, $meta = 0, $meta_type = 0, $joinparams = [], $field = '') {
       global $CFG_GLPI;
 
       // Rename table for meta left join
-      $AS = "";
-      $nt = $new_table;
-      $cleannt    = $nt;
+      $AS      = "";
+      $nt      = $new_table;
+      $cleannt = $nt;
+      $dbu     = new DbUtils();
 
       // Virtual field no link
       if (strpos($linkfield, '_virtual') === 0) {
@@ -678,10 +759,10 @@ class PluginResourcesDirectory extends CommonDBTM {
       }
 
       // Multiple link possibilies case
-//       if ($new_table=="glpi_users"
-//           || $new_table=="glpi_groups"
-//           || $new_table=="glpi_users_validation") {
-      if (!empty($linkfield) && ($linkfield != getForeignKeyFieldForTable($new_table))) {
+      //       if ($new_table=="glpi_users"
+      //           || $new_table=="glpi_groups"
+      //           || $new_table=="glpi_users_validation") {
+      if (!empty($linkfield) && ($linkfield != $dbu->getForeignKeyFieldForTable($new_table))) {
          $nt .= "_".$linkfield;
          $AS  = " AS `$nt`";
       }
@@ -693,7 +774,7 @@ class PluginResourcesDirectory extends CommonDBTM {
          $AS  = " AS `$nt`";
       }
 
-//       }
+      //       }
 
       $addmetanum = "";
       $rt         = $ref_table;
@@ -712,11 +793,11 @@ class PluginResourcesDirectory extends CommonDBTM {
 
       // Do not take into account standard linkfield
       $tocheck = $nt.".".$linkfield;
-      if ($linkfield == getForeignKeyFieldForTable($new_table)) {
+      if ($linkfield == $dbu->getForeignKeyFieldForTable($new_table)) {
          $tocheck = $nt;
       }
 
-      if (in_array($tocheck,$already_link_tables)) {
+      if (in_array($tocheck, $already_link_tables)) {
          return "";
       }
       array_push($already_link_tables, $tocheck);
@@ -743,15 +824,14 @@ class PluginResourcesDirectory extends CommonDBTM {
             }
          }
       }
-      
 
       if (!empty($linkfield)) {
          $before = '';
 
-         if (isset($joinparams['beforejoin']) && is_array($joinparams['beforejoin']) ) {
+         if (isset($joinparams['beforejoin']) && is_array($joinparams['beforejoin'])) {
 
             if (isset($joinparams['beforejoin']['table'])) {
-               $joinparams['beforejoin'] = array($joinparams['beforejoin']);
+               $joinparams['beforejoin'] = [$joinparams['beforejoin']];
             }
 
             foreach ($joinparams['beforejoin'] as $tab) {
@@ -760,10 +840,10 @@ class PluginResourcesDirectory extends CommonDBTM {
                   if (isset($tab['linkfield'])) {
                      $interlinkfield = $tab['linkfield'];
                   } else {
-                     $interlinkfield = getForeignKeyFieldForTable($intertable);
+                     $interlinkfield = $dbu->getForeignKeyFieldForTable($intertable);
                   }
 
-                  $interjoinparams = array();
+                  $interjoinparams = [];
                   if (isset($tab['joinparams'])) {
                      $interjoinparams = $tab['joinparams'];
                   }
@@ -785,8 +865,8 @@ class PluginResourcesDirectory extends CommonDBTM {
 
          $addcondition = '';
          if (isset($joinparams['condition'])) {
-            $from         = array("`REFTABLE`", "REFTABLE", "`NEWTABLE`", "NEWTABLE");
-            $to           = array("`$rt`", "`$rt`", "`$nt`", "`$nt`");
+            $from         = ["`REFTABLE`", "REFTABLE", "`NEWTABLE`", "NEWTABLE"];
+            $to           = ["`$rt`", "`$rt`", "`$nt`", "`$nt`"];
             $addcondition = str_replace($from, $to, $joinparams['condition']);
             $addcondition = $addcondition." ";
          }
@@ -814,7 +894,7 @@ class PluginResourcesDirectory extends CommonDBTM {
          if (empty($specific_leftjoin)) {
             switch ($joinparams['jointype']) {
                case 'child' :
-                  $linkfield = getForeignKeyFieldForTable($cleanrt);
+                  $linkfield = $dbu->getForeignKeyFieldForTable($cleanrt);
                   if (isset($joinparams['linkfield'])) {
                      $linkfield = $joinparams['linkfield'];
                   }
@@ -829,9 +909,9 @@ class PluginResourcesDirectory extends CommonDBTM {
                   // Item_Item join
                   $specific_leftjoin = " LEFT JOIN `$new_table` $AS
                                           ON ((`$rt`.`id`
-                                                = `$nt`.`".getForeignKeyFieldForTable($cleanrt)."_1`
+                                                = `$nt`.`".$dbu->getForeignKeyFieldForTable($cleanrt)."_1`
                                                OR `$rt`.`id`
-                                                 = `$nt`.`".getForeignKeyFieldForTable($cleanrt)."_2`)
+                                                 = `$nt`.`".$dbu->getForeignKeyFieldForTable($cleanrt)."_2`)
                                               $addcondition)";
                   break;
 
@@ -839,9 +919,9 @@ class PluginResourcesDirectory extends CommonDBTM {
                   // Item_Item join reverting previous item_item
                   $specific_leftjoin = " LEFT JOIN `$new_table` $AS
                                           ON ((`$nt`.`id`
-                                                = `$rt`.`".getForeignKeyFieldForTable($cleannt)."_1`
+                                                = `$rt`.`".$dbu->getForeignKeyFieldForTable($cleannt)."_1`
                                                OR `$nt`.`id`
-                                                 = `$rt`.`".getForeignKeyFieldForTable($cleannt)."_2`)
+                                                 = `$rt`.`".$dbu->getForeignKeyFieldForTable($cleannt)."_2`)
                                               $addcondition)";
                   break;
 
@@ -881,7 +961,7 @@ class PluginResourcesDirectory extends CommonDBTM {
                   $specific_leftjoin = "LEFT JOIN `$new_table` $AS
                                           ON (`$rt`.`$linkfield` = `$nt`.`id`
                                               $addcondition)";
-                  $transitemtype = getItemTypeForTable($new_table);
+                  $transitemtype = $dbu->getItemTypeForTable($new_table);
                   if (Session::haveTranslations($transitemtype, $field)) {
                      $transAS            = $nt.'_trans';
                      $specific_leftjoin .= "LEFT JOIN `glpi_dropdowntranslations` AS `$transAS`
@@ -898,7 +978,7 @@ class PluginResourcesDirectory extends CommonDBTM {
          return $before.$specific_leftjoin;
       }
    }
-   
+
    /**
     * @since version 0.84
     * */
@@ -911,15 +991,27 @@ class PluginResourcesDirectory extends CommonDBTM {
    }
 
    //Massive action
-   function getSpecificMassiveActions($checkitem = NULL) {
-      
-      $actions = parent::getSpecificMassiveActions($checkitem);
-      if($_SESSION["glpiactiveprofile"]["interface"] == "central"){
+
+   /**
+    * Get the specific massive actions
+    *
+    * @since 0.84
+    *
+    * This should be overloaded in Class
+    *
+    * @param object $checkitem link item to check right (default NULL)
+    *
+    * @return array an array of massive actions
+    **/
+   function getSpecificMassiveActions($checkitem = null) {
+
+      $actions = [];
+      if (Session::getCurrentInterface() == "central") {
          $actions['PluginResourcesDirectory'.MassiveAction::CLASS_ACTION_SEPARATOR.'Send'] = __('Send a notification');
       }
       return $actions;
    }
-   
+
    /**
     * @since version 0.85
     *
@@ -942,8 +1034,13 @@ class PluginResourcesDirectory extends CommonDBTM {
             return parent::doSpecificMassiveActions($input);
       }
    }
-   
-    function sendEmail($items) {
+
+   /**
+    * @param $items
+    *
+    * @return bool
+    */
+   function sendEmail($items) {
       $User  = new User();
       $mail  = "";
       $first = true;
@@ -951,10 +1048,11 @@ class PluginResourcesDirectory extends CommonDBTM {
          if ($User->getFromDB($key)) {
             $email = $User->getDefaultEmail();
             if (!empty($email)) {
-               if (!$first)
+               if (!$first) {
                   $mail.=";";
-               else
+               } else {
                   $first = false;
+               }
                $mail.= $email;
             }
          }
@@ -968,4 +1066,3 @@ class PluginResourcesDirectory extends CommonDBTM {
 
 }
 
-?>

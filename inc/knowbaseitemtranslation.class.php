@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,9 +30,7 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
+use Glpi\Event;
 
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
@@ -42,7 +40,7 @@ if (!defined('GLPI_ROOT')) {
 /**
  * KnowbaseItemTranslation Class
  *
- * @since version 0.85
+ * @since 0.85
 **/
 class KnowbaseItemTranslation extends CommonDBChild {
 
@@ -79,9 +77,6 @@ class KnowbaseItemTranslation extends CommonDBChild {
    }
 
 
-   /**
-    * @see CommonGLPI::getTabNameForItem()
-   **/
    function getTabNameForItem(CommonGLPI $item, $withtemplate = 0) {
 
       if (!$withtemplate) {
@@ -140,10 +135,10 @@ class KnowbaseItemTranslation extends CommonDBChild {
     *
     * @param $options      array of options
     *
-    * @return nothing (display item : question and answer)
+    * @return void
    **/
    function showFull($options = []) {
-      global $DB, $CFG_GLPI;
+      global $CFG_GLPI;
 
       if (!$this->can($this->fields['id'], READ)) {
          return false;
@@ -152,7 +147,7 @@ class KnowbaseItemTranslation extends CommonDBChild {
       $linkusers_id = true;
       // show item : question and answer
       if (((Session::getLoginUserID() === false) && $CFG_GLPI["use_public_faq"])
-          || ($_SESSION["glpiactiveprofile"]["interface"] == "helpdesk")
+          || (Session::getCurrentInterface() == "helpdesk")
           || !User::canView()) {
          $linkusers_id = false;
       }
@@ -183,7 +178,7 @@ class KnowbaseItemTranslation extends CommonDBChild {
     * @return true;
    **/
    static function showTranslations(KnowbaseItem $item) {
-      global $DB, $CFG_GLPI;
+      global $CFG_GLPI;
 
       $canedit = $item->can($item->getID(), UPDATE);
       $rand    = mt_rand();
@@ -207,7 +202,7 @@ class KnowbaseItemTranslation extends CommonDBChild {
       }
 
       $obj   = new self;
-      $found = $obj->find("`knowbaseitems_id`='".$item->getID()."'", "`language` ASC");
+      $found = $obj->find(['knowbaseitems_id' => $item->getID()], "language ASC");
 
       if (count($found) > 0) {
          if ($canedit) {
@@ -223,7 +218,7 @@ class KnowbaseItemTranslation extends CommonDBChild {
          echo "<th colspan='4'>".__("List of translations")."</th></tr>";
          if ($canedit) {
             echo "<th width='10'>";
-            Html::checkAllAsCheckbox('mass'.__CLASS__.$rand);
+            echo Html::getCheckAllAsCheckbox('mass'.__CLASS__.$rand);
             echo "</th>";
          }
          echo "<th>".__("Language")."</th>";
@@ -239,7 +234,7 @@ class KnowbaseItemTranslation extends CommonDBChild {
             echo Dropdown::getLanguageName($data['language']);
             echo "</td><td>";
             if ($canedit) {
-               echo "<a href=\"" . $CFG_GLPI["root_doc"] . "/front/knowbaseitemtranslation.form.php?id=".$data["id"] . "\">{$data['name']}</a>";
+               echo "<a href=\"" . KnowbaseItemTranslation::getFormURLWithID($data["id"]) . "\">{$data['name']}</a>";
             } else {
                echo  $data["name"];
             }
@@ -267,12 +262,10 @@ class KnowbaseItemTranslation extends CommonDBChild {
    /**
     * Display translation form
     *
-    * @param $ID              field (default -1)
-    * @param $options   array
+    * @param integer $ID
+    * @param array   $options
     */
    function showForm($ID = -1, $options = []) {
-      global $CFG_GLPI;
-
       if (isset($options['parent']) && !empty($options['parent'])) {
          $item = $options['parent'];
       }
@@ -323,17 +316,17 @@ class KnowbaseItemTranslation extends CommonDBChild {
    /**
     * Get a translation for a value
     *
-    * @param $item       item to translate
-    * @param $field      field to return (default 'name')
+    * @param KnowbaseItem $item   item to translate
+    * @param string       $field  field to return (default 'name')
     *
-    * @return the field translated if a translation is available, or the original field if not
+    * @return string  the field translated if a translation is available, or the original field if not
    **/
    static function getTranslatedValue(KnowbaseItem $item, $field = "name") {
-      global $DB;
-
       $obj   = new self;
-      $found = $obj->find("`knowbaseitems_id` = '".$item->getID().
-                          "' AND `language` = '".$_SESSION['glpilanguage']."'");
+      $found = $obj->find([
+         'knowbaseitems_id'   => $item->getID(),
+         'language'           => $_SESSION['glpilanguage']
+      ]);
 
       if ((count($found) > 0)
           && in_array($field, ['name', 'answer'])) {
@@ -375,9 +368,9 @@ class KnowbaseItemTranslation extends CommonDBChild {
    /**
     * Return the number of translations for an item
     *
-    * @param item
+    * @param KnowbaseItem $item
     *
-    * @return the number of translations for this item
+    * @return integer  the number of translations for this item
    **/
    static function getNumberOfTranslationsForItem($item) {
 
@@ -397,8 +390,13 @@ class KnowbaseItemTranslation extends CommonDBChild {
       global $DB;
 
       $tab = [];
-      foreach ($DB->request(getTableForItemType(__CLASS__),
-                           "`knowbaseitems_id`='".$item->getID()."'") as $data) {
+
+      $iterator = $DB->request([
+         'FROM'   => getTableForItemType(__CLASS__),
+         'WHERE'  => ['knowbaseitems_id' => $item->getID()]
+      ]);
+
+      while ($data = $iterator->next()) {
          $tab[$data['language']] = $data['language'];
       }
       return $tab;
@@ -430,8 +428,8 @@ class KnowbaseItemTranslation extends CommonDBChild {
 
       if ($this->update($values)) {
          Event::log($this->getID(), "knowbaseitemtranslation", 5, "tools",
-                    //TRANS: %s is the user login, %d the revision number
-                    sprintf(__('%s reverts item translation to revision %id'), $_SESSION["glpiname"], $revision));
+                    //TRANS: %1$s is the user login, %2$s the revision number
+                    sprintf(__('%1$s reverts item translation to revision %2$s'), $_SESSION["glpiname"], $revision));
          return true;
       } else {
          return false;

@@ -1,38 +1,96 @@
 <?php
+/**
+ * ---------------------------------------------------------------------
+ * Formcreator is a plugin which allows creation of custom forms of
+ * easy access.
+ * ---------------------------------------------------------------------
+ * LICENSE
+ *
+ * This file is part of Formcreator.
+ *
+ * Formcreator is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Formcreator is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Formcreator. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
+ * @copyright Copyright © 2011 - 2021 Teclib'
+ * @license   http://www.gnu.org/licenses/gpl.txt GPLv3+
+ * @link      https://github.com/pluginsGLPI/formcreator/
+ * @link      https://pluginsglpi.github.io/formcreator/
+ * @link      http://plugins.glpi-project.org/#/plugin/formcreator
+ * ---------------------------------------------------------------------
+ */
+
+use GlpiPlugin\Formcreator\Exception\ImportFailureException;
+
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
 
-abstract class PluginFormcreatorTarget_Actor extends CommonDBTM
+class PluginFormcreatorTarget_Actor extends CommonDBChild implements PluginFormcreatorExportableInterface
 {
-   abstract protected function getTargetItem();
+   use PluginFormcreatorExportableTrait;
+
+   static public $itemtype = 'itemtype';
+   static public $items_id = 'items_id';
+
+   const ACTOR_TYPE_AUTHOR = 1;
+   const ACTOR_TYPE_VALIDATOR = 2;
+   const ACTOR_TYPE_PERSON = 3;
+   const ACTOR_TYPE_QUESTION_PERSON = 4;
+   const ACTOR_TYPE_GROUP = 5;
+   const ACTOR_TYPE_QUESTION_GROUP = 6;
+   const ACTOR_TYPE_SUPPLIER = 7;
+   const ACTOR_TYPE_QUESTION_SUPPLIER = 8;
+   const ACTOR_TYPE_QUESTION_ACTORS = 9;
+   const ACTOR_TYPE_GROUP_FROM_OBJECT = 10;
+   const ACTOR_TYPE_TECH_GROUP_FROM_OBJECT = 11;
+
+   const ACTOR_ROLE_REQUESTER = 1;
+   const ACTOR_ROLE_OBSERVER = 2;
+   const ACTOR_ROLE_ASSIGNED = 3;
+   const ACTOR_ROLE_SUPPLIER = 4;
 
    static function getEnumActorType() {
       return [
-         'creator'            => __("Form requester", 'formcreator'),
-         'validator'          => __("Form validator", 'formcreator'),
-         'person'             => __("Specific person", 'formcreator'),
-         'question_person'    => __("Person from the question", 'formcreator'),
-         'group'              => __('Specific group', 'formcreator'),
-         'question_group'     => __('Group from the question', 'formcreator'),
-         'supplier'           => __('Specific supplier', 'formcreator'),
-         'question_supplier'  => __('Supplier from the question', 'formcreator'),
-         'question_actors'    => __('Actors from the question', 'formcreator'),
+         self::ACTOR_TYPE_AUTHOR                 => __('Form author', 'formcreator'),
+         self::ACTOR_TYPE_VALIDATOR              => __('Form validator', 'formcreator'),
+         self::ACTOR_TYPE_PERSON                 => __('Specific person', 'formcreator'),
+         self::ACTOR_TYPE_QUESTION_PERSON        => __('Person from the question', 'formcreator'),
+         self::ACTOR_TYPE_GROUP                  => __('Specific group', 'formcreator'),
+         self::ACTOR_TYPE_QUESTION_GROUP         => __('Group from the question', 'formcreator'),
+         self::ACTOR_TYPE_GROUP_FROM_OBJECT      => __('Group from an object', 'formcreator'),
+         self::ACTOR_TYPE_TECH_GROUP_FROM_OBJECT => __('Tech group from an object', 'formcreator'),
+         self::ACTOR_TYPE_SUPPLIER               => __('Specific supplier', 'formcreator'),
+         self::ACTOR_TYPE_QUESTION_SUPPLIER      => __('Supplier from the question', 'formcreator'),
+         self::ACTOR_TYPE_QUESTION_ACTORS        => __('Actors from the question', 'formcreator'),
       ];
    }
 
    static function getEnumRole() {
       return [
-         'requester'          => __("Requester"),
-         'observer'           => __("Observer"),
-         'assigned'           => __("Assigned to"),
+         self::ACTOR_ROLE_REQUESTER => __('Requester'),
+         self::ACTOR_ROLE_OBSERVER  => __('Observer'),
+         self::ACTOR_ROLE_ASSIGNED  => __('Assigned to'),
+         // TODO : support ACTOR_ROLE_SUPPLIER
       ];
    }
 
+   public static function getTypeName($nb = 0) {
+      return _n('Target actor', 'Target actors', $nb, 'formcreator');
+   }
 
    public function prepareInputForAdd($input) {
 
-      // generate a uniq id
+      // generate a unique id
       if (!isset($input['uuid']) || empty($input['uuid'])) {
          $input['uuid'] = plugin_formcreator_getUuid();
       }
@@ -40,124 +98,160 @@ abstract class PluginFormcreatorTarget_Actor extends CommonDBTM
       return $input;
    }
 
-   /**
-    * Import a form's targetticket's actor into the db
-    * @see PluginFormcreatorTargetTicket::import
-    * @see PluginFormcreatorTargetChange::import
-    *
-    * @param  integer $targets_id  id of the parent targetticket
-    * @param  array   $actor the actor data (match the actor table)
-    * @return integer the actor's id
-    */
-   public static function import($targets_id = 0, $actor = []) {
-      $item = new static;
+   public static function import(PluginFormcreatorLinker $linker, $input = [], $containerId = 0) {
+      if (!isset($input['uuid']) && !isset($input['id'])) {
+         throw new ImportFailureException(sprintf('UUID or ID is mandatory for %1$s', static::getTypeName(1)));
+      }
 
-      $foreignKeyField = $item->getTargetItem()->getForeignKeyField();
-      $actor[$foreignKeyField] = $targets_id;
+      $input[static::$items_id] = $containerId;
 
-      // retrieve FK
-      if (isset($actor['_question'])) {
-         $question = new PluginFormcreatorQuestion;
+      $item = new static();
+      // Find an existing condition to update, only if an UUID is available
+      $itemId = false;
+      /** @var string $idKey key to use as ID (id or uuid) */
+      $idKey = 'id';
+      if (isset($input['uuid'])) {
+         // Try to find an existing item to update
+         $idKey = 'uuid';
+         $itemId = plugin_formcreator_getFromDBByField(
+            $item,
+            'uuid',
+            $input['uuid']
+         );
+         // Convert UUIDs or names into IDs
+         switch ($input['actor_type']) {
+            case self::ACTOR_TYPE_QUESTION_PERSON :
+            case self::ACTOR_TYPE_QUESTION_GROUP :
+            case self::ACTOR_TYPE_QUESTION_SUPPLIER :
+            case self::ACTOR_TYPE_GROUP_FROM_OBJECT :
+            case self::ACTOR_TYPE_TECH_GROUP_FROM_OBJECT :
+               $question = $linker->getObject($input['actor_value'], PluginFormcreatorQuestion::class);
+               if ($question === false) {
+                  $linker->postpone($input[$idKey], $item->getType(), $input, $containerId);
+                  return false;
+               }
+               $input['actor_value'] = $question->getID();
+               break;
 
-         if ($questions_id = plugin_formcreator_getFromDBByField($question, 'uuid', $actor['_question'])) {
-            $actor['actor_value'] = $questions_id;
-         } else {
-            return false;
-         }
+            case self::ACTOR_TYPE_PERSON:
+               $user = new User;
+               $users_id = plugin_formcreator_getFromDBByField($user, 'name', $input['actor_value']);
+               if ($users_id === false) {
+                  throw new ImportFailureException(sprintf(__('Failed to find a user: ID %1$d'), $users_id));
+               }
+               $input['actor_value'] = $users_id;
+               break;
 
-      } else if (isset($actor['_user'])) {
-         $user = new User;
-         if ($users_id = plugin_formcreator_getFromDBByField($user, 'name', $actor['_user'])) {
-            $actor['actor_value'] = $users_id;
-         } else {
-            return false;
-         }
-      } else if (isset($actor['_group'])) {
-         $group = new Group;
-         if ($groups_id = plugin_formcreator_getFromDBByField($group, 'completename', $actor['_group'])) {
-            $actor['actor_value'] = $groups_id;
-         } else {
-            return false;
-         }
-      } else if (isset($actor['_supplier'])) {
-         $supplier = new Supplier;
-         if ($suppliers_id = plugin_formcreator_getFromDBByField($supplier, 'name', $actor['_supplier'])) {
-            $actor['actor_value'] = $suppliers_id;
-         } else {
-            return false;
+            case self::ACTOR_TYPE_GROUP:
+               $group = new Group;
+               $groups_id = plugin_formcreator_getFromDBByField($group, 'completename', $input['actor_value']);
+               if ($groups_id === false) {
+                  throw new ImportFailureException(sprintf(__('Failed to find a group: ID %1$d'), $groups_id));
+               }
+               $input['actor_value'] = $groups_id;
+               break;
+
+            case self::ACTOR_TYPE_SUPPLIER:
+               $supplier = new Supplier;
+               $suppliers_id = plugin_formcreator_getFromDBByField($supplier, 'name', $input['actor_value']);
+               if ($suppliers_id === false) {
+                  throw new ImportFailureException(sprintf(__('Failed to find a supplier: ID %1$d'), $suppliers_id));
+               }
+               $input['actor_value'] = $suppliers_id;
+               break;
          }
       }
 
-      if ($actors_id = plugin_formcreator_getFromDBByField($item, 'uuid', $actor['uuid'])) {
-         // add id key
-         $actor['id'] = $actors_id;
-
-         // update actor
-         $item->update($actor);
+      $originalId = $input[$idKey];
+      if ($itemId !== false) {
+         $input['id'] = $itemId;
+         $item->update($input);
       } else {
-         //create actor
-         $actors_id = $item->add($actor);
+         unset($input['id']);
+         $itemId = $item->add($input);
+      }
+      if ($itemId === false) {
+         $typeName = strtolower(self::getTypeName());
+         throw new ImportFailureException(sprintf(__('Failed to add or update the %1$s %2$s', 'formceator'), $typeName, $input['name']));
       }
 
-      return $actors_id;
+      // add the question to the linker
+      $linker->addObject($originalId, $item);
+
+      return $itemId;
+   }
+
+   public static function countItemsToImport($input) : int {
+      return 1;
    }
 
    /**
     * Export in an array all the data of the current instanciated actor
-    * @param boolean $remove_uuid remove the uuid key
+    * @param bool $remove_uuid remove the uuid key
     *
     * @return array the array with all data (with sub tables)
     */
-   public function export($remove_uuid = false) {
-      if (!$this->getID()) {
+   public function export(bool $remove_uuid = false) {
+      if ($this->isNewItem()) {
          return false;
       }
 
       $target_actor = $this->fields;
 
-      $foreignKeyField = $this->getTargetItem()->getForeignKeyField();
-      unset($target_actor['id'],
-            $target_actor[$foreignKeyField]);
+      // remove key and fk
+      unset($target_actor[static::$items_id]);
 
-      // export FK
-      switch ($target_actor['actor_type']) {
-         case 'question_person':
-         case 'question_group':
-         case 'question_supplier':
-         case 'question_actors':
-            $question = new PluginFormcreatorQuestion;
-            if ($question->getFromDB($target_actor['actor_value'])) {
-               $target_actor['_question'] = $question->fields['uuid'];
-               unset($target_actor['actor_value']);
-            }
-            break;
-         case 'person':
-            $user = new User;
-            if ($user->getFromDB($target_actor['actor_value'])) {
-               $target_actor['_user'] = $user->fields['name'];
-               unset($target_actor['actor_value']);
-            }
-            break;
-         case 'group':
-            $group = new Group;
-            if ($group->getFromDB($target_actor['actor_value'])) {
-               $target_actor['_group'] = $group->fields['completename'];
-               unset($target_actor['actor_value']);
-            }
-            break;
-         case 'supplier':
-            $supplier = new Supplier;
-            if ($supplier->getFromDB($target_actor['actor_value'])) {
-               $target_actor['_supplier'] = $supplier->fields['name'];
-               unset($target_actor['actor_value']);
-            }
-            break;
-      }
-
+      // remove ID or UUID
+      $idToRemove = 'id';
       if ($remove_uuid) {
-         $target_actor['uuid'] = '';
+         $idToRemove = 'uuid';
+      } else {
+         // Convert IDs into UUIDs or names
+         switch ($target_actor['actor_type']) {
+            case self::ACTOR_TYPE_QUESTION_PERSON:
+            case self::ACTOR_TYPE_QUESTION_GROUP:
+            case self::ACTOR_TYPE_SUPPLIER:
+            case self::ACTOR_TYPE_QUESTION_ACTORS:
+            case self::ACTOR_TYPE_GROUP_FROM_OBJECT:
+            case self::ACTOR_TYPE_TECH_GROUP_FROM_OBJECT :
+               $question = new PluginFormcreatorQuestion;
+               if ($question->getFromDB($target_actor['actor_value'])) {
+                  $target_actor['actor_value'] = $question->fields['uuid'];
+               }
+               break;
+            case self::ACTOR_TYPE_PERSON:
+               $user = new User;
+               if ($user->getFromDB($target_actor['actor_value'])) {
+                  $target_actor['actor_value'] = $user->fields['name'];
+               }
+               break;
+            case self::ACTOR_TYPE_GROUP:
+               $group = new Group;
+               if ($group->getFromDB($target_actor['actor_value'])) {
+                  $target_actor['actor_value'] = $group->fields['completename'];
+               }
+               break;
+            case self::ACTOR_TYPE_SUPPLIER:
+               $supplier = new Supplier;
+               if ($supplier->getFromDB($target_actor['actor_value'])) {
+                  $target_actor['actor_value'] = $supplier->fields['name'];
+               }
+               break;
+         }
       }
+      unset($target_actor[$idToRemove]);
 
       return $target_actor;
+   }
+
+   public function deleteObsoleteItems(CommonDBTM $container, array $exclude) : bool {
+      $keepCriteria = [
+         static::$itemtype => $container->getType(),
+         static::$items_id => $container->getID(),
+      ];
+      if (count($exclude) > 0) {
+         $keepCriteria[] = ['NOT' => ['id' => $exclude]];
+      }
+      return $this->deleteByCriteria($keepCriteria);
    }
 }

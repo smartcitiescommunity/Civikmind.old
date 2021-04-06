@@ -1,9 +1,8 @@
 <?php
-
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -31,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 /**
  * Update from 0.80 to 0.80.1
  *
@@ -57,7 +52,7 @@ function update080to0801() {
              HAVING CPT > 1";
    if ($result=$DB->query($query)) {
       if ($DB->numrows($result)>0) {
-         while ($data=$DB->fetch_array($result)) {
+         while ($data=$DB->fetchArray($result)) {
             // Skip first
             $query = "SELECT `id`
                       FROM `glpi_groups_tickets`
@@ -68,7 +63,7 @@ function update080to0801() {
                       LIMIT 1,99999";
             if ($result2=$DB->query($query)) {
                if ($DB->numrows($result2)) {
-                  while ($data2=$DB->fetch_array($result2)) {
+                  while ($data2=$DB->fetchArray($result2)) {
                      $query = "DELETE
                                FROM `glpi_groups_tickets`
                                WHERE `id` ='".$data2['id']."'";
@@ -91,7 +86,7 @@ function update080to0801() {
              HAVING CPT > 1";
    if ($result=$DB->query($query)) {
       if ($DB->numrows($result)>0) {
-         while ($data=$DB->fetch_array($result)) {
+         while ($data=$DB->fetchArray($result)) {
             // Skip first
             $query = "SELECT `id`
                       FROM `glpi_tickets_users`
@@ -103,7 +98,7 @@ function update080to0801() {
                       LIMIT 1,99999";
             if ($result2=$DB->query($query)) {
                if ($DB->numrows($result2)) {
-                  while ($data2=$DB->fetch_array($result2)) {
+                  while ($data2=$DB->fetchArray($result2)) {
                      $query = "DELETE
                                FROM `glpi_tickets_users`
                                WHERE `id` ='".$data2['id']."'";
@@ -126,10 +121,10 @@ function update080to0801() {
       $migration->addField("glpi_slalevels", "is_recursive", "TINYINT( 1 ) NOT NULL DEFAULT 0");
       $migration->migrationOneTable('glpi_slalevels');
 
-      $entities    = getAllDatasFromTable('glpi_entities');
+      $entities    = getAllDataFromTable('glpi_entities');
       $entities[0] = "Root";
 
-      foreach ($entities as $entID => $val) {
+      foreach (array_keys($entities) as $entID) {
          // Non recursive ones
          $query3 = "UPDATE `glpi_slalevels`
                     SET `entities_id` = $entID, `is_recursive` = 0

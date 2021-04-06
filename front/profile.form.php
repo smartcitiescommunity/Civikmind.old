@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 include ('../inc/includes.php');
 
 Session::checkRight("profile", READ);
@@ -49,7 +45,7 @@ if (isset($_POST["add"])) {
    $ID = $prof->add($_POST);
 
    // We need to redirect to form to enter rights
-   Html::redirect($CFG_GLPI["root_doc"]."/front/profile.form.php?id=$ID");
+   Html::redirect($prof->getFormURLWithID($ID));
 
 } else if (isset($_POST["purge"])) {
    $prof->check($_POST['id'], PURGE);
@@ -69,6 +65,9 @@ if (isset($_POST["add"])) {
 
 Html::header(Profile::getTypeName(Session::getPluralNumber()), $_SERVER['PHP_SELF'], "admin", "profile");
 
-$prof->display(['id' => $_GET["id"]]);
+$prof->display([
+   'id'           => $_GET["id"],
+   'formoptions'  => " data-track-changes='true'"
+]);
 
 Html::footer();

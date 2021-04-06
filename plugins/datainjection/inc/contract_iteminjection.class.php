@@ -1,6 +1,6 @@
 <?php
 /*
- * @version $Id$
+ * @version $Id: HEADER 14684 2011-06-11 06:32:40Z remi $
  LICENSE
 
  This file is part of the datainjection plugin.
@@ -20,19 +20,20 @@
  --------------------------------------------------------------------------
  @package   datainjection
  @author    the datainjection plugin team
- @copyright Copyright (c) 2010-2013 Datainjection plugin team
+ @copyright Copyright (c) 2010-2017 Datainjection plugin team
  @license   GPLv2+
             http://www.gnu.org/licenses/gpl.txt
- @link      https://forge.indepnet.net/projects/datainjection
+ @link      https://github.com/pluginsGLPI/datainjection
  @link      http://www.glpi-project.org/
  @since     2009
  ---------------------------------------------------------------------- */
 
 class PluginDatainjectionContract_ItemInjection extends Contract_Item
-                                                implements PluginDatainjectionInjectionInterface {
+                                                implements PluginDatainjectionInjectionInterface
+{
 
 
-   static function getTable() {
+   static function getTable($classname = null) {
 
       $parenttype = get_parent_class();
       return $parenttype::getTable();
@@ -40,26 +41,29 @@ class PluginDatainjectionContract_ItemInjection extends Contract_Item
 
 
    function isPrimaryType() {
+
       return false;
    }
 
 
    function relationSide() {
+
       return false;
    }
 
 
    function connectedTo() {
+
       global $CFG_GLPI;
 
       return $CFG_GLPI["contract_types"];
    }
 
 
-   /**
+    /**
     * @see plugins/datainjection/inc/PluginDatainjectionInjectionInterface::getOptions()
    **/
-   function getOptions($primary_type='') {
+   function getOptions($primary_type = '') {
 
       $tab[100]['table']         = 'glpi_contracts';
       $tab[100]['field']         = 'name';
@@ -85,10 +89,10 @@ class PluginDatainjectionContract_ItemInjection extends Contract_Item
    }
 
 
-   /**
+    /**
     * @see plugins/datainjection/inc/PluginDatainjectionInjectionInterface::addOrUpdateObject()
    **/
-   function addOrUpdateObject($values=array(), $options=array()) {
+   function addOrUpdateObject($values = [], $options = []) {
 
       $lib = new PluginDatainjectionCommonInjectionLib($this, $values, $options);
       $lib->processAddOrUpdate();
@@ -96,7 +100,7 @@ class PluginDatainjectionContract_ItemInjection extends Contract_Item
    }
 
 
-   /**
+    /**
     * @param $primary_type
     * @param $values
    **/
@@ -108,4 +112,3 @@ class PluginDatainjectionContract_ItemInjection extends Contract_Item
    }
 
 }
-?>

@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 include ('../inc/includes.php');
 
 if (!Session::haveRightsOr('knowbase', [READ, KnowbaseItem::READFAQ])) {
@@ -41,7 +37,7 @@ if (!Session::haveRightsOr('knowbase', [READ, KnowbaseItem::READFAQ])) {
    Html::displayRightError();
 }
 if (isset($_GET["id"])) {
-   Html::redirect($CFG_GLPI["root_doc"]."/front/knowbaseitem.form.php?id=".$_GET["id"]);
+   Html::redirect(KnowbaseItem::getFormURLWithID($_GET["id"]));
 }
 
 Html::header(KnowbaseItem::getTypeName(1), $_SERVER['PHP_SELF'], "tools", "knowbaseitem");
@@ -55,8 +51,8 @@ if (!isset($_GET["contains"])
     && isset($_GET["item_itemtype"])
     && isset($_GET["item_items_id"])) {
 
-   if ($item = getItemForItemtype($_GET["item_itemtype"])) {
-      if ($item->getFromDB($_GET["item_items_id"])) {
+   if (in_array($_GET["item_itemtype"], $CFG_GLPI['kb_types']) && $item = getItemForItemtype($_GET["item_itemtype"])) {
+      if ($item->can($_GET["item_items_id"], READ)) {
          $_GET["contains"] = $item->getField('name');
       }
    }

@@ -9,7 +9,7 @@
  -------------------------------------------------------------------------
 
  LICENSE
-      
+
  This file is part of resources.
 
  resources is free software; you can redistribute it and/or modify
@@ -32,113 +32,177 @@ if (!defined('GLPI_ROOT')) {
 }
 
 // Class for a Dropdown
+
+/**
+ * Class PluginResourcesContractType
+ */
 class PluginResourcesContractType extends CommonDropdown {
-   
-   var $can_be_translated  = true;
-   
-   static function getTypeName($nb=0) {
+
+   var $can_be_translated = true;
+
+   /**
+    * @since 0.85
+    *
+    * @param $nb
+    **/
+   static function getTypeName($nb = 0) {
 
       return _n('Type of contract', 'Types of contract', $nb, 'resources');
    }
-   
+
+   /**
+    * Have I the global right to "view" the Object
+    *
+    * Default is true and check entity if the objet is entity assign
+    *
+    * May be overloaded if needed
+    *
+    * @return booleen
+    **/
    static function canView() {
       return Session::haveRight('plugin_resources', READ);
    }
 
+   /**
+    * Have I the global right to "create" the Object
+    * May be overloaded if needed (ex KnowbaseItem)
+    *
+    * @return booleen
+    **/
    static function canCreate() {
-      return Session::haveRightsOr('entity_dropdown', array(CREATE, UPDATE, DELETE));
+      return Session::haveRightsOr('dropdown', [CREATE, UPDATE, DELETE]);
    }
-   
+
+   /**
+    * Return Additional Fields for this type
+    *
+    * @return array
+    **/
    function getAdditionalFields() {
 
-      $tab = array(array('name'  => 'code',
-                         'label' => __('Code', 'resources'),
-                         'type'  => 'text',
-                         'list'  => true),
-                     array('name' => "",
-                         'label' => __('Wizard resource creation', 'resources'),
-                         'type'  => '',
-                         'list'  => false),
-                     array('name'  => 'use_employee_wizard',
-                         'label' => __('Enter employer information about the resource', 'resources'),
-                         'type'  => 'bool',
-                         'list'  => true),
-                     array('name'  => 'use_need_wizard',
-                         'label' => __('Enter the computing needs of the resource', 'resources'),
-                         'type'  => 'bool',
-                         'list'  => true),
-                     array('name'  => 'use_picture_wizard',
-                         'label' => __('Add a picture', 'resources'),
-                         'type'  => 'bool',
-                         'list'  => true)
-                   );
-      
+      $tab = [['name'  => 'code',
+               'label' => __('Code', 'resources'),
+               'type'  => 'text',
+               'list'  => true],
+              ['name'  => "",
+               'label' => __('Wizard resource creation', 'resources'),
+               'type'  => '',
+               'list'  => false],
+              ['name'  => 'use_employee_wizard',
+               'label' => __('Enter employer information about the resource', 'resources'),
+               'type'  => 'bool',
+               'list'  => true],
+              ['name'  => 'use_need_wizard',
+               'label' => __('Enter the computing needs of the resource', 'resources'),
+               'type'  => 'bool',
+               'list'  => true],
+              ['name'  => 'use_picture_wizard',
+               'label' => __('Add a picture', 'resources'),
+               'type'  => 'bool',
+               'list'  => true],
+              ['name'  => 'use_habilitation_wizard',
+               'label' => __('Enter habilitation information ', 'resources'),
+               'type'  => 'bool',
+               'list'  => true]
+      ];
+
       return $tab;
    }
 
-   function getSearchOptions() {
+   /**
+    * @return array
+    */
+   function rawSearchOptions() {
 
-      $tab = parent::getSearchOptions();
+      $tab = parent::rawSearchOptions();
 
-      $tab[14]['table']         = $this->getTable();
-      $tab[14]['field']         = 'code';
-      $tab[14]['name']          = __('Code', 'resources');
+      $tab[] = [
+         'id'    => '14',
+         'table' => $this->getTable(),
+         'field' => 'code',
+         'name'  => __('Code', 'resources')
+      ];
 
-      $tab[15]['table']         = $this->getTable();
-      $tab[15]['field']         = 'use_employee_wizard';
-      $tab[15]['name']          = __('Enter general information about the resource', 'resources');
-      $tab[15]['datatype']      = 'bool';
+      $tab[] = [
+         'id'       => '15',
+         'table'    => $this->getTable(),
+         'field'    => 'use_employee_wizard',
+         'name'     => __('Enter employer information about the resource', 'resources'),
+         'datatype' => 'bool'
+      ];
+      $tab[] = [
+         'id'       => '20',
+         'table'    => $this->getTable(),
+         'field'    => 'use_need_wizard',
+         'name'     => __('Enter the computing needs of the resource', 'resources'),
+         'datatype' => 'bool'
+      ];
+      $tab[] = [
+         'id'       => '17',
+         'table'    => $this->getTable(),
+         'field'    => 'use_picture_wizard',
+         'name'     => __('Add a picture', 'resources'),
+         'datatype' => 'bool'
+      ];
+      $tab[] = [
+         'id'       => '18',
+         'table'    => $this->getTable(),
+         'field'    => 'use_habilitation_wizard',
+         'name'     => __('Enter habilitation information', 'resources'),
+         'datatype' => 'bool'
+      ];
 
-      $tab[16]['table']         = $this->getTable();
-      $tab[16]['field']         = 'use_need_wizard';
-      $tab[16]['name']          = __('Enter employer information about the resource', 'resources');
-      $tab[16]['datatype']      = 'bool';
-
-      $tab[17]['table']         = $this->getTable();
-      $tab[17]['field']         = 'use_picture_wizard';
-      $tab[17]['name']          = __('Add a picture', 'resources');
-      $tab[17]['datatype']      = 'bool';
-      
       return $tab;
    }
 
-   static function checkWizardSetup($ID,$field) {
-      global $DB;
-
-      if ($ID>0) {
+   /**
+    * @param $ID
+    * @param $field
+    *
+    * @return bool
+    */
+   static function checkWizardSetup($ID, $field) {
+      if ($ID > 0) {
          $resource = new PluginResourcesResource();
-         $self = new self();
-         
+         $self     = new self();
+
          if ($resource->getFromDB($ID)) {
             if ($self->getFromDB($resource->fields["plugin_resources_contracttypes_id"])) {
-               if ($self->fields[$field] > 0)
+               if ($self->fields[$field] > 0) {
                   return true;
+               }
             }
          }
       }
       return false;
    }
-   
+
+   /**
+    * @param $ID
+    * @param $entity
+    *
+    * @return int|\the
+    */
    static function transfer($ID, $entity) {
       global $DB;
 
-      if ($ID>0) {
+      if ($ID > 0) {
          // Not already transfer
          // Search init item
          $query = "SELECT *
                    FROM `glpi_plugin_resources_contracttypes`
                    WHERE `id` = '$ID'";
 
-         if ($result=$DB->query($query)) {
+         if ($result = $DB->query($query)) {
             if ($DB->numrows($result)) {
-               $data = $DB->fetch_assoc($result);
-               $data = Toolbox::addslashes_deep($data);
-               $input['name'] = $data['name'];
-               $input['entities_id']  = $entity;
-               $temp = new self();
-               $newID    = $temp->getID($input);
+               $data                 = $DB->fetchAssoc($result);
+               $data                 = Toolbox::addslashes_deep($data);
+               $input['name']        = $data['name'];
+               $input['entities_id'] = $entity;
+               $temp                 = new self();
+               $newID                = $temp->getID();
 
-               if ($newID<0) {
+               if ($newID < 0) {
                   $newID = $temp->import($input);
                }
 
@@ -148,33 +212,43 @@ class PluginResourcesContractType extends CommonDropdown {
       }
       return 0;
    }
-   
+
+   /**
+    * @param     $name
+    * @param int $value
+    *
+    * @return int|string
+    */
    function dropdownContractType($name, $value = 0) {
-      
-      $restrict=" 1 = 1 ";
-      $restrict.=getEntitiesRestrictRequest(" AND ",$this->getTable(),'','',$this->maybeRecursive());
-      $restrict.=" ORDER BY `name`";
-      $types = getAllDatasFromTable($this->getTable(),$restrict);
-      
+      $dbu      = new DbUtils();
+      $restrict = $dbu->getEntitiesRestrictCriteria($this->getTable(), '', '', $this->maybeRecursive()) +
+                  ["ORDER" => "`name`"];
+      $types = $dbu->getAllDataFromTable($this->getTable(), $restrict);
+
       $option[0] = __('Without contract', 'resources');
-      
+
       if (!empty($types)) {
-         
+
          foreach ($types as $type) {
             $option[$type["id"]] = $type["name"];
          }
       }
-      
-      return Dropdown::showFromArray($name, $option, array('value'  => $value));
+
+      return Dropdown::showFromArray($name, $option, ['value' => $value]);
    }
-   
+
+   /**
+    * @param $value
+    *
+    * @return string
+    */
    function getContractTypeName($value) {
-      
+
       switch ($value) {
          case 0 :
             return __('Without contract', 'resources');
          default :
-            if($this->getFromDB($value)) {
+            if ($this->getFromDB($value)) {
                $name = "";
                if (isset($this->fields["name"])) {
                   $name = $this->fields["name"];
@@ -183,7 +257,6 @@ class PluginResourcesContractType extends CommonDropdown {
             }
       }
    }
-   
+
 }
 
-?>

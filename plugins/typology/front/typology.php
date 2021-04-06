@@ -9,7 +9,7 @@
  -------------------------------------------------------------------------
 
  LICENSE
-      
+
  This file is part of typology.
 
  typology is free software; you can redistribute it and/or modify
@@ -29,10 +29,10 @@
 
 include ('../../../inc/includes.php');
 
-Html::header(PluginTypologyTypology::getTypeName(2),'',"tools","plugintypologymenu");
+Html::header(PluginTypologyTypology::getTypeName(2), '', "tools", "plugintypologymenu");
 
 $typo = new PluginTypologyTypology();
-if ($typo->canView() || haveRight("config", UPDATE)) {
+if ($typo->canView() || Session::haveRight("config", UPDATE)) {
    Search::show("PluginTypologyTypology");
 
 } else {
@@ -40,4 +40,3 @@ if ($typo->canView() || haveRight("config", UPDATE)) {
 }
 
 Html::footer();
-?>

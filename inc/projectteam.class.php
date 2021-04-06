@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,11 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -44,7 +39,7 @@ if (!defined('GLPI_ROOT')) {
  * This class is used to manage the project team
  * @see Project
  * @author Julien Dombre
- * @since version 0.85
+ * @since 0.85
  **/
 class ProjectTeam extends CommonDBRelation {
 
@@ -103,17 +98,6 @@ class ProjectTeam extends CommonDBRelation {
    }
 
 
-   /**
-    * @param $item
-    *
-    * @return number
-   **/
-   static function countForProject(Project $item) {
-
-      return countElementsInTable(['glpi_projectteams'], ['glpi_projectteams.projects_id' => $item->getField('id')]);
-   }
-
-
    static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0) {
 
       switch ($item->getType()) {
@@ -126,23 +110,23 @@ class ProjectTeam extends CommonDBRelation {
    /**
     * Duplicate all teams from a project template to his clone
     *
-    * @since version 9.2
+    * @deprecated 9.5
+    * @since 9.2
     *
     * @param integer $oldid        ID of the item to clone
     * @param integer $newid        ID of the item cloned
     **/
    static function cloneProjectTeam ($oldid, $newid) {
-      global $DB;
-
-      $query  = "SELECT *
-                 FROM `glpi_projectteams`
-                 WHERE `projects_id` = '$oldid'";
-      foreach ($DB->request($query) as $data) {
-         $cd                  = new self();
-         unset($data['id']);
-         $data['projects_id'] = $newid;
-         $data                = Toolbox::addslashes_deep($data);
-         $cd->add($data);
+      Toolbox::deprecated('Use clone');
+      $team = self::getTeamFor($oldid);
+      foreach ($team as $type) {
+         foreach ($type as $data) {
+            $cd                  = new self();
+            unset($data['id']);
+            $data['projects_id'] = $newid;
+            $data                = Toolbox::addslashes_deep($data);
+            $cd->add($data);
+         }
       }
    }
 
@@ -156,11 +140,12 @@ class ProjectTeam extends CommonDBRelation {
       global $DB;
 
       $team = [];
-      $query = "SELECT `glpi_projectteams`.*
-                FROM `glpi_projectteams`
-                WHERE `projects_id` = '$projects_id'";
+      $iterator = $DB->request([
+         'FROM'   => self::getTable(),
+         'WHERE'  => ['projects_id' => $projects_id]
+      ]);
 
-      foreach ($DB->request($query) as $data) {
+      while ($data = $iterator->next()) {
          if (!isset($team[$data['itemtype']])) {
             $team[$data['itemtype']] = [];
          }

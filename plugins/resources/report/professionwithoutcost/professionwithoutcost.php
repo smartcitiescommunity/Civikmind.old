@@ -9,7 +9,7 @@
  -------------------------------------------------------------------------
 
  LICENSE
-      
+
  This file is part of resources.
 
  resources is free software; you can redistribute it and/or modify
@@ -38,27 +38,27 @@ $titre = $LANG['plugin_resources']['professionwithoutcost'];
 $report = new PluginReportsAutoReport($titre);
 
 //Report's search criterias
-$professioncategory = New PluginReportsDropdownCriteria($report,'plugin_resources_professioncategories_id',
-   'glpi_plugin_resources_professioncategories',PluginResourcesProfessionCategory::getTypeName(1));
+$professioncategory = New PluginReportsDropdownCriteria($report, 'plugin_resources_professioncategories_id',
+   'glpi_plugin_resources_professioncategories', PluginResourcesProfessionCategory::getTypeName(1));
 $professionline = New PluginReportsDropdownCriteria($report, 'plugin_resources_professionlines_id',
-   'glpi_plugin_resources_professionlines',PluginResourcesProfessionLine::getTypeName(1));
+   'glpi_plugin_resources_professionlines', PluginResourcesProfessionLine::getTypeName(1));
 
 //Display criterias form is needed
 $report->displayCriteriasForm();
 
 //colname with sort allowed
-$columns = array('professioncategory' => array('sorton' => 'professioncategory'),
-                 'professionline' => array('sorton' => 'professionline'),
-                 'profession' => array('sorton' => 'profession'),
-                 'profession_code' => array('sorton' => 'profession_code'),
-                 'rank_name' => array('sorton' => 'rank_name'),
-                 'rank_code' => array('sorton' => 'rank_code'),
-                 'begin_date' => array('sorton' => 'begin_date'),
-                 'end_date' => array('sorton' => 'end_date'),);
+$columns = ['professioncategory' => ['sorton' => 'professioncategory'],
+                 'professionline' => ['sorton' => 'professionline'],
+                 'profession' => ['sorton' => 'profession'],
+                 'profession_code' => ['sorton' => 'profession_code'],
+                 'rank_name' => ['sorton' => 'rank_name'],
+                 'rank_code' => ['sorton' => 'rank_code'],
+                 'begin_date' => ['sorton' => 'begin_date'],
+                 'end_date' => ['sorton' => 'end_date'],];
 
 
 $output_type = Search::HTML_OUTPUT;
-
+$dbu         = new DbUtils();
 
 // Form validate
 if ($report->criteriasValidated()) {
@@ -88,11 +88,11 @@ if ($report->criteriasValidated()) {
 
    //to verify if professions exist
    // SQL statement
-   $condition = getEntitiesRestrictRequest(' AND ');
+   $condition = $dbu->getEntitiesRestrictRequest(' AND ');
    $date=date("Y-m-d");
    $sqlprofessioncategory = $professioncategory->getSqlCriteriasRestriction('AND');
    $sqlprofessionline = $professionline->getSqlCriteriasRestriction('AND');
-   $dataAll=array();
+   $dataAll=[];
 
    //recover all professions_id present in current budget
    $requestBudget = "SELECT DISTINCT(`plugin_resources_professions_id`)
@@ -102,7 +102,7 @@ if ($report->criteriasValidated()) {
                "ORDER BY `plugin_resources_professions_id`";
 
    $professionsBudgetList = '0';
-   foreach($DB->request($requestBudget) as $data){
+   foreach ($DB->request($requestBudget) as $data) {
       $professionsBudgetList.=',';
       $professionsBudgetList.=$data['plugin_resources_professions_id'];
    }
@@ -136,13 +136,13 @@ if ($report->criteriasValidated()) {
                         AND `glpi_plugin_resources_costs`.`end_date` < '".$date."')) ".
       $sqlprofessioncategory.$sqlprofessionline;
 
-   $conditionAll = getEntitiesRestrictRequest('AND', 'glpi_plugin_resources_professions','','',true);
+   $conditionAll = $dbu->getEntitiesRestrictRequest('AND', 'glpi_plugin_resources_professions', '', '', true);
 
    $query.=$conditionAll." ".getOrderBy('profession', $columns);
 
    $result = $DB->query($query);
-   for ($row_num = 0 ; $data=$DB->fetch_assoc($result); $row_num++) {
-      if($row_num == 0){
+   for ($row_num = 0; $data=$DB->fetchAssoc($result); $row_num++) {
+      if ($row_num == 0) {
          $dataAll[$row_num]['professionline']= PluginResourcesProfession::getTypeName(1);
          $row_num++;
       }
@@ -157,8 +157,8 @@ if ($report->criteriasValidated()) {
                   OR `glpi_plugin_resources_costs`.`end_date` > '".$date."'))
                ORDER BY `glpi_plugin_resources_costs`.`plugin_resources_ranks_id`";
 
-   foreach($DB->request($rankList) as $d){
-      if($d['plugin_resources_ranks_id']!=0){
+   foreach ($DB->request($rankList) as $d) {
+      if ($d['plugin_resources_ranks_id']!=0) {
          $rank=new PluginResourcesRank();
          $rank->getFromDB($d['plugin_resources_ranks_id']);
 
@@ -196,8 +196,8 @@ if ($report->criteriasValidated()) {
          $qRank.=$conditionAll." ".getOrderBy('profession', $columns);
 
          $first = 0;
-         foreach($DB->request($qRank) as $dataRank){
-            if($first == 0){
+         foreach ($DB->request($qRank) as $dataRank) {
+            if ($first == 0) {
                $dataAll[$row_num]['professionline']= PluginResourcesRank::getTypeName(1);
                $first++;
                $row_num++;
@@ -223,10 +223,10 @@ if ($report->criteriasValidated()) {
          Html::header($title, $_SERVER['PHP_SELF'], "utils", "report");
          Report::title();
       }
-      echo "<div class='center'><font class='red b'>".__('No item found')."</font></div>";
+      echo "<div class='center'><span style='color : red;font-weight:bold;'>".__('No item found')."</span></div>";
       Html::footer();
    } else if ($output_type == Search::PDF_OUTPUT_PORTRAIT || $output_type == Search::PDF_OUTPUT_LANDSCAPE) {
-      include (GLPI_ROOT . "/lib/ezpdf/class.ezpdf.php");
+      include (GLPI_ROOT . "/vendor/tecnickcom/tcpdf/examples/tcpdf_include.php");
    } else if ($output_type == Search::HTML_OUTPUT) {
       if (!$HEADER_LOADED) {
          Html::header($title, $_SERVER['PHP_SELF'], "utils", "report");
@@ -286,40 +286,40 @@ if ($report->criteriasValidated()) {
 
       echo Search::showEndLine($output_type);
 
-      if($limit){
-         $dataAll= array_slice($dataAll,$start,$limit);
+      if ($limit) {
+         $dataAll= array_slice($dataAll, $start, $limit);
       }
 
-      foreach($dataAll as $key=>$data){
+      foreach ($dataAll as $key=>$data) {
          $num = 1;
-         if(!is_numeric($data['professionline'])){
+         if (!is_numeric($data['professionline'])) {
             echo Search::showNewLine($output_type);
-            echo Search::showItem($output_type, $data['professionline'], $num,$key);
-            echo Search::showItem($output_type, '', $num,$key);
-            echo Search::showItem($output_type, '', $num,$key);
-            echo Search::showItem($output_type, '', $num,$key);
-            echo Search::showItem($output_type, '', $num,$key);
-            echo Search::showItem($output_type, '', $num,$key);
-            echo Search::showItem($output_type, '', $num,$key);
-            echo Search::showItem($output_type, '', $num,$key);
+            echo Search::showItem($output_type, $data['professionline'], $num, $key);
+            echo Search::showItem($output_type, '', $num, $key);
+            echo Search::showItem($output_type, '', $num, $key);
+            echo Search::showItem($output_type, '', $num, $key);
+            echo Search::showItem($output_type, '', $num, $key);
+            echo Search::showItem($output_type, '', $num, $key);
+            echo Search::showItem($output_type, '', $num, $key);
+            echo Search::showItem($output_type, '', $num, $key);
 
             echo Search::showEndLine($output_type);
          } else {
             echo Search::showNewLine($output_type);
-            echo Search::showItem($output_type, Dropdown::getDropdownName('glpi_plugin_resources_professionlines',$data['professionline']), $num,$key);
-            echo Search::showItem($output_type, Dropdown::getDropdownName('glpi_plugin_resources_professioncategories',$data['professioncategory']), $num,$key);
-            echo Search::showItem($output_type, $data['profession'], $num,$key);
-            echo Search::showItem($output_type, $data['profession_code'], $num,$key);
-            if($data['rank_name'] == '0'){
+            echo Search::showItem($output_type, Dropdown::getDropdownName('glpi_plugin_resources_professionlines', $data['professionline']), $num, $key);
+            echo Search::showItem($output_type, Dropdown::getDropdownName('glpi_plugin_resources_professioncategories', $data['professioncategory']), $num, $key);
+            echo Search::showItem($output_type, $data['profession'], $num, $key);
+            echo Search::showItem($output_type, $data['profession_code'], $num, $key);
+            if ($data['rank_name'] == '0') {
                $data['rank_name']='';
             }
-            echo Search::showItem($output_type, $data['rank_name'], $num,$key);
-            if($data['rank_code'] == '0'){
+            echo Search::showItem($output_type, $data['rank_name'], $num, $key);
+            if ($data['rank_code'] == '0') {
                $data['rank_code']='';
             }
-            echo Search::showItem($output_type, $data['rank_code'], $num,$key);
-            echo Search::showItem($output_type, Html::convDate($data['begin_date']), $num,$key);
-            echo Search::showItem($output_type, Html::convDate($data['end_date']), $num,$key);
+            echo Search::showItem($output_type, $data['rank_code'], $num, $key);
+            echo Search::showItem($output_type, Html::convDate($data['begin_date']), $num, $key);
+            echo Search::showItem($output_type, Html::convDate($data['end_date']), $num, $key);
             echo Search::showEndLine($output_type);
          }
       }
@@ -342,7 +342,7 @@ if ($output_type == Search::HTML_OUTPUT) {
  * @param bool $sort
  * @return mixed
  */
-function showTitle($output_type, &$num, $title, $columnname, $sort=false) {
+function showTitle($output_type, &$num, $title, $columnname, $sort = false) {
 
    if ($output_type != Search::HTML_OUTPUT ||$sort==false) {
       echo Search::showHeaderItem($output_type, $title, $num);
@@ -359,7 +359,7 @@ function showTitle($output_type, &$num, $title, $columnname, $sort=false) {
    $link  = $_SERVER['PHP_SELF'];
    $first = true;
    foreach ($_REQUEST as $name => $value) {
-      if (!in_array($name,array('sort','order','PHPSESSID'))) {
+      if (!in_array($name, ['sort','order','PHPSESSID'])) {
          $link .= ($first ? '?' : '&amp;');
          $link .= $name .'='.urlencode($value);
          $first = false;
@@ -384,9 +384,11 @@ function getOrderBy($default, $columns) {
    }
    $order   = $_REQUEST['order'];
 
-   $tab = getOrderByFields($default, $columns);
-   if (count($tab)>0) {
-      return " ORDER BY ". $tab ." ". $order;
+   $tabs[] = getOrderByFields($default, $columns);
+   if (count($tabs) > 0) {
+      foreach ($tabs as $tab) {
+         return " ORDER BY " . $tab . " " . $order;
+      }
    }
    return '';
 }
@@ -410,6 +412,5 @@ function getOrderByFields($default, $columns) {
          return $column['sorton'];
       }
    }
-   return array();
+   return [];
 }
-?>

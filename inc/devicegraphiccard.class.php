@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -29,10 +29,6 @@
  * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
  */
-
-/** @file
-* @brief
-*/
 
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
@@ -67,21 +63,31 @@ class DeviceGraphicCard extends CommonDevice {
                                                                                     '_registeredID',
                                                                                     null, false),
                                      'type'  => 'registeredIDChooser'],
-                               ['name'  => 'devicecasegraphiccardmodels_id',
-                                     'label' => __('Model'),
+                               ['name'  => 'devicegraphiccardmodels_id',
+                                     'label' => _n('Model', 'Models', 1),
                                      'type'  => 'dropdownValue']]);
    }
 
 
-   function getSearchOptionsNew() {
-      $tab = parent::getSearchOptionsNew();
+   function rawSearchOptions() {
+      $tab = parent::rawSearchOptions();
+
+      $tab[] = [
+         'id'                 => '11',
+         'table'              => $this->getTable(),
+         'field'              => 'chipset',
+         'name'               => __('Chipset'),
+         'datatype'           => 'string',
+         'autocomplete'       => true,
+      ];
 
       $tab[] = [
          'id'                 => '12',
          'table'              => $this->getTable(),
          'field'              => 'memory_default',
          'name'               => __('Memory by default'),
-         'datatype'           => 'string'
+         'datatype'           => 'string',
+         'autocomplete'       => true,
       ];
 
       $tab[] = [
@@ -96,7 +102,7 @@ class DeviceGraphicCard extends CommonDevice {
          'id'                 => '15',
          'table'              => 'glpi_devicegraphiccardmodels',
          'field'              => 'name',
-         'name'               => __('Model'),
+         'name'               => _n('Model', 'Models', 1),
          'datatype'           => 'dropdown'
       ];
 
@@ -105,7 +111,7 @@ class DeviceGraphicCard extends CommonDevice {
 
 
    /**
-    * @since version 0.85
+    * @since 0.85
     * @param  $input
     *
     * @return number
@@ -121,29 +127,16 @@ class DeviceGraphicCard extends CommonDevice {
    }
 
 
-   /**
-    * @since version 0.85
-    * @see CommonDropdown::prepareInputForAdd()
-   **/
    function prepareInputForAdd($input) {
-      return self::prepareInputForAddOrUpdate($input);
+      return $this->prepareInputForAddOrUpdate($input);
    }
 
 
-   /**
-    * @since version 0.85
-    * @see CommonDropdown::prepareInputForUpdate()
-   **/
    function prepareInputForUpdate($input) {
-      return self::prepareInputForAddOrUpdate($input);
+      return $this->prepareInputForAddOrUpdate($input);
    }
 
 
-   /**
-    * @since version 0.84
-    *
-    * @see CommonDevice::getHTMLTableHeader()
-   **/
    static function getHTMLTableHeader($itemtype, HTMLTableBase $base,
                                       HTMLTableSuperHeader $super = null,
                                       HTMLTableHeader $father = null, array $options = []) {
@@ -164,11 +157,6 @@ class DeviceGraphicCard extends CommonDevice {
    }
 
 
-   /**
-    * @since version 0.84
-    *
-    * @see CommonDevice::getHTMLTableCellForItem()
-   **/
    function getHTMLTableCellForItem(HTMLTableRow $row = null, CommonDBTM $item = null,
                                     HTMLTableCell $father = null, array $options = []) {
 
@@ -192,13 +180,6 @@ class DeviceGraphicCard extends CommonDevice {
    }
 
 
-   /**
-    * Criteria used for import function
-    *
-    * @see CommonDevice::getImportCriteria()
-    *
-    * @since version 0.84
-   **/
    function getImportCriteria() {
 
       return ['designation'       => 'equal',
@@ -206,4 +187,25 @@ class DeviceGraphicCard extends CommonDevice {
                    'interfacetypes_id' => 'equal'];
    }
 
+   public static function rawSearchOptionsToAdd($itemtype, $main_joinparams) {
+      $tab = [];
+
+      $tab[] = [
+         'id'                 => '13',
+         'table'              => 'glpi_devicegraphiccards',
+         'field'              => 'designation',
+         'name'               => static::getTypeName(1),
+         'forcegroupby'       => true,
+         'massiveaction'      => false,
+         'datatype'           => 'string',
+         'joinparams'         => [
+            'beforejoin'         => [
+               'table'              => 'glpi_items_devicegraphiccards',
+               'joinparams'         => $main_joinparams
+            ]
+         ]
+      ];
+
+      return $tab;
+   }
 }

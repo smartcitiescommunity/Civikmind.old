@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -41,7 +37,7 @@ if (!defined('GLPI_ROOT')) {
 /**
  * Group_Ticket Class
  *
- * @since version 0.85
+ * @since 0.85
  *
  * Relation between Groups and Tickets
 **/
@@ -54,4 +50,20 @@ class Group_Ticket extends CommonITILActor {
    static public $items_id_2 = 'groups_id';
 
 
+   function post_addItem() {
+
+      switch ($this->input['type']) {  // Values from CommonITILObject::getSearchOptionsActors()
+         case CommonITILActor::REQUESTER:
+            $this->_force_log_option = 71;
+            break;
+         case CommonITILActor::OBSERVER:
+            $this->_force_log_option = 65;
+            break;
+         case CommonITILActor::ASSIGN:
+            $this->_force_log_option = 8;
+            break;
+      }
+      parent::post_addItem();
+      unset($this->_force_log_option);
+   }
 }

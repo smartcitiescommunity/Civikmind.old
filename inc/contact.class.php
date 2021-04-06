@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -59,22 +55,14 @@ class Contact extends CommonDBTM{
 
 
    function cleanDBonPurge() {
-      global $DB;
 
-      $cs = new Contact_Supplier();
-      $cs->cleanDBonItemDelete($this->getType(), $this->fields['id']);
-
-      $query1 = "DELETE
-                 FROM `glpi_projecttaskteams`
-                 WHERE `items_id` = '".$this->fields['id']."'
-                       AND `itemtype` = '".__CLASS__."'";
-      $DB->query($query1);
-
-      $query1 = "DELETE
-                 FROM `glpi_projectteams`
-                 WHERE `items_id` = '".$this->fields['id']."'
-                       AND `itemtype` = '".__CLASS__."'";
-      $DB->query($query1);
+      $this->deleteChildrenAndRelationsFromDb(
+         [
+            Contact_Supplier::class,
+            ProjectTaskTeam::class,
+            ProjectTeam::class,
+         ]
+      );
    }
 
 
@@ -97,24 +85,33 @@ class Contact extends CommonDBTM{
     *
     *@return string containing the address
    **/
-   function GetAddress() {
+   function getAddress() {
       global $DB;
 
-      $query = "SELECT `glpi_suppliers`.`name`, `glpi_suppliers`.`address`,
-                       `glpi_suppliers`.`postcode`, `glpi_suppliers`.`town`,
-                       `glpi_suppliers`.`state`, `glpi_suppliers`.`country`
-                FROM `glpi_suppliers`, `glpi_contacts_suppliers`
-                WHERE `glpi_contacts_suppliers`.`contacts_id` = '".$this->fields["id"]."'
-                      AND `glpi_contacts_suppliers`.`suppliers_id` = `glpi_suppliers`.`id`";
+      $iterator = $DB->request([
+         'SELECT' => [
+            'glpi_suppliers.name',
+            'glpi_suppliers.address',
+            'glpi_suppliers.postcode',
+            'glpi_suppliers.town',
+            'glpi_suppliers.state',
+            'glpi_suppliers.country'
+         ],
+         'FROM'         => 'glpi_suppliers',
+         'INNER JOIN'   => [
+            'glpi_contacts_suppliers'  => [
+               'ON' => [
+                  'glpi_contacts_suppliers'  => 'suppliers_id',
+                  'glpi_suppliers'           => 'id'
+               ]
+            ]
+         ],
+         'WHERE'        => ['contacts_id' => $this->fields['id']]
+      ]);
 
-      if ($result = $DB->query($query)) {
-         if ($DB->numrows($result)) {
-            if ($data = $DB->fetch_assoc($result)) {
-               return $data;
-            }
-         }
+      if ($data = $iterator->next()) {
+         return $data;
       }
-      return "";
    }
 
 
@@ -123,20 +120,29 @@ class Contact extends CommonDBTM{
     *
     *@return string containing the website
    **/
-   function GetWebsite() {
+   function getWebsite() {
       global $DB;
 
-      $query = "SELECT `glpi_suppliers`.`website` as website
-                FROM `glpi_suppliers`, `glpi_contacts_suppliers`
-                WHERE `glpi_contacts_suppliers`.`contacts_id` = '".$this->fields["id"]."'
-                      AND `glpi_contacts_suppliers`.`suppliers_id` = `glpi_suppliers`.`id`";
+      $iterator = $DB->request([
+         'SELECT' => [
+            'glpi_suppliers.website AS website'
+         ],
+         'FROM'         => 'glpi_suppliers',
+         'INNER JOIN'   => [
+            'glpi_contacts_suppliers'  => [
+               'ON' => [
+                  'glpi_contacts_suppliers'  => 'suppliers_id',
+                  'glpi_suppliers'           => 'id'
+               ]
+            ]
+         ],
+         'WHERE'        => ['contacts_id' => $this->fields['id']]
+      ]);
 
-      if ($result = $DB->query($query)) {
-         if ($DB->numrows($result)) {
-            return $DB->result($result, 0, "website");
-         }
-         return "";
+      if ($data = $iterator->next()) {
+         return $data['website'];
       }
+      return '';
    }
 
 
@@ -148,7 +154,7 @@ class Contact extends CommonDBTM{
     *     - target filename : where to go when done.
     *     - withtemplate boolean : template or basic item
     *
-    * @return Nothing (display)
+    * @return true
    **/
    function showForm($ID, $options = []) {
 
@@ -172,7 +178,7 @@ class Contact extends CommonDBTM{
       echo "</td></tr>";
 
       echo "<tr class='tab_bg_1'>";
-      echo "<td>". __('Phone')."</td>";
+      echo "<td>". Phone::getTypeName(1)."</td>";
       echo "<td>";
       Html::autocompletionTextField($this, "phone");
       echo "</td></tr>";
@@ -216,7 +222,7 @@ class Contact extends CommonDBTM{
       echo "</td></tr>";
 
       echo "<tr class='tab_bg_1'>";
-      echo "<td>".__('Type')."</td>";
+      echo "<td>"._n('Type', 'Types', 1)."</td>";
       echo "<td>";
       ContactType::dropdown(['value' => $this->fields["contacttypes_id"]]);
       echo "</td>";
@@ -240,9 +246,6 @@ class Contact extends CommonDBTM{
    }
 
 
-   /**
-    * @see CommonDBTM::getSpecificMassiveActions()
-    **/
    function getSpecificMassiveActions($checkitem = null) {
 
       $isadmin = static::canUpdate();
@@ -253,20 +256,11 @@ class Contact extends CommonDBTM{
                = _x('button', 'Add a supplier');
       }
 
-      if ($isadmin) {
-         MassiveAction::getAddTransferList($actions);
-      }
-
       return $actions;
    }
 
 
-   /**
-    * @see CommonDBTM::getRawName()
-    *
-    * @since version 0.85
-   **/
-   function getRawName() {
+   protected function computeFriendlyName() {
 
       if (isset($this->fields["id"]) && ($this->fields["id"] > 0)) {
          return formatUserName('',
@@ -278,7 +272,7 @@ class Contact extends CommonDBTM{
    }
 
 
-   function getSearchOptionsNew() {
+   function rawSearchOptions() {
       $tab = [];
 
       $tab[] = [
@@ -292,7 +286,8 @@ class Contact extends CommonDBTM{
          'field'              => 'name',
          'name'               => __('Last name'),
          'datatype'           => 'itemlink',
-         'massiveaction'      => false
+         'massiveaction'      => false,
+         'autocomplete'       => true,
       ];
 
       $tab[] = [
@@ -300,7 +295,8 @@ class Contact extends CommonDBTM{
          'table'              => $this->getTable(),
          'field'              => 'firstname',
          'name'               => __('First name'),
-         'datatype'           => 'string'
+         'datatype'           => 'string',
+         'autocomplete'       => true,
       ];
 
       $tab[] = [
@@ -316,8 +312,9 @@ class Contact extends CommonDBTM{
          'id'                 => '3',
          'table'              => $this->getTable(),
          'field'              => 'phone',
-         'name'               => __('Phone'),
-         'datatype'           => 'string'
+         'name'               => Phone::getTypeName(1),
+         'datatype'           => 'string',
+         'autocomplete'       => true,
       ];
 
       $tab[] = [
@@ -325,7 +322,8 @@ class Contact extends CommonDBTM{
          'table'              => $this->getTable(),
          'field'              => 'phone2',
          'name'               => __('Phone 2'),
-         'datatype'           => 'string'
+         'datatype'           => 'string',
+         'autocomplete'       => true,
       ];
 
       $tab[] = [
@@ -333,7 +331,8 @@ class Contact extends CommonDBTM{
          'table'              => $this->getTable(),
          'field'              => 'mobile',
          'name'               => __('Mobile phone'),
-         'datatype'           => 'string'
+         'datatype'           => 'string',
+         'autocomplete'       => true,
       ];
 
       $tab[] = [
@@ -341,7 +340,8 @@ class Contact extends CommonDBTM{
          'table'              => $this->getTable(),
          'field'              => 'fax',
          'name'               => __('Fax'),
-         'datatype'           => 'string'
+         'datatype'           => 'string',
+         'autocomplete'       => true,
       ];
 
       $tab[] = [
@@ -349,7 +349,8 @@ class Contact extends CommonDBTM{
          'table'              => $this->getTable(),
          'field'              => 'email',
          'name'               => _n('Email', 'Emails', 1),
-         'datatype'           => 'email'
+         'datatype'           => 'email',
+         'autocomplete'       => true,
       ];
 
       $tab[] = [
@@ -364,7 +365,8 @@ class Contact extends CommonDBTM{
          'datatype'           => 'string',
          'table'              => $this->getTable(),
          'field'              => 'postcode',
-         'name'               => __('Postal code')
+         'name'               => __('Postal code'),
+         'autocomplete'       => true,
       ];
 
       $tab[] = [
@@ -372,15 +374,17 @@ class Contact extends CommonDBTM{
          'table'              => $this->getTable(),
          'field'              => 'town',
          'name'               => __('City'),
-         'datatype'           => 'string'
+         'datatype'           => 'string',
+         'autocomplete'       => true,
       ];
 
       $tab[] = [
          'id'                 => '85',
          'table'              => $this->getTable(),
          'field'              => 'state',
-         'name'               => __('State'),
-         'datatype'           => 'string'
+         'name'               => _x('location', 'State'),
+         'datatype'           => 'string',
+         'autocomplete'       => true,
       ];
 
       $tab[] = [
@@ -388,14 +392,15 @@ class Contact extends CommonDBTM{
          'table'              => $this->getTable(),
          'field'              => 'country',
          'name'               => __('Country'),
-         'datatype'           => 'string'
+         'datatype'           => 'string',
+         'autocomplete'       => true,
       ];
 
       $tab[] = [
          'id'                 => '9',
          'table'              => 'glpi_contacttypes',
          'field'              => 'name',
-         'name'               => __('Type'),
+         'name'               => _n('Type', 'Types', 1),
          'datatype'           => 'dropdown'
       ];
 
@@ -436,7 +441,7 @@ class Contact extends CommonDBTM{
          'id'                 => '80',
          'table'              => 'glpi_entities',
          'field'              => 'completename',
-         'name'               => __('Entity'),
+         'name'               => Entity::getTypeName(1),
          'massiveaction'      => false,
          'datatype'           => 'dropdown'
       ];
@@ -468,9 +473,9 @@ class Contact extends CommonDBTM{
       ];
 
       // add objectlock search options
-      $tab = array_merge($tab, ObjectLock::getSearchOptionsToAddNew(get_class($this)));
+      $tab = array_merge($tab, ObjectLock::rawSearchOptionsToAdd(get_class($this)));
 
-      $tab = array_merge($tab, Notepad::getSearchOptionsToAddNew());
+      $tab = array_merge($tab, Notepad::rawSearchOptionsToAdd());
 
       return $tab;
    }
@@ -479,12 +484,12 @@ class Contact extends CommonDBTM{
    /**
     * Generate the Vcard for the current Contact
     *
-    *@return Nothing (display)
-   **/
+    * @return void
+    */
    function generateVcard() {
 
       if (!$this->can($this->fields['id'], READ)) {
-         return false;
+         return;
       }
 
       // build the Vcard
@@ -509,12 +514,16 @@ class Contact extends CommonDBTM{
       $output   = $vcard->serialize();
       $filename = $this->fields["name"]."_".$this->fields["firstname"].".vcf";
 
-      @Header("Content-Disposition: attachment; filename=\"$filename\"");
-      @Header("Content-Length: ".Toolbox::strlen($output));
-      @Header("Connection: close");
-      @Header("content-type: text/x-vcard; charset=UTF-8");
+      @header("Content-Disposition: attachment; filename=\"$filename\"");
+      @header("Content-Length: ".Toolbox::strlen($output));
+      @header("Connection: close");
+      @header("content-type: text/x-vcard; charset=UTF-8");
 
       echo $output;
    }
 
+
+   static function getIcon() {
+      return "fas fa-user-tie";
+   }
 }

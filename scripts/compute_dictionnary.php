@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,9 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
 ini_set("memory_limit", "-1");
 ini_set("max_execution_time", "0");
 
@@ -51,6 +48,8 @@ if ($argv) {
 }
 
 include ('../inc/includes.php');
+
+echo "Usage of this script is deprecated, please use 'php bin/console rules:replay_dictionnary_rules' command.\n";
 
 // No debug mode
 $_SESSION['glpi_use_mode'] == Session::NORMAL_MODE;

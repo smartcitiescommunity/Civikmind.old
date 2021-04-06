@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -29,10 +29,6 @@
  * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
  */
-
-/** @file
-* @brief
-*/
 
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
@@ -87,9 +83,9 @@ class NotificationTargetInfocom extends NotificationTarget {
 
       $tags = ['infocom.action'         => _n('Event', 'Events', 1),
                     'infocom.itemtype'       => __('Item type'),
-                    'infocom.item'           => __('Associated item'),
+                    'infocom.item'           => _n('Associated item', 'Associated items', 1),
                     'infocom.expirationdate' => __('Expiration date'),
-                    'infocom.entity'         => __('Entity')];
+                    'infocom.entity'         => Entity::getTypeName(1)];
 
       foreach ($tags as $tag => $label) {
          $this->addTagToList(['tag'   => $tag,

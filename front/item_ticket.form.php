@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -29,10 +29,6 @@
  * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
  */
-
-/** @file
-* @brief
-*/
 
 use Glpi\Event;
 
@@ -69,9 +65,9 @@ if (isset($_POST["add"])) {
 
 } else if (isset($_POST["delete"])) {
    $item_ticket = new Item_Ticket();
-   $deleted = $item_ticket->deleteByCriteria(['tickets_id' => $_POST['tickets_id'],
-                                                   'items_id'   => $_POST['items_id'],
-                                                   'itemtype'   => $_POST['itemtype']]);
+   $item_ticket->deleteByCriteria(['tickets_id' => $_POST['tickets_id'],
+                                   'items_id'   => $_POST['items_id'],
+                                   'itemtype'   => $_POST['itemtype']]);
    Html::back();
 }
 

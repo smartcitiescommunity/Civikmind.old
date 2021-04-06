@@ -1,6 +1,10 @@
 <?php
 
-class PluginFieldsMigration {
+class PluginFieldsMigration extends Migration {
+
+   function __construct($ver = "") {
+      parent::__construct($ver);
+   }
 
    static function install(Migration $migration, $version) {
       global $DB;
@@ -21,10 +25,12 @@ class PluginFieldsMigration {
    }
 
    function updateFromCustomfields($glpi_version = "0.80") {
-      global $DB;
-
       //TODO : REWRITE customfield update
       return true;
+   }
+
+   function displayMessage($msg) {
+      Session::addMessageAfterRedirect($msg);
    }
 
    function migrateCustomfieldTypes($old_type) {
@@ -53,7 +59,8 @@ class PluginFieldsMigration {
          'yesno'        => 'INT(11)      NOT NULL DEFAULT 0',
          'date'         => 'VARCHAR(255) DEFAULT NULL',
          'datetime'     => 'VARCHAR(255) DEFAULT NULL',
-         'dropdownuser' => 'INT(11)  NOT NULL DEFAULT 0'
+         'dropdownuser' => 'INT(11)  NOT NULL DEFAULT 0',
+         'dropdownoperatingsystems' => 'INT(11)  NOT NULL DEFAULT 0'
       ];
 
       return $types[$field_type];

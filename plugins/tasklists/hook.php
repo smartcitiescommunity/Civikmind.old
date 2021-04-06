@@ -1,210 +1,285 @@
 <?php
+/*
+ * @version $Id: HEADER 15930 2011-10-30 15:47:55Z tsmr $
+ -------------------------------------------------------------------------
+ Tasklists plugin for GLPI
+ Copyright (C) 2003-2016 by the Tasklists Development Team.
 
-function plugin_tasklist_install() {
-	global $DB;
+ https://github.com/InfotelGLPI/tasklists
+ -------------------------------------------------------------------------
 
-	if (!TableExists('glpi_plugin_tasklist_lists')) {
-		$query = "CREATE TABLE `glpi_plugin_tasklist_lists` (
-			`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-			`name` VARCHAR(255) NOT NULL,
-			`list` TEXT NOT NULL,
-			`enabled` BOOLEAN NOT NULL DEFAULT FALSE
-			) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci";
+ LICENSE
 
+ This file is part of Tasklists.
 
-		$DB->query($query);
-	}
-	return true;
+ Tasklists is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
+
+ Tasklists is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with Tasklists. If not, see <http://www.gnu.org/licenses/>.
+ --------------------------------------------------------------------------
+ */
+
+/**
+ * @return bool
+ */
+function plugin_tasklists_install() {
+   global $DB;
+
+   include_once(GLPI_ROOT . "/plugins/tasklists/inc/profile.class.php");
+   include_once(GLPI_ROOT . "/plugins/tasklists/inc/task.class.php");
+   if (!$DB->tableExists("glpi_plugin_tasklists_tasks")) {
+
+      $DB->runFile(GLPI_ROOT . "/plugins/tasklists/sql/empty-1.6.0.sql");
+
+   }
+   if (!$DB->tableExists("glpi_plugin_tasklists_taskstates")) {
+      $mig = new Migration("1.4.1");
+      $DB->runFile(GLPI_ROOT . "/plugins/tasklists/sql/update-1.4.1.sql");
+      $mig->executeMigration();
+   }
+   if (!$DB->tableExists("glpi_plugin_tasklists_items_kanbans")) {
+      $mig = new Migration("1.5.1");
+      $DB->runFile(GLPI_ROOT . "/plugins/tasklists/sql/update-1.5.1.sql");
+      $mig->executeMigration();
+   }
+   if (!$DB->fieldExists("glpi_plugin_tasklists_preferences", "automatic_refresh")) {
+      $mig = new Migration("1.6.0");
+      $DB->runFile(GLPI_ROOT . "/plugins/tasklists/sql/update-1.6.0.sql");
+      $mig->executeMigration();
+   }
+   // Add record notification
+   include_once(GLPI_ROOT . "/plugins/tasklists/inc/notificationtargettask.class.php");
+   call_user_func(["PluginTasklistsNotificationTargetTask", 'install']);
+
+   PluginTasklistsProfile::initProfile();
+   PluginTasklistsProfile::createFirstAccess($_SESSION['glpiactiveprofile']['id']);
+
+   return true;
 }
 
-function plugin_tasklist_uninstall() {
-	global $DB;  
+/**
+ * @return bool
+ */
+function plugin_tasklists_uninstall() {
+   global $DB;
 
- 
-	$tables = ['lists'];
+   include_once(GLPI_ROOT . "/plugins/tasklists/inc/profile.class.php");
+   include_once(GLPI_ROOT . "/plugins/tasklists/inc/menu.class.php");
 
-	foreach ($tables as $table) {
-		$tablename = 'glpi_plugin_tasklist_' . $table;
+   $tables = ["glpi_plugin_tasklists_tasks",
+              "glpi_plugin_tasklists_tasktypes",
+              "glpi_plugin_tasklists_taskstates",
+              "glpi_plugin_tasklists_stateorders",
+              "glpi_plugin_tasklists_typevisibilities",
+              "glpi_plugin_tasklists_preferences",
+              "glpi_plugin_tasklists_tasks_comments",
+              "glpi_plugin_tasklists_tickets",
+              "glpi_plugin_tasklists_items_kanbans"];
 
-		if (TableExists($tablename)) {
-			$DB->query("DROP TABLE `$tablename`");
-		}
-	}
+   foreach ($tables as $table) {
+      $DB->query("DROP TABLE IF EXISTS `$table`;");
+   }
 
-	return true;
+   $tables_glpi = ["glpi_displaypreferences",
+                   "glpi_notepads",
+                   "glpi_savedsearches",
+                   "glpi_logs",
+                   "glpi_documents_items"];
+
+   foreach ($tables_glpi as $table_glpi) {
+      $DB->query("DELETE FROM `$table_glpi` WHERE `itemtype` LIKE 'PluginTasklistsTask%';");
+   }
+
+   $notif = new Notification();
+
+   $options = ['itemtype' => 'PluginTasklistsTask',
+               'FIELDS'   => 'id'];
+   foreach ($DB->request('glpi_notifications', $options) as $data) {
+      $notif->delete($data);
+   }
+
+   //templates
+   $template    = new NotificationTemplate();
+   $translation = new NotificationTemplateTranslation();
+   $options     = ['itemtype' => 'PluginTasklistsTask',
+                   'FIELDS'   => 'id'];
+   foreach ($DB->request('glpi_notificationtemplates', $options) as $data) {
+      $options_template = ['notificationtemplates_id' => $data['id'],
+                           'FIELDS'                   => 'id'];
+
+      foreach ($DB->request('glpi_notificationtemplatetranslations', $options_template) as $data_template) {
+         $translation->delete($data_template);
+      }
+      $template->delete($data);
+   }
+   //Delete rights associated with the plugin
+   $profileRight = new ProfileRight();
+   foreach (PluginTasklistsProfile::getAllRights() as $right) {
+      $profileRight->deleteByCriteria(['name' => $right['field']]);
+   }
+   PluginTasklistsMenu::removeRightsFromSession();
+
+   PluginTasklistsProfile::removeRightsFromSession();
+
+   return true;
 }
 
-function tasklist_addticket_called(Ticket $newTicket){
-	
-	//Global access to the database
-	//
-	global $DB;
+// Define dropdown relations
+/**
+ * @return array
+ */
+function plugin_tasklists_getDatabaseRelations() {
 
-	//Query the database for the ticket number of the ticket we just created
-	//
-	$newTicketRow = $DB->request("glpi_tickets", "id = ". $newTicket->getID());	
-	
+   $plugin = new Plugin();
 
-	//If for whatever reason the query we just ran doesn't return 1 (database problem?), exit out
-	//	
-	if($newTicketRow->numrows() != 1){
-		return;
-	}
+   if ($plugin->isActivated("tasklists")) {
+      return ["glpi_plugin_tasklists_tasktypes"  => ["glpi_plugin_tasklists_tasks" => "plugin_tasklists_tasktypes_id"],
+              "glpi_plugin_tasklists_taskstates" => ["glpi_plugin_tasklists_tasks" => "plugin_tasklists_taskstates_id"],
+              "glpi_users"                       => ["glpi_plugin_tasklists_tasks" => "users_id"],
+              "glpi_groups"                      => ["glpi_plugin_tasklists_tasks" => "groups_id"],
+              "glpi_entities"                    => ["glpi_plugin_tasklists_tasks"     => "entities_id",
+                                                     "glpi_plugin_tasklists_tasktypes" => "entities_id"]];
+   } else {
+      return [];
+   }
+}
 
-	//Set the newTicketArray to the one and only returned row
-        $newTicketArray = $newTicketRow->next();
+// Define Dropdown tables to be manage in GLPI :
+/**
+ * @return array
+ */
+function plugin_tasklists_getDropdown() {
 
-	//The itilcategories_id column is the category that was selected... if the category matches one of the categories that
-	//	We've specified task lists for, then we'll proceed
+   $plugin = new Plugin();
 
-	//Get the category from the database
-	//
-	$category = $DB->request("glpi_itilcategories", "id = ". $newTicketArray['itilcategories_id']);
+   if ($plugin->isActivated("tasklists")) {
+      return ['PluginTasklistsTaskType'  => PluginTasklistsTaskType::getTypeName(2),
+              'PluginTasklistsTaskState' => PluginTasklistsTaskState::getTypeName(2)];
+   } else {
+      return [];
+   }
+}
 
-	//If it failed (or no category was selected), exit
-	//
-	if($category->numrows() != 1){
-		file_put_contents("/var/www/html/glpi/files/_log/tasklist", "No Category Selected\n", FILE_APPEND);
-		return;
-	}
-	
+/**
+ * @param $type
+ *
+ * @return string
+ */
+function plugin_tasklists_addDefaultWhere($type) {
 
-	//Set the selectedCategoryArray to the one and only returned row
-	$selectedCategoryArray = $category->next();
+   switch ($type) {
+      case "PluginTasklistsTask" :
+         $who = Session::getLoginUserID();
+         if (!Session::haveRight("plugin_tasklists_see_all", 1)) {
+            if (count($_SESSION["glpigroups"])
+               //                && Session::haveRight("plugin_tasklists_my_groups", 1)
+            ) {
+               $first_groups = true;
+               $groups       = "";
+               foreach ($_SESSION['glpigroups'] as $val) {
+                  if (!$first_groups) {
+                     $groups .= ",";
+                  } else {
+                     $first_groups = false;
+                  }
+                  $groups .= "'" . $val . "'";
+               }
+               return " (`glpi_plugin_tasklists_tasks`.`groups_id` IN (
+               SELECT DISTINCT `groups_id`
+               FROM `glpi_groups_users`
+               WHERE `groups_id` IN ($groups)
+               )
+               OR `glpi_plugin_tasklists_tasks`.`users_id` = '$who'
+               OR `glpi_plugin_tasklists_tasks`.`visibility` = '3') ";
+            } else { // Only personal ones
+               return " (`glpi_plugin_tasklists_tasks`.`users_id` = '$who' 
+                OR `glpi_plugin_tasklists_tasks`.`visibility` = '3')";
+            }
+         }
+   }
+   return "";
+}
 
-	//Write something to one of the log files
-	file_put_contents("/var/www/html/glpi/files/_log/tasklist", "Selected Category:  " . $selectedCategoryArray['name'] . "\n", FILE_APPEND);
+////// SEARCH FUNCTIONS ///////() {
+/*
+function plugin_tasklists_getAddSearchOptions($itemtype) {
 
-	//Query the database for a matching task list
-	$taskList = $DB->request("glpi_plugin_tasklist_lists", "name = '" . $selectedCategoryArray['name']."'");	
-	
-	//If one row didn't come back (0 or 2+), write to the log and return
-	if($taskList->numrows() != 1){
-		file_put_contents("/var/www/html/glpi/files/_log/tasklist", "Couldn't match category\n", FILE_APPEND);
-		file_put_contents("/var/www/html/glpi/files/_log/tasklist", "Number of rows returned:  " . $taskList->numrows() . "\n", FILE_APPEND);
-		return;
-	}
+   $sopt=[];
 
-	//Set the selected task array to the row that was returned
-	$selectedTaskListArray = $taskList->next();
-	
-	//If the task list isn't enabled, return
-	if($selectedTaskListArray['enabled'] != 1){
-		file_put_contents("/var/www/html/glpi/files/_log/tasklist", "Task is disabled\n", FILE_APPEND);
-		return;
-	}
-	
-	//Set the $runTasksString to be the list of tasks
-	//
-	$runTasksString = $selectedTaskListArray['list'];	
+   if (in_array($itemtype, PluginTasklistsTask::getTypes(true))) {
+      if (Session::haveRight("plugin_tasklists",READ)) {
 
-	//explode the string at the ++ so we're left with an array of strings
-	//
-	$runTasksArray = explode("++", $runTasksString);
+         $sopt[4411]['table']='glpi_plugin_tasklists_tasktypes';
+         $sopt[4411]['field']='name';
+         $sopt[4411]['name']=PluginTasklistsTask::getTypeName(2)." - ".
+                                      PluginTasklistsTaskType::getTypeName(1);
+         $sopt[4411]['forcegroupby']=true;
+         $sopt[4411]['datatype']       = 'dropdown';
+         $sopt[4411]['massiveaction']  = false;
+         $sopt[4411]['joinparams']     = array('beforejoin' => array(
+                                                   array('table'      => 'glpi_plugin_tasklists_tasks',
+                                                         'joinparams' => $sopt[4410]['joinparams'])));
+      }
+   }
+   return $sopt;
+}
+*/
+/**
+ * @param $type
+ * @param $ID
+ * @param $data
+ * @param $num
+ *
+ * @return string
+ */
+function plugin_tasklists_displayConfigItem($type, $ID, $data, $num) {
 
-	//Set the newTicketID to the ID of the ticket that we just created, and newTicketUser to the user.
-	//
-	$newTicketID = $newTicketArray['id'];
-	$newTicketUser = $newTicketArray['users_id_recipient'];
+   $searchopt =& Search::getOptions($type);
+   $table     = $searchopt[$ID]["table"];
+   $field     = $searchopt[$ID]["field"];
 
-	file_put_contents("/var/www/html/glpi/files/_log/tasklist", "New ticket created by user number:  $newTicketUser\n", FILE_APPEND);
+   switch ($table . '.' . $field) {
+      case "glpi_plugin_tasklists_tasks.priority" :
+         return " style=\"background-color:" . $_SESSION["glpipriority_" . $data[$num][0]['name']] . ";\" ";
+         break;
+   }
+   return "";
+}
 
-	
-	//For each task (string) in the array, generate an SQL query, and insert that row into the ticket
-	// tasks table with the right ticketID	
-	foreach($runTasksArray as $task){
+/**
+ * @param $options
+ *
+ * @return array
+ */
+function plugin_tasklists_getRuleActions($options) {
+   $task = new PluginTasklistsTask();
+   return $task->getActions();
+}
 
+/**
+ * @param $options
+ *
+ * @return mixed
+ */
+function plugin_tasklists_getRuleCriterias($options) {
+   $task = new PluginTasklistsTask();
+   return $task->getCriterias();
+}
 
-		$task = trim($task);
-
-		//We want to be able to handle tasks that are meant for certain groups, so in order to do that
-		//	we need to check if the task has a group or user specified
-		//
-		//preg_match('/(\[.*\]\n)(.*)/', $task, $taskArray, PREG_OFFSET_CAPTURE);
-
-		//$taskGroup = strpos($task, "Operations");
-		$taskPos = preg_match('/\[.*\]/', $task, $taskArray);
-	
-		file_put_contents("/var/www/html/glpi/files/_log/tasklist", print_r($taskArray, true), FILE_APPEND);
-
-
-		//If taskArray is null, that means there's no group assigned and we'll enter the task generically
-		if($taskArray == null){	
-	
-			file_put_contents("/var/www/html/glpi/files/_log/tasklist", "Adding unassigned task\n", FILE_APPEND);
-	
-			$queryGroups = null;
-
-			$query = "INSERT INTO `glpi_tickettasks` " .
-	                        "(`tickets_id`, `users_id`, `content`, `date`) " .
-        	                " VALUE ('" . $newTicketID . "', '" . $newTicketUser . "', '" . $task . "', NOW());";
-
-		}
-
-		//Else, there WAS a group assigned, and we'll match it to a group and create that task
-		else{
-
-			
-
-
-			//If the task includes a tag [groupName], it'll be in $taskArray[1][0]
-			$taskGroup = $taskArray[0];
-			$taskGroup = substr($taskGroup, 1, strlen($taskGroup) - 2);
-
-			//And the rest of the text for the task will begin at $taskArray[2][1], so we substr it
-                        $taskText = substr($task, strlen($taskGroup) + 2);
-
-
-			file_put_contents("/var/www/html/glpi/files/_log/tasklist", "Adding group task\n", FILE_APPEND);
-			file_put_contents("/var/www/html/glpi/files/_log/tasklist", "Group name:  $taskGroup\n", FILE_APPEND);
-			file_put_contents("/var/www/html/glpi/files/_log/tasklist", "Text:  $taskText\n", FILE_APPEND);
-		
-
-			//Create a query to get the group ID number
-			$matchGroup = "SELECT CASE WHEN (" .
-                                        "SELECT (SELECT `id` FROM `glpi_groups` " .
-                                        "WHERE name = '" . $taskGroup . "')) IS NOT NULL THEN(" .
-                                        "SELECT `id` FROM `glpi_groups` " .
-                                        "WHERE name = '" . $taskGroup . "') ELSE '0' END AS groupID";
-
-			$groupIDResponse = $DB->request($matchGroup);
-
-			if($groupIDResponse->numrows() == 0){
-				//It should never....
-				$groupID = 0;
-			}
-
-			else{
-				$groupID = $groupIDResponse->next();
-				$groupID = $groupID['groupID'];
-			}
-
-//			$queryCASE = "SELECT CASE WHEN (" .
-//					"SELECT (SELECT `id` FROM `glpi_groups` " .
-//					"WHERE name = '" . $taskGroup . "')) IS NOT NULL THEN(" .
-//					"SELECT `id` FROM `glpi_groups` " . 
-//					"WHERE name = '" . $taskGroup . "') ELSE '0' END";
-
-			//Add the task group as a watcher to the ticket, if it wasn't 0
-			if($groupID != 0){
-
-        	                $queryGroups = "INSERT INTO `glpi_groups_tickets` " .
-	                                        "(`tickets_id`, `groups_id`, `type`) " .
-                	                        " VALUE ('" . $newTicketID . "', (" . $groupID . "), '2');";
-			}
-
-			$query = "INSERT INTO `glpi_tickettasks` " . 
-	        	        "(`tickets_id`, `users_id`, `content`, `date`, `groups_id_tech`) " .
-        			" VALUE ('" . $newTicketID . "', '" . $newTicketUser . "', '" . $taskText . "', NOW(), '" . $groupID . "');";
-		}
-		
-		//If a group was specified, run that query
-		if($queryGroups != null){
-			file_put_contents("/var/www/html/glpi/files/_log/tasklist", "Assigning group to ticket", FILE_APPEND);
-			$DB->query($queryGroups);
-		}
-
-		//Run the query to add the ticket task
-		$DB->query($query);
-	}
+/**
+ * @param $options
+ *
+ * @return the
+ */
+function plugin_tasklists_executeActions($options) {
+   $task = new PluginTasklistsTask();
+   return $task->executeActions($options['action'], $options['output'], $options['params']);
 }

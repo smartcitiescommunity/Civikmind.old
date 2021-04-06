@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -29,10 +29,6 @@
  * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
  */
-
-/** @file
-* @brief
-*/
 
 include ('../inc/includes.php');
 
@@ -110,7 +106,7 @@ if (isset($_POST["type"])
                   echo __('Email followup').'&nbsp;';
                   $rand = Dropdown::showYesNo('_itil_'.$_POST["actortype"].'[use_notification]', $_POST["use_notif"]);
                   echo '<br>';
-                  printf(__('%1$s: %2$s'), __('Email'),
+                  printf(__('%1$s: %2$s'), _n('Email', 'Emails', 1),
                          "<input type='text' size='25' name='_itil_".$_POST["actortype"].
                            "[alternative_email]'>");
                }
@@ -119,15 +115,20 @@ if (isset($_POST["type"])
             break;
 
          case "group" :
-            $cond = '`is_requester`';
+            $cond = ['is_requester' => 1];
             if ($_POST["actortype"] == 'assign') {
-               $cond = '`is_assign`';
+               $cond = ['is_assign' => 1];
+            }
+            if ($_POST["actortype"] == 'observer') {
+               $cond = ['is_watcher' => 1];
             }
 
-            $param = ['name'      => '_itil_'.$_POST["actortype"].'[groups_id]',
-                           'entity'    => $_POST['entity_restrict'],
-                           'condition' => $cond,
-                           'rand'      => $rand];
+            $param = [
+               'name'      => '_itil_'.$_POST["actortype"].'[groups_id]',
+               'entity'    => $_POST['entity_restrict'],
+               'condition' => $cond,
+               'rand'      => $rand
+            ];
             if (($_POST["itemtype"] == 'Ticket')
                 && ($_POST["actortype"] == 'assign')) {
                $param['toupdate'] = ['value_fieldname' => 'value',
@@ -193,7 +194,7 @@ if (isset($_POST["type"])
                   echo __('Email followup').'&nbsp;';
                   $rand = Dropdown::showYesNo('_itil_'.$_POST["actortype"].'[use_notification]', $_POST['use_notif']);
                   echo '<br>';
-                  printf(__('%1$s: %2$s'), __('Email'),
+                  printf(__('%1$s: %2$s'), _n('Email', 'Emails', 1),
                          "<input type='text' size='25' name='_itil_".$_POST["actortype"].
                            "[alternative_email]'>");
                }

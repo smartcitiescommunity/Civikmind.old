@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -43,7 +39,7 @@ class HTMLTableUnknownHeaders      extends Exception {}
 class HTMLTableUnknownHeadersOrder extends Exception {}
 
 /**
- * @since version 0.84
+ * @since 0.84
 **/
 abstract class HTMLTableBase  {
 
@@ -111,19 +107,19 @@ abstract class HTMLTableBase  {
     *
     * Depending of "$this" type, this head will be an HTMLTableSuperHeader of a HTMLTableSubHeader
     *
-    * @param $name      string            The name that can be refered by getHeaderByName()
-    * @param $content   string or array   The content (see HTMLTableEntity#content) of the header
-    * @param $super                       HTMLTableSuperHeader object:
-    *                                     the header that contains this new header only used
-    *                                     for HTMLTableSubHeader (default NULL)
-    *                                     (ie: $this instanceof HTMLTableGroup)
-    * @param $father                      HTMLTableHeader object: the father of the current header
-    *                                     (default NULL)
+    * @param string               $name     The name that can be refered by getHeaderByName()
+    * @param string|array         $content  The content (see HTMLTableEntity#content) of the header
+    * @param HTMLTableSuperHeader $super    HTMLTableSuperHeader object:
+    *                                       the header that contains this new header only used
+    *                                       for HTMLTableSubHeader (default NULL)
+    *                                       (ie: $this instanceof HTMLTableGroup)
+    * @param HTMLTableHeader      $father   HTMLTableHeader object: the father of the current header
+    *                                       (default NULL)
     *
-    * @exception Exception                If there is no super header while creating a sub
-    *                                     header or a super header while creating a super one
+    * @exception Exception                  If there is no super header while creating a sub
+    *                                       header or a super header while creating a super one
     *
-    * @return the HTMLTableHeader        that have been created
+    * @return HTMLTableHeader               table header that have been created
    **/
    function addHeader($name, $content, HTMLTableSuperHeader $super = null,
                       HTMLTableHeader $father = null) {

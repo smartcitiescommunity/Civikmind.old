@@ -85,7 +85,7 @@ else {
 	<style type="text/css">
 		select { width: 60px; }
 		table.dataTable { empty-cells: show; }
-	   a:link, a:visited, a:active { text-decoration: none;}			
+	    a:link, a:visited, a:active { text-decoration: none;}			
 		a:hover {color: #000099;}
 		.carregando {display: none;}
 		.sel_fab .sel_mod {display: block;}
@@ -100,9 +100,9 @@ else {
 <div id='container-fluid' style="margin: <?php echo margins(); ?> ;">
 <div id="charts" class="fluid chart">
 <div id="pad-wrapper" >
-<div id="head-rel" class="fluid" style="height:400px;">
+<div id="head-rel" class="fluid" style="min-height:320px;">
 
-<a href="../index.php"><i class="fa fa-home" style="font-size:14pt; margin-left:25px;"></i><span></span></a>
+<a href="../index.php"><i class="fa fa-home home-rel" style="font-size:14pt; margin-left:25px;"></i><span></span></a>
 
 	<div id="titulo_rel"> <?php echo __('Assets') ?> </div>
 		<div id="datas-tec" class="col-md-12 fluid" >
@@ -527,12 +527,14 @@ else	{
 
 echo "
 	<tr>
-		<td style='vertical-align:middle;'><a href=".$CFG_GLPI['url_base']."/front/".$type.".form.php?id=". $row_item['id'] ." target=_blank >".$row_item['name']." (".$row_item['id'].")</a></td>
+		<td style='vertical-align:middle;'><a href=".$CFG_GLPI['url_base']."front/".$type.".form.php?id=". $row_item['id'] ." target=_blank >".$row_item['name']." (".$row_item['id'].")</a></td>
 		<td style='vertical-align:middle; font-weight:normal;'> ". $row_mod['name'] ." </td>
 		<td style='vertical-align:middle; font-weight:normal;'> ". $row_item['serial'] ." </td>
-		<td style='vertical-align:middle; text-align:center;'> <a href='rel_assets_tickets.php?con=1&itemtype=".$type."&sel_item=".$row['id']."&sel_fab=".$id_fab1."&date1=".$data_ini2."&date2=".$data_fin2."' target=_blank>". $row_count['conta'] ." </a></td>
+		<td style='vertical-align:middle; text-align:center;'> ". $row_count['conta'] ."</td>
 	</tr>";
 }
+
+//<td style='vertical-align:middle; text-align:center;'> <a href='rel_assets_tickets.php?con=1&itemtype=".$type."&sel_item=".$row['id']."&sel_fab=".$id_fab1."&date1=".$data_ini2."&date2=".$data_fin2."' target=_blank>". $row_count['conta'] ." </a></td>
 
 echo "</tbody>
 		</table>

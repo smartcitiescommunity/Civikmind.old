@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -29,10 +29,6 @@
  * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
  */
-
-/** @file
-* @brief
-*/
 
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
@@ -67,8 +63,8 @@ class Holiday extends CommonDropdown {
    }
 
 
-   function getSearchOptionsNew() {
-      $tab = parent::getSearchOptionsNew();
+   function rawSearchOptions() {
+      $tab = parent::rawSearchOptions();
 
       $tab[] = [
          'id'                 => '11',
@@ -98,9 +94,6 @@ class Holiday extends CommonDropdown {
    }
 
 
-   /**
-    * @see CommonDBTM::prepareInputForAdd()
-   **/
    function prepareInputForAdd($input) {
 
       $input = parent::prepareInputForAdd($input);
@@ -115,16 +108,13 @@ class Holiday extends CommonDropdown {
    }
 
 
-   /**
-    * @see CommonDBTM::prepareInputForUpdate()
-   **/
    function prepareInputForUpdate($input) {
 
       $input = parent::prepareInputForUpdate($input);
 
-      if (empty($input['end_date'])
+      if (isset($input['begin_date']) && (empty($input['end_date'])
           || ($input['end_date'] == 'NULL')
-          || ($input['end_date'] < $input['begin_date'])) {
+          || ($input['end_date'] < $input['begin_date']))) {
 
          $input['end_date'] = $input['begin_date'];
       }

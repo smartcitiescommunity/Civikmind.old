@@ -29,12 +29,14 @@
  ---------------------------------------------------------------------- */
 
 function plugin_itilcategorygroups_install() {
+   $dir = Plugin::getPhpDir('itilcategorygroups');
+
    $migration = new Migration("0.84");
 
    //order is important for install
-   include_once(GLPI_ROOT."/plugins/itilcategorygroups/inc/category.class.php");
-   include_once(GLPI_ROOT."/plugins/itilcategorygroups/inc/category_group.class.php");
-   include_once(GLPI_ROOT."/plugins/itilcategorygroups/inc/group_level.class.php");
+   include_once($dir . "/inc/category.class.php");
+   include_once($dir . "/inc/category_group.class.php");
+   include_once($dir . "/inc/group_level.class.php");
    PluginItilcategorygroupsCategory::install($migration);
    PluginItilcategorygroupsCategory_Group::install($migration);
    PluginItilcategorygroupsGroup_Level::install($migration);
@@ -42,9 +44,11 @@ function plugin_itilcategorygroups_install() {
 }
 
 function plugin_itilcategorygroups_uninstall() {
-   include_once(GLPI_ROOT."/plugins/itilcategorygroups/inc/category_group.class.php");
-   include_once(GLPI_ROOT."/plugins/itilcategorygroups/inc/category.class.php");
-   include_once(GLPI_ROOT."/plugins/itilcategorygroups/inc/group_level.class.php");
+   $dir = Plugin::getPhpDir('itilcategorygroups');
+
+   include_once($dir . "/inc/category_group.class.php");
+   include_once($dir . "/inc/category.class.php");
+   include_once($dir . "/inc/group_level.class.php");
    PluginItilcategorygroupsCategory_Group::uninstall();
    PluginItilcategorygroupsCategory::uninstall();
    PluginItilcategorygroupsGroup_Level::uninstall();
@@ -56,7 +60,7 @@ function plugin_itilcategorygroups_getAddSearchOptions($itemtype) {
       $options = PluginItilcategorygroupsGroup_Level::getAddSearchOptions($itemtype);
       return $options;
    } else {
-      return NULL;
+      return null;
    }
 }
 
@@ -81,7 +85,7 @@ function plugin_itilcategorygroups_giveItem($type, $ID, $data, $num) {
 }
 
 // Display specific massive actions for plugin fields
-function plugin_itilcategorygroups_MassiveActionsFieldsDisplay($options=array()) {
+function plugin_itilcategorygroups_MassiveActionsFieldsDisplay($options = []) {
 
    $table     = $options['options']['table'];
    $field     = $options['options']['field'];
@@ -91,11 +95,11 @@ function plugin_itilcategorygroups_MassiveActionsFieldsDisplay($options=array())
    switch ($table.".".$field) {
       case "glpi_plugin_itilcategorygroups_groups_levels.lvl" :
          Dropdown::showFromArray('lvl',
-                                 array(NULL => "---",
-                                       1    => __('Level 1', 'itilcategorygroups'),
-                                       2    => __('Level 2', 'itilcategorygroups'),
-                                       3    => __('Level 3', 'itilcategorygroups'),
-                                       4    => __('Level 4', 'itilcategorygroups')));
+                                 [null => "---",
+                                  1    => __('Level 1', 'itilcategorygroups'),
+                                  2    => __('Level 2', 'itilcategorygroups'),
+                                  3    => __('Level 3', 'itilcategorygroups'),
+                                  4    => __('Level 4', 'itilcategorygroups')]);
          return true;
    }
 
@@ -111,11 +115,11 @@ function plugin_pre_item_update_itilcategorygroups($item) {
        && $item instanceof Group) {
       $group_level = new PluginItilcategorygroupsGroup_Level();
       if (! $group_level->getFromDB($item->fields['id'])) {
-         $group_level->add(array('groups_id'=> $item->fields['id'],
-                                 'lvl'    => $_REQUEST['lvl']));
+         $group_level->add(['groups_id'=> $item->fields['id'],
+                            'lvl'    => $_REQUEST['lvl']]);
       } else {
-         $group_level->update(array('groups_id'=> $item->fields['id'],
-                                    'lvl'    => $_REQUEST['lvl']));
+         $group_level->update(['groups_id'=> $item->fields['id'],
+                               'lvl'    => $_REQUEST['lvl']]);
       }
 
    }

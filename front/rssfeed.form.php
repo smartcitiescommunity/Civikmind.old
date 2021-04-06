@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,9 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-* @since version 0.84
-*/
+/**
+ * @since 0.84
+ */
 
 use Glpi\Event;
 
@@ -52,7 +51,7 @@ if (isset($_POST["add"])) {
    Event::log($newID, "rssfeed", 4, "tools",
               sprintf(__('%1$s adds the item %2$s'), $_SESSION["glpiname"],
                       $rssfeed->fields["name"]));
-   Html::redirect($CFG_GLPI["root_doc"]."/front/rssfeed.form.php?id=".$newID);
+   Html::redirect($rssfeed->getFormURLWithID($newID));
 
 } else if (isset($_POST["purge"])) {
    $rssfeed->check($_POST["id"], PURGE);
@@ -108,7 +107,7 @@ if (isset($_POST["add"])) {
    Html::back();
 
 } else {
-   if ($_SESSION["glpiactiveprofile"]["interface"] == "helpdesk") {
+   if (Session::getCurrentInterface() == "helpdesk") {
       Html::helpHeader(RSSFeed::getTypeName(Session::getPluralNumber()), '', $_SESSION["glpiname"]);
    } else {
       Html::header(RSSFeed::getTypeName(Session::getPluralNumber()), '', "tools", "rssfeed");
@@ -116,7 +115,7 @@ if (isset($_POST["add"])) {
 
    $rssfeed->display(['id' => $_GET["id"]]);
 
-   if ($_SESSION["glpiactiveprofile"]["interface"] == "helpdesk") {
+   if (Session::getCurrentInterface() == "helpdesk") {
       Html::helpFooter();
    } else {
       Html::footer();

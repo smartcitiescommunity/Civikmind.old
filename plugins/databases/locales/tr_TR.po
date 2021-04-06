@@ -1,60 +1,67 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR Databases Development Team
-# This file is distributed under the same license as the PACKAGE package.
+# This file is distributed under the same license as the GLPI - Databases plugin package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 # 
 # Translators:
-# Kaya Zeren <kayazeren@gmail.com>, 2013,2015,2017
+# Xavier CAILLAUD <thetsmr@gmail.com>, 2020
+# 
+#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: GLPI Project - databases plugin\n"
+"Project-Id-Version: GLPI - Databases plugin\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-10-10 09:52+0200\n"
-"PO-Revision-Date: 2017-10-10 11:16+0000\n"
-"Last-Translator: Amandine Manceau\n"
-"Language-Team: Turkish (Turkey) (http://www.transifex.com/tsmr/GLPI_databases/language/tr_TR/)\n"
+"POT-Creation-Date: 2020-11-02 17:39+0100\n"
+"PO-Revision-Date: 2020-11-02 16:00+0000\n"
+"Last-Translator: Xavier CAILLAUD <thetsmr@gmail.com>, 2020\n"
+"Language-Team: Turkish (Turkey) (https://www.transifex.com/infotelGLPI/teams/12357/tr_TR/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Language: tr_TR\n"
-"Plural-Forms: nplurals=1; plural=0;\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: hook.php:593
+#: hook.php:610
 msgid "Associate to the database"
 msgstr "Veritabanıyla ilişkilendirin"
 
-#: setup.php:92 inc/database.class.php:52 inc/menu.class.php:43
+#: setup.php:99 inc/database.class.php:52 inc/menu.class.php:41
 #: inc/profile.class.php:175
 msgid "Database"
 msgid_plural "Databases"
 msgstr[0] "Veritabanı"
+msgstr[1] "Veritabanı"
 
-#: inc/databasecategory.class.php:50
-msgid "Category"
-msgid_plural "Categories"
-msgstr[0] "Kategori"
-
-#: inc/database.class.php:147 inc/database.class.php:321
-#: inc/database_item.class.php:533
+#: inc/database.class.php:160 inc/database.class.php:381
+#: inc/database_item.class.php:540
 msgid "Editor"
 msgstr "Düzenleyen"
 
-#: inc/database.class.php:521
+#: inc/database.class.php:596
 msgid "Database associated"
 msgid_plural "Databases associated"
 msgstr[0] "İlişkilendirilmiş veritabanı"
+msgstr[1] "İlişkilendirilmiş veritabanı"
 
-#: inc/database_item.class.php:504
+#: inc/database_item.class.php:511
 msgctxt "button"
 msgid "Associate a database"
 msgstr "Bir veritabanı ilişkilendirin"
+
+#: inc/databasecategory.class.php:49
+msgid "Category"
+msgid_plural "Categories"
+msgstr[0] "Kategori"
+msgstr[1] "Kategori"
 
 #: inc/instance.class.php:52
 msgid "Instance"
 msgid_plural "Instances"
 msgstr[0] "Kopya"
+msgstr[1] "Kopya"
 
-#: inc/instance.class.php:175 inc/instance.class.php:264
-#: inc/script.class.php:170 inc/script.class.php:261
+#: inc/instance.class.php:177 inc/instance.class.php:266
+#: inc/script.class.php:172 inc/script.class.php:263
 msgid "Path"
 msgstr "Yol"
 
@@ -62,13 +69,16 @@ msgstr "Yol"
 msgid "Script"
 msgid_plural "Scripts"
 msgstr[0] "Betik"
+msgstr[1] "Betik"
 
-#: inc/scripttype.class.php:50
+#: inc/scripttype.class.php:49
 msgid "Type of script"
 msgid_plural "Types of script"
 msgstr[0] "Betik türü"
+msgstr[1] "Betik türü"
 
-#: inc/servertype.class.php:49
+#: inc/servertype.class.php:48
 msgid "Engine"
 msgid_plural "Engines"
 msgstr[0] "Motor"
+msgstr[1] "Motor"

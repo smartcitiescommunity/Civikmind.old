@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -29,10 +29,6 @@
  * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
  */
-
-/** @file
-* @brief
-*/
 
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
@@ -62,32 +58,36 @@ class KnowbaseItem_Item extends CommonDBRelation {
    }
 
    function getTabNameForItem(CommonGLPI $item, $withtemplate = 0) {
-      $nb = 0;
-      if ($_SESSION['glpishow_count_on_tabs']) {
-         if ($item->getType() == KnowbaseItem::getType()) {
-            $nb = countElementsInTable(
-               'glpi_knowbaseitems_items',
-               ['knowbaseitems_id' => $item->getID()]
-            );
-         } else {
-            $nb = countElementsInTable(
-               'glpi_knowbaseitems_items',
-               [
-                  'itemtype' => $item::getType(),
-                  'items_id' => $item->getId()
-               ]
-            );
+
+      if (static::canView()) {
+         $nb = 0;
+         if ($_SESSION['glpishow_count_on_tabs']) {
+            if ($item->getType() == KnowbaseItem::getType()) {
+               $nb = countElementsInTable(
+                  'glpi_knowbaseitems_items',
+                  ['knowbaseitems_id' => $item->getID()]
+               );
+            } else {
+               $nb = countElementsInTable(
+                  'glpi_knowbaseitems_items',
+                  [
+                     'itemtype' => $item::getType(),
+                     'items_id' => $item->getId()
+                  ]
+               );
+            }
          }
-      }
 
-      $type_name = null;
-      if ($item->getType() == KnowbaseItem::getType()) {
-         $type_name = _n('Associated element', 'Associated elements', $nb);
-      } else {
-         $type_name = __('Knowledge base');
-      }
+         $type_name = null;
+         if ($item->getType() == KnowbaseItem::getType()) {
+            $type_name = _n('Associated element', 'Associated elements', $nb);
+         } else {
+            $type_name = __('Knowledge base');
+         }
 
-      return self::createTabEntry($type_name, $nb);
+         return self::createTabEntry($type_name, $nb);
+      }
+      return '';
    }
 
    static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0) {
@@ -103,8 +103,6 @@ class KnowbaseItem_Item extends CommonDBRelation {
 
    **/
    static function showForItem(CommonDBTM $item, $withtemplate = 0) {
-      global $DB;
-
       $item_id = $item->getID();
       $item_type = $item::getType();
 
@@ -129,7 +127,18 @@ class KnowbaseItem_Item extends CommonDBRelation {
          );
       }
 
-      if ($canedit) {
+      $ok_state = true;
+      if ($item instanceof CommonITILObject) {
+         $ok_state = !in_array(
+            $item->fields['status'],
+            array_merge(
+               $item->getClosedStatusArray(),
+               $item->getSolvedStatusArray()
+            )
+         );
+      }
+
+      if ($canedit && $ok_state) {
          echo '<form method="post" action="' . Toolbox::getItemTypeFormURL(__CLASS__) . '">';
          echo "<div class='center'>";
          echo "<table class=\"tab_cadre_fixe\">";
@@ -140,15 +149,17 @@ class KnowbaseItem_Item extends CommonDBRelation {
             echo __('Link a knowledge base entry');
          }
          echo "</th><tr>";
-         echo "<tr><td>";
+         echo "<tr class='tab_bg_2'><td>";
          if ($item_type == KnowbaseItem::getType()) {
             //TODO: pass used array to restrict visible items in list
             $rand = self::dropdownAllTypes($item, 'items_id');
          } else {
+            $visibility = KnowbaseItem::getVisibilityCriteria();
+            $condition = (isset($visibility['WHERE']) && count($visibility['WHERE'])) ? $visibility['WHERE'] : [];
             $rand = KnowbaseItem::dropdown([
                'entity'    => $item->getEntityID(),
                'used'      => self::getItems($item, 0, 0, true),
-               'condition' => KnowbaseItem::addVisibilityRestrict()
+               'condition' => $condition
             ]);
          }
          echo "</td><td>";
@@ -207,8 +218,8 @@ class KnowbaseItem_Item extends CommonDBRelation {
          $header    .= "<th width='10'>".Html::getCheckAllAsCheckbox('mass'.__CLASS__.$rand) . "</th>";
       }
 
-      $header .= "<th>" . __('Type') . "</th>";
-      $header .= "<th>".__('Item')."</th>";
+      $header .= "<th>" . _n('Type', 'Types', 1) . "</th>";
+      $header .= "<th>"._n('Item', 'Items', 1)."</th>";
       $header .= "<th>".__('Creation date')."</th>";
       $header .= "<th>".__('Update date')."</th>";
       $header .= "</tr>";
@@ -302,13 +313,18 @@ class KnowbaseItem_Item extends CommonDBRelation {
    static function getItems(CommonDBTM $item, $start = 0, $limit = 0, $used = false) {
       global $DB;
 
-      $options = [
-         'FROM'      => ['glpi_knowbaseitems_items', 'glpi_knowbaseitems'],
+      $criteria = [
+         'FROM'      => ['glpi_knowbaseitems_items'],
          'FIELDS'    => ['glpi_knowbaseitems_items' => '*'],
-         'FKEY'      => [
-            'glpi_knowbaseitems_items' => 'knowbaseitems_id',
-            'glpi_knowbaseitems'       => 'id'
+         'INNER JOIN' => [
+            'glpi_knowbaseitems' => [
+               'ON'  => [
+                  'glpi_knowbaseitems_items' => 'knowbaseitems_id',
+                  'glpi_knowbaseitems'       => 'id'
+               ]
+            ]
          ],
+         'WHERE'     => [],
          'ORDER'     => ['itemtype', 'items_id DESC'],
          'GROUPBY'   => [
             'glpi_knowbaseitems_items.id',
@@ -327,7 +343,7 @@ class KnowbaseItem_Item extends CommonDBRelation {
          $id_field = 'glpi_knowbaseitems_items.knowbaseitems_id';
          $visibility = KnowbaseItem::getVisibilityCriteria();
          if (count($visibility['LEFT JOIN'])) {
-            $options['LEFT JOIN'] = $visibility['LEFT JOIN'];
+            $criteria['LEFT JOIN'] = $visibility['LEFT JOIN'];
             if (isset($visibility['WHERE'])) {
                $where = $visibility['WHERE'];
             }
@@ -337,24 +353,27 @@ class KnowbaseItem_Item extends CommonDBRelation {
          $where = getEntitiesRestrictCriteria($item->getTable(), '', '', $item->maybeRecursive());
          $where[] = ['glpi_knowbaseitems_items.itemtype' => $item::getType()];
          if (count($where)) {
-            $options['FROM'][] = $item->getTable();
-            $where[] = ['glpi_knowbaseitems_items.items_id' => '`' . $item->getTable() . '`.`id`'];
+            $criteria['INNER JOIN'][$item->getTable()] = [
+               'ON' => [
+                  'glpi_knowbaseitems_items' => 'items_id',
+                  $item->getTable()          => 'id'
+               ]
+            ];
          }
       }
 
+      $criteria['WHERE'] = [$id_field => $items_id];
       if (count($where)) {
-         $options['AND'] = [$id_field => $items_id, 'AND' => $where];
-      } else {
-         $options['AND'] = [$id_field => $items_id];
+         $criteria['WHERE'] = array_merge($criteria['WHERE'], $where);
       }
 
       if ($limit) {
-         $options['START'] = intval($start);
-         $options['LIMIT'] = intval($limit);
+         $criteria['START'] = intval($start);
+         $criteria['LIMIT'] = intval($limit);
       }
 
       $linked_items = [];
-      $results = $DB->request($options);
+      $results = $DB->request($criteria);
       while ($data = $results->next()) {
          if ($used === false) {
             $linked_items[] = $data;
@@ -369,24 +388,32 @@ class KnowbaseItem_Item extends CommonDBRelation {
    /**
     * Duplicate KB links from an item template to its clone
     *
-    * @since version 9.2
+    * @deprecated 9.5
+    * @since 9.2
     *
-    * @param $itemtype     itemtype of the item
-    * @param $oldid        ID of the item to clone
-    * @param $newid        ID of the item cloned
-    * @param $newitemtype  itemtype of the new item (= $itemtype if empty) (default '')
+    * @param string  $itemtype     itemtype of the item
+    * @param integer $oldid        ID of the item to clone
+    * @param integer $newid        ID of the item cloned
+    * @param string  $newitemtype  itemtype of the new item (= $itemtype if empty) (default '')
    **/
    static function cloneItem($itemtype, $oldid, $newid, $newitemtype = '') {
       global $DB;
 
+      Toolbox::deprecated('Use clone');
       if (empty($newitemtype)) {
          $newitemtype = $itemtype;
       }
 
-      foreach ($DB->request('glpi_knowbaseitems_items',
-                            ['FIELDS' => 'knowbaseitems_id',
-                                  'WHERE'  => "`items_id` = '$oldid'
-                                                AND `itemtype` = '$itemtype'"]) as $data) {
+      $iterator = $DB->request([
+         'FROM'   => 'glpi_knowbaseitems_items',
+         'FIELDS' => 'knowbaseitems_id',
+         'WHERE'  => [
+            'items_id'  => $oldid,
+            'itemtype'  => $itemtype
+         ]
+      ]);
+
+      while ($data = $iterator->next()) {
          $kb_link = new self();
          $kb_link->add(['knowbaseitems_id' => $data['knowbaseitems_id'],
                                   'itemtype'    => $newitemtype,
@@ -398,5 +425,21 @@ class KnowbaseItem_Item extends CommonDBRelation {
       $forbidden   = parent::getForbiddenStandardMassiveAction();
       $forbidden[] = 'update';
       return $forbidden;
+   }
+
+   static function getMassiveActionsForItemtype(array &$actions, $itemtype, $is_deleted = 0,
+                                                CommonDBTM $checkitem = null) {
+
+      $kb_item = new KnowbaseItem();
+      $kb_item->getEmpty();
+      if ($kb_item->canViewItem()) {
+         $action_prefix = __CLASS__.MassiveAction::CLASS_ACTION_SEPARATOR;
+
+         $actions[$action_prefix.'add']
+            = "<i class='ma-icon fas fa-book'></i>".
+              _x('button', 'Link knowledgebase article');
+      }
+
+      parent::getMassiveActionsForItemtype($actions, $itemtype, $is_deleted, $checkitem);
    }
 }

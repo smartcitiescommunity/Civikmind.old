@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -58,7 +54,7 @@ class Ticket_Ticket extends CommonDBRelation {
 
 
    /**
-    * @since version 0.85
+    * @since 0.85
     *
     * @see CommonDBTM::showMassiveActionsSubForm()
    **/
@@ -67,7 +63,7 @@ class Ticket_Ticket extends CommonDBRelation {
       switch ($ma->getAction()) {
          case 'add' :
             $rand = Ticket_Ticket::dropdownLinks('link');
-            printf(__('%1$s: %2$s'), __('Ticket'), __('ID'));
+            printf(__('%1$s: %2$s'), Ticket::getTypeName(1), __('ID'));
             echo "&nbsp;<input type='text' name='tickets_id_1' value='' size='10'>\n";
             echo "<br><br>";
             echo "<br><br><input type='submit' name='massiveaction' class='submit' value='".
@@ -79,7 +75,7 @@ class Ticket_Ticket extends CommonDBRelation {
 
 
    /**
-    * @since version 0.85
+    * @since 0.85
     *
     * @see CommonDBTM::processMassiveActionsForOneItemtype()
    **/
@@ -96,9 +92,9 @@ class Ticket_Ticket extends CommonDBRelation {
                   foreach ($ids as $id) {
                      $input2                          = [];
                      $input2['id']                    = $input['tickets_id_1'];
-                     $input2['_link']['tickets_id_1'] = $input['tickets_id_1'];
+                     $input2['_link']['tickets_id_1'] = $id;
                      $input2['_link']['link']         = $input['link'];
-                     $input2['_link']['tickets_id_2'] = $id;
+                     $input2['_link']['tickets_id_2'] = $input['tickets_id_1'];
                      if ($item->can($input['tickets_id_1'], UPDATE)) {
                         if ($ticket->update($input2)) {
                            $ma->itemDone($item->getType(), $id, MassiveAction::ACTION_OK);
@@ -134,21 +130,29 @@ class Ticket_Ticket extends CommonDBRelation {
          return false;
       }
 
-      $sql = "SELECT *
-              FROM `glpi_tickets_tickets`
-              WHERE `tickets_id_1` = '$ID'
-                    OR `tickets_id_2` = '$ID'";
-
+      $iterator = $DB->request([
+         'FROM'   => self::getTable(),
+         'WHERE'  => [
+            'OR'  => [
+               'tickets_id_1' => $ID,
+               'tickets_id_2' => $ID
+            ]
+         ]
+      ]);
       $tickets = [];
 
-      foreach ($DB->request($sql) as $data) {
+      while ($data = $iterator->next()) {
          if ($data['tickets_id_1'] != $ID) {
-            $tickets[$data['id']] = ['link'         => $data['link'],
-                                     'tickets_id_1' => $data['tickets_id_1'],
-                                     'tickets_id'   => $data['tickets_id_1']];
+            $tickets[$data['id']] = [
+               'link'         => $data['link'],
+               'tickets_id_1' => $data['tickets_id_1'],
+               'tickets_id'   => $data['tickets_id_1']
+            ];
          } else {
-            $tickets[$data['id']] = ['link'       => $data['link'],
-                                          'tickets_id' => $data['tickets_id_2']];
+            $tickets[$data['id']] = [
+               'link'       => $data['link'],
+               'tickets_id' => $data['tickets_id_2']
+            ];
          }
       }
 
@@ -162,28 +166,24 @@ class Ticket_Ticket extends CommonDBRelation {
     *
     * @param $ID ID of the ticket id
     *
-    * @return nothing display
+    * @return void
    **/
    static function displayLinkedTicketsTo ($ID) {
-      global $DB, $CFG_GLPI;
-
       $tickets   = self::getLinkedTicketsTo($ID);
       $canupdate = Session::haveRight('ticket', UPDATE);
 
       $ticket    = new Ticket();
       $tick      = new Ticket();
       if (is_array($tickets) && count($tickets)) {
-         foreach ($tickets as $linkID => $data) {
+         foreach ($tickets as $linkid => $data) {
             if ($ticket->getFromDB($data['tickets_id'])) {
-               $icons =  "<img src='".Ticket::getStatusIconURL($ticket->fields["status"]).
-                             "' alt=\"".Ticket::getStatus($ticket->fields["status"])."\"
-                             title=\"". Ticket::getStatus($ticket->fields["status"])."\">";
+               $icons =  Ticket::getStatusIcon($ticket->fields['status']);
                if ($canupdate) {
                   if ($tick->getFromDB($ID)
                       && ($tick->fields['status'] != CommonITILObject::CLOSED)) {
                      $icons .= '&nbsp;'.Html::getSimpleForm(static::getFormURL(), 'purge',
                                                             _x('button', 'Delete permanently'),
-                                                         ['id'         => $linkID,
+                                                         ['id'         => $linkid,
                                                           'tickets_id' => $ID],
                                                          'fa-times-circle');
                   }
@@ -357,43 +357,85 @@ class Ticket_Ticket extends CommonDBRelation {
    public function countOpenChildren($pid) {
       global $DB;
 
-      $query = "SELECT COUNT(1) AS cpt FROM " . $this->getTable() . " links " .
-         "INNER JOIN " . Ticket::getTable() . " tickets ON " .
-         "links.tickets_id_1=tickets.id " .
-         "WHERE links.link='" . self::SON_OF . "' AND links.tickets_id_2=$pid " .
-         "AND tickets.status NOT IN ('" . Ticket::SOLVED . "', '" . Ticket::CLOSED . "')";
-      $results = $DB->query($query);
-      $result = $results->fetch_assoc();
+      $result = $DB->request([
+         'COUNT'        => 'cpt',
+         'FROM'         => $this->getTable() . ' AS links',
+         'INNER JOIN'   => [
+            Ticket::getTable() . ' AS tickets' => [
+               'ON' => [
+                  'links'     => 'tickets_id_1',
+                  'tickets'   => 'id'
+               ]
+            ]
+         ],
+         'WHERE'        => [
+            'links.link'         => self::SON_OF,
+            'links.tickets_id_2' => $pid,
+            'NOT'                => [
+               'tickets.status'  => Ticket::getClosedStatusArray() + Ticket::getSolvedStatusArray()
+            ]
+         ]
+      ])->next();
       return (int)$result['cpt'];
    }
 
 
    /**
-    * Affect the same solution for duplicates tickets
+    * Affect the same solution/status for duplicates tickets.
     *
-    * @param $ID ID of the ticket id
+    * @param integer           $ID        ID of the ticket id
+    * @param ITILSolution|null $solution  Ticket's solution
     *
-    * @return nothing do the change
+    * @return void
    **/
-   static function manageLinkedTicketsOnSolved($ID) {
+   static function manageLinkedTicketsOnSolved($ID, $solution = null) {
 
       $ticket = new Ticket();
+      if (!$ticket->getfromDB($ID)) {
+         return;
+      }
+      $tickets = self::getLinkedTicketsTo($ID);
 
-      if ($ticket->getfromDB($ID)) {
-         $input['solution']         = addslashes($ticket->fields['solution']);
-         $input['solutiontypes_id'] = addslashes($ticket->fields['solutiontypes_id']);
+      if (false === $tickets) {
+         return;
+      }
 
-         $tickets = self::getLinkedTicketsTo($ID);
-         if (count($tickets)) {
-            foreach ($tickets as $data) {
-               $input['id'] = $data['tickets_id'];
-               if ($ticket->can($input['id'], UPDATE)
-                   && ($data['link'] == self::DUPLICATE_WITH)
-                   && ($ticket->fields['status'] != CommonITILObject::SOLVED)
-                   && ($ticket->fields['status'] != CommonITILObject::CLOSED)) {
-                  $ticket->update($input);
-               }
-            }
+      $tickets = array_filter(
+         $tickets,
+         function ($data) {
+            $linked_ticket = new Ticket();
+            $linked_ticket->getFromDB($data['tickets_id']);
+            return $linked_ticket->can($data['tickets_id'], UPDATE)
+                && ($data['link'] == self::DUPLICATE_WITH)
+                && ($linked_ticket->fields['status'] != CommonITILObject::SOLVED)
+                && ($linked_ticket->fields['status'] != CommonITILObject::CLOSED);
+         }
+      );
+
+      if (null === $solution) {
+         // Change status without adding a solution
+         // This will be done if a ticket is solved/closed without a solution
+         foreach ($tickets as $data) {
+            $linked_ticket = new Ticket();
+            $linked_ticket->update(
+               [
+                  'id'     => $data['tickets_id'],
+                  'status' => $ticket->fields['status']
+               ]
+            );
+         }
+      } else {
+         // Add same solution to duplicates
+         $solution_data = $solution->fields;
+         unset($solution_data['id']);
+         unset($solution_data['date_creation']);
+         unset($solution_data['date_mod']);
+
+         foreach ($tickets as $data) {
+            $solution_data['items_id'] = $data['tickets_id'];
+            $solution_data['_linked_ticket'] = true;
+            $new_solution = new ITILSolution();
+            $new_solution->add($solution_data);
          }
       }
    }

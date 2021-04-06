@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -43,65 +39,20 @@ if (!defined('GLPI_ROOT')) {
 **/
 class NotificationTargetTicket extends NotificationTargetCommonITILObject {
 
-   public $private_profiles = [];
-
-   public $html_tags        = ['##ticket.solution.description##'];
-
    const HEADERTAG = '=-=-=-=';
    const FOOTERTAG = '=_=_=_=';
 
-
-
-   /**
-    * @param $entity          (default '')
-    * @param $event           (default '')
-    * @param $object          (default null)
-    * @param $options   array
-    */
-   function __construct($entity = '', $event = '', $object = null, $options = []) {
-      global $CFG_GLPI;
-
-      parent::__construct($entity, $event, $object, $options);
-
-      if (isset($options['followup_id'])) {
-         $this->options['sendprivate'] = $options['is_private'];
-      }
-
-      if (isset($options['task_id'])) {
-         $this->options['sendprivate'] = $options['is_private'];
-      }
-
-   }
-
-
-   /**
-    * @see NotificationTarget::validateSendTo()
-   **/
-   function validateSendTo($event, array $infos, $notify_me = false) {
-
+   function validateSendTo($event, array $infos, $notify_me = false, $emitter = null) {
       // Always send notification for satisfaction : if send on ticket closure
       // Always send notification for new ticket
-      if (($event != 'satisfaction')
-          && ($event != 'new')) {
-         // Check global ones for notification to myself
-         if (!parent::validateSendTo($event, $infos, $notify_me)) {
-            return false;
-         }
-
-         // Private object and no right to see private items : do not send
-         if ($this->isPrivate()
-             && (!isset($infos['additionnaloption']['show_private'])
-                 || !$infos['additionnaloption']['show_private'])) {
-            return false;
-         }
+      if (in_array($event, ['satisfaction', 'new'])) {
+         return true;
       }
-      return true;
+
+      return parent::validateSendTo($event, $infos, $notify_me, $emitter);
    }
 
 
-   /**
-    * @param $event  (default '')
-   **/
    function getSubjectPrefix($event = '') {
 
       if ($event !='alertnotclosed') {
@@ -116,13 +67,15 @@ class NotificationTargetTicket extends NotificationTargetCommonITILObject {
       return parent::getSubjectPrefix();
    }
 
-
    /**
    * Get header to add to content
    **/
    function getContentHeader() {
 
-      if (MailCollector::getNumberOfActiveMailCollectors()) {
+      if ($this->getMode() == \Notification_NotificationTemplate::MODE_MAIL
+         && MailCollector::countActiveCollectors()
+         && $this->allowResponse()
+      ) {
          return self::HEADERTAG.' '.__('To answer by email, write above this line').' '.
                 self::HEADERTAG;
       }
@@ -136,7 +89,10 @@ class NotificationTargetTicket extends NotificationTargetCommonITILObject {
    **/
    function getContentFooter() {
 
-      if (MailCollector::getNumberOfActiveMailCollectors()) {
+      if ($this->getMode() == \Notification_NotificationTemplate::MODE_MAIL
+         && MailCollector::countActiveCollectors()
+         && $this->allowResponse()
+      ) {
          return self::FOOTERTAG.' '.__('To answer by email, write under this line').' '.
                 self::FOOTERTAG;
       }
@@ -146,26 +102,12 @@ class NotificationTargetTicket extends NotificationTargetCommonITILObject {
 
 
    /**
-    * @since version 0.84
+    * @since 0.84
     *
     * @return string
    **/
    function getMessageID() {
       return "GLPI-".$this->obj->getField('id').".".time().".".rand(). "@".php_uname('n');
-   }
-
-
-   function addAdditionnalInfosForTarget() {
-      global $DB;
-
-      $query = "SELECT `profiles_id` as id
-                FROM `glpi_profilerights`
-                WHERE `glpi_profilerights`.`name` = 'followup'
-                  AND `glpi_profilerights`.`rights` & ".TicketFollowup::SEEPRIVATE;
-
-      foreach ($DB->request($query) as $data) {
-         $this->private_profiles[$data['id']] = $data['id'];
-      }
    }
 
 
@@ -180,7 +122,7 @@ class NotificationTargetTicket extends NotificationTargetCommonITILObject {
 
       if ($this->obj && isset($this->obj->fields['id']) && !empty($this->obj->fields['id'])) {
          $item_ticket = new Item_Ticket();
-         $data = $item_ticket->find("`tickets_id` = ".$this->obj->fields['id']);
+         $data = $item_ticket->find(['tickets_id' => $this->obj->fields['id']]);
          foreach ($data as $val) {
             if (($val['itemtype'] != NOT_AVAILABLE)
                 && ($val['itemtype'] != '')
@@ -193,32 +135,6 @@ class NotificationTargetTicket extends NotificationTargetCommonITILObject {
       }
    }
 
-
-   /**
-    * @param $data   array
-   **/
-   function addAdditionnalUserInfo(array $data) {
-      global $DB;
-
-      if (!isset($data['users_id'])) {
-         return ['show_private' => 0];
-      }
-
-      $query = "SELECT COUNT(*) AS cpt
-                FROM `glpi_profiles_users`
-                WHERE `users_id`='".$data['users_id']."' ".
-                      getEntitiesRestrictRequest("AND", "glpi_profiles_users", "entities_id",
-                                                 $this->getEntity(), true)."
-                      AND profiles_id IN (".implode(',', $this->private_profiles).")";
-      $result = $DB->query($query);
-
-      if ($DB->result($result, 0, 'cpt')) {
-         return ['show_private' => 1];
-      }
-      return ['show_private' => 0];
-   }
-
-
    /**
     *Get events related to tickets
    **/
@@ -230,12 +146,6 @@ class NotificationTargetTicket extends NotificationTargetCommonITILObject {
                       'rejectsolution'    => __('Solution rejected'),
                       'validation'        => __('Validation request'),
                       'validation_answer' => __('Validation request answer'),
-                      'add_followup'      => __("New followup"),
-                      'update_followup'   => __('Update of a followup'),
-                      'delete_followup'   => __('Deletion of a followup'),
-                      'add_task'          => __('New task'),
-                      'update_task'       => __('Update of a task'),
-                      'delete_task'       => __('Deletion of a task'),
                       'closed'            => __('Closing of the ticket'),
                       'delete'            => __('Deletion of a ticket'),
                       'alertnotclosed'    => __('Not solved tickets'),
@@ -250,47 +160,16 @@ class NotificationTargetTicket extends NotificationTargetCommonITILObject {
    }
 
 
-   /**
-    * Restrict by profile and by config
-    * to avoid send notification to a user without rights
-   **/
-   function getProfileJoinSql() {
-
-      $query = " INNER JOIN `glpi_profiles_users`
-                     ON (`glpi_profiles_users`.`users_id` = `glpi_users`.`id` ".
-                         getEntitiesRestrictRequest("AND", "glpi_profiles_users", "entities_id",
-                                                    $this->getEntity(), true).")";
-
-      if ($this->isPrivate()) {
-         $query .= " INNER JOIN `glpi_profiles`
-                     ON (`glpi_profiles`.`id` = `glpi_profiles_users`.`profiles_id`
-                         AND `glpi_profiles`.`interface` = 'central')
-                     INNER JOIN `glpi_profilerights`
-                     ON (`glpi_profiles`.`id` = `glpi_profilerights`.`profiles_id`
-                         AND `glpi_profilerights`.`name` = 'followup'
-                         AND `glpi_profilerights`.`rights` & ".
-                            TicketFollowup::SEEPRIVATE.") ";
-
-      }
-      return $query;
-   }
-
-
-   function isPrivate() {
-
-      if (isset($this->options['sendprivate']) && ($this->options['sendprivate'] == 1)) {
-         return true;
-      }
-      return false;
-   }
-
-
    function getDataForObject(CommonDBTM $item, array $options, $simple = false) {
-      global $CFG_GLPI;
-
       // Common ITIL data
       $data = parent::getDataForObject($item, $options, $simple);
       /*$data['##ticket.description##'] = Html::clean($data['##ticket.description##']);*/
+
+      // Double encode emails stored between '<' and '>' tags
+      // Common case of this is when the ticket was created from a forwarded email
+      // Without double encoding, these emails are interpreted as html and not
+      // rendered in the final mail
+      $data['##ticket.description##'] = Toolbox::doubleEncodeEmails($data['##ticket.description##']);
 
       $data['##ticket.content##'] = $data['##ticket.description##'];
       // Specific data
@@ -321,26 +200,26 @@ class NotificationTargetTicket extends NotificationTargetCommonITILObject {
       }
 
       $data['##ticket.sla_tto##'] = '';
-      if ($item->getField('slas_tto_id')) {
+      if ($item->getField('slas_id_tto')) {
          $data['##ticket.sla_tto##'] = Dropdown::getDropdownName('glpi_slas',
-                                                                 $item->getField('slas_tto_id'));
+                                                                 $item->getField('slas_id_tto'));
       }
       $data['##ticket.sla_ttr##'] = '';
-      if ($item->getField('slas_ttr_id')) {
+      if ($item->getField('slas_id_ttr')) {
          $data['##ticket.sla_ttr##'] = Dropdown::getDropdownName('glpi_slas',
-                                                                 $item->getField('slas_ttr_id'));
+                                                                 $item->getField('slas_id_ttr'));
       }
       $data['##ticket.sla##'] = $data['##ticket.sla_ttr##'];
 
       $data['##ticket.ola_tto##'] = '';
-      if ($item->getField('olas_tto_id')) {
+      if ($item->getField('olas_id_tto')) {
          $data['##ticket.ola_tto##'] = Dropdown::getDropdownName('glpi_olas',
-                                                                 $item->getField('olas_tto_id'));
+                                                                 $item->getField('olas_id_tto'));
       }
       $data['##ticket.ola_ttr##'] = '';
-      if ($item->getField('olas_ttr_id')) {
+      if ($item->getField('olas_id_ttr')) {
          $data['##ticket.ola_ttr##'] = Dropdown::getDropdownName('glpi_olas',
-                                                                 $item->getField('olas_ttr_id'));
+                                                                 $item->getField('olas_id_ttr'));
       }
 
       $data['##ticket.location##'] = '';
@@ -391,7 +270,7 @@ class NotificationTargetTicket extends NotificationTargetCommonITILObject {
       $data['##ticket.item.model##']               = '';
 
       $item_ticket = new Item_Ticket();
-      $items = $item_ticket->find("`tickets_id` = '".$item->getField('id')."'");
+      $items = $item_ticket->find(['tickets_id' => $item->getField('id')]);
       $data['items'] = [];
       if (count($items)) {
          foreach ($items as $val) {
@@ -515,13 +394,13 @@ class NotificationTargetTicket extends NotificationTargetCommonITILObject {
 
          $data['##ticket.numberoflinkedtickets##'] = count($data['linkedtickets']);
 
-         $restrict          = "`tickets_id`='".$item->getField('id')."'";
-         $problems          = getAllDatasFromTable('glpi_problems_tickets', $restrict);
+         $restrict          = ['tickets_id' => $item->getField('id')];
+         $problems          = getAllDataFromTable('glpi_problems_tickets', $restrict);
          $data['problems'] = [];
          if (count($problems)) {
             $problem = new Problem();
             foreach ($problems as $row) {
-               if ($problem->getFromDB($data['problems_id'])) {
+               if ($problem->getFromDB($row['problems_id'])) {
                   $tmp = [];
 
                   $tmp['##problem.id##']
@@ -543,8 +422,7 @@ class NotificationTargetTicket extends NotificationTargetCommonITILObject {
 
          $data['##ticket.numberofproblems##'] = count($data['problems']);
 
-         $restrict         = "`tickets_id`='".$item->getField('id')."'";
-         $changes          = getAllDatasFromTable('glpi_changes_tickets', $restrict);
+         $changes          = getAllDataFromTable('glpi_changes_tickets', $restrict);
          $data['changes'] = [];
          if (count($changes)) {
             $change = new Change();
@@ -571,48 +449,35 @@ class NotificationTargetTicket extends NotificationTargetCommonITILObject {
 
          $data['##ticket.numberofchanges##'] = count($data['changes']);
 
-         if (!isset($options['additionnaloption']['show_private'])
-             || !$options['additionnaloption']['show_private']) {
-            $restrict .= " AND `is_private` = '0'";
-         }
-
-         $restrict .= " ORDER BY `date_mod` DESC, `id` ASC";
-
-         //Followup infos
-         $followups          = getAllDatasFromTable('glpi_ticketfollowups', $restrict);
-         $data['followups'] = [];
-         foreach ($followups as $followup) {
-            $tmp                             = [];
-            $tmp['##followup.isprivate##']   = Dropdown::getYesNo($followup['is_private']);
-            $tmp['##followup.author##']      = Html::clean(getUserName($followup['users_id']));
-            $tmp['##followup.requesttype##'] = Dropdown::getDropdownName('glpi_requesttypes',
-                                                                         $followup['requesttypes_id']);
-            $tmp['##followup.date##']        = Html::convDateTime($followup['date']);
-            $tmp['##followup.description##'] = $followup['content'];
-
-            $data['followups'][] = $tmp;
-         }
-
-         $data['##ticket.numberoffollowups##'] = count($data['followups']);
-
          // Approbation of solution
-         $restrict .= " LIMIT 1";
-         $replysolved = getAllDatasFromTable('glpi_ticketfollowups', $restrict);
+         $solution_restrict = [
+            'itemtype' => 'Ticket',
+            'items_id' => $item->getField('id')
+         ];
+         $replysolved = getAllDataFromTable(
+            'glpi_itilfollowups', [
+               'WHERE'  => $solution_restrict,
+               'ORDER'  => ['date_mod DESC', 'id ASC']
+            ]
+         );
          $current = current($replysolved);
-         $data['##ticket.solution.approval.description##'] = $current['content'];
-         $data['##ticket.solution.approval.date##']        = Html::convDateTime($current['date']);
-         $data['##ticket.solution.approval.author##']      = Html::clean(getUserName($current['users_id']));
+         $data['##ticket.solution.approval.description##'] = $current ? $current['content'] : '';
+         $data['##ticket.solution.approval.date##']        = $current ? Html::convDateTime($current['date']) : '';
+         $data['##ticket.solution.approval.author##']      = $current ? Html::clean(getUserName($current['users_id'])) : '';
 
          //Validation infos
-         $restrict = "`tickets_id`='".$item->getField('id')."'";
+         $restrict = ['tickets_id' => $item->getField('id')];
 
          if (isset($options['validation_id']) && $options['validation_id']) {
-            $restrict .= " AND `glpi_ticketvalidations`.`id` = '".$options['validation_id']."'";
+            $restrict['glpi_ticketvalidations.id'] = $options['validation_id'];
          }
 
-         $restrict .= " ORDER BY `submission_date` DESC, `id` ASC";
-
-         $validations = getAllDatasFromTable('glpi_ticketvalidations', $restrict);
+         $validations = getAllDataFromTable(
+            'glpi_ticketvalidations', [
+               'WHERE'  => $restrict,
+               'ORDER'  => ['submission_date DESC', 'id ASC']
+            ]
+         );
          $data['validations'] = [];
          foreach ($validations as $validation) {
             $tmp = [];
@@ -685,22 +550,31 @@ class NotificationTargetTicket extends NotificationTargetCommonITILObject {
       global $DB,$CFG_GLPI;
 
       if ($CFG_GLPI['notifications_mailing']) {
-         $query = "SELECT COUNT(`glpi_notifications`.`id`)
-                   FROM `glpi_notifications`
-                   INNER JOIN `glpi_notificationtargets`
-                     ON (`glpi_notifications`.`id` = `glpi_notificationtargets`.`notifications_id`)
-                   INNER JOIN `glpi_notifications_notificationtemplates`
-                     ON (`glpi_notifications`.`id`=`glpi_notifications_notificationtemplates`.`notifications_id`)
-                   WHERE `glpi_notifications`.`itemtype` = 'Ticket'
-                         AND `glpi_notifications_notificationtemplates`.`mode` = '" . Notification_NotificationTemplate::MODE_MAIL  . "'
-                         AND `glpi_notificationtargets`.`type` = '".Notification::USER_TYPE."'
-                         AND `glpi_notificationtargets`.`items_id` = '".Notification::AUTHOR."'";
-
-         if ($result = $DB->query($query)) {
-            if ($DB->result($result, 0, 0) > 0) {
-               return true;
-            }
-         }
+         $result = $DB->request([
+            'COUNT'        => 'cpt',
+            'FROM'         => 'glpi_notifications',
+            'INNER JOIN'   => [
+               'glpi_notificationtargets' => [
+                  'ON' => [
+                     'glpi_notificationtargets' => 'notifications_id',
+                     'glpi_notifications'       => 'id'
+                  ]
+               ],
+               'glpi_notifications_notificationtemplates' => [
+                  'ON' => [
+                     'glpi_notifications_notificationtemplates'   => 'notifications_id',
+                     'glpi_notifications'                         => 'id'
+                  ]
+               ]
+            ],
+            'WHERE'        => [
+               'glpi_notifications.itemtype'                   => 'Ticket',
+               'glpi_notifications_notificationtemplates.mode' => Notification_NotificationTemplate::MODE_MAIL,
+               'glpi_notificationtargets.type'                 => Notification::USER_TYPE,
+               'glpi_notificationtargets.items_id'             => Notification::AUTHOR
+            ]
+         ])->next();
+         return $result['cpt'] > 0;
       }
       return false;
    }
@@ -711,7 +585,7 @@ class NotificationTargetTicket extends NotificationTargetCommonITILObject {
       parent::getTags();
 
       //Locales
-      $tags = ['ticket.type'                  => __('Type'),
+      $tags = ['ticket.type'                  => _n('Type', 'Types', 1),
                     'ticket.sla'                   => __('SLA'),
                     'ticket.sla_tto'               => sprintf(__('%1$s / %2$s'),
                                                               __('SLA'),
@@ -725,50 +599,44 @@ class NotificationTargetTicket extends NotificationTargetCommonITILObject {
                     'ticket.ola_ttr'               => sprintf(__('%1$s / %2$s'),
                                                               __('OLA'),
                                                               __('Internal time to resolve')),
-                    'ticket.requesttype'           => __('Request source'),
+                    'ticket.requesttype'           => RequestType::getTypeName(1),
                     'ticket.itemtype'              => __('Item type'),
-                    'ticket.item.name'             => __('Associated item'),
+                    'ticket.item.name'             => _n('Associated item', 'Associated items', 1),
                     'ticket.item.serial'           => __('Serial number'),
                     'ticket.item.otherserial'      => __('Inventory number'),
                     'ticket.item.location'         => sprintf(__('%1$s: %2$s'),
-                                                              _n('Associated element', 'Associated elements', 2),
+                                                              _n('Associated element', 'Associated elements', Session::getPluralNumber()),
                                                               __('Location name')),
                     'ticket.item.locationcomment'  => sprintf(__('%1$s: %2$s'),
-                                                              _n('Associated element', 'Associated elements', 2),
+                                                              _n('Associated element', 'Associated elements', Session::getPluralNumber()),
                                                               __('Location comments')),
                     'ticket.item.locationroom'     => sprintf(__('%1$s: %2$s'),
-                                                              _n('Associated element', 'Associated elements', 2),
+                                                              _n('Associated element', 'Associated elements', Session::getPluralNumber()),
                                                               __('Room number')),
                     'ticket.item.locationbuilding' => sprintf(__('%1$s: %2$s'),
-                                                              _n('Associated element', 'Associated elements', 2),
+                                                              _n('Associated element', 'Associated elements', Session::getPluralNumber()),
                                                               __('Building number')),
                     'ticket.item.locationlatitude' => sprintf(__('%1$s: %2$s'),
-                                                              _n('Associated element', 'Associated elements', 2),
+                                                              _n('Associated element', 'Associated elements', Session::getPluralNumber()),
                                                               __('Latitude')),
                     'ticket.item.locationlongitude' => sprintf(__('%1$s: %2$s'),
-                                                               _n('Associated element', 'Associated elements', 2),
+                                                               _n('Associated element', 'Associated elements', Session::getPluralNumber()),
                                                                __('Longitude')),
                     'ticket.item.locationaltitude' => sprintf(__('%1$s: %2$s'),
-                                                              _n('Associated element', 'Associated elements', 2),
+                                                              _n('Associated element', 'Associated elements', Session::getPluralNumber()),
                                                               __('Altitude')),
-                    'ticket.item.model'            => __('Model'),
+                    'ticket.item.model'            => _n('Model', 'Models', 1),
                     'ticket.item.contact'          => __('Alternate username'),
                     'ticket.item.contactnumber'    => __('Alternate username number'),
-                    'ticket.item.user'             => __('User'),
-                    'ticket.item.group'            => __('Group'),
+                    'ticket.item.user'             => User::getTypeName(1),
+                    'ticket.item.group'            => Group::getTypeName(1),
                     'ticket.isdeleted'             => __('Deleted'),
-                    'followup.date'                => __('Opening date'),
-                    'followup.isprivate'           => __('Private'),
-                    'followup.author'              => __('Writer'),
-                    'followup.description'         => __('Description'),
-                    'followup.requesttype'         => __('Request source'),
-                    'ticket.numberoffollowups'     => _x('quantity', 'Number of followups'),
                     'ticket.numberoflinkedtickets' => _x('quantity', 'Number of linked tickets'),
                     'ticket.numberofproblems'      => _x('quantity', 'Number of problems'),
                     'ticket.numberofchanges'       => _x('quantity', 'Number of changes'),
                     'ticket.numberofitems'         => _x('quantity', 'Number of items'),
                     'ticket.autoclose'             => __('Automatic closing of solved tickets after'),
-                    'ticket.location'              => __('Location'),
+                    'ticket.location'              => Location::getTypeName(1),
                     'ticket.location.comment'      => __('Location comments'),
                     'ticket.location.room'         => __('Room number'),
                     'ticket.location.building'     => __('Building number'),
@@ -788,16 +656,16 @@ class NotificationTargetTicket extends NotificationTargetCommonITILObject {
       }
 
       //Events specific for validation
-      $tags = ['validation.author'            => __('Requester'),
+      $tags = ['validation.author'            => _n('Requester', 'Requesters', 1),
                     'validation.status'            => __('Status of the approval request'),
                     'validation.submissiondate'    => sprintf(__('%1$s: %2$s'), __('Request'),
-                                                              __('Date')),
+                                                              _n('Date', 'Dates', 1)),
                     'validation.commentsubmission' => sprintf(__('%1$s: %2$s'), __('Request'),
                                                               __('Comments')),
-                    'validation.validationdate'    => sprintf(__('%1$s: %2$s'), __('Validation'),
-                                                              __('Date')),
+                    'validation.validationdate'    => sprintf(__('%1$s: %2$s'), _n('Validation', 'Validations', 1),
+                                                              _n('Date', 'Dates', 1)),
                     'validation.validator'         => __('Decision-maker'),
-                    'validation.commentvalidation' => sprintf(__('%1$s: %2$s'), __('Validation'),
+                    'validation.commentvalidation' => sprintf(__('%1$s: %2$s'), _n('Validation', 'Validations', 1),
                                                               __('Comments'))
                     ];
 
@@ -856,13 +724,12 @@ class NotificationTargetTicket extends NotificationTargetCommonITILObject {
       }
 
       //Foreach global tags
-      $tags = ['followups'     => _n('Followup', 'Followups', Session::getPluralNumber()),
-                    'validations'   => _n('Validation', 'Validations', Session::getPluralNumber()),
+      $tags = ['validations'   => _n('Validation', 'Validations', Session::getPluralNumber()),
                     'linkedtickets' => _n('Linked ticket', 'Linked tickets', Session::getPluralNumber()),
-                    'problems'      => _n('Problem', 'Problems', Session::getPluralNumber()),
+                    'problems'      => Problem::getTypeName(Session::getPluralNumber()),
                     'changes'       => _n('Change', 'Changes', Session::getPluralNumber()),
                     'items'         => _n('Associated item', 'Associated items', Session::getPluralNumber()),
-                    'documents'     => _n('Document', 'Documents', Session::getPluralNumber())];
+                    'documents'     => Document::getTypeName(Session::getPluralNumber())];
 
       foreach ($tags as $tag => $label) {
          $this->addTagToList(['tag'     => $tag,
@@ -873,7 +740,7 @@ class NotificationTargetTicket extends NotificationTargetCommonITILObject {
 
       //Tags with just lang
       $tags = ['ticket.linkedtickets'    => _n('Linked ticket', 'Linked tickets', Session::getPluralNumber()),
-                    'ticket.problems'         => _n('Problem', 'Problems', Session::getPluralNumber()),
+                    'ticket.problems'         => Problem::getTypeName(Session::getPluralNumber()),
                     'ticket.changes'          => _n('Change', 'Changes', Session::getPluralNumber()),
                     'ticket.autoclosewarning'
                      => sprintf(_n('Without a reply, the ticket will be automatically closed after %s day',
@@ -915,19 +782,19 @@ class NotificationTargetTicket extends NotificationTargetCommonITILObject {
                     'linkedticket.content'    => sprintf(__('%1$s: %2$s'),
                                                          _n('Linked ticket', 'Linked tickets', 1),
                                                          __('Description')),
-                    'problem.id'              => sprintf(__('%1$s: %2$s'), __('Problem'), __('ID')),
-                    'problem.date'            => sprintf(__('%1$s: %2$s'), __('Problem'), __('Date')),
-                    'problem.url'             => sprintf(__('%1$s: %2$s'), __('Problem'), ('URL')),
-                    'problem.title'           => sprintf(__('%1$s: %2$s'), __('Problem'),
+                    'problem.id'              => sprintf(__('%1$s: %2$s'), Problem::getTypeName(1), __('ID')),
+                    'problem.date'            => sprintf(__('%1$s: %2$s'), Problem::getTypeName(1), _n('Date', 'Dates', 1)),
+                    'problem.url'             => sprintf(__('%1$s: %2$s'), Problem::getTypeName(1), ('URL')),
+                    'problem.title'           => sprintf(__('%1$s: %2$s'), Problem::getTypeName(1),
                                                          __('Title')),
-                    'problem.content'         => sprintf(__('%1$s: %2$s'), __('Problem'),
+                    'problem.content'         => sprintf(__('%1$s: %2$s'), Problem::getTypeName(1),
                                                          __('Description')),
-                    'change.id'               => sprintf(__('%1$s: %2$s'), __('Change'), __('ID')),
-                    'change.date'             => sprintf(__('%1$s: %2$s'), __('Change'), __('Date')),
-                    'change.url'              => sprintf(__('%1$s: %2$s'), __('Change'), ('URL')),
-                    'change.title'            => sprintf(__('%1$s: %2$s'), __('Change'),
+                    'change.id'               => sprintf(__('%1$s: %2$s'), Change::getTypeName(1), __('ID')),
+                    'change.date'             => sprintf(__('%1$s: %2$s'), Change::getTypeName(1), _n('Date', 'Dates', 1)),
+                    'change.url'              => sprintf(__('%1$s: %2$s'), Change::getTypeName(1), ('URL')),
+                    'change.title'            => sprintf(__('%1$s: %2$s'), Change::getTypeName(1),
                                                          __('Title')),
-                    'change.content'          => sprintf(__('%1$s: %2$s'), __('Change'),
+                    'change.content'          => sprintf(__('%1$s: %2$s'), Change::getTypeName(1),
                                                          __('Description'))
                    ];
 

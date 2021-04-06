@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -53,9 +49,6 @@ class ContractCost extends CommonDBChild {
    }
 
 
-   /**
-    * @see CommonDBChild::prepareInputForAdd()
-   **/
    function prepareInputForAdd($input) {
 
       if (!empty($input['begin_date'])
@@ -70,9 +63,6 @@ class ContractCost extends CommonDBChild {
    }
 
 
-   /**
-    * @see CommonDBTM::prepareInputForUpdate()
-   **/
    function prepareInputForUpdate($input) {
 
       if (!empty($input['begin_date'])
@@ -87,9 +77,6 @@ class ContractCost extends CommonDBChild {
    }
 
 
-   /**
-    * @see CommonGLPI::getTabNameForItem()
-   **/
    function getTabNameForItem(CommonGLPI $item, $withtemplate = 0) {
 
       // can exists for template
@@ -105,11 +92,6 @@ class ContractCost extends CommonDBChild {
    }
 
 
-   /**
-    * @param $item            CommonGLPI object
-    * @param $tabnum          (default 1)
-    * @param $withtemplate    (default 0)
-    */
    static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0) {
 
       self::showForContract($item, $withtemplate);
@@ -117,7 +99,7 @@ class ContractCost extends CommonDBChild {
    }
 
 
-   function getSearchOptionsNew() {
+   function rawSearchOptions() {
       $tab = [];
 
       $tab[] = [
@@ -132,7 +114,8 @@ class ContractCost extends CommonDBChild {
          'name'               => __('Title'),
          'searchtype'         => 'contains',
          'datatype'           => 'itemlink',
-         'massiveaction'      => false
+         'massiveaction'      => false,
+         'autocomplete'       => true,
       ];
 
       $tab[] = [
@@ -172,7 +155,7 @@ class ContractCost extends CommonDBChild {
          'id'                 => '14',
          'table'              => $this->getTable(),
          'field'              => 'cost',
-         'name'               => __('Cost'),
+         'name'               => _n('Cost', 'Costs', 1),
          'datatype'           => 'decimal'
       ];
 
@@ -180,7 +163,7 @@ class ContractCost extends CommonDBChild {
          'id'                 => '18',
          'table'              => 'glpi_budgets',
          'field'              => 'name',
-         'name'               => _n('Budget', 'Budgets', 1),
+         'name'               => Budget::getTypeName(1),
          'datatype'           => 'dropdown'
       ];
 
@@ -188,7 +171,7 @@ class ContractCost extends CommonDBChild {
          'id'                 => '80',
          'table'              => 'glpi_entities',
          'field'              => 'completename',
-         'name'               => __('Entity'),
+         'name'               => Entity::getTypeName(1),
          'massiveaction'      => false,
          'datatype'           => 'dropdown'
       ];
@@ -200,18 +183,21 @@ class ContractCost extends CommonDBChild {
    /**
     * Duplicate all costs from a contract template to its clone
     *
-    * @since version 0.84
+    * @deprecated 9.5
+    * @since 0.84
     *
     * @param $oldid
     * @param $newid
    **/
-   static function cloneContract ($oldid, $newid) {
+   static function cloneContract($oldid, $newid) {
       global $DB;
 
-      $query  = "SELECT *
-                 FROM `glpi_contractcosts`
-                 WHERE `contracts_id` = '$oldid'";
-      foreach ($DB->request($query) as $data) {
+      Toolbox::deprecated('Use clone');
+      $iterator = $DB->request([
+         'FROM'   => self::getTable(),
+         'WHERE'  => ['contracts_id' => $oldid]
+      ]);
+      while ($data = $iterator->next()) {
          $cd                   = new self();
          unset($data['id']);
          $data['contracts_id'] = $newid;
@@ -256,13 +242,13 @@ class ContractCost extends CommonDBChild {
    function getLastCostForContract($contracts_id) {
       global $DB;
 
-      $query = "SELECT *
-                FROM `".$this->getTable()."`
-                WHERE `contracts_id` = '$contracts_id'
-                ORDER BY 'end_date' DESC, `id` DESC";
-
-      if ($result = $DB->query($query)) {
-         return $DB->fetch_assoc($result);
+      $iterator = $DB->request([
+         'FROM'   => $this->getTable(),
+         'WHERE'  => ['contracts_id' => $contracts_id],
+         'ORDER'  => ['end_date DESC', 'id DESC']
+      ]);
+      if ($result = $iterator->next()) {
+         return $result;
       }
 
       return [];
@@ -292,7 +278,7 @@ class ContractCost extends CommonDBChild {
       echo "<input type='hidden' name='contracts_id' value='".$this->fields['contracts_id']."'>";
       Html::autocompletionTextField($this, 'name');
       echo "</td>";
-      echo "<td>".__('Cost')."</td>";
+      echo "<td>"._n('Cost', 'Costs', 1)."</td>";
       echo "<td>";
       echo "<input type='text' name='cost' value='".Html::formatNumber($this->fields["cost"], true)."'
              size='14'>";
@@ -314,7 +300,7 @@ class ContractCost extends CommonDBChild {
       Html::showDateField("end_date", ['value' => $this->fields['end_date']]);
       echo "</td></tr>";
 
-      echo "<tr class='tab_bg_1'><td>".__('Budget')."</td>";
+      echo "<tr class='tab_bg_1'><td>".Budget::getTypeName(1)."</td>";
       echo "<td>";
       Budget::dropdown(['value' => $this->fields["budgets_id"]]);
       echo "</td></tr>";
@@ -328,10 +314,10 @@ class ContractCost extends CommonDBChild {
    /**
     * Print the contract costs
     *
-    * @param $contract               Contract object
-    * @param $withtemplate  boolean  Template or basic item (default 0)
+    * @param Contract $contract
+    * @param integer  $withtemplate Template or basic item
     *
-    * @return Nothing (call to classes members)
+    * @return void
    **/
    static function showForContract(Contract $contract, $withtemplate = 0) {
       global $DB, $CFG_GLPI;
@@ -340,17 +326,17 @@ class ContractCost extends CommonDBChild {
 
       if (!$contract->getFromDB($ID)
           || !$contract->can($ID, READ)) {
-         return false;
+         return;
       }
       $canedit = $contract->can($ID, UPDATE);
 
       echo "<div class='center'>";
 
-      $query = "SELECT *
-                FROM `glpi_contractcosts`
-                WHERE `contracts_id` = '$ID'
-                ORDER BY `begin_date`";
-
+      $iterator = $DB->request([
+         'FROM'   => self::getTable(),
+         'WHERE'  => ['contracts_id' => $ID],
+         'ORDER'  => 'begin_date'
+      ]);
       $rand   = mt_rand();
 
       if ($canedit
@@ -371,65 +357,63 @@ class ContractCost extends CommonDBChild {
          echo __('Add a new cost')."</a></div>\n";
       }
 
-      if ($result = $DB->query($query)) {
-         echo "<table class='tab_cadre_fixehov'>";
-         echo "<tr><th colspan='5'>".self::getTypeName($DB->numrows($result))."</th></tr>";
+      echo "<table class='tab_cadre_fixehov'>";
+      echo "<tr><th colspan='5'>".self::getTypeName(count($iterator))."</th></tr>";
 
-         if ($DB->numrows($result)) {
-            echo "<tr><th>".__('Name')."</th>";
-            echo "<th>".__('Begin date')."</th>";
-            echo "<th>".__('End date')."</th>";
-            echo "<th>".__('Budget')."</th>";
-            echo "<th>".__('Cost')."</th>";
-            echo "</tr>";
+      if (count($iterator)) {
+         echo "<tr><th>".__('Name')."</th>";
+         echo "<th>".__('Begin date')."</th>";
+         echo "<th>".__('End date')."</th>";
+         echo "<th>".Budget::getTypeName(1)."</th>";
+         echo "<th>"._n('Cost', 'Costs', 1)."</th>";
+         echo "</tr>";
 
-            Session::initNavigateListItems(__CLASS__,
-                              //TRANS : %1$s is the itemtype name,
-                              //        %2$s is the name of the item (used for headings of a list)
-                                        sprintf(__('%1$s = %2$s'),
-                                                Contract::getTypeName(1), $contract->getName()));
+         Session::initNavigateListItems(__CLASS__,
+                           //TRANS : %1$s is the itemtype name,
+                           //        %2$s is the name of the item (used for headings of a list)
+                                       sprintf(__('%1$s = %2$s'),
+                                             Contract::getTypeName(1), $contract->getName()));
 
-            $total = 0;
-            while ($data = $DB->fetch_assoc($result)) {
-               echo "<tr class='tab_bg_2' ".
-                     ($canedit
-                      ? "style='cursor:pointer' onClick=\"viewEditCost".$data['contracts_id']."_".
-                        $data['id']."_$rand();\"": '') .">";
-               $name = (empty($data['name'])? sprintf(__('%1$s (%2$s)'),
-                                                      $data['name'], $data['id'])
-                                            : $data['name']);
-               echo "<td>";
-               printf(__('%1$s %2$s'), $name,
-                        Html::showToolTip($data['comment'], ['display' => false]));
-               if ($canedit) {
-                  echo "\n<script type='text/javascript' >\n";
-                  echo "function viewEditCost" .$data['contracts_id']."_". $data["id"]. "_$rand() {\n";
-                  $params = ['type'         => __CLASS__,
-                                  'parenttype'   => 'Contract',
-                                  'contracts_id' => $data["contracts_id"],
-                                  'id'           => $data["id"]];
-                  Ajax::updateItemJsCode("viewcost".$ID."_$rand",
-                                         $CFG_GLPI["root_doc"]."/ajax/viewsubitem.php", $params);
-                  echo "};";
-                  echo "</script>\n";
-               }
-               echo "</td>";
-               echo "<td>".Html::convDate($data['begin_date'])."</td>";
-               echo "<td>".Html::convDate($data['end_date'])."</td>";
-               echo "<td>".Dropdown::getDropdownName('glpi_budgets', $data['budgets_id'])."</td>";
-               echo "<td class='numeric'>".Html::formatNumber($data['cost'])."</td>";
-               $total += $data['cost'];
-               echo "</tr>";
-               Session::addToNavigateListItems(__CLASS__, $data['id']);
+         $total = 0;
+         while ($data = $iterator->next()) {
+            echo "<tr class='tab_bg_2' ".
+                  ($canedit
+                     ? "style='cursor:pointer' onClick=\"viewEditCost".$data['contracts_id']."_".
+                     $data['id']."_$rand();\"": '') .">";
+            $name = (empty($data['name'])? sprintf(__('%1$s (%2$s)'),
+                                                   $data['name'], $data['id'])
+                                          : $data['name']);
+            echo "<td>";
+            printf(__('%1$s %2$s'), $name,
+                     Html::showToolTip($data['comment'], ['display' => false]));
+            if ($canedit) {
+               echo "\n<script type='text/javascript' >\n";
+               echo "function viewEditCost" .$data['contracts_id']."_". $data["id"]. "_$rand() {\n";
+               $params = ['type'         => __CLASS__,
+                                 'parenttype'   => 'Contract',
+                                 'contracts_id' => $data["contracts_id"],
+                                 'id'           => $data["id"]];
+               Ajax::updateItemJsCode("viewcost".$ID."_$rand",
+                                       $CFG_GLPI["root_doc"]."/ajax/viewsubitem.php", $params);
+               echo "};";
+               echo "</script>\n";
             }
-            echo "<tr class='b noHover'><td colspan='3'>&nbsp;</td>";
-            echo "<td class='right'>".__('Total cost').'</td>';
-            echo "<td class='numeric'>".Html::formatNumber($total).'</td></tr>';
-         } else {
-            echo "<tr><th colspan='5'>".__('No item found')."</th></tr>";
+            echo "</td>";
+            echo "<td>".Html::convDate($data['begin_date'])."</td>";
+            echo "<td>".Html::convDate($data['end_date'])."</td>";
+            echo "<td>".Dropdown::getDropdownName('glpi_budgets', $data['budgets_id'])."</td>";
+            echo "<td class='numeric'>".Html::formatNumber($data['cost'])."</td>";
+            $total += $data['cost'];
+            echo "</tr>";
+            Session::addToNavigateListItems(__CLASS__, $data['id']);
          }
-         echo "</table>";
+         echo "<tr class='b noHover'><td colspan='3'>&nbsp;</td>";
+         echo "<td class='right'>".__('Total cost').'</td>';
+         echo "<td class='numeric'>".Html::formatNumber($total).'</td></tr>';
+      } else {
+         echo "<tr><th colspan='5'>".__('No item found')."</th></tr>";
       }
+      echo "</table>";
       echo "</div><br>";
    }
 

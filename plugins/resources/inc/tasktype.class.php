@@ -9,7 +9,7 @@
  -------------------------------------------------------------------------
 
  LICENSE
-      
+
  This file is part of resources.
 
  resources is free software; you can redistribute it and/or modify
@@ -30,23 +30,43 @@ if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access directly to this file");
 }
 
+/**
+ * Class PluginResourcesTaskType
+ */
 class PluginResourcesTaskType extends CommonDropdown {
-   
+
    var $can_be_translated  = true;
-   
-   static function getTypeName($nb=0) {
+
+   /**
+    * @param int $nb
+    *
+    * @return string
+    */
+   static function getTypeName($nb = 0) {
 
       return _n('Type of task', 'Types of task', $nb, 'resources');
    }
-   
+
+   /**
+    * @return bool|\booleen
+    */
    static function canCreate() {
-      return Session::haveRight('entity_dropdown',UPDATE);
+      return Session::haveRight('dropdown', UPDATE);
    }
 
+   /**
+    * @return bool|\booleen
+    */
    static function canView() {
       return Session::haveRight('plugin_resources_task', READ);
    }
-   
+
+   /**
+    * @param $ID
+    * @param $entity
+    *
+    * @return int|\the
+    */
    static function transfer($ID, $entity) {
       global $DB;
 
@@ -59,12 +79,12 @@ class PluginResourcesTaskType extends CommonDropdown {
 
          if ($result=$DB->query($query)) {
             if ($DB->numrows($result)) {
-               $data = $DB->fetch_assoc($result);
+               $data = $DB->fetchAssoc($result);
                $data = Toolbox::addslashes_deep($data);
                $input['name'] = $data['name'];
                $input['entities_id']  = $entity;
                $temp = new self();
-               $newID    = $temp->getID($input);
+               $newID    = $temp->getID();
 
                if ($newID<0) {
                   $newID = $temp->import($input);
@@ -78,4 +98,3 @@ class PluginResourcesTaskType extends CommonDropdown {
    }
 }
 
-?>

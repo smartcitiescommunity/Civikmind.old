@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,9 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-* @since version 0.85
-*/
+/**
+ * @since 0.85
+ */
 
 $AJAX_INCLUDE = 1;
 include ('../inc/includes.php');
@@ -121,13 +120,15 @@ if (isset($_POST["validatortype"])) {
          // Display all/none buttons to select all or no users in group
          if (!empty($_POST['groups_id'])) {
             echo "<br><br><a id='all_users' class='vsubmit'>".__('All')."</a>";
-            $param_button['validatortype']      = 'list_users';
-            $param_button['name']               = !empty($_POST['name']) ? $_POST['name']:'';
-            $param_button['users_id_validate']  = '';
-            $param_button['all_users']          = 1;
-            $param_button['groups_id']          = $_POST['groups_id'];
-            $param_button['entity']             = $_POST['entity'];
-            $param_button['right']              = $_POST['right'];
+            $param_button = [
+               'validatortype'     => 'list_users',
+               'name'              => !empty($_POST['name']) ? $_POST['name']:'',
+               'users_id_validate' => '',
+               'all_users'         => 1,
+               'groups_id'         => $_POST['groups_id'],
+               'entity'            => $_POST['entity'],
+               'right'             => $_POST['right'],
+            ];
             Ajax::updateItemOnEvent('all_users', 'show_list_users',
                                     $CFG_GLPI["root_doc"]."/ajax/dropdownValidator.php",
                                     $param_button, ['click']);

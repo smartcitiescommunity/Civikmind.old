@@ -9,7 +9,7 @@
  -------------------------------------------------------------------------
 
  LICENSE
-      
+
  This file is part of badges.
 
  badges is free software; you can redistribute it and/or modify
@@ -27,9 +27,7 @@
  --------------------------------------------------------------------------
  */
 
-include ('../../../inc/includes.php');
+include('../../../inc/includes.php');
 
 $dropdown = new PluginBadgesBadgeType();
-include (GLPI_ROOT . "/front/dropdown.common.form.php");
-
-?>
+include(GLPI_ROOT . "/front/dropdown.common.form.php");

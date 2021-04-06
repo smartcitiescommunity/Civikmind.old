@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,9 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-* @since version 0.84
-*/
+/**
+ * @since 0.84
+ */
 
 use Glpi\Event;
 
@@ -45,7 +44,7 @@ $cost = new TicketCost();
 if (isset($_POST["add"])) {
    $cost->check(-1, CREATE, $_POST);
 
-   if ($newID = $cost->add($_POST)) {
+   if ($cost->add($_POST)) {
       Event::log($_POST['tickets_id'], "tickets", 4, "tracking",
                  //TRANS: %s is the user login
                  sprintf(__('%s adds a cost'), $_SESSION["glpiname"]));

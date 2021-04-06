@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,9 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-* @since version 0.85
-*/
+/**
+ * @since 0.85
+ */
 
 $AJAX_INCLUDE = 1;
 
@@ -48,12 +47,15 @@ $res = [];
 $root_entities_for_profiles = array_column($_SESSION['glpiactiveprofile']['entities'], 'id');
 
 if (isset($_POST['str'])) {
-   $query = "SELECT *
-             FROM `glpi_entities`
-             WHERE `name` LIKE '%".$_POST['str']."%'
-             ORDER BY `completename`";
+   $iterator = $DB->request([
+      'FROM'   => 'glpi_entities',
+      'WHERE'  => [
+         'name' => ['LIKE', '%' . $_POST['str'] . '%']
+      ],
+      'ORDER'  => ['completename']
+   ]);
 
-   foreach ($DB->request($query) as $data) {
+   while ($data = $iterator->next()) {
       $ancestors = getAncestorsOf('glpi_entities', $data['id']);
       foreach ($ancestors as $val) {
          if (!in_array($val, $res)) {

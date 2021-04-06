@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -29,10 +29,6 @@
  * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
  */
-
-/** @file
-* @brief
-*/
 
 /**
  * Update from 0.90.1 to 0.90.5
@@ -69,10 +65,10 @@ function update0901to0905() {
 
    // fix https://github.com/glpi-project/glpi/issues/820
    // remove empty suppliers in tickets
-   $query = "DELETE FROM glpi_suppliers_tickets
-             WHERE suppliers_id = 0
-               AND alternative_email = ''";
-   $DB->query($query);
+   $DB->delete("glpi_suppliers_tickets", [
+      'suppliers_id'       => 0,
+      'alternative_email'  => ""
+   ]);
 
    // ************ Keep it at the end **************
    $migration->executeMigration();

@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 include ('../inc/includes.php');
 
 if (Config::canUpdate()) {
@@ -46,10 +42,9 @@ if (Config::canUpdate()) {
       ]
    );
    Session::addMessageAfterRedirect(
-      sprintf(
-         __('Debug mode has been switched %1$s!'),
-         ($_SESSION['glpi_use_mode'] == Session::DEBUG_MODE ? __('on') : __('off'))
-      )
+      $_SESSION['glpi_use_mode'] == Session::DEBUG_MODE ?
+         __('Debug mode has been enabled!') :
+         __('Debug mode has been disabled!')
    );
 }
 

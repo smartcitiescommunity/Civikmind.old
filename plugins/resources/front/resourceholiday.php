@@ -9,7 +9,7 @@
  -------------------------------------------------------------------------
 
  LICENSE
-      
+
  This file is part of resources.
 
  resources is free software; you can redistribute it and/or modify
@@ -29,9 +29,9 @@
 
 include ('../../../inc/includes.php');
 
-if ($_SESSION['glpiactiveprofile']['interface'] == 'central') {
+if (Session::getCurrentInterface() == 'central') {
    //from central
-   Html::header(PluginResourcesResource::getTypeName(2), '', "admin", "pluginresourcesresource");
+   Html::header(PluginResourcesResource::getTypeName(2), '', "admin", PluginResourcesMenu::getType());
 } else {
    //from helpdesk
    Html::helpHeader(PluginResourcesResource::getTypeName(2));
@@ -41,14 +41,13 @@ $holiday = new PluginResourcesResourceHoliday();
 
 if (($holiday->canView() || Session::haveRight("config", UPDATE))) {
    Search::show("PluginResourcesResourceHoliday");
-   
+
 } else {
    Html::displayRightError();
 }
 
-if ($_SESSION['glpiactiveprofile']['interface'] == 'central') {
+if (Session::getCurrentInterface() == 'central') {
    Html::footer();
 } else {
    Html::helpFooter();
 }
-?>

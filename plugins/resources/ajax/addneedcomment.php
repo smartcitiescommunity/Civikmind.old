@@ -9,7 +9,7 @@
  -------------------------------------------------------------------------
 
  LICENSE
-      
+
  This file is part of resources.
 
  resources is free software; you can redistribute it and/or modify
@@ -42,16 +42,15 @@ if (isset($_POST["id"])) {
    echo "</div>";
    echo "<div id='viewaccept$items_id'class='center'>";
    echo "<p><input type='submit' name='updateneedcomment[".$items_id."]' value=\"".
-         _sx('button','Add')."\" class='submit'>";
+         _sx('button', 'Add')."\" class='submit'>";
    echo "&nbsp;<input type='button' onclick=\"hideAddForm$items_id();\" value=\"".
-         _sx('button','Cancel')."\" class='submit'></p>";
+         _sx('button', 'Cancel')."\" class='submit'></p>";
    echo "</div>";
-      
+
 } else {
-   _e("You don't have permission to perform this action.");
+   echo __("You don't have permission to perform this action.");
 }
 
 
 Html::ajaxFooter();
 
-?>

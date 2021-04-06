@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,14 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-* @since version 0.85
-*/
+/**
+ * @since 0.85
+ */
+
+/**
+ * Following variables have to be defined before inclusion of this file:
+ * @var CommonITILCost $cost
+ */
 
 use Glpi\Event;
 
@@ -56,7 +60,7 @@ $fk       = getForeignKeyFieldForItemType($itemtype);
 if (isset($_POST["add"])) {
    $cost->check(-1, CREATE, $_POST);
 
-   if ($newID = $cost->add($_POST)) {
+   if ($cost->add($_POST)) {
       Event::log($_POST[$fk], strtolower($itemtype), 4, "tracking",
                  //TRANS: %s is the user login
                  sprintf(__('%s adds a cost'), $_SESSION["glpiname"]));
@@ -70,7 +74,7 @@ if (isset($_POST["add"])) {
                  //TRANS: %s is the user login
                  sprintf(__('%s purges a cost'), $_SESSION["glpiname"]));
    }
-   Html::redirect(Toolbox::getItemTypeFormURL($itemtype).'?id='.$cost->fields[$fk]);
+   Html::redirect($itemtype::getFormURLWithID($cost->fields[$fk]));
 
 } else if (isset($_POST["update"])) {
    $cost->check($_POST["id"], UPDATE);

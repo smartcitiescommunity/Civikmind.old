@@ -9,7 +9,7 @@
  -------------------------------------------------------------------------
 
  LICENSE
-      
+
  This file is part of resources.
 
  resources is free software; you can redistribute it and/or modify
@@ -31,21 +31,47 @@ if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access directly to this file");
 }
 
+/**
+ * Class PluginResourcesChecklistconfig
+ */
 class PluginResourcesChecklistconfig extends CommonDBTM {
 
    static $rightname = 'plugin_resources_checklist';
 
+   /**
+    * Return the localized name of the current Type
+    * Should be overloaded in each new class
+    *
+    * @param integer $nb Number of items
+    *
+    * @return string
+    **/
    static function getTypeName($nb = 0) {
 
       return _n('Checklist setup', 'Checklists setup', $nb, 'resources');
    }
 
+   /**
+    * Have I the global right to "view" the Object
+    *
+    * Default is true and check entity if the objet is entity assign
+    *
+    * May be overloaded if needed
+    *
+    * @return booleen
+    **/
    static function canView() {
       return Session::haveRight(self::$rightname, READ);
    }
 
+   /**
+    * Have I the global right to "create" the Object
+    * May be overloaded if needed (ex KnowbaseItem)
+    *
+    * @return booleen
+    **/
    static function canCreate() {
-      return Session::haveRightsOr(self::$rightname, array(CREATE, UPDATE, DELETE));
+      return Session::haveRightsOr(self::$rightname, [CREATE, UPDATE, DELETE]);
    }
 
    /**
@@ -61,65 +87,66 @@ class PluginResourcesChecklistconfig extends CommonDBTM {
       }
    }
 
-   //define header form
-   function defineTabs($options = array()) {
+   /**
+    * Provides search options configuration. Do not rely directly
+    * on this, @see CommonDBTM::searchOptions instead.
+    *
+    * @since 9.3
+    *
+    * This should be overloaded in Class
+    *
+    * @return array a *not indexed* array of search options
+    *
+    * @see https://glpi-developer-documentation.rtfd.io/en/master/devapi/search.html
+    **/
+   function rawSearchOptions() {
 
-      $ong = array();
-      $this->addStandardTab(__CLASS__, $ong, $options);
+      $tab = parent::rawSearchOptions();
 
-      return $ong;
-   }
+      $tab[] = [
+         'id'       => '3',
+         'table'    => $this->getTable(),
+         'field'    => 'comment',
+         'name'     => __('Description'),
+         'datatype' => 'text'
+      ];
 
-   function getSearchOptions() {
+      $tab[] = [
+         'id'       => '4',
+         'table'    => $this->getTable(),
+         'field'    => 'tag',
+         'name'     => __('Important', 'resources'),
+         'datatype' => 'bool'
+      ];
 
-      $tab = array();
-
-      $tab['common'] = self::getTypeName(2);
-
-      $tab[1]['table']    = $this->getTable();
-      $tab[1]['field']    = 'name';
-      $tab[1]['name']     = __('Name');
-      $tab[1]['datatype'] = 'itemlink';
-
-      $tab[2]['table'] = $this->getTable();
-      $tab[2]['field'] = 'address';
-      $tab[2]['name']  = __('Link', 'resources');
-
-      $tab[3]['table']    = $this->getTable();
-      $tab[3]['field']    = 'comment';
-      $tab[3]['name']     = __('Description');
-      $tab[3]['datatype'] = 'text';
-
-      $tab[4]['table']    = $this->getTable();
-      $tab[4]['field']    = 'tag';
-      $tab[4]['name']     = __('Important', 'resources');
-      $tab[4]['datatype'] = 'bool';
-
-      $tab[30]['table']         = $this->getTable();
-      $tab[30]['field']         = 'id';
-      $tab[30]['name']          = __('ID');
-      $tab[30]['datatype']      = 'number';
-      $tab[30]['massiveaction'] = false;
-
-      $tab[80]['table']    = 'glpi_entities';
-      $tab[80]['field']    = 'completename';
-      $tab[80]['name']     = __('Entity');
-      $tab[80]['datatype'] = 'dropdown';
+      $tab[] = [
+         'id'            => '30',
+         'table'         => $this->getTable(),
+         'field'         => 'id',
+         'name'          => __('ID'),
+         'datatype'      => 'number',
+         'massiveaction' => false
+      ];
 
       return $tab;
    }
 
-   function showForm($ID, $options = array()) {
+   /**
+    * @param       $ID
+    * @param array $options
+    *
+    * @return bool
+    */
+   function showForm($ID, $options = []) {
 
       $this->initForm($ID, $options);
-      $this->showTabs($options);
       $this->showFormHeader($options);
 
       echo "<tr class='tab_bg_1'>";
 
       echo "<td >".__('Name')."</td>";
       echo "<td>";
-      Html::autocompletionTextField($this, "name", array('size' => "40"));
+      Html::autocompletionTextField($this, "name", ['size' => "40"]);
       echo "</td>";
 
       echo "<td>";
@@ -133,7 +160,7 @@ class PluginResourcesChecklistconfig extends CommonDBTM {
 
       echo "<td >".__('Link', 'resources')."</td>";
       echo "<td>";
-      Html::autocompletionTextField($this, "address", array('size' => "75"));
+      Html::autocompletionTextField($this, "address", ['size' => "75"]);
       echo "</td>";
 
       echo "<td></td>";
@@ -154,16 +181,21 @@ class PluginResourcesChecklistconfig extends CommonDBTM {
 
       echo "</tr>";
 
-      $options['candel'] = false;
+//      $options['candel'] = false;
       $this->showFormButtons($options);
       return true;
    }
 
+   /**
+    * @param $resource
+    * @param $checklists_id
+    * @param $checklist_type
+    */
    function addResourceChecklist($resource, $checklists_id, $checklist_type) {
 
-      $restrict = "`id` = '".$checklists_id."'";
-
-      $checklists = getAllDatasFromTable("glpi_plugin_resources_checklistconfigs", $restrict);
+      $restrict = ["id" => $checklists_id];
+      $dbu = new DbUtils();
+      $checklists = $dbu->getAllDataFromTable("glpi_plugin_resources_checklistconfigs", $restrict);
 
       if (!empty($checklists)) {
 
@@ -185,19 +217,24 @@ class PluginResourcesChecklistconfig extends CommonDBTM {
       }
    }
 
+   /**
+    * @param $resource
+    * @param $checklist_type
+    */
    function addChecklistsFromRules($resource, $checklist_type) {
 
       $rulecollection = new PluginResourcesRuleChecklistCollection($resource->fields["entities_id"]);
 
       if (isset($resource->fields["plugin_resources_contracttypes_id"]) &&
-              $resource->fields["plugin_resources_contracttypes_id"] > 0)
+              $resource->fields["plugin_resources_contracttypes_id"] > 0) {
          $contract = $resource->fields["plugin_resources_contracttypes_id"];
-      else
+      } else {
          $contract = 0;
+      }
 
-      $checklists = array();
-      $checklists = $rulecollection->processAllRules(array("plugin_resources_contracttypes_id" => $contract,
-          "checklist_type"                    => $checklist_type), $checklists, array());
+      $checklists = [];
+      $checklists = $rulecollection->processAllRules(["plugin_resources_contracttypes_id" => $contract,
+          "checklist_type"                    => $checklist_type], $checklists, []);
 
       if (!empty($checklists)) {
 
@@ -207,61 +244,70 @@ class PluginResourcesChecklistconfig extends CommonDBTM {
       }
    }
 
-   function addRulesFromChecklists($data) {
+   /**
+    * Create a rule for the checklist
+    * @param type $data
+    * @param type $ma
+    * @param type $item
+    */
+   function addRulesFromChecklists($data, $ma, $item) {
 
       $rulecollection = new PluginResourcesRuleChecklistCollection();
       $rulecollection->checkGlobal(UPDATE);
 
-      foreach ($data["item"] as $key => $val) {
-         if ($val == 1) {
+      foreach ($ma->items["PluginResourcesChecklistconfig"] as $key => $val) {
 
-            $this->getFromDB($key);
-            $rule                   = new PluginResourcesRuleChecklist();
-            $values["name"]         = addslashes($this->fields["name"]);
-            $values["match"]        = "AND";
-            $values["is_active"]    = 1;
-            $values["is_recursive"] = 1;
-            $values["entities_id"]  = $this->fields["entities_id"];
-            $values["sub_type"]     = "PluginResourcesRuleChecklist";
-            $newID                  = $rule->add($values);
+         $this->getFromDB($key);
+         $rule                   = new PluginResourcesRuleChecklist();
+         $values["name"]         = addslashes($this->fields["name"]);
+         $values["match"]        = "AND";
+         $values["is_active"]    = 1;
+         $values["is_recursive"] = 1;
+         $values["entities_id"]  = $this->fields["entities_id"];
+         $values["sub_type"]     = "PluginResourcesRuleChecklist";
+         $newID                  = $rule->add($values);
 
-            if (isset($data["checklist_type"]) && $data["checklist_type"] > 0) {
-               $criteria            = new RuleCriteria();
-               $values["rules_id"]  = $newID;
-               $values["criteria"]  = "checklist_type";
-               $values["condition"] = 0;
-               $values["pattern"]   = $data["checklist_type"];
-               $criteria->add($values);
-            }
+         if (isset($data["checklist_type"]) && $data["checklist_type"] > 0) {
+            $criteria            = new RuleCriteria();
+            $values["rules_id"]  = $newID;
+            $values["criteria"]  = "checklist_type";
+            $values["condition"] = 0;
+            $values["pattern"]   = $data["checklist_type"];
+            $criteria->add($values);
+         }
 
-            if (isset($data["plugin_resources_contracttypes_id"])) {
-               $criteria            = new RuleCriteria();
-               $values["rules_id"]  = $newID;
-               $values["criteria"]  = "plugin_resources_contracttypes_id";
-               $values["condition"] = $data["condition"];
-               $values["pattern"]   = $data["plugin_resources_contracttypes_id"];
-               $criteria->add($values);
-            }
+         if (isset($data["plugin_resources_contracttypes_id"])) {
+            $criteria            = new RuleCriteria();
+            $values["rules_id"]  = $newID;
+            $values["criteria"]  = "plugin_resources_contracttypes_id";
+            $values["condition"] = $data["condition"];
+            $values["pattern"]   = $data["plugin_resources_contracttypes_id"];
+            $criteria->add($values);
+         }
 
-            $action                = new RuleAction();
-            $values["rules_id"]    = $newID;
-            $values["action_type"] = "assign";
-            $values["field"]       = "checklists_id";
-            $values["value"]       = $key;
-            $action->add($values);
+         $action                = new RuleAction();
+         $values["rules_id"]    = $newID;
+         $values["action_type"] = "assign";
+         $values["field"]       = "checklists_id";
+         $values["value"]       = $key;
+         $action->add($values);
+         if ($newID) {
+            $ma->itemDone($item->getType(), $newID, MassiveAction::ACTION_OK);
+         } else {
+            $ma->itemDone($item->getType(), $newID, MassiveAction::ACTION_KO);
          }
       }
    }
 
    /**
     * Get the specific massive actions
-    * 
+    *
     * @since version 0.84
     * @param $checkitem link item to check right   (default NULL)
-    * 
+    *
     * @return an array of massive actions
     * */
-   function getSpecificMassiveActions($checkitem = NULL) {
+   function getSpecificMassiveActions($checkitem = null) {
       $isadmin = static::canUpdate();
       $actions = parent::getSpecificMassiveActions($checkitem);
 
@@ -276,6 +322,15 @@ class PluginResourcesChecklistconfig extends CommonDBTM {
       return $actions;
    }
 
+   /**
+    * Class-specific method used to show the fields to specify the massive action
+    *
+    * @since 0.85
+    *
+    * @param MassiveAction $ma the current massive action object
+    *
+    * @return boolean false if parameters displayed ?
+    **/
    static function showMassiveActionsSubForm(MassiveAction $ma) {
 
       $PluginResourcesChecklist    = new PluginResourcesChecklist();
@@ -285,18 +340,18 @@ class PluginResourcesChecklistconfig extends CommonDBTM {
          case "Generate_Rule" :
             $PluginResourcesChecklist->dropdownChecklistType("checklist_type", $_SESSION["glpiactive_entity"]);
             echo "&nbsp;";
-            RuleCriteria::dropdownConditions("PluginResourcesRuleChecklist", array('criterion'        => 'plugin_resources_contracttypes_id',
-                                                                                   'allow_conditions' => array(Rule::PATTERN_IS, Rule::PATTERN_IS_NOT)));
+            RuleCriteria::dropdownConditions("PluginResourcesRuleChecklist", ['criterion'        => 'plugin_resources_contracttypes_id',
+                                                                                   'allow_conditions' => [Rule::PATTERN_IS, Rule::PATTERN_IS_NOT]]);
             echo "&nbsp;";
             $PluginResourcesContractType->dropdownContractType("plugin_resources_contracttypes_id");
             echo "&nbsp;";
             break;
-         
+
          case "Transfert" :
             Dropdown::show('Entity');
             break;
       }
-      
+
       return parent::showMassiveActionsSubForm($ma);
    }
    /**
@@ -305,10 +360,10 @@ class PluginResourcesChecklistconfig extends CommonDBTM {
     * @see CommonDBTM::processMassiveActionsForOneItemtype()
     * */
    static function processMassiveActionsForOneItemtype(MassiveAction $ma, CommonDBTM $item, array $ids) {
-      
+
       $input    = $ma->getInput();
       $itemtype = $ma->getItemtype(false);
-      
+
       switch ($ma->getAction()) {
          case "Transfert" :
             if ($itemtype == 'PluginResourcesEmployment') {
@@ -326,10 +381,10 @@ class PluginResourcesChecklistconfig extends CommonDBTM {
             break;
          case "Generate_Rule" :
             if ($itemtype == 'PluginResourcesChecklistconfig') {
-               $item->addRulesFromChecklists($input);
+               $item->addRulesFromChecklists($input, $ma, $item);
             }
             break;
-            
+
          default :
             return parent::doSpecificMassiveActions($input);
       }
@@ -337,4 +392,3 @@ class PluginResourcesChecklistconfig extends CommonDBTM {
 
 }
 
-?>

@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -41,7 +37,7 @@ if (!defined('GLPI_ROOT')) {
 /**
  * Notepad class
  *
- * @since version 0.85
+ * @since 0.85
 **/
 class Notepad extends CommonDBChild {
 
@@ -102,7 +98,8 @@ class Notepad extends CommonDBChild {
    /**
     * Duplicate all notepads from a item template to his clone
     *
-    * @since version 9.2
+    * @deprecated 9.5
+    * @since 9.2
     *
     * @param string $itemtype      itemtype of the item
     * @param integer $oldid        ID of the item to clone
@@ -111,9 +108,16 @@ class Notepad extends CommonDBChild {
    static function cloneItem ($itemtype, $oldid, $newid) {
       global $DB;
 
-      foreach ($DB->request('glpi_notepads',
-                            ['WHERE'  => "`items_id` = '$oldid'
-                                          AND `itemtype` = '$itemtype'"]) as $data) {
+      Toolbox::deprecated('Use clone');
+      $iterator = $DB->request([
+         'FROM'   => self::getTable(),
+         'WHERE'  => [
+            'items_id'  => $oldid,
+            'itemtype'  => $itemtype
+         ]
+      ]);
+
+      while ($data = $iterator->next()) {
          $cd               = new self();
          unset($data['id']);
          $data['items_id'] = $newid;
@@ -122,9 +126,6 @@ class Notepad extends CommonDBChild {
       }
    }
 
-   /**
-    * @see CommonGLPI::getTabNameForItem()
-   **/
    function getTabNameForItem(CommonGLPI $item, $withtemplate = 0) {
 
       if (Session::haveRight($item::$rightname, READNOTE)) {
@@ -168,33 +169,48 @@ class Notepad extends CommonDBChild {
       global $DB;
 
       $data = [];
-      $query = "SELECT `glpi_notepads`.*, `glpi_users`.`picture`
-                FROM `glpi_notepads`
-                LEFT JOIN `glpi_users` ON (`glpi_notepads`.`users_id_lastupdater` = `glpi_users`.`id`)
-                WHERE `glpi_notepads`.`itemtype` = '".$item->getType()."'
-                     AND `glpi_notepads`.`items_id` = '".$item->getID()."'
-                ORDER BY `date_mod` DESC";
+      $iterator = $DB->request([
+         'SELECT'    => [
+            'glpi_notepads.*',
+            'glpi_users.picture'
+         ],
+         'FROM'      => self::getTable(),
+         'LEFT JOIN' => [
+            'glpi_users'   => [
+               'ON' => [
+                  self::getTable()  => 'users_id_lastupdater',
+                  'glpi_users'      => 'id'
+               ]
+            ]
+         ],
+         'WHERE'     => [
+            'itemtype'  => $item->getType(),
+            'items_id'  => $item->getID()
+         ],
+         'ORDERBY'   => 'date_mod DESC'
+      ]);
 
-      foreach ($DB->request($query) as $note) {
+      while ($note = $iterator->next()) {
          $data[] = $note;
       }
       return $data;
    }
 
 
-   static public function getSearchOptionsToAddNew() {
+   static public function rawSearchOptionsToAdd() {
       $tab = [];
+      $name = _n('Note', 'Notes', Session::getPluralNumber());
 
       $tab[] = [
          'id'                 => 'notepad',
-         'name'               => _n('Note', 'Notes', Session::getPluralNumber())
+         'name'               => $name
       ];
 
       $tab[] = [
          'id'                 => '200',
          'table'              => 'glpi_notepads',
          'field'              => 'content',
-         'name'               => _n('Note', 'Notes', Session::getPluralNumber()),
+         'name'               => $name,
          'datatype'           => 'text',
          'joinparams'         => [
             'jointype'           => 'itemtype_item'
@@ -277,8 +293,6 @@ class Notepad extends CommonDBChild {
     * @param $withtemplate integer  template or basic item (default 0)
    **/
    static function showForItem(CommonDBTM $item, $withtemplate = 0) {
-      global $CFG_GLPI;
-
       if (!Session::haveRight($item::$rightname, READNOTE)) {
          return false;
       }

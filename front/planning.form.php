@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,9 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-* @since version 9.1
-*/
+/**
+ * @since 9.1
+ */
 
 include ('../inc/includes.php');
 
@@ -49,6 +48,10 @@ if ($_REQUEST["action"] == "send_add_group_users_form") {
 
 if ($_REQUEST["action"] == "send_add_group_form") {
    Planning::sendAddGroupForm($_REQUEST);
+}
+
+if ($_REQUEST["action"] == "send_add_external_form") {
+   Planning::sendAddExternalForm($_REQUEST);
 }
 
 Html::back();

@@ -41,10 +41,11 @@ if ($plugin->isActivated("moreticket")) {
          $_POST['solution_status'] = "";
       }
 
+      $dbu = new DbUtils();
       if (isset($_POST['urgency_ids'])) {
-         $_POST['urgency_ids'] = exportArrayToDB($_POST['urgency_ids']);
+         $_POST['urgency_ids'] = $dbu->exportArrayToDB($_POST['urgency_ids']);
       } else {
-         $_POST['urgency_ids'] = exportArrayToDB(array());
+         $_POST['urgency_ids'] = $dbu->exportArrayToDB([]);
       }
 
       $config->update($_POST);
@@ -61,7 +62,7 @@ if ($plugin->isActivated("moreticket")) {
 } else {
    Html::header(__('Setup'), '', "config", "plugins");
    echo "<div align='center'><br><br>";
-   echo "<img src=\"" . $CFG_GLPI["root_doc"] . "/pics/warning.png\" alt='warning'><br><br>";
+   echo "<i class='fas fa-exclamation-triangle fa-4x' style='color:orange'></i><br><br>";
    echo "<b>" . __('Please activate the plugin', 'moreticket') . "</b></div>";
    Html::footer();
 }

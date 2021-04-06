@@ -36,7 +36,7 @@ function plugin_escalade_install() {
 
    //get version
    $plugin = new Plugin();
-   $found = $plugin->find("name = 'escalade'");
+   $found = $plugin->find(['name' => 'escalade']);
    $plugin_escalade = array_shift($found);
 
    //init migration
@@ -48,11 +48,11 @@ function plugin_escalade_install() {
          `id`              INT(11) NOT NULL AUTO_INCREMENT,
          `tickets_id`      INT(11) NOT NULL,
          `groups_id`       INT(11) NOT NULL,
-         `date_mod`        DATETIME NOT NULL,
+         `date_mod`        TIMESTAMP NOT NULL,
          PRIMARY KEY (`id`),
          KEY `tickets_id` (`tickets_id`),
          KEY `groups_id` (`groups_id`)
-      ) ENGINE = MYISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;";
+      ) ENGINE = InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;";
       $DB->query($query);
    }
 
@@ -81,7 +81,7 @@ function plugin_escalade_install() {
          `use_filter_assign_group`                 INT(11) NOT NULL,
          `ticket_last_status`                      INT(11) NOT NULL,
          PRIMARY KEY (`id`)
-      ) ENGINE = MYISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;";
+      ) ENGINE = InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;";
       $DB->query($query);
 
       $query = "INSERT INTO glpi_plugin_escalade_configs
@@ -135,7 +135,7 @@ function plugin_escalade_install() {
          `groups_id_source` int(11) NOT NULL DEFAULT '0',
          `groups_id_destination` int(11) NOT NULL DEFAULT '0',
          PRIMARY KEY (`id`)
-      ) ENGINE = MYISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;";
+      ) ENGINE = InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;";
       $DB->query($query);
    }
 
@@ -194,7 +194,7 @@ function plugin_escalade_install() {
                ENGINE=InnoDB;";
       $DB->query($query);
 
-      include_once(GLPI_ROOT."/plugins/escalade/inc/config.class.php");
+      include_once(Plugin::getPhpDir('escalade')."/inc/config.class.php");
 
       $config = new PluginEscaladeConfig();
       $config->getFromDB(1);
@@ -251,6 +251,54 @@ function plugin_escalade_install() {
    }
 
    $migration->migrationOneTable('glpi_plugin_escalade_configs');
+
+   if (!$DB->fieldExists('glpi_plugin_escalade_histories', 'previous_groups_id')
+      || !$DB->fieldExists("glpi_plugin_escalade_histories", 'counter')) {
+      if (!$DB->fieldExists('glpi_plugin_escalade_histories', 'previous_groups_id')) {
+         $migration->addField('glpi_plugin_escalade_histories', 'previous_groups_id', 'integer', ['before' => 'groups_id']);
+      }
+      if (!$DB->fieldExists('glpi_plugin_escalade_histories', 'counter')) {
+         $migration->addField('glpi_plugin_escalade_histories', 'counter', 'integer', ['after' => 'groups_id']);
+      }
+      $migration->migrationOneTable('glpi_plugin_escalade_histories');
+
+      $history = new PluginEscaladeHistory();
+      $histories = [];
+      foreach ($history->find() as $data) {
+         $tickets_id = $data['tickets_id'];
+         unset($data['tickets_id']);
+
+         if (!isset($histories[$tickets_id])) {
+            $histories[$tickets_id] = [];
+         }
+
+         $histories[$tickets_id][] = $data;
+      }
+
+      foreach ($histories as $tickets_id => $h) {
+         $counters = [];
+
+         foreach ($h as $k => $details) {
+            if (isset($h[$k+1])) {
+               $first  = $h[$k+1]['groups_id'] < $details['groups_id'] ? $h[$k+1]['groups_id'] : $details['groups_id'];
+               $second = $h[$k+1]['groups_id'] < $details['groups_id'] ? $details['groups_id'] : $h[$k+1]['groups_id'];
+
+               $counters[$first][$second] = isset($counters[$first][$second]) ? $counters[$first][$second] + 1 : 1;
+               $h[$k+1]['previous_groups_id'] = $details['groups_id'];
+               $h[$k+1]['counter'] = $counters[$first][$second];
+            }
+         }
+
+         foreach ($h as $k => $details) {
+            $DB->update(
+               'glpi_plugin_escalade_histories',
+               ['previous_groups_id' => $details['previous_groups_id'], 'counter' => $details['counter']],
+               ['id' => $details['id']]
+            );
+         }
+      }
+
+   }
 
    return true;
 }
@@ -376,7 +424,7 @@ function plugin_escalade_getAddSearchOptions($itemtype) {
          $sopt[1881]['name']          = __("Group concerned by the escalation", "escalade");
          $sopt[1881]['forcegroupby']  = true;
          $sopt[1881]['massiveaction'] = false;
-         $sopt[1881]['condition']     = 'is_assign';
+         $sopt[1881]['condition']     = ['is_assign' => 1];
          $sopt[1881]['joinparams']    = [
             'beforejoin' => [
                'table'      => 'glpi_plugin_escalade_histories',
@@ -384,6 +432,31 @@ function plugin_escalade_getAddSearchOptions($itemtype) {
                   'jointype'  => 'child',
                   'condition' => ''
                ]
+            ]
+         ];
+
+         $sopt[] = [
+            'id'                 => '1991',
+            'table'              => 'glpi_plugin_escalade_histories',
+            'field'              => 'id',
+            'name'               => __("Number of escalations", "escalade"),
+            'forcegroupby'       => true,
+            'usehaving'          => true,
+            'datatype'           => 'count',
+            'massiveaction'      => false,
+            'joinparams'         => [
+               'jointype'           => 'child'
+            ]
+         ];
+
+         $sopt[] = [
+            'id'                 => '1992',
+            'table'              => 'glpi_plugin_escalade_histories',
+            'field'              => 'counter',
+            'name'               => __("Number of escalations between two groups", "escalade"),
+            'datatype'           => 'integer',
+            'joinparams'         => [
+               'jointype'           => 'child'
             ]
          ];
    }

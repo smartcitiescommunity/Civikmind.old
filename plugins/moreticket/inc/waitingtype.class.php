@@ -53,22 +53,31 @@ class PluginMoreticketWaitingType extends CommonTreeDropdown {
     */
    function getAdditionalFields() {
 
-      $tab = array(array('name'  => $this->getForeignKeyField(),
+      $tab = [['name'  => $this->getForeignKeyField(),
                          'label' => __('As child of'),
                          'type'  => 'parent',
-                         'list'  => false)
-      );
+                         'list'  => false]
+      ];
 
       return $tab;
 
    }
 
    /**
-    * @return array
-    */
-   function getSearchOptions() {
+    * Provides search options configuration. Do not rely directly
+    * on this, @see CommonDBTM::searchOptions instead.
+    *
+    * @since 9.3
+    *
+    * This should be overloaded in Class
+    *
+    * @return array a *not indexed* array of search options
+    *
+    * @see https://glpi-developer-documentation.rtfd.io/en/master/devapi/search.html
+    **/
+   public function rawSearchOptions() {
 
-      $tab = parent::getSearchOptions();
+      $tab = parent::rawSearchOptions();
 
       return $tab;
    }

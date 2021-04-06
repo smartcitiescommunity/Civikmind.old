@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,9 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-* @since version 0.84
-*/
+/**
+ * @since 0.84
+ */
 
 use Glpi\Event;
 
@@ -44,6 +43,13 @@ Session::checkCentralAccess();
 $contract_item   = new Contract_Item();
 
 if (isset($_POST["add"])) {
+   if (!isset($_POST['contracts_id']) || empty($_POST['contracts_id'])) {
+      $message = sprintf(__('Mandatory fields are not filled. Please correct: %s'),
+                         Contract::getTypeName(1));
+      Session::addMessageAfterRedirect($message, false, ERROR);
+      Html::back();
+   }
+
    $contract_item->check(-1, CREATE, $_POST);
    if ($contract_item->add($_POST)) {
       Event::log($_POST["contracts_id"], "contracts", 4, "financial",

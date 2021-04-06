@@ -1,8 +1,6 @@
 <?php
 
-use Zend\Loader\SplAutoloader;
-
-class PluginFieldsAutoloader implements SplAutoloader
+class PluginFieldsAutoloader
 {
    protected $paths = [];
 
@@ -56,7 +54,7 @@ class PluginFieldsAutoloader implements SplAutoloader
          foreach ($this->paths as $path) {
             $test = $path . DIRECTORY_SEPARATOR . $filename;
             if (file_exists($test)) {
-               return include($test);
+               return include_once($test);
             }
          }
       }

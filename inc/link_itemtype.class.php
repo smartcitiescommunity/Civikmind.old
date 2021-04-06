@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -45,7 +41,7 @@ class Link_Itemtype extends CommonDBChild {
 
 
    /**
-    * @since version 0.84
+    * @since 0.84
    **/
    function getForbiddenStandardMassiveAction() {
 
@@ -60,7 +56,7 @@ class Link_Itemtype extends CommonDBChild {
     *
     * @param $link : Link
     *
-    * @return Nothing (display)
+    * @return void
    **/
    static function showForLink($link) {
       global $DB,$CFG_GLPI;
@@ -75,18 +71,17 @@ class Link_Itemtype extends CommonDBChild {
          return false;
       }
 
-      $query = "SELECT *
-                FROM `glpi_links_itemtypes`
-                WHERE `links_id` = '$links_id'
-                ORDER BY `itemtype`";
-      $result = $DB->query($query);
+      $iterator = $DB->request([
+         'FROM'   => 'glpi_links_itemtypes',
+         'WHERE'  => ['links_id' => $links_id],
+         'ORDER'  => 'itemtype'
+      ]);
       $types  = [];
       $used   = [];
-      if ($numrows = $DB->numrows($result)) {
-         while ($data = $DB->fetch_assoc($result)) {
-            $types[$data['id']]      = $data;
-            $used[$data['itemtype']] = $data['itemtype'];
-         }
+      $numrows = count($iterator);
+      while ($data = $iterator->next()) {
+         $types[$data['id']]      = $data;
+         $used[$data['itemtype']] = $data['itemtype'];
       }
 
       if ($canedit) {
@@ -127,7 +122,7 @@ class Link_Itemtype extends CommonDBChild {
          $header_bottom .= "<th width='10'>".Html::getCheckAllAsCheckbox('mass'.__CLASS__.$rand);
          $header_bottom .= "</th>";
       }
-      $header_end .= "<th>".__('Type')."</th>";
+      $header_end .= "<th>"._n('Type', 'Types', 1)."</th>";
       $header_end .= "</tr>";
       echo $header_begin.$header_top.$header_end;
 
@@ -187,17 +182,18 @@ class Link_Itemtype extends CommonDBChild {
     *
     * Remove all associations for an itemtype
     *
-    * @since version 0.85
+    * @since 0.85
     *
-    * @param $itemtype itemtype for which all link associations must be removed
+    * @param string $itemtype  itemtype for which all link associations must be removed
     */
    static function deleteForItemtype($itemtype) {
       global $DB;
 
-      $query = "DELETE
-                FROM `".self::getTable()."`
-                WHERE `itemtype` LIKE '%Plugin$itemtype%'";
-      $DB->query($query);
+      $DB->delete(
+         self::getTable(), [
+            'itemtype'  => ['LIKE', "%Plugin$itemtype%"]
+         ]
+      );
    }
 
 }

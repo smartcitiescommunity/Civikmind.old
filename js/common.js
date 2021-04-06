@@ -1,7 +1,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -28,10 +28,19 @@
  * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
  */
-var marked_row = new Array;
+
+/* global L */
 
 var timeoutglobalvar;
 
+if (typeof(String.prototype.normalize) !== 'function') {
+   $.ajax({
+      type: "GET",
+      url: CFG_GLPI.root_doc + "/public/lib/unorm.js",
+      dataType: "script",
+      cache: true
+   });
+}
 
 /**
  * modifier la propriete display d'un element
@@ -50,29 +59,6 @@ function setdisplay(objet, statut) {
 
 
 /**
- * tester le type de navigateur
-**/
-function isIe() {
-
-   var ie     = false;
-   var appVer = navigator.appVersion.toLowerCase();
-   var iePos  = appVer.indexOf('msie');
-
-   if (iePos != -1) {
-      var is_minor = parseFloat(appVer.substring(iePos+5,appVer.indexOf(';',iePos)));
-      var is_major = parseInt(is_minor);
-   }
-   if (navigator.appName.substring(0,9) == "Microsoft") {
-      // Check if IE version is 6 or older
-      if (is_major <= 6) {
-         ie = true;
-      }
-   }
-   return ie;
-}
-
-
-/**
  * @param id
 **/
 function cleandisplay(id) {
@@ -80,9 +66,6 @@ function cleandisplay(id) {
    var e = document.getElementById(id);
    if (e) {
       setdisplay(e,'block');
-      if (isIe()) {
-         doHideSelect(e);
-      }
    }
 }
 
@@ -94,66 +77,7 @@ function cleanhide(id) {
 
    var e = document.getElementById(id);
    if (e) {
-      if (isIe()) {
-         doShowSelect(e);
-      }
       setdisplay(e,'none');
-   }
-}
-
-
-/**
- * @param id
-**/
-function completecleandisplay(id) {
-
-   var e = document.getElementById(id);
-   if (e) {
-      setdisplay(e,'block');
-
-      if (isIe()) {
-         e.onmouseleave = function(){ completecleanhide(id) };
-         hideSelect(0,0,document.documentElement.clientWidth,document.documentElement.clientHeight);
-      } else {
-         e.onmouseout = function(){ completecleanhide(id) };
-      }
-   }
-}
-
-
-/**
- * @param id
-**/
-function completecleanhide(id) {
-
-   var e = document.getElementById(id);
-   if (e) {
-      setdisplay(e,'none');
-      if (isIe()) {
-         showSelect(0,0,document.documentElement.clientWidth,document.documentElement.clientHeight);
-      }
-   }
-}
-
-
-/**
- * effacer tous les menus du menu principal
- * afficher les select du document
- *
- * @param idMenu
-**/
-function hidemenu(idMenu) {
-
-   var e = document.getElementById(idMenu);
-   var e = e.getElementsByTagName('ul');
-
-   for (var i=0; i<e.length; i++) {
-      if (e[i]) {
-         if (isIe()) {
-            doShowSelect(e[i]);
-         }
-         setdisplay(e[i],'none');
-      }
    }
 }
 
@@ -166,129 +90,6 @@ function hidemenu(idMenu) {
 function afterView(idMenu) {
 
    setdisplay(idMenu,'none');
-   if (isIe()) {
-      doShowSelect(idMenu);
-   }
-}
-
-
-/**
- * execute la fonction showSelect
- *
- * @param objet
-**/
-function doShowSelect(objet) {
-
-   if (objet) {
-      //correction du bugg sur IE
-      if (isIe()) {
-         if (setdisplay(objet,'block')) {
-            var selx = 0;
-            var sely = 0;
-            var selp;
-            selx = getLeft(objet);
-            sely = getTop(objet);
-            selw = objet.offsetWidth;
-            selh = objet.offsetHeight;
-            showSelect(selx,sely,selw,selh);
-         }
-         if (setdisplay(objet,'none')) {
-            return true;
-         }
-      }
-   }
-}
-
-
-/**
- * affiche les select du document
- *
- * @param x
- * @param y
- * @param w
- * @param h
-**/
-function showSelect(x,y,w,h) {
-
-   var selx,sely,selw,selh;
-   var sel = document.getElementsByTagName("SELECT");
-
-   for (var i=0; i<sel.length; i++) {
-      selx = 0;
-      sely = 0;
-      var selp;
-      selx = getLeft(sel[i]);
-      sely = getTop(sel[i]);
-      selw = sel[i].offsetWidth;
-      selh = sel[i].offsetHeight;
-      // || Manage position error computation
-      if ((((selx + selw) > x)
-           && (selx < (x + w))
-           && ((sely + selh) > y)
-           && (sely < (y + h)))
-          || (selx < 0)
-          || (sely < 0)) {
-         sel[i].style.visibility="visible";
-      }
-   }
-   return true;
-}
-
-
-/**
- * execute la fonction hideMenu
- *
- * @param objet
-**/
-function doHideSelect(object) {
-
-   var e = object;
-   if (isIe()) {
-      var selx = 0;
-      var sely = 0;
-      var selp;
-
-      selx = getLeft(e);
-      sely = getTop(e);
-      selw = e.offsetWidth;
-      selh = e.offsetHeight;
-      hideSelect(selx,sely,selw,selh);
-   }
-   return true;
-}
-
-
-/**
- * masque les select du document
- *
- * @param x
- * @param y
- * @param w
- * @param h
-**/
-function hideSelect(x,y,w,h) {
-
-   var selx,sely,selw,selh,i;
-   var sel = document.getElementsByTagName("SELECT");
-   for (i=0; i<sel.length; i++) {
-      selx = 0;
-      sely = 0;
-      var selp;
-      selx = getLeft(sel[i]);
-      sely = getTop(sel[i]);
-      selw = sel[i].offsetWidth;
-      selh = sel[i].offsetHeight;
-      // || Manage position error computation
-      if ((((selx + selw) > x)
-           && (selx < (x + w))
-           && ((sely + selh) > y)
-           && (sely < (y + h)))
-          || (selx < 0)
-          || (sely < 0 )) {
-         sel[i].style.visibility="hidden";
-      }
-   }
-   return true;
 }
 
 
@@ -296,76 +97,34 @@ function hideSelect(x,y,w,h) {
  * @param id
  * @param idMenu
 **/
-function menuAff(id,idMenu){
+function menuAff(id, idMenu) {
 
-   var m    = document.getElementById(idMenu);
-   var item = m.getElementsByTagName('li');
+   var m      = document.getElementById(idMenu);
+   var item   = m.getElementsByTagName('li');
+   var ssmenu = null;
    for (var i=0; i<item.length; i++) {
       if (item[i].id == id) {
-         var ssmenu = item[i];
+         ssmenu = item[i];
       }
    }
-   var m = m.getElementsByTagName('ul');
-   if (isIe()) {
-      //masquage des elements select du document
-      if (m) {
-         for (var i=1; i<10; i++) { //probleme dans le listage et le nomage des menus xhtml
-            //listage des elements li nommes du type smenu + i
-            var e = document.getElementById('menu'+i);
-            if (e) {
-               var smenu = e.getElementsByTagName('ul');
-               doShowSelect(smenu[0]);
-            }
-         }
-      }
-   }
+   m = m.getElementsByTagName('ul');
 
    if (ssmenu) {
       var smenu = ssmenu.getElementsByTagName('ul');
       if (smenu) {
          //masquer tous les menus ouverts
-         for (var i=0; i<m.length; i++) {
+         for (i=0; i<m.length; i++) {
             setdisplay(m[i],'none');
          }
          setdisplay(smenu[0],'block');
          clearTimeout(timeoutglobalvar);
-         //timeoutglobalvar = setTimeout(function(){afterView(smenu[0])},1000);
-         if (isIe()) {
-            ssmenu.onmouseleave = function(){ timeoutglobalvar = setTimeout(function(){afterView(smenu[0])},300); };
-            doHideSelect(smenu[0]);
-         } else {
-            ssmenu.onmouseout = function(){ timeoutglobalvar = setTimeout(function(){afterView(smenu[0])},300); };
-         }
+         ssmenu.onmouseout = function() {
+            timeoutglobalvar = setTimeout(function() {
+               afterView(smenu[0]);
+            },300);
+         };
       }
    }
-}
-
-
-/**
- * @param URL_List
-**/
-function jumpTo(URL_List) {
-   var URL = URL_List.options[URL_List.selectedIndex].value;  window.location.href = URL;
-}
-
-
-browserName = navigator.appName;
-browserVer  = parseInt(navigator.appVersion);
-if (((browserName == "Netscape") && (browserVer >= 3))
-    || ((browserName == "Microsoft Internet Explorer") && (browserVer >= 4))) {
-   version = "n3";
-} else {
-   version = "n2";
-}
-
-
-function historyback() {
-   history.back();
-}
-
-
-function historyforward() {
-   history.forward();
 }
 
 
@@ -373,10 +132,9 @@ function historyforward() {
  * @param Type
  * @param Id
 **/
-function fillidfield(Type,Id) {
-
-   window.opener.document.forms["helpdeskform"].elements["items_id"].value = Id;
-   window.opener.document.forms["helpdeskform"].elements["itemtype"].value = Type;
+function fillidfield(Type, Id) {
+   window.opener.document.forms.helpdeskform.elements.items_id.value = Id;
+   window.opener.document.forms.helpdeskform.elements.itemtype.value = Type;
    window.close();
 }
 
@@ -389,10 +147,10 @@ function fillidfield(Type,Id) {
 function markCheckboxes(container_id) {
 
    var checkboxes = document.getElementById(container_id).getElementsByTagName('input');
-   for (var j=0; j<checkboxes.length; j++ ) {
-      checkbox = checkboxes[j];
-      if (checkbox && (checkbox.type == 'checkbox')) {
-         if (checkbox.disabled == false ) {
+   for (var j = 0; j < checkboxes.length; j++) {
+      var checkbox = checkboxes[j];
+      if (checkbox && checkbox.type == 'checkbox') {
+         if (checkbox.disabled === false ) {
             checkbox.checked = true;
          }
       }
@@ -410,9 +168,9 @@ function markCheckboxes(container_id) {
 function unMarkCheckboxes(container_id) {
 
    var checkboxes = document.getElementById(container_id).getElementsByTagName('input');
-   for (var j=0; j<checkboxes.length; j++ ) {
-      checkbox = checkboxes[j];
-      if (checkbox && (checkbox.type == 'checkbox')) {
+   for (var j = 0; j < checkboxes.length; j++) {
+      var checkbox = checkboxes[j];
+      if (checkbox && checkbox.type == 'checkbox') {
          checkbox.checked = false;
       }
    }
@@ -421,40 +179,14 @@ function unMarkCheckboxes(container_id) {
 
 
 /**
- * toggle all checkboxes inside the given element
- * the given element is usaly a table or a div containing the table or tables
- *
- * @param    container_id    DOM element
-**/
-function toggleCheckboxes( container_id ) {
-
-   var checkboxes = document.getElementById(container_id).getElementsByTagName('input');
-   for (var j=0; j<checkboxes.length; j++ ) {
-      checkbox = checkboxes[j];
-      if (checkbox && (checkbox.type == 'checkbox')) {
-         if (checkbox.disabled == false) {
-            if (checkbox.checked == false) {
-               checkbox.checked = true;
-            } else {
-               checkbox.checked = false;
-            }
-         }
-      }
-   }
-   return true;
-}
-
-/**
  * display "other" text input field in case of selecting "other" option
  *
- * @since version 0.84
+ * @since 0.84
  *
  * @param    select_object     DOM select object
  * @param    other_option_name the name of both the option and the text input field
 **/
 function displayOtherSelectOptions(select_object, other_option_name) {
-
-   var SelIndex = select_object.selectedIndex;
    if (select_object.options[select_object.selectedIndex].value == other_option_name) {
       document.getElementById(other_option_name).style.display = "inline";
    } else {
@@ -474,7 +206,7 @@ function displayOtherSelectOptions(select_object, other_option_name) {
  * @param    reference_id    DOM element
  * @param    container_id    DOM element
 **/
-function checkAsCheckboxes( reference_id, container_id ) {
+function checkAsCheckboxes(reference_id, container_id) {
    $('#' + container_id + ' input[type="checkbox"]:enabled')
       .prop('checked', $('#' + reference_id).is(':checked'));
 
@@ -486,8 +218,8 @@ function checkAsCheckboxes( reference_id, container_id ) {
  * Usage: $form.find('input[type="checkbox"]').shiftSelectable();
  */
 $.fn.shiftSelectable = function() {
-   var lastChecked,
-       $boxes = this;
+   var lastChecked;
+   var $boxes = this;
 
    // prevent html selection
    document.onkeydown = function(e) {
@@ -500,10 +232,7 @@ $.fn.shiftSelectable = function() {
       }
    };
 
-   $($boxes.selector).parent().click(function(evt) {
-      if ($boxes.length <= 0) {
-         $boxes = $($boxes.selector);
-      }
+   $($boxes).parent().click(function(evt) {
       var selected_checkbox = $(this).children('input[type=checkbox]');
 
       if (!lastChecked) {
@@ -513,62 +242,16 @@ $.fn.shiftSelectable = function() {
 
       if (evt.shiftKey) {
          evt.preventDefault();
-         var start = $boxes.index(selected_checkbox),
-             end = $boxes.index(lastChecked);
+         var start = $boxes.index(selected_checkbox);
+         var end = $boxes.index(lastChecked);
          $boxes.slice(Math.min(start, end), Math.max(start, end) + 1)
-               .prop('checked', $(lastChecked).is(':checked'))
-               .trigger('change');
+            .prop('checked', $(lastChecked).is(':checked'))
+            .trigger('change');
       }
 
       lastChecked = selected_checkbox;
    });
 };
-
-
-/**
- * @param text
- * @param where
-**/
-function confirmAction(text, where){
-
-   if (confirm(text)) {
-      window.location = where;
-   }
-}
-
-
-/**
- * Fonction permettant de connaître la position d'un objet par rapport au bord gauche de la page.
- * Cet objet peut être à l'intérieur d'un autre objet.
- *
- * @param MyObject
- *
- * @returns la distance par rapport au bord gauche de la page
-**/
-function getLeft(MyObject){
-
-   if (MyObject.offsetParent) {
-      return (MyObject.offsetLeft + getLeft(MyObject.offsetParent));
-   }
-   return (MyObject.offsetLeft);
-}
-
-
-/**
- * Fonction permettant de connaître la position d'un objet par rapport au bord haut de la page.
- * Cet objet peut être à l'intérieur d'un autre objet.
- *
- * @param MyObject
- *
- * @returns la distance par rapport au bord haut de la page
-**/
-function getTop(MyObject){
-
-   if (MyObject.offsetParent) {
-      return (MyObject.offsetTop + getTop(MyObject.offsetParent));
-   }
-   return (MyObject.offsetTop);
-}
 
 
 /**
@@ -582,10 +265,10 @@ function getTop(MyObject){
 function showHideDiv(id, img_name, img_src_close, img_src_open) {
    var _elt = $('#' + id);
 
-   if (img_name != '') {
+   if (img_name !== '') {
       var _awesome = img_src_close.match(/^fa-/);
-      var _deco,
-          _img;
+      var _deco;
+      var _img;
       if (!_awesome) {
          _img = $('img[name=' + img_name + ']');
          if (_elt.is(':visible')) {
@@ -628,12 +311,12 @@ function toogle(id, img_name, img_src_yes, img_src_no) {
    if (document.getElementById) { // DOM3 = IE5, NS6
       if (document.getElementById(id).value == '0') {
          document.getElementById(id).value = '1';
-         if (img_name != '') {
+         if (img_name !== '') {
             document[img_name].src=img_src_yes;
          }
       } else {
          document.getElementById(id).value = '0';
-         if (img_name != '') {
+         if (img_name !== '') {
             document[img_name].src=img_src_no;
          }
       }
@@ -642,27 +325,27 @@ function toogle(id, img_name, img_src_yes, img_src_no) {
 
 
 /**
- * @since version 0.84
+ * @since 0.84
  *
  * @param tbl
  * @param img_name
  * @param img_src_close
  * @param img_src_open
  */
-function toggleTableDisplay(tbl,img_name,img_src_close,img_src_open) {
+function toggleTableDisplay(tbl, img_name, img_src_close, img_src_open) {
 
    var tblRows = document.getElementById(tbl).rows;
-   for (i=0; i < tblRows.length; i++) {
+   for (var i=0; i < tblRows.length; i++) {
       if (tblRows[i].className.indexOf("headerRow") == -1) {
          if (tblRows[i].style.display == 'none') {
             tblRows[i].style.display = "table-row";
-            if (img_name != '') {
+            if (img_name !== '') {
                document[img_name].src = img_src_open;
             }
 
          } else {
             tblRows[i].style.display = "none";
-            if (img_name != '') {
+            if (img_name !== '') {
                document[img_name].src = img_src_close;
             }
          }
@@ -684,30 +367,30 @@ function toggleTableDisplay(tbl,img_name,img_src_close,img_src_open) {
 
 
 /**
- * @since version 0.84
+ * @since 0.84
  *
  * @param target
  * @param fields
 **/
-function submitGetLink(target,fields) {
+function submitGetLink(target, fields) {
 
-    var myForm    = document.createElement("form");
-    myForm.method = "post";
-    myForm.action = target;
+   var myForm    = document.createElement("form");
+   myForm.method = "post";
+   myForm.action = target;
    for (var name in fields) {
       var myInput = document.createElement("input");
       myInput.setAttribute("name", name);
       myInput.setAttribute("value", fields[name]);
       myForm.appendChild(myInput);
    }
-    document.body.appendChild(myForm);
-    myForm.submit();
-    document.body.removeChild(myForm);
+   document.body.appendChild(myForm);
+   myForm.submit();
+   document.body.removeChild(myForm);
 }
 
 
 /**
- * @since version 0.85
+ * @since 0.85
  *
  * @param id
 **/
@@ -716,11 +399,12 @@ function selectAll(id) {
    element.find('option').each(function(i,e){
       selected[selected.length]=$(e).attr('value');
    });
-   element.select2('val', selected);
+   element.val(selected);
+   element.trigger('change');
 }
 
 /**
- * @since version 0.85
+ * @since 0.85
  *
  * @param id
 **/
@@ -732,49 +416,37 @@ function deselectAll(id) {
 /**
  * Set all the checkbox that refere to the criterion
  *
- * @since version 0.85
+ * @since 0.85
  *
  * @param criterion jquery criterion
  * @param reference the new reference object, boolean, id ... (default toggle)
  *
 **/
 function massiveUpdateCheckbox(criterion, reference) {
-   if (typeof(reference) == 'undefined') {
-      var value = null;
-   } else if (typeof(reference) == 'boolean') {
-      var value = reference;
+   var value = null;
+   if (typeof(reference) == 'boolean') {
+      value = reference;
    } else if (typeof(reference) == 'string') {
-      var value = $('#' + reference).prop('checked');
+      value = $('#' + reference).prop('checked');
    } else if (typeof(reference) == 'object') {
-      var value = $(reference).prop('checked');
+      value = $(reference).prop('checked');
    }
    if (typeof(value) == 'undefined') {
       return false;
    }
-    $(criterion).each(function() {
+   $(criterion).each(function() {
       if (typeof(reference) == 'undefined') {
          value = !$(this).prop('checked');
       }
-        $(this).prop('checked', value);
-    });
-    return true;
+      $(this).prop('checked', value);
+   });
+   return true;
 }
 
-
-//Hack for Jquery Ui Date picker
-var _gotoToday = jQuery.datepicker._gotoToday;
-jQuery.datepicker._gotoToday = function(a){
-   var target = jQuery(a);
-   var inst = this._getInst(target[0]);
-   _gotoToday.call(this, a);
-   jQuery.datepicker._selectDate(a, jQuery.datepicker._formatDate(inst,inst.selectedDay, inst.selectedMonth, inst.selectedYear));
-};
-
-
-
-/* TImeline for itiobjects */
-
-filter_timeline = function() {
+/**
+ * Timeline for itiobjects
+ */
+var filter_timeline = function() {
    $(document).on("click", '.filter_timeline li a', function(event) {
       event.preventDefault();
       var _this = $(this);
@@ -792,41 +464,41 @@ filter_timeline = function() {
       _this.toggleClass('h_active');
 
       //find active classname
-      active_classnames = [];
-      $('.filter_timeline .h_active').each(function(index) {
+      var active_classnames = [];
+      $('.filter_timeline .h_active').each(function() {
          active_classnames.push(".h_content."+$(this).data('type'));
-      })
+      });
 
-      $(active_classnames.join(', ')).each(function(index){
+      $(active_classnames.join(', ')).each(function(){
          $(this).parent().removeClass('h_hidden');
-      })
+      });
 
       //show all items when no active filter
-      if (active_classnames.length == 0) {
+      if (active_classnames.length === 0) {
          $('.h_item').removeClass('h_hidden');
       }
    });
-}
+};
 
 
-read_more = function() {
-   $(document).on("click", ".long_text .read_more a", function(event) {
+var read_more = function() {
+   $(document).on("click", ".long_text .read_more a, .long_text .read_more .read_more_button", function() {
       $(this).parents('.long_text').removeClass('long_text');
       $(this).parent('.read_more').remove();
       return false;
    });
-}
+};
 
 
 var split_button_fct_called = false;
-split_button = function() {
+var split_button = function() {
    if (split_button_fct_called) {
       return true;
    }
-   split_button_fct_called = true
+   split_button_fct_called = true;
 
    // unfold status list
-   $(document).on("click", '.x-button-drop', function(event) {
+   $(document).on("click", '.x-button-drop', function() {
       $(this).parents(".x-split-button").toggleClass('open');
    });
 
@@ -836,30 +508,30 @@ split_button = function() {
 
    //click on an element of status list
    $(document).on("click", '.x-button-drop-menu li', function(event) {
+      var chosen_li = $(this);
       if (event.target.children.length) {
-         var xBtnDrop = $(this).parent().siblings(".x-button-drop");
+         var xBtnDrop = chosen_li.parent().siblings(".x-button-drop");
          //clean old status class
          xBtnDrop.attr('class','x-button x-button-drop');
 
          //find status
-         match = event.target.children[0].src.match(/.*\/(.*)\.png/);
-         cstatus = match[1];
+         var cstatus = chosen_li.data('status');
 
          //add status to dropdown button
          xBtnDrop.addClass(cstatus);
 
          //fold status list
-         $(this).parents(".x-split-button").removeClass('open');
+         chosen_li.parents(".x-split-button").removeClass('open');
       }
    });
 
    //fold status list on click on document
-   $(document).on("click", function(event) {
+   $(document).on("click", function() {
       if ($('.x-split-button').hasClass('open')) {
          $('.x-split-button').removeClass('open');
       }
    });
-}
+};
 
 // Responsive header
 if ($(window).width() <= 700) {
@@ -868,7 +540,7 @@ if ($(window).width() <= 700) {
    var delta = 5;
    var navbarHeight = $('header').outerHeight();
 
-   $(window).scroll(function(event){
+   $(window).scroll(function() {
       didScroll = true;
    });
 
@@ -897,10 +569,10 @@ if ($(window).width() <= 700) {
          }
       }
       lastScrollTop = st;
-   }
+   };
 }
 
-langSwitch = function(elt) {
+var langSwitch = function(elt) {
    var _url = elt.attr('href').replace(/front\/preference.+/, 'ajax/switchlang.php');
    $.ajax({
       url: _url,
@@ -911,9 +583,12 @@ langSwitch = function(elt) {
          $('#debugajax').remove();
       }
    });
-}
+};
 
-$(function(){
+$(function() {
+   if ($('html').hasClass('loginpage')) {
+      return;
+   }
    $('#menu.fullmenu li').on('mouseover', function() {
       var _id = $(this).data('id');
       menuAff('menu' + _id, 'menu');
@@ -926,7 +601,7 @@ $(function(){
          if (e.type == 'mouseover') {
             tr.addClass("rowHover");
             // If rowspan
-            if (tr.has('td[rowspan]').length == 0) {
+            if (tr.has('td[rowspan]').length === 0) {
 
                tr.prevAll('tr:has(td[rowspan]):first').find('td[rowspan]').addClass("rowHover");
             }
@@ -942,14 +617,54 @@ $(function(){
    });
 
    // prevent jquery ui dialog to keep focus
-   $.ui.dialog.prototype._focusTabbable = function(){};
+   $.ui.dialog.prototype._focusTabbable = function() {};
 
    //quick lang switch
    $('#language_link > a').on('click', function(event) {
       event.preventDefault();
       langSwitch($(this));
    });
+
+   // ctrl+enter in form textareas (without tinymce)
+   $(document).on('keydown', '#page form textarea', function(event) {
+      if (event.ctrlKey
+          && event.keyCode == 13) {
+         submitparentForm($(this));
+      }
+   });
+
+   // permits to have html in dialogs title
+   $.widget("ui.dialog", $.extend({}, $.ui.dialog.prototype, {
+      _title: function(title) {
+         if (!this.options.title ) {
+            title.html("&#160;");
+         } else {
+            title.html(this.options.title);
+         }
+      }
+   }));
 });
+
+/**
+ * Trigger submit event for a parent form of passed input dom element
+ *
+ * @param  Object input the dom or jquery object of input
+ * @return bool
+ */
+var submitparentForm = function(input) {
+   // find parent form
+   var form = $(input).closest('form');
+
+   // find submit button(s)
+   var submit = form.find('[type=submit]').filter('[name=add], [name=update]');
+
+   // trigger if only one submit button
+   if (submit.length == 1) {
+      return (submit.trigger('click') !== false);
+   }
+
+   return false;
+};
 
 /**
 * Determines if data from drop is an image.
@@ -960,7 +675,7 @@ $(function(){
 var isImage = function(file) {
    var validimagetypes = ["image/gif", "image/jpeg","image/jpg", "image/png"];
 
-   if ($.inArray(file["type"], validimagetypes) < 0) {
+   if ($.inArray(file.type, validimagetypes) < 0) {
       return false;
    } else {
       return true;
@@ -997,7 +712,7 @@ var urlExists = function(url) {
       'async':   false,
       'success': function() {
          exist = true;
-      },
+      }
    });
 
    return exist;
@@ -1025,35 +740,19 @@ var getSize = function (size) {
 };
 
 /**
- * Replace content in tinyMCE
- *
- * @param {Object} editor   TinyMCE editor instance
- * @param {String} search   The search
- * @param {String} replace  The replace
+ * Convert a integer index into an excel like alpha index (A, B, ..., AA, AB, ...)
+ * @since  9.3
+ * @param  integer index    the numeric index
+ * @return string           excel like string index
  */
-var replaceContent = function(editor, search, replace) {
-   if (!replace) {
-      replace = '';
+var getBijectiveIndex = function(index) {
+   var bij_str = "";
+   while (parseInt(index) > 0) {
+      index--;
+      bij_str = String.fromCharCode("A".charCodeAt(0) + ( index % 26)) + bij_str;
+      index /= 26;
    }
-
-   var re =/\[\*\*(.*?)\*\*\]/;
-   body = editor.getContent();
-   body = body.replace(re,replace);
-   editor.setContent(body);
-};
-
-/**
- * Sets the cursor at the end in a tinymce editor.
- *
- * @param  {Object}  editor TinyMCE editor instance
- */
-var setCursorAtTheEnd = function(editor) {
-   var body = editor.getContent();
-   body +='<p> </p>';
-   editor.setContent(body);
-   editor.dom.add(editor.getBody(),'p');
-   editor.selection.select(editor.getBody(), true); // ed is the editor instance
-   editor.selection.collapse(false);
+   return bij_str;
 };
 
 /**
@@ -1089,4 +788,408 @@ if ($('#backtotop').length) {
          scrollTop: 0
       }, 700);
    });
+}
+
+/**
+ * Returns element height, including margins
+*/
+function _eltRealSize(_elt) {
+   var _s = 0;
+   _s += _elt.outerHeight();
+   _s += parseFloat(_elt.css('margin-top').replace('px', ''));
+   _s += parseFloat(_elt.css('margin-bottom').replace('px', ''));
+   _s += parseFloat(_elt.css('padding-top').replace('px', ''));
+   _s += parseFloat(_elt.css('padding-bottom').replace('px', ''));
+   return _s;
+}
+
+var initMap = function(parent_elt, map_id, height) {
+   // default parameters
+   map_id = (typeof map_id !== 'undefined') ? map_id : 'map';
+   height = (typeof height !== 'undefined') ? height : '200px';
+
+   if (height == 'full') {
+      //full height map
+      var wheight = $(window).height();
+      var _oSize = 0;
+
+      $('#header_top, #c_menu, #c_ssmenu2, #footer, .search_page').each(function(){
+         _oSize += _eltRealSize($(this));
+      });
+      _oSize += parseFloat($('#page').css('padding-top').replace('px', ''));
+      _oSize += parseFloat($('#page').css('padding-bottom').replace('px', ''));
+      _oSize += parseFloat($('#page').css('margin-top').replace('px', ''));
+      _oSize += parseFloat($('#page').css('margin-bottom').replace('px', ''));
+
+      var newHeight = Math.floor(wheight - _oSize);
+      var minHeight = 300;
+      if ( newHeight < minHeight ) {
+         newHeight = minHeight;
+      }
+      height = newHeight + 'px';
+   }
+
+   //add map, set a default arbitrary location
+   parent_elt.append($('<div id="'+map_id+'" style="height: ' + height + '"></div>'));
+   var map = L.map(map_id, {fullscreenControl: true}).setView([43.6112422, 3.8767337], 6);
+
+   //setup tiles and © messages
+   L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href=\'https://osm.org/copyright\'>OpenStreetMap</a> contributors'
+   }).addTo(map);
+   return map;
+};
+
+var showMapForLocation = function(elt) {
+   var _id = $(elt).data('fid');
+   var _items_id = $('#' + _id).val();
+
+   if (_items_id == 0) {
+      return;
+   }
+
+   var _dialog = $('<div id="location_map_dialog"/>');
+   _dialog.appendTo('body').dialog({
+      close: function() {
+         $(this).dialog('destroy').remove();
+      }
+   });
+
+   //add map, set a default arbitrary location
+   var map_elt = initMap($('#location_map_dialog'), 'location_map');
+
+   map_elt.spin(true);
+   $.ajax({
+      dataType: 'json',
+      method: 'POST',
+      url: CFG_GLPI.root_doc + '/ajax/getMapPoint.php',
+      data: {
+         itemtype: 'Location',
+         items_id: $('#' + _id).val()
+      }
+   }).done(function(data) {
+      if (data.success === false) {
+         _dialog.dialog('close');
+         $('<div>' + data.message + '</div>').dialog({
+            close: function() {
+               $(this).dialog('destroy').remove();
+            }
+         });
+      } else {
+         var _markers = [];
+         var _marker = L.marker([data.lat, data.lng]);
+         _markers.push(_marker);
+
+         var _group = L.featureGroup(_markers).addTo(map_elt);
+         map_elt.fitBounds(
+            _group.getBounds(), {
+               padding: [50, 50],
+               maxZoom: 10
+            }
+         );
+      }
+   }).always(function() {
+      //hide spinner
+      map_elt.spin(false);
+   });
+};
+
+var query = {};
+function markMatch (text, term) {
+   // Find where the match is
+   var match = text.toUpperCase().indexOf(term.toUpperCase());
+
+   var _result = $('<span></span>');
+
+   // If there is no match, move on
+   if (match < 0) {
+      _result.append(escapeMarkupText(text));
+      return _result.html();
+   }
+
+   // Put in whatever text is before the match
+   _result.html(escapeMarkupText(text.substring(0, match)));
+
+   // Mark the match
+   var _match = $('<span class=\'select2-rendered__match\'></span>');
+   _match.html(escapeMarkupText(text.substring(match, match + term.length)));
+
+   // Append the matching text
+   _result.append(_match);
+
+   // Put in whatever is after the match
+   _result.append(escapeMarkupText(text.substring(match + term.length)));
+
+   return _result.html();
+}
+
+/**
+ * Function that renders select2 results.
+ */
+var templateResult = function(result) {
+   var _elt = $('<span></span>');
+   _elt.attr('title', result.title);
+
+   if (typeof query.term !== 'undefined' && typeof result.rendered_text !== 'undefined') {
+      _elt.html(result.rendered_text);
+   } else {
+      if (!result.text) {
+         return null;
+      }
+
+      var text = result.text;
+      if (!result.id) {
+         // If result has no id, then it is used as an optgroup and is not used for matches
+         _elt.html(escapeMarkupText(text));
+         return _elt;
+      }
+
+      var _term = query.term || '';
+      var markup = markMatch(text, _term);
+
+      if (result.level) {
+         var a='';
+         var i=result.level;
+         while (i>1) {
+            a = a+'&nbsp;&nbsp;&nbsp;';
+            i=i-1;
+         }
+         _elt.html(a+'&raquo;'+markup);
+      } else {
+         _elt.html(markup);
+      }
+   }
+
+   return _elt;
+};
+
+// delay function who reinit timer on each call
+var typewatch = (function(){
+   var timer = 0;
+   return function(callback, ms){
+      clearTimeout (timer);
+      timer = setTimeout(callback, ms);
+   };
+})();
+
+/**
+ * Function that renders select2 selections.
+ */
+var templateSelection = function (selection) {
+   if (!("element" in selection)) {
+      return selection.text;
+   }
+
+   // Data generated by ajax containing 'selection_text'
+   if (Object.prototype.hasOwnProperty.call(selection, 'selection_text')) {
+      return selection.selection_text;
+   }
+   // Data generated with optgroups
+   if (selection.element.parentElement.nodeName == 'OPTGROUP') {
+      return selection.element.parentElement.getAttribute('label') + ' - ' + selection.text;
+   }
+   // Default text
+   return selection.text;
+};
+
+/**
+ * Returns given text without is diacritical marks.
+ *
+ * @param {string} text
+ *
+ * @return {string}
+ */
+var getTextWithoutDiacriticalMarks = function (text) {
+   // Normalizing to NFD Unicode normal form decomposes combined graphemes
+   // into the combination of simple ones. The "è" becomes "e + ̀`".
+   text = text.normalize('NFD');
+
+   // The U+0300 -> U+036F range corresponds to diacritical chars.
+   // They are removed to keep only chars without their diacritical mark.
+   return text.replace(/[\u0300-\u036f]/g, '');
+};
+
+/**
+ * Escape markup in text to prevent XSS.
+ *
+ * @param {string} text
+ *
+ * @return {string}
+ */
+var escapeMarkupText = function (text) {
+   if (text.indexOf('>') !== -1 || text.indexOf('<') !== -1) {
+      // escape text, if it contains chevrons (can already be escaped prior to this point :/)
+      text = jQuery.fn.select2.defaults.defaults.escapeMarkup(text);
+   }
+   return text;
+};
+
+/**
+ * Updates an accessible progress bar title and foreground width.
+ * @since 9.5.0
+ * @param progressid ID of the progress bar
+ * @return void
+ */
+function updateProgress(progressid) {
+   var progress = $("progress#progress"+progressid).first();
+   $("div[data-progressid='"+progressid+"']").each(function(i, item) {
+      var j_item = $(item);
+      var fg = j_item.find(".progress-fg").first();
+      var calcWidth = (progress.attr('value') / progress.attr('max')) * 100;
+      fg.width(calcWidth+'%');
+      if (j_item.data('append-percent') === 1) {
+         var new_title = (j_item.prop('title').replace(new RegExp("\\d*%$"), progress.attr('value')+'%')).trim();
+         progress.prop('title', new_title);
+         j_item.prop('title', new_title);
+      }
+   });
+}
+
+/**
+ * Normalize altfield value of a MultiDatePicker instance.
+ *
+ * @param input_id     id of the date input field
+ * @param date_format  dateFormat option used in MultiDatePicker instance
+ *    (i.e. 'dd-mm-yy', 'mm-dd-yy' or 'yy-mm-dd')
+ *
+ * @return void
+ */
+function normalizeMultiDateAltField(input_id, date_format) {
+   var dates = $(input_id).val().split(', ');
+   var alt_dates = [];
+   for (var i = 0; i < dates.length; i++) {
+      var date_obj = $.datepicker.parseDate(date_format, dates[i]);
+      alt_dates.push($.datepicker.formatDate('yy-mm-dd', date_obj));
+   }
+   $(input_id).val(alt_dates.join(', '));
+}
+
+/**
+ * Get RGB object from an hexadecimal color code
+ *
+ * @param {*} hex
+ * @returns {Object} {r, g, b}
+ */
+function hexToRgb(hex) {
+   var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+   return result ? {
+      r: parseInt(result[1], 16),
+      g: parseInt(result[2], 16),
+      b: parseInt(result[3], 16)
+   } : null;
+}
+
+/**
+ * Get luminance for a color
+ * https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef
+ *
+ * @param {Array} rgb [r, g, b] array
+ * @returns {Number}
+ */
+function luminance(rgb) {
+   var a = rgb.map(function (v) {
+      v /= 255;
+      return v <= 0.03928
+         ? v / 12.92
+         : Math.pow( (v + 0.055) / 1.055, 2.4 );
+   });
+   return a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722;
+}
+
+/**
+ * Get contrast ratio between two colors
+ * https://www.w3.org/TR/2008/REC-WCAG20-20081211/#contrast-ratiodef
+ *
+ * @param {Array} rgb1 [r, g, b] array
+ * @param {Array} rgb2 [r, g, b] array
+ * @returns {Number}
+ */
+function contrast(rgb1, rgb2) {
+   return (luminance(rgb1) + 0.05) / (luminance(rgb2) + 0.05);
+}
+
+// fullscreen api
+function GoInFullscreen(element) {
+   if (element.requestFullscreen) {
+      element.requestFullscreen();
+   } else if (element.mozRequestFullScreen) {
+      element.mozRequestFullScreen();
+   } else if (element.webkitRequestFullscreen) {
+      element.webkitRequestFullscreen();
+   } else if (element.msRequestFullscreen) {
+      element.msRequestFullscreen();
+   }
+}
+
+function GoOutFullscreen() {
+   if (document.exitFullscreen) {
+      document.exitFullscreen();
+   } else if (document.mozCancelFullScreen) {
+      document.mozCancelFullScreen();
+   } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen();
+   } else if (document.msExitFullscreen) {
+      document.msExitFullscreen();
+   }
+}
+
+function getUuidV4() {
+   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+   });
+}
+
+/** Track input changes and warn the user of unsaved changes if they try to navigate away */
+window.glpiUnsavedFormChanges = false;
+$(document).ready(function() {
+   // Forms must have the data-track-changes attribute set to true.
+   // Form fields may have their data-track-changes attribute set to empty (false) to override the tracking on that input.
+   $(document).on('input', 'form[data-track-changes="true"] input:not([data-track-changes=""]),' +
+      'form[data-track-changes="true"] textarea:not([data-track-changes="false"])', function() {
+      window.glpiUnsavedFormChanges = true;
+   });
+   $(document).on('change', 'form[data-track-changes="true"] select:not([data-track-changes=""])', function() {
+      window.glpiUnsavedFormChanges = true;
+   });
+   $(window).on('beforeunload', function(e) {
+      if (window.glpiUnsavedFormChanges) {
+         e.preventDefault();
+         // All supported browsers will show a localized message
+         return '';
+      }
+   });
+
+   $(document).on('submit', 'form', function() {
+      window.glpiUnsavedFormChanges = false;
+   });
+});
+
+function onTinyMCEChange(e) {
+   var editor = $(e.target)[0];
+   if ($(editor.targetElm).data('trackChanges') !== false) {
+      if ($(editor.formElement).data('trackChanges') === true) {
+         window.glpiUnsavedFormChanges = true;
+      }
+   }
+}
+
+function relativeDate(str) {
+   var s = ( +new Date() - Date.parse(str) ) / 1e3,
+      m = s / 60,
+      h = m / 60,
+      d = h / 24,
+      y = d / 365.242199,
+      tmp;
+
+   return (tmp = Math.round(s)) === 1 ? __('just now')
+      : m < 1.01 ? '%s seconds ago'.replace('%s', tmp)
+         : (tmp = Math.round(m)) === 1 ? __('a minute ago')
+            : h < 1.01 ? '%s minutes ago'.replace('%s', tmp)
+               : (tmp = Math.round(h)) === 1 ? __('an hour ago')
+                  : d < 1.01 ? '%s hours ago'.replace('%s', tmp)
+                     : (tmp = Math.round(d)) === 1 ? __('yesterday')
+                        : y < 1.01 ? '%s days ago'.replace('%s', tmp)
+                           : (tmp = Math.round(y)) === 1 ? __('a year ago')
+                              : '%s years ago'.replace('%s', tmp);
 }

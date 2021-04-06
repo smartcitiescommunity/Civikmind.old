@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,15 +30,15 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief Search engine from cron tasks
-*/
+/**
+ * Search engine from cron tasks
+ */
 
 include ('../inc/includes.php');
 
 Session::checkRight("config", UPDATE);
 
-Html::header(Crontask::getTypeName(Session::getPluralNumber()), $_SERVER['PHP_SELF'], 'config', 'crontask');
+Html::header(CronTask::getTypeName(Session::getPluralNumber()), $_SERVER['PHP_SELF'], 'config', 'crontask');
 
 $crontask = new CronTask();
 if ($crontask->getNeedToRun(CronTask::MODE_INTERNAL)) {
@@ -54,7 +54,7 @@ if ($crontask->getNeedToRun(CronTask::MODE_INTERNAL)) {
 }
 
 if ($CFG_GLPI['cron_limit'] < countElementsInTable('glpi_crontasks',
-                                                   "frequency = '".MINUTE_TIMESTAMP."'") ) {
+                                                   ['frequency' => MINUTE_TIMESTAMP])) {
    Html::displayTitle('', '',
                       __('You have more automatic actions which need to run each minute than the number allow each run. Increase this config.'));
 }

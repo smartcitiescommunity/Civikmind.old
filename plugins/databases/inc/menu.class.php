@@ -10,7 +10,7 @@
  -------------------------------------------------------------------------
 
  LICENSE
-      
+
  This file is part of databases.
 
  databases is free software; you can redistribute it and/or modify
@@ -31,37 +31,38 @@
 /**
  * Class PluginDatabasesMenu
  */
-class PluginDatabasesMenu extends CommonGLPI
-{
+class PluginDatabasesMenu extends CommonGLPI {
    static $rightname = 'plugin_databases';
 
    /**
     * @return translated
     */
-   static function getMenuName()
-   {
+   static function getMenuName() {
       return _n('Database', 'Databases', 2, 'databases');
    }
 
    /**
     * @return array
     */
-   static function getMenuContent()
-   {
+   static function getMenuContent() {
 
-      $menu = array();
-      $menu['title'] = self::getMenuName();
-      $menu['page'] = "/plugins/databases/front/database.php";
+      $menu                    = [];
+      $menu['title']           = self::getMenuName();
+      $menu['page']            = PLUGIN_DATABASES_DIR_NOFULL."/front/database.php";
       $menu['links']['search'] = PluginDatabasesDatabase::getSearchURL(false);
       if (PluginDatabasesDatabase::canCreate()) {
          $menu['links']['add'] = PluginDatabasesDatabase::getFormURL(false);
       }
+      $menu['icon'] = self::getIcon();
 
       return $menu;
    }
 
-   static function removeRightsFromSession()
-   {
+   static function getIcon() {
+      return "fas fa-database";
+   }
+
+   static function removeRightsFromSession() {
       if (isset($_SESSION['glpimenu']['assets']['types']['PluginDatabasesMenu'])) {
          unset($_SESSION['glpimenu']['assets']['types']['PluginDatabasesMenu']);
       }

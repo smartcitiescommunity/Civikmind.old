@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    include ('../inc/includes.php');
 }
@@ -41,7 +37,7 @@ if (!defined('GLPI_ROOT')) {
 Session::checkRight("user", User::IMPORTEXTAUTHUSERS);
 
 // Need REQUEST to manage initial walues and posted ones
-AuthLdap::manageValuesInSession($_REQUEST);
+AuthLDAP::manageValuesInSession($_REQUEST);
 
 if (isset($_SESSION['ldap_import']['_in_modal']) && $_SESSION['ldap_import']['_in_modal']) {
    $_REQUEST['_in_modal'] = 1;
@@ -60,14 +56,14 @@ if ($_SESSION['ldap_import']['action'] == 'show') {
    $authldap = new AuthLDAP();
    $authldap->getFromDB($_SESSION['ldap_import']['authldaps_id']);
 
-   AuthLdap::showUserImportForm($authldap);
+   AuthLDAP::showUserImportForm($authldap);
 
    if (isset($_SESSION['ldap_import']['authldaps_id'])
        && ($_SESSION['ldap_import']['authldaps_id'] != NOT_AVAILABLE)
        && (isset($_POST['search']) || isset($_GET['start']) || isset($_POST['glpilist_limit']))) {
 
       echo "<br />";
-      AuthLdap::searchUser($authldap);
+      AuthLDAP::searchUser($authldap);
    }
 }
 

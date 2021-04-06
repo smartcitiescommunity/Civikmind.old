@@ -31,10 +31,9 @@ if($sel_ent == '' || $sel_ent == -1) {
 	$entities = $_SESSION['glpiactiveentities'];										
 	$ent = implode(",",$entities);
 
-	$entidade = "AND glpi_tickets.entities_id IN (".$ent.") ";	
-	$entidade1 = "";
-	
+	$entidade = "AND glpi_tickets.entities_id IN (".$ent.") ";		
 }
+
 else {
 	$entidade = "AND glpi_tickets.entities_id IN (".$sel_ent.") ";
 }
@@ -102,7 +101,7 @@ else {
 				<div id="titulo_rel"> 
 					<?php echo __('Tickets', 'dashboard') .'  '. __('by SLA', 'dashboard') ?> - <?php echo __('Time to own'); ?> 				
 				</div>				
-				<div id="datas-tec" class="col-md-12 fluid" >			 
+				<div id="datas-tec" class="col-md-12 col-sm-12 fluid" >			 
 				<form id="form1" name="form1" class="form_rel" method="post" action="rel_sltsas.php?con=1" style="margin-left: 37%;"> 
 					<table border="0" cellspacing="0" cellpadding="3" bgcolor="#efefef" >
 						<tr>
@@ -157,7 +156,8 @@ else {
 			<?php 
 			
 			//SLAs			
-			$con = $_GET['con'];
+			if(isset($_GET['con'])){$con = $_GET['con'];}
+			else {$con = '';}
 			
 			if($con == "1") {
 			
@@ -206,15 +206,16 @@ else {
 
 // distinguish between 0.90.x and 9.1 version
 //if (GLPI_VERSION >= 9.1){	
-$slaid = "AND glpi_tickets.slas_tto_id = ";
-$sla_comp = "AND glpi_tickets.slas_tto_id = glpi_slms.id";	
+$slaid = "AND glpi_tickets.slas_id_tto = ";
+$sla_comp = "AND glpi_tickets.slas_id_tto = glpi_slas.id";	
 
 $sql_sla = 
-"SELECT COUNT(glpi_tickets.id) AS total, glpi_slms.name AS sla_name, glpi_tickets.date AS date, glpi_tickets.solvedate as solvedate, 
+"SELECT COUNT(glpi_tickets.id) AS total, glpi_slas.name AS sla_name, glpi_tickets.date AS date, glpi_tickets.solvedate as solvedate, 
 glpi_tickets.status, glpi_tickets.time_to_resolve AS duedate, sla_waiting_duration AS slawait, glpi_tickets.type,
-FROM_UNIXTIME( UNIX_TIMESTAMP( `glpi_tickets`.`solvedate` ) , '%Y-%m' ) AS date_unix, AVG( glpi_tickets.solve_delay_stat ) AS time, glpi_slms.id AS sla_id
-FROM glpi_tickets, glpi_slms
+FROM_UNIXTIME( UNIX_TIMESTAMP( `glpi_tickets`.`solvedate` ) , '%Y-%m' ) AS date_unix, AVG( glpi_tickets.solve_delay_stat ) AS time, glpi_slas.id AS sla_id
+FROM glpi_tickets, glpi_slas
 WHERE glpi_tickets.is_deleted = 0
+AND glpi_slas.type = 1
 AND glpi_tickets.date ".$datas2."
 ".$entidade."
 
@@ -299,8 +300,7 @@ if($conta_cons > 0) {
 				$data_fech = $DB->fetch_assoc($result_fech);
 				$fechados = $data_fech['total'];		
 								
-				//count by status
-				//SELECT SUM(case when glpi_tickets.takeintoaccount_delay_stat <> 0 then 1 else 0 end) AS solve_sla				
+				//count by status							
 				$query_stat = "
 				SELECT SUM(case when glpi_tickets.takeintoaccount_delay_stat >= (time_to_own - date) then 1 else 0 end) AS solve_sla				
 				FROM glpi_tickets
@@ -323,30 +323,39 @@ if($conta_cons > 0) {
 					else {
 					
 						//porcentagem
-						$perc = round(($solve_sla*100)/$chamados,2);
-						$barra = 100 - $perc;
-						
+						if($chamados != 0) {
+							$perc = round(($solve_sla*100)/$chamados,2);
+							$barra = 100 - $perc;
+							$cor ='';
+						}
+						else {
+							$barra = '';
+							$cor ='';
+						}	
 						// cor barra
 						if($barra == 100) { $cor = "progress-bar-success"; }
-						if($barra >= 80 and $barra < 100) { $cor = " "; }
+						if($barra >= 80 and $barra < 100) { $cor = "progress-bar-default"; }
 						if($barra > 51 and $barra < 80) { $cor = "progress-bar-warning"; }
 						if($barra > 0 and $barra <= 50) { $cor = "progress-bar-danger"; }
 						if($barra < 0) { $cor = "progress-bar-danger"; $barra = 0; }					
 					}
 				}
 				
-				else { $barra = 0;}	
+				else { 
+					$barra = 0;
+					$cor = '';
+				}	
 						
 				echo "	
 				<tr>
-					<td style='vertical-align:middle; text-align:left;'><a href='rel_sltsa.php?con=1&sla=". $row['sla_id'] ."&date1=".$data_ini2."&date2=".$data_fin2."' target='_blank' >".$row['sla_name']." </a></td>
+					<td style='vertical-align:middle; text-align:left;'><a href='rel_sltsa.php?con=1&sel_sla=". $row['sla_id'] ."&date1=".$data_ini2."&date2=".$data_fin2."' target='_blank' >".$row['sla_name']." </a></td>
 					<td style='vertical-align:middle; text-align:center;'> ". $chamados ." </td>
 					<td style='vertical-align:middle; text-align:center;'> ". $abertos ." </td>
 					<td style='vertical-align:middle; text-align:center;'> ". $solucionados ." </td>
 					<td style='vertical-align:middle; text-align:center;'> ". $fechados ." </td>						
 					<td style='vertical-align:middle; text-align:center;'> 
 						<div class='progress' style='margin-top: 5px; margin-bottom: 5px;'>
-							<div class='progress-bar ". $cor ." progress-bar-striped active' role='progressbar' aria-valuenow='".$barra."' aria-valuemin='0' aria-valuemax='100' style='width: ".$barra."%;'>
+							<div class='progress-bar ". $cor ." ' role='progressbar' aria-valuenow='".$barra."' aria-valuemin='0' aria-valuemax='100' style='width: ".$barra."%;'>
 					 			".$barra." % 	
 					 		</div>		
 						</div>			

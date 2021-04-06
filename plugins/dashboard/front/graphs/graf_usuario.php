@@ -256,7 +256,10 @@ $selected = $id_tec;
 
 <?php
 
-$con = $_REQUEST['con'];
+if(isset($_REQUEST['con'])) {
+	$con = $_REQUEST['con'];
+}
+else { $con = ''; }
 
 if($con == "1") {
 
@@ -303,6 +306,7 @@ WHERE glpi_tickets.is_deleted = '0'
 AND glpi_tickets.date ".$datas."
 AND glpi_tickets_users.users_id = ".$id_tec."
 AND glpi_tickets_users.type = 1
+".$entidade_age."
 AND glpi_tickets_users.tickets_id = glpi_tickets.id ";
 
 $result_total = $DB->query($query_total);
@@ -341,66 +345,66 @@ echo '<div id="name"  style="margin-top: 15px;">
 	
 <div class="row" style="margin: 10px 0px 0 0;" >	
 <div style="margin-top: 20px; height: 45px;">
-							<!-- COLUMN 1 -->															
-								  <div class="col-sm-3 col-md-3 stat" >
-									 <div class="dashbox shad panel panel-default db-blue">
-										<div class="panel-body_2">
-										   <div class="panel-left red" style = "margin-top: -5px; margin-left: -5px;">
-												<i class="fa fa-tags fa-3x fa2"></i>
-										   </div>
-										   <div class="panel-right">
-										     <div id="odometer1" class="odometer" style="font-size: 22px; margin-top: 1px;">  </div><p></p>
-                        				<span class="chamado">'. __('Tickets','dashboard').'</span><br>
-                        				<span class="date" style="font-size: 16px;"><b>'. _x('status', 'New').' + '.__('Assigned').'</b></span>												
-										   </div>
-										</div>
-									 </div>
-								  </div>
-								  
-								  <div class="col-sm-3 col-md-3">
-									 <div class="dashbox shad panel panel-default db-yellow">
-										<div class="panel-body_2">
-										   <div class="panel-left yellow" style = "margin-top: -5px; margin-left: -5px;">
-												<i class="fa fa-clock-o fa-3x fa2"></i>
-										   </div>
-										   <div class="panel-right">										 
-											<div id="odometer2" class="odometer" style="font-size: 22px; margin-top: 1px;">   </div><p></p>
-                        				<span class="chamado">'. __('Tickets','dashboard').'</span><br>
-                        				<span class="date"><b>'. __('Pending').'</b></span>
-										   </div>
-										</div>
-									 </div>
-								  </div>																		
-                     								
-								  <div class="col-sm-3 col-md-3">
-									 <div class="dashbox shad panel panel-default db-red">
-										<div class="panel-body_2">
-										   <div class="panel-left yellow" style = "margin-top: -5px; margin-left: -5px;">
-												<i class="fa fa-check-square fa-3x fa2"></i>
-										   </div>
-										   <div class="panel-right">
-												<div id="odometer3" class="odometer" style="font-size: 22px; margin-top: 1px;">   </div><p></p>
-                        				<span class="chamado">'. __('Tickets','dashboard').'</span><br>
-                        				<span class="date"><b>'. __('Solved','dashboard').'</b></span>
-										   </div>										   
-										</div>
-									 </div>
-								  </div>
-								  <div class="col-sm-3 col-md-3">
-									 <div class="dashbox shad panel panel-default db-orange">
-										<div class="panel-body_2">
-										   <div class="panel-left green" style = "margin-top: -5px; margin-left: -5px;">
-												<i class="fa fa-times-circle fa-3x fa2"></i>
-										   </div>
-								   		<div class="panel-right">
-												<div id="odometer4" class="odometer" style="font-size: 22px; margin-top: 1px;">   </div><p></p>
-                        				<span class="chamado">'. __('Tickets','dashboard').'</span><br>
-                        				<span class="date"><b>'. __('Closed','dashboard').'</b></span>
-										   </div>
-										</div>
-									 </div>
-								  </div>																	                          				                           							
-						</div>   		
+				<!-- COLUMN 1 -->															
+				  <div class="col-sm-3 col-md-3 stat" >
+					 <div class="dashbox shad panel panel-default db-blue">
+						<div class="panel-body_2">
+						   <div class="panel-left red bluebg" style = "margin-top: -5px; margin-left: -5px;">
+								<i class="fa fa-tags fa-3x fa2"></i>
+						   </div>
+						   <div class="panel-right">
+						     <div id="odometer1" class="odometer" style="font-size: 22px; margin-top: 1px;">  </div><p></p>
+            				<span class="chamado">'. __('Tickets','dashboard').'</span><br>
+            				<span class="date" style="font-size: 16px;"><b>'. _x('status', 'New').' + '.__('Assigned').'</b></span>												
+						   </div>
+						</div>
+					 </div>
+				  </div>
+				  
+				  <div class="col-sm-3 col-md-3">
+					 <div class="dashbox shad panel panel-default db-orange">
+						<div class="panel-body_2">
+						   <div class="panel-left orange orangebg " style = "margin-top: -5px; margin-left: -5px;">
+								<i class="fa fa-clock-o fa-3x fa2"></i>
+						   </div>
+						   <div class="panel-right">										 
+							<div id="odometer2" class="odometer" style="font-size: 22px; margin-top: 1px;">   </div><p></p>
+            				<span class="chamado">'. __('Tickets','dashboard').'</span><br>
+            				<span class="date"><b>'. __('Pending').'</b></span>
+						   </div>
+						</div>
+					 </div>
+				  </div>																		
+         								
+				  <div class="col-sm-3 col-md-3">
+					 <div class="dashbox shad panel panel-default db-red">
+						<div class="panel-body_2">
+						   <div class="panel-left yellow redbg" style = "margin-top: -5px; margin-left: -5px;">
+								<i class="fa fa-check-square fa-3x fa2"></i>
+						   </div>
+						   <div class="panel-right">
+								<div id="odometer3" class="odometer" style="font-size: 22px; margin-top: 1px;">   </div><p></p>
+            				<span class="chamado">'. __('Tickets','dashboard').'</span><br>
+            				<span class="date"><b>'. __('Solved','dashboard').'</b></span>
+						   </div>										   
+						</div>
+					 </div>
+				  </div>
+				  <div class="col-sm-3 col-md-3">
+					 <div class="dashbox shad panel panel-default db-yellow">
+						<div class="panel-body_2">
+						   <div class="panel-left yellow yellowbg" style = "margin-top: -5px; margin-left: -5px;">
+								<i class="fa fa-times-circle fa-3x fa2"></i>
+						   </div>
+				   		<div class="panel-right">
+								<div id="odometer4" class="odometer" style="font-size: 22px; margin-top: 1px;">   </div><p></p>
+            				<span class="chamado">'. __('Tickets','dashboard').'</span><br>
+            				<span class="date"><b>'. __('Closed','dashboard').'</b></span>
+						   </div>
+						</div>
+					 </div>
+				  </div>																	                          				                           							
+		</div>  		
 </div>
 </div>';
 ?>
@@ -418,24 +422,23 @@ echo '<div id="name"  style="margin-top: 15px;">
 			}, 1000);
 		</script> 
 		
-			<div id="graf_linhas" class="col-md-12" style="height: 450px; margin-top: 25px;">
+			<div id="graf_linhas" class="col-md-12 col-sm12" style="height: 450px; margin-top: 25px;">
 				<?php include ("./inc/graflinhas_user.inc.php"); ?>
 			</div>
 			
-			<div id="graf2" class="col-md-6" >
+			<div id="graf2" class="col-md-6 col-sm-6" >
 				<?php include ("./inc/grafpie_stat_user.inc.php"); ?>
 			</div>
 			
-			<div id="graf_tipo" class="col-md-6" style="margin-left: 0%;">
+			<div id="graf_tipo" class="col-md-6 col-sm-6" style="margin-left: 0%;">
 				<?php include ("./inc/grafpie_tipo_user.inc.php");  ?>
 			</div>
 			
-			<div id="graf4" class="col-md-12" style="height: 450px; margin-left: 0px;">
+			<div id="graf4" class="col-md-12 col-sm-12" style="height: 450px; margin-left: 0px;">
 				<?php include ("./inc/grafcat_user.inc.php"); ?>
 			</div>
 		
-		<?php 
-		
+		<?php 		
 		}
 		?>
 

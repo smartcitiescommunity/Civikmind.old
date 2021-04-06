@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,9 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -48,16 +45,6 @@ class RuleRight extends Rule {
    static $rightname           = 'rule_ldap';
    public $orderby             = "name";
    public $specific_parameters = true;
-
-
-   /**
-    * @see Rule::maxActionsCount()
-   **/
-   function maxActionsCount() {
-      // Unlimited
-      return 4;
-   }
-
 
    /**
     * @see Rule::showNewRuleForm()
@@ -97,27 +84,14 @@ class RuleRight extends Rule {
    }
 
 
-   /**
-    * Execute the actions as defined in the rule
-    *
-    * @see Rule::executeActions()
-    *
-    * @param $output the result of the actions
-    * @param $params the parameters
-    *
-    * @return the fields modified
-   **/
-   function executeActions($output, $params) {
-      global $CFG_GLPI;
-
-      $entity       = '';
+   function executeActions($output, $params, array $input = []) {
+      $entity = [];
       $right        = '';
       $is_recursive = 0;
       $continue     = true;
       $output_src   = $output;
 
       if (count($this->actions)) {
-         $entity = [];
          foreach ($this->actions as $action) {
 
             switch ($action->fields["action_type"]) {
@@ -135,14 +109,35 @@ class RuleRight extends Rule {
                         $is_recursive = $action->fields["value"];
                         break;
 
+                     case '_entities_id_default':
+                        $output['entities_id'] = $action->fields["value"];
+                        break;
+
+                     case '_profiles_id_default':
+                        $output['profiles_id'] = $action->fields["value"];
+                        break;
+
+                     case 'groups_id':
+                        $output['groups_id'] = $action->fields["value"];
+                        break;
+
+                     case 'specific_groups_id':
+                        $output["_ldap_rules"]['groups_id'][] = $action->fields["value"];
+                        break;
+
                      case "is_active" :
                         $output["is_active"] = $action->fields["value"];
+                        break;
+
+                     case 'timezone':
+                        $output['timezone'] = $action->fields['value'];
                         break;
 
                      case "_ignore_user_import" :
                         $continue                   = false;
                         $output_src["_stop_import"] = true;
                         break;
+
                   } // switch (field)
                   break;
 
@@ -236,9 +231,14 @@ class RuleRight extends Rule {
       if (!count($criterias)) {
          $criterias['common']                   = __('Global criteria');
 
+         $criterias['TYPE']['table']            = '';
+         $criterias['TYPE']['field']            = 'type';
+         $criterias['TYPE']['name']             = __('Authentication type');
+         $criterias['TYPE']['allow_condition']  = [Rule::PATTERN_IS, Rule::PATTERN_IS_NOT];
+
          $criterias['LDAP_SERVER']['table']     = 'glpi_authldaps';
          $criterias['LDAP_SERVER']['field']     = 'name';
-         $criterias['LDAP_SERVER']['name']      = __('LDAP directory');
+         $criterias['LDAP_SERVER']['name']      = AuthLDAP::getTypeName(1);
          $criterias['LDAP_SERVER']['linkfield'] = '';
          $criterias['LDAP_SERVER']['type']      = 'dropdown';
          $criterias['LDAP_SERVER']['virtual']   = true;
@@ -266,18 +266,38 @@ class RuleRight extends Rule {
          $criterias['LOGIN']['virtual']         = true;
          $criterias['LOGIN']['id']              = 'login';
 
-         $criterias['GROUPS']['table']          = 'glpi_groups';
-         $criterias['GROUPS']['field']          = 'completename';
-         $criterias['GROUPS']['name']           = __('Imported group from an LDAP directory');
-         $criterias['GROUPS']['linkfield']      = '';
-         $criterias['GROUPS']['type']           = 'dropdown';
-         $criterias['GROUPS']['virtual']        = true;
-         $criterias['GROUPS']['id']             = 'groups';
+         $criterias['_groups_id']['table']      = 'glpi_groups';
+         $criterias['_groups_id']['field']      = 'completename';
+         $criterias['_groups_id']['name']       = Group::getTypeName(1);
+         $criterias['_groups_id']['linkfield']  = '';
+         $criterias['_groups_id']['type']       = 'dropdown';
+         $criterias['_groups_id']['virtual']    = true;
+         $criterias['_groups_id']['id']         = 'groups';
 
          //Dynamically add all the ldap criterias to the current list of rule's criterias
          $this->addSpecificCriteriasToArray($criterias);
       }
       return $criterias;
+   }
+
+
+   function displayAdditionalRuleCondition($condition, $criteria, $name, $value, $test = false) {
+      if ($criteria['field'] == 'type') {
+         \Auth::dropdown([
+            'name'  => $name,
+            'value' => $value,
+         ]);
+         return true;
+      }
+      return false;
+   }
+
+
+   function getAdditionalCriteriaDisplayPattern($ID, $condition, $pattern) {
+      $crit = $this->getCriteria($ID);
+      if (count($crit) && $crit['field'] == 'type') {
+         return Auth::getMethodName($pattern, 0);
+      }
    }
 
 
@@ -288,7 +308,7 @@ class RuleRight extends Rule {
 
       $actions                                              = [];
 
-      $actions['entities_id']['name']                       = __('Entity');
+      $actions['entities_id']['name']                       = Entity::getTypeName(1);
       $actions['entities_id']['type']                       = 'dropdown';
       $actions['entities_id']['table']                      = 'glpi_entities';
 
@@ -328,23 +348,69 @@ class RuleRight extends Rule {
       $actions['_ignore_user_import']['type']               = 'yesonly';
       $actions['_ignore_user_import']['table']              = '';
 
+      $actions['_entities_id_default']['table']             = 'glpi_entities';
+      $actions['_entities_id_default']['field']             = 'name';
+      $actions['_entities_id_default']['name']              = __('Default entity');
+      $actions['_entities_id_default']['linkfield']         = 'entities_id';
+      $actions['_entities_id_default']['type']              = 'dropdown';
+
+      $actions['specific_groups_id']['name'] = Group::getTypeName(Session::getPluralNumber());
+      $actions['specific_groups_id']['type'] = 'dropdown';
+      $actions['specific_groups_id']['table'] = 'glpi_groups';
+
+      $actions['groups_id']['table']                        = 'glpi_groups';
+      $actions['groups_id']['field']                        = 'name';
+      $actions['groups_id']['name']                         = __('Default group');
+      $actions['groups_id']['linkfield']                    = 'groups_id';
+      $actions['groups_id']['type']                         = 'dropdown';
+      $actions['groups_id']['condition']                    = ['is_usergroup' => 1];
+
+      $actions['_profiles_id_default']['table']             = 'glpi_profiles';
+      $actions['_profiles_id_default']['field']             = 'name';
+      $actions['_profiles_id_default']['name']              = __('Default profile');
+      $actions['_profiles_id_default']['linkfield']         = 'profiles_id';
+      $actions['_profiles_id_default']['type']              = 'dropdown';
+
+      $actions['timezone']['name']                          = __('Timezone');
+      $actions['timezone']['type']                          = 'timezone';
+
       return $actions;
    }
 
+   function displayAdditionalRuleAction(array $action, $value = '') {
+      global $DB;
+
+      switch ($action['type']) {
+         case 'timezone' :
+
+            $timezones = $DB->getTimezones();
+            Dropdown::showFromArray(
+               'value',
+               $timezones, [
+                  'display_emptychoice' => true
+               ]
+            );
+            return true;
+      }
+      return false;
+   }
+
+
 
    /**
-    * Get all ldap rules criterias from the DB and add them into the RULES_CRITERIAS
+    * Get all ldap rules criteria from the DB and add them into the RULES_CRITERIAS
     *
-    * @param &$criterias
+    * @param &$criteria
    **/
-   function addSpecificCriteriasToArray(&$criterias) {
+   function addSpecificCriteriasToArray(&$criteria) {
 
-      $criterias['ldap'] = __('LDAP criteria');
-      foreach (getAllDatasFromTable('glpi_rulerightparameters', '', true) as $datas) {
-         $criterias[$datas["value"]]['name']      = $datas["name"];
-         $criterias[$datas["value"]]['field']     = $datas["value"];
-         $criterias[$datas["value"]]['linkfield'] = '';
-         $criterias[$datas["value"]]['table']     = '';
+      $criteria['ldap'] = __('LDAP criteria');
+      $all = getAllDataFromTable('glpi_rulerightparameters', [], true);
+      foreach ($all as $data) {
+         $criteria[$data["value"]]['name']      = $data["name"];
+         $criteria[$data["value"]]['field']     = $data["value"];
+         $criteria[$data["value"]]['linkfield'] = '';
+         $criteria[$data["value"]]['table']     = '';
       }
    }
 

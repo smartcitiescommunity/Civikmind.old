@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -47,7 +43,7 @@ class Ajax {
     * Create modal window
     * After display it using $name.dialog("open");
     *
-    * @since version 0.84
+    * @since 0.84
     *
     * @param string   $name    name of the js object
     * @param string   $url     URL to display in modal
@@ -81,11 +77,13 @@ class Ajax {
       }
 
       $out  = "<script type='text/javascript'>\n";
-      $out .= "var $name=";
+      $out .= "var $name;";
+      $out .= "$(function() {";
+      $out .= "$name=";
       if (!empty($param['container'])) {
          $out .= Html::jsGetElementbyID(Html::cleanId($param['container']));
       } else {
-         $out .= "$('<div />')";
+         $out .= "$('<div></div>')";
       }
       $out .= ".dialog({\n
          width:".$param['width'].",\n
@@ -107,6 +105,7 @@ class Ajax {
       $out .= "            $(this).load('$url', fields);
          }
       });\n";
+      $out .= "});";
       $out .= "</script>\n";
 
       if ($param['display']) {
@@ -196,13 +195,13 @@ class Ajax {
                beforeSend: function() {
                   var _loader = $('<div id=\'loadingslide\'><div class=\'loadingindicator\'>" . __s('Loading...') . "</div></div>');
                   $('#$name .contents').html(_loader);
-               },
-               complete: function() {
-                  $('#loadingslide').remove();
-               },
-               success: function(res) {
-                  $('#$name .contents').html(res);
                }
+            })
+            .always( function() {
+               $('#loadingslide').remove();
+            })
+            .done(function(res) {
+               $('#$name .contents').html(res);
             });
          };\n";
       }
@@ -219,7 +218,7 @@ class Ajax {
     * Create fixed modal window
     * After display it using $name.dialog("open");
     *
-    * @since version 0.84
+    * @since 0.84
     *
     * @param string $name    name of the js object
     * @param array  $options Possible options:
@@ -279,7 +278,7 @@ class Ajax {
     * Create modal window in Iframe
     * After display it using Html::jsGetElementbyID($domid).dialog("open");
     *
-    * @since version 0.85
+    * @since 0.85
     *
     * @param string $domid   DOM ID of the js object
     * @param string $url     URL to display in modal
@@ -404,6 +403,7 @@ class Ajax {
          echo "</ul>";
          echo "</div>";
          $js = "
+         $(function(){
          forceReload$rand = false;
          $('#tabs$rand').tabs({
             active: $selected_tab,
@@ -417,24 +417,48 @@ class Ajax {
                   var _loader = $('<div id=\'loadingtabs\'><div class=\'loadingindicator\'>" . addslashes(__('Loading...')) . "</div></div>');
                   ui.panel.html(_loader);
 
-                  ui.jqXHR.complete(function() {
+                  ui.jqXHR.always(function() {
                      $('#loadingtabs').remove();
                   });
 
-                  ui.jqXHR.error(function(e) {
+                  ui.jqXHR.fail(function(e) {
                      console.log(e);
-                     ui.panel.html(
-                        '<div class=\'error\'><h3>" .
-                        addslashes(__('An error occured loading contents!'))  . "</h3><p>" .
-                        addslashes(__('Please check GLPI logs or contact your administrator.'))  .
-                        "<br/>" . addslashes(__('or')) . " <a href=\'#\' onclick=\'return reloadTab()\'>" . addslashes(__('try to reload'))  . "</a></p></div>'
-                     );
+                     if (e.statusText != 'abort') {
+                        ui.panel.html(
+                           '<div class=\'error\'><h3>" .
+                           addslashes(__('An error occured loading contents!'))  . "</h3><p>" .
+                           addslashes(__('Please check GLPI logs or contact your administrator.'))  .
+                           "<br/>" . addslashes(__('or')) . " <a href=\'#\' onclick=\'return reloadTab()\'>" . addslashes(__('try to reload'))  . "</a></p></div>'
+                        );
+                     }
                   });
                }
 
-               var newIndex = ui.tab.parent().children().index(ui.tab);
-               $.get('".$CFG_GLPI['root_doc']."/ajax/updatecurrenttab.php',
-                  { itemtype: '$type', id: '$ID', tab: newIndex });
+               var tabs = ui.tab.parent().children();
+               if (tabs.length > 1) {
+                  var newIndex = tabs.index(ui.tab);
+                  $.get(
+                     '".$CFG_GLPI['root_doc']."/ajax/updatecurrenttab.php',
+                     { itemtype: '".addslashes($type)."', id: '$ID', tab: newIndex }
+                  );
+               }
+            },
+            load: function(event) {
+               var _url = window.location.href;
+               //get the anchor
+               var _parts = _url.split('#');
+               if (_parts.length > 1) {
+                  var _anchor = _parts[1];
+
+                  //get the top offset of the target anchor
+                  if ($('#' + _anchor).length) {
+                     var target_offset = $('#' + _anchor).offset();
+                     var target_top = target_offset.top;
+
+                     //goto that anchor by setting the body scroll top to anchor top
+                     $('html, body').animate({scrollTop:target_top}, 2000, 'easeOutQuad');
+                  }
+               }
             },
             ajaxOptions: {type: 'POST'}
          });";
@@ -449,18 +473,26 @@ class Ajax {
          } else {
             $js .=  "$('#tabs$rand').removeClass( 'ui-corner-top' ).addClass( 'ui-corner-left' );";
          }
+         $js .= '});';
 
-         $js .=  "// force reload
+         $js .=  "// force reload global function
             function reloadTab(add) {
                forceReload$rand = true;
                var current_index = $('#tabs$rand').tabs('option','active');
+
+               // remove scroll event bind, select2 bind it on parent with scrollbars (the tab currently)
+               // as the select2 disapear with this tab reload, remove the event to prevent issues (infinite scroll to top)
+               $('#tabs$rand .ui-tabs-panel[aria-hidden=false]').unbind('scroll');
+
                // Save tab
-               currenthref = $('#tabs$rand ul>li a').eq(current_index).attr('href');
+               var currenthref = $('#tabs$rand ul>li a').eq(current_index).attr('href');
                $('#tabs$rand ul>li a').eq(current_index).attr('href',currenthref+'&'+add);
                $('#tabs$rand').tabs( 'load' , current_index);
+
                // Restore tab
                $('#tabs$rand ul>li a').eq(current_index).attr('href',currenthref);
             };";
+
          echo Html::scriptBlock($js);
       }
    }
@@ -639,20 +671,17 @@ class Ajax {
    static function commonDropdownUpdateItem($options, $display = true) {
 
       $field     = '';
-      $fieldname = '';
 
       $output    = '';
       // Old scheme
       if (isset($options["update_item"])
           && (is_array($options["update_item"]) || (strlen($options["update_item"]) > 0))) {
          $field     = "update_item";
-         $fieldname = 'myname';
       }
       // New scheme
       if (isset($options["toupdate"])
           && (is_array($options["toupdate"]) || (strlen($options["toupdate"]) > 0))) {
          $field     = "toupdate";
-         $fieldname = 'name';
       }
 
       if (!empty($field)) {
@@ -712,6 +741,11 @@ class Ajax {
          $out .= ",{";
          $first = true;
          foreach ($parameters as $key => $val) {
+            // prevent xss attacks
+            if (!preg_match('/^[a-zA-Z_$][0-9a-zA-Z_$]*$/', $key)) {
+               continue;
+            }
+
             if ($first) {
                $first = false;
             } else {
@@ -719,6 +753,7 @@ class Ajax {
             }
 
             $out .= $key.":";
+            $regs = [];
             if (!is_array($val) && preg_match('/^__VALUE(\d+)__$/', $val, $regs)) {
                $out .=  Html::jsGetElementbyID(Html::cleanId($toobserve[$regs[1]])).".val()";
 

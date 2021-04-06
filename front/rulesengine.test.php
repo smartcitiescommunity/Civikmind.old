@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -29,10 +29,6 @@
  * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
  */
-
-/** @file
-* @brief
-*/
 
 if (!defined('GLPI_ROOT')) {
    include ('../inc/includes.php');
@@ -66,9 +62,9 @@ Html::popHeader(__('Setup'), $_SERVER['PHP_SELF']);
 
 // Need for RuleEngines
 foreach ($_POST as $key => $val) {
-   $_POST[$key] = stripslashes($_POST[$key]);
+   $_POST[$key] = stripslashes($val);
 }
-$input = $rulecollection->showRulesEnginePreviewCriteriasForm($_SERVER['PHP_SELF'], $_POST, $condition);
+$rulecollection->showRulesEnginePreviewCriteriasForm($_SERVER['PHP_SELF'], $_POST, $condition);
 
 if (isset($_POST["test_all_rules"])) {
    //Unset values that must not be processed by the rule

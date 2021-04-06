@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -29,10 +29,6 @@
  * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
  */
-
-/** @file
-* @brief
-*/
 
 /**
  * Update from 0.85 to 0.85.3
@@ -69,7 +65,7 @@ function update085to0853() {
 
    // Increase cron_limit
    $current_config = Config::getConfigurationValues('core');
-   if ($current_config['cron_limit'] = 1) {
+   if ($current_config['cron_limit'] == 1) {
       Config::setConfigurationValues('core', ['cron_limit' => 5]);
    }
    Config::setConfigurationValues('core', ['task_state' => Planning::TODO]);
@@ -100,7 +96,7 @@ function update085to0853() {
 
       if ($result = $DB->query($query)) {
          if ($DB->numrows($result)>0) {
-            while ($data = $DB->fetch_assoc($result)) {
+            while ($data = $DB->fetchAssoc($result)) {
                 $query = "INSERT INTO `glpi_items_tickets`
                              (`id`, `items_id`, `itemtype`, `tickets_id`)
                           VALUES (NULL, '".$data['items_id']."', '".$data['itemtype']."', '".$data['id']."')";
@@ -143,7 +139,7 @@ function update085to0853() {
 
       if ($result = $DB->query($query)) {
          if ($DB->numrows($result)>0) {
-            while ($data = $DB->fetch_assoc($result)) {
+            while ($data = $DB->fetchAssoc($result)) {
                $query = "SELECT MAX(`rank`)
                          FROM `glpi_displaypreferences`
                          WHERE `users_id` = '".$data['users_id']."'

@@ -169,16 +169,15 @@ function chart(theme) {
 					echo " -- ".__('Entity','dashboard').":&nbsp;";				
 					//echo dropdown( $name, $options, $selected );	
 					
-					echo '<select name="sel_ent[]" id="sel_ent" multiple style="width: 600px; height: 250px;"';
+					echo '<select name="sel_ent[]" id="sel_ent" multiple style="width: 600px; height: 250px;">';
 					
 					foreach( $arr_ent as $key=>$option )
-					{
-						
+					{						
 						if(in_array($key,$formated_arr)) { $select = 'selected'; }	
 						else {$select = '';}						
 						echo '<option value="'.$key.'" '.$select.'>'.$option.'</option>'."\n";
 					}					
-						echo "</select>"."\n";
+					echo "</select>"."\n";
 										
 					echo "<tr><td align='center'><button type='button' class='btn btn-primary' onclick='javascript:this.form.submit();' > ".__('Save')."</button></td></tr>";
 					Html::closeForm(); 										
@@ -232,10 +231,9 @@ function chart(theme) {
 					
 					$arr_years = array();
 					
-					while ($row_y = $DB->fetch_assoc($result))		
-						{ 
-							$arr_years[] = $row_y['year'];			
-						} 
+					while ($row_y = $DB->fetch_assoc($result)) { 
+						$arr_years[] = $row_y['year'];			
+					} 
 						
 					$count_y = count($arr_years);
 					            
@@ -316,7 +314,9 @@ function chart(theme) {
 			$formated_arr = array();
 			
 			foreach($format_Arr as $arr){
+
 				$arr1 = explode(",",$arr);
+				
 				if(count($arr1)>1){
 				    $formated_arr = array_merge($formated_arr,explode(',',$arr));
 				}else{
@@ -726,11 +726,11 @@ function chart(theme) {
 			echo "</tr>\n";	
 			
 			// google maps API key
-			echo "<tr>\n";
+/*			echo "<tr>\n";
 			echo "<td>\n";		
 			echo "-- ". __('Google maps API key','dashboard').":  &nbsp; &nbsp;  <button class='btn btn-sm btn-primary' onclick='window.open(\"./map/map_key.php\");'>". __('Edit')."</button>";
 			echo "</td>\n";
-			echo "</tr>\n";	
+			echo "</tr>\n";	*/
 					
 			/*		
 			//file upload				

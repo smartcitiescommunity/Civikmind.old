@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -41,7 +37,7 @@ if (!defined('GLPI_ROOT')) {
 
 /**
  * Only an HTMLTableMain can create an HTMLTableSuperHeader.
- * @since version 0.84
+ * @since 0.84
 **/
 class HTMLTableSuperHeader extends HTMLTableHeader {
 
@@ -52,10 +48,10 @@ class HTMLTableSuperHeader extends HTMLTableHeader {
 
 
    /**
-    * @param $table              HTMLTableMain object: table owning the current header
-    * @param $name      string   the name of the header
-    * @param $content            see inc/HTMLTableEntity#__construct()
-    * @param $father             HTMLTableSuperHeader objet (default NULL)
+    * @param HTMLTableMain        $table    HTMLTableMain object: table owning the current header
+    * @param string               $name     the name of the header
+    * @param string               $content  see inc/HTMLTableEntity#__construct()
+    * @param HTMLTableSuperHeader $father   HTMLTableSuperHeader objet (default NULL)
    **/
    function __construct(HTMLTableMain $table, $name, $content, HTMLTableSuperHeader $father = null) {
 
@@ -117,7 +113,7 @@ class HTMLTableSuperHeader extends HTMLTableHeader {
     * compute the total number of current super header colspan: it is the Least Common
     * Multiple of the colspan of each subHeader it owns.
     *
-    * @param $number the colspan for this header given by the group
+    * @param integer $number the colspan for this header given by the group
    **/
    function updateNumberOfSubHeader($number) {
       $this->setColSpan(self::LCM($number, $this->getColSpan()));
@@ -127,7 +123,7 @@ class HTMLTableSuperHeader extends HTMLTableHeader {
    /**
     * The super headers always have to be displayed, conversely to sub headers
     *
-    * @return always true
+    * @return true
    **/
    function hasToDisplay() {
       return true;

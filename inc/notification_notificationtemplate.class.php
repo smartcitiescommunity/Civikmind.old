@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -38,14 +38,18 @@ if (!defined('GLPI_ROOT')) {
 /**
  * Notification_NotificationTemplate Class
  *
- * @since version 9.2
+ * @since 9.2
 **/
-class Notification_NotificationTemplate extends CommonDBChild {
-   // From CommonDBChild
-   static public $itemtype             = 'Notification';
-   static public $items_id             = 'notifications_id';
-   //WHY? Can edit but not create without that one
-   static public $mustBeAttached       = false;
+class Notification_NotificationTemplate extends CommonDBRelation {
+
+   // From CommonDBRelation
+   static public $itemtype_1       = 'Notification';
+   static public $items_id_1       = 'notifications_id';
+   static public $itemtype_2       = 'NotificationTemplate';
+   static public $items_id_2       = 'notificationtemplates_id';
+   static public $mustBeAttached_2 = false; // Mandatory to display creation form
+
+   public $no_form_page    = false;
    protected $displaylist  = false;
 
    const MODE_MAIL      = 'mailing';
@@ -64,19 +68,37 @@ class Notification_NotificationTemplate extends CommonDBChild {
       if (!$withtemplate && Notification::canView()) {
          $nb = 0;
          switch ($item->getType()) {
-            case 'Notification' :
+            case Notification::class:
                if ($_SESSION['glpishow_count_on_tabs']) {
                   $nb = countElementsInTable($this->getTable(),
                                              ['notifications_id' => $item->getID()]);
                }
                return self::createTabEntry(self::getTypeName(Session::getPluralNumber()), $nb);
+               break;
+            case NotificationTemplate::class:
+               if ($_SESSION['glpishow_count_on_tabs']) {
+                  $nb = countElementsInTable(
+                     $this->getTable(),
+                     ['notificationtemplates_id' => $item->getID()]
+                  );
+               }
+               return self::createTabEntry(Notification::getTypeName(Session::getPluralNumber()), $nb);
+               break;
          }
       }
       return '';
    }
 
    static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0) {
-      self::showForNotification($item, $withtemplate);
+      switch ($item->getType()) {
+         case Notification::class:
+            self::showForNotification($item, $withtemplate);
+            break;
+         case NotificationTemplate::class:
+            self::showForNotificationTemplate($item, $withtemplate);
+            break;
+      }
+
       return true;
    }
 
@@ -87,7 +109,7 @@ class Notification_NotificationTemplate extends CommonDBChild {
     * @param Notification $notif        Notification object
     * @param boolean      $withtemplate Template or basic item (default '')
     *
-    * @return Nothing (call to classes members)
+    * @return void
    **/
    static function showForNotification(Notification $notif, $withtemplate = 0) {
       global $DB;
@@ -103,7 +125,7 @@ class Notification_NotificationTemplate extends CommonDBChild {
       if ($canedit
           && !(!empty($withtemplate) && ($withtemplate == 2))) {
          echo "<div class='center firstbloc'>".
-               "<a class='vsubmit' href='" . self::getFormUrl() ."?notifications_id=$ID&amp;withtemplate=".
+               "<a class='vsubmit' href='" . self::getFormURL() ."?notifications_id=$ID&amp;withtemplate=".
                   $withtemplate."'>";
          echo __('Add a template');
          echo "</a></div>\n";
@@ -122,7 +144,7 @@ class Notification_NotificationTemplate extends CommonDBChild {
       if ($iterator->numrows()) {
          $header = "<tr>";
          $header .= "<th>" . __('ID') . "</th>";
-         $header .= "<th>".__('Template')."</th>";
+         $header .= "<th>".static::getTypeName(1)."</th>";
          $header .= "<th>".__('Mode')."</th>";
          $header .= "</tr>";
          echo $header;
@@ -139,9 +161,17 @@ class Notification_NotificationTemplate extends CommonDBChild {
             $tpl = new NotificationTemplate();
             $tpl->getFromDB($data['notificationtemplates_id']);
 
+            $tpl_link = $tpl->getLink();
+            if (empty($tpl_link)) {
+               $tpl_link = "<i class='fa fa-exclamation-triangle red'></i>&nbsp;
+                            <a href='".$notiftpl->getLinkUrl()."'>".
+                              __("No template selected").
+                           "</a>";
+            }
+
             echo "<tr class='tab_bg_2'>";
             echo "<td>".$notiftpl->getLink()."</td>";
-            echo "<td>".$tpl->getLink()."</td>";
+            echo "<td>$tpl_link</td>";
             $mode = self::getMode($data['mode']);
             if ($mode === NOT_AVAILABLE) {
                $mode = "{$data['mode']} ($mode)";
@@ -162,6 +192,98 @@ class Notification_NotificationTemplate extends CommonDBChild {
    }
 
 
+   /**
+    * Print associated notifications
+    *
+    * @param NotificationTemplate $template     Notification template object
+    * @param boolean              $withtemplate Template or basic item (default '')
+    *
+    * @return void
+    */
+   static function showForNotificationTemplate(NotificationTemplate $template, $withtemplate = 0) {
+      global $DB;
+
+      $ID = $template->getID();
+
+      if (!$template->getFromDB($ID)
+          || !$template->can($ID, READ)) {
+         return false;
+      }
+
+      echo "<div class='center'>";
+
+      $iterator = $DB->request([
+         'FROM'   => self::getTable(),
+         'WHERE'  => ['notificationtemplates_id' => $ID]
+      ]);
+
+      echo "<table class='tab_cadre_fixehov'>";
+      $colspan = 2;
+
+      if ($iterator->numrows()) {
+         $header = "<tr>";
+         $header .= "<th>" . __('ID') . "</th>";
+         $header .= "<th>" . _n('Notification', 'Notifications', 1) . "</th>";
+         $header .= "<th>" . __('Mode') . "</th>";
+         $header .= "</tr>";
+         echo $header;
+
+         Session::initNavigateListItems(
+            __CLASS__,
+            //TRANS : %1$s is the itemtype name,
+            //        %2$s is the name of the item (used for headings of a list)
+            sprintf(__('%1$s = %2$s'),
+            Notification::getTypeName(1), $template->getName())
+         );
+
+         while ($data = $iterator->next()) {
+            $notification = new Notification();
+            $notification->getFromDB($data['notifications_id']);
+
+            echo "<tr class='tab_bg_2'>";
+            echo "<td>".$data['id']."</td>";
+            echo "<td>" . $notification->getLink() . "</td>";
+            $mode = self::getMode($data['mode']);
+            if ($mode === NOT_AVAILABLE) {
+               $mode = "{$data['mode']} ($mode)";
+            } else {
+               $mode = $mode['label'];
+            }
+            echo "<td>$mode</td>";
+            echo "</tr>";
+            Session::addToNavigateListItems(__CLASS__, $data['id']);
+         }
+         echo $header;
+      } else {
+         echo "<tr class='tab_bg_2'><th colspan='$colspan'>".__('No item found')."</th></tr>";
+      }
+
+      echo "</table>";
+      echo "</div>";
+   }
+
+
+   /**
+    * Form for Notification on Massive action
+   **/
+   static function showFormMassiveAction() {
+
+      echo __('Mode')."<br>";
+      self::dropdownMode(['name' => 'mode']);
+      echo "<br><br>";
+
+      echo NotificationTemplate::getTypeName(1)."<br>";
+      NotificationTemplate::dropdown([
+         'name'       => 'notificationtemplates_id',
+         'value'     => 0,
+         'comment'   => 1,
+      ]);
+      echo "<br><br>";
+
+      echo Html::submit(_x('button', 'Add'), ['name' => 'massiveaction']);
+   }
+
+
    function getName($options = []) {
       return $this->getID();
    }
@@ -178,8 +300,6 @@ class Notification_NotificationTemplate extends CommonDBChild {
     * @return true if displayed  false if item not found or not right to display
    **/
    function showForm($ID, $options = []) {
-      global $CFG_GLPI;
-
       if (!Session::haveRight("notification", UPDATE)) {
          return false;
       }
@@ -200,7 +320,7 @@ class Notification_NotificationTemplate extends CommonDBChild {
       }
 
       echo "<tr class='tab_bg_1'>";
-      echo "<td>".__('Notification')."</td>";
+      echo "<td>"._n('Notification', 'Notifications', 1)."</td>";
       echo "<td>".$notif->getLink()."</td>";
       echo "<td colspan='2'>&nbsp;</td>";
       echo "</tr>\n";
@@ -208,7 +328,7 @@ class Notification_NotificationTemplate extends CommonDBChild {
       echo "<tr class='tab_bg_1'>";
       echo "<td>" . __('Mode') . "</td>";
       echo "<td>";
-      self::dropdownMode(['name' => 'mode', 'value' => $this->getField('mode'), 'multiple' => false]);
+      self::dropdownMode(['name' => 'mode', 'value' => $this->getField('mode')]);
       echo "</td>";
 
       echo "<td>". NotificationTemplate::getTypeName(1)."</td>";
@@ -263,7 +383,7 @@ class Notification_NotificationTemplate extends CommonDBChild {
    /**
     * Get notification method label
     *
-    * @since version 0.84
+    * @since 0.84
     *
     * @return the mode's label
    **/
@@ -272,11 +392,11 @@ class Notification_NotificationTemplate extends CommonDBChild {
 
       $core_modes = [
          self::MODE_MAIL      => [
-            'label'  => __('Email'),
+            'label'  => _n('Email', 'Emails', 1),
             'from'   => 'core'
          ],
          self::MODE_AJAX      => [
-            'label'  => __('Ajax'),
+            'label'  => __('Browser'),
             'from'   => 'core'
          ]
          /*self::MODE_WEBSOCKET => [
@@ -333,7 +453,6 @@ class Notification_NotificationTemplate extends CommonDBChild {
          case 'mode' :
             $options['value']    = $values[$field];
             $options['name']     = $name;
-            $options['multiple'] = false;
             return self::dropdownMode($options);
       }
       return parent::getSpecificValueToSelect($field, $name, $values, $options);
@@ -351,7 +470,6 @@ class Notification_NotificationTemplate extends CommonDBChild {
       $p['name']     = 'modes';
       $p['display']  = true;
       $p['value']    = '';
-      $p['multiple'] = true;
 
       if (is_array($options) && count($options)) {
          foreach ($options as $key => $val) {

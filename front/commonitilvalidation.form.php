@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,14 @@
  * ---------------------------------------------------------------------
 */
 
-/** @file
-* @brief
-* @since version 0.85
-*/
+/**
+ * @since 0.85
+ */
+
+/**
+ * Following variables have to be defined before inclusion of this file:
+ * @var CommonITILValidation $validation
+ */
 
 use Glpi\Event;
 
@@ -87,5 +91,12 @@ if (isset($_POST["add"])) {
               sprintf(__('%s purges an approval'), $_SESSION["glpiname"]));
    Html::back();
 
+} else if (isset($_POST['approval_action'])) {
+   if ($_POST['users_id_validate'] == Session::getLoginUserID()) {
+      $validation->update($_POST + [
+         'status' => ($_POST['approval_action'] === 'approve') ? CommonITILValidation::ACCEPTED : CommonITILValidation::REFUSED
+      ]);
+      Html::back();
+   }
 }
 Html::displayErrorAndDie('Lost');

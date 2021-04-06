@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -42,7 +38,7 @@ if (!defined('GLPI_ROOT')) {
 /**
  * NotificationTargetConsumableItem Class
  *
- * @since version 0.84
+ * @since 0.84
 **/
 class NotificationTargetConsumableItem extends NotificationTarget {
 
@@ -58,7 +54,7 @@ class NotificationTargetConsumableItem extends NotificationTarget {
 
       $this->data['##consumable.entity##']      = Dropdown::getDropdownName('glpi_entities',
                                                                              $options['entities_id']);
-      $this->data['##lang.consumable.entity##'] = __('Entity');
+      $this->data['##lang.consumable.entity##'] = Entity::getTypeName(1);
       $this->data['##consumable.action##']      = $events[$event];
 
       foreach ($options['items'] as $id => $consumable) {
@@ -84,9 +80,9 @@ class NotificationTargetConsumableItem extends NotificationTarget {
 
       $tags = ['consumable.action'    => _n('Event', 'Events', 1),
                     'consumable.reference' => __('Reference'),
-                    'consumable.item'      => __('Consumable model'),
+                    'consumable.item'      => ConsumableItem::getTypeName(1),
                     'consumable.remaining' => __('Remaining'),
-                    'consumable.entity'    => __('Entity')];
+                    'consumable.entity'    => Entity::getTypeName(1)];
 
       foreach ($tags as $tag => $label) {
          $this->addTagToList(['tag'   => $tag,

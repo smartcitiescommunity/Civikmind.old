@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,12 +30,11 @@
  * ---------------------------------------------------------------------
 */
 
-/** @file
-* @brief
-* Represent an IPv4 or an IPv6 address. Both textual (ie. human readable)
-* and binary (ie. : used for request) are present
-* @since version 0.84
-*/
+/**
+ * Represent an IPv4 or an IPv6 address. Both textual (ie. human readable)
+ * and binary (ie. : used for request) are present
+ * @since 0.84
+ */
 
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
@@ -50,7 +49,7 @@ if (!defined('GLPI_ROOT')) {
 * 2001:db8:0:85a3\::ac1f:8001 = 2001:db8:0:85a3:0:0:ac1f:8001
 * @warning All textual representation of IPv6 addresses conforms to RFC 5952 : they are
 * automatically converted by IPAddress::setAddressFromString().
-* @since version 0.84
+* @since 0.84
 **/
 class IPAddress extends CommonDBChild {
 
@@ -78,7 +77,7 @@ class IPAddress extends CommonDBChild {
 
 
    /**
-    * @param $ipaddress (default '')
+    * @param IPAddress|string|integer[] $ipaddress (default '')
    **/
    function __construct($ipaddress = '') {
 
@@ -159,34 +158,22 @@ class IPAddress extends CommonDBChild {
    }
 
 
-   /**
-    * @see CommonDBChild::prepareInputForAdd()
-   **/
    function prepareInputForAdd($input) {
       return parent::prepareInputForAdd($this->prepareInput($input));
    }
 
 
-   /**
-    * @see CommonDBChild::prepareInputForUpdate()
-   **/
    function prepareInputForUpdate($input) {
       return parent::prepareInputForUpdate($this->prepareInput($input));
    }
 
 
-   /**
-    * @see CommonDBTM::post_addItem()
-   **/
    function post_addItem() {
       IPAddress_IPNetwork::addIPAddress($this);
       parent::post_addItem();
    }
 
 
-   /**
-    * @see CommonDBTM::post_updateItem()
-   **/
    function post_updateItem($history = 1) {
 
       if ((isset($this->oldvalues['name']))
@@ -203,10 +190,11 @@ class IPAddress extends CommonDBChild {
 
    function cleanDBonPurge() {
 
-      $link = new IPAddress_IPNetwork();
-      $link->cleanDBonItemDelete($this->getType(), $this->getID());
-
-      return true;
+      $this->deleteChildrenAndRelationsFromDb(
+         [
+            IPAddress_IPNetwork::class,
+         ]
+      );
    }
 
 
@@ -218,7 +206,7 @@ class IPAddress extends CommonDBChild {
 
 
    static function showForItem(CommonGLPI $item, $withtemplate = 0) {
-      global $DB, $CFG_GLPI;
+      global $CFG_GLPI;
 
       if ($item->getType() == 'IPNetwork') {
 
@@ -236,8 +224,10 @@ class IPAddress extends CommonDBChild {
 
          $order_by_itemtype             = ($table_options['order'] == 'itemtype');
 
-         $table_options['SQL_options']  = "LIMIT ".$_SESSION['glpilist_limit']."
-                                           OFFSET $start";
+         $table_options['SQL_options']  = [
+            'LIMIT'  => $_SESSION['glpilist_limit'],
+            'START'  => $start
+         ];
 
          $table           = new HTMLTableMain();
          $content         = "<a href='javascript:reloadTab(\"order=ip\");'>" .
@@ -267,7 +257,8 @@ class IPAddress extends CommonDBChild {
          self::getHTMLTableCellsForItem(null, $item, null, $table_options);
 
          if ($table->getNumberOfRows() > 0) {
-            Html::printAjaxPager(self::getTypeName(Session::getPluralNumber()), $start, self::countForItem($item));
+            $count = self::countForItem($item);
+            Html::printAjaxPager(self::getTypeName(Session::getPluralNumber()), $start, $count);
 
             Session::initNavigateListItems(__CLASS__,
                                            //TRANS : %1$s is the itemtype name,
@@ -278,7 +269,7 @@ class IPAddress extends CommonDBChild {
                                   'display_super_for_each_group' => false,
                                   'display_tfoot'                => false]);
 
-            Html::printAjaxPager(self::getTypeName(Session::getPluralNumber()), $start, self::countForItem($item));
+            Html::printAjaxPager(self::getTypeName(Session::getPluralNumber()), $start, $count);
          } else {
             echo "<table class='tab_cadre_fixe'>";
             echo "<tr><th>".__('No IP address found')."</th></tr>";
@@ -306,12 +297,14 @@ class IPAddress extends CommonDBChild {
 
       switch ($item->getType()) {
          case 'IPNetwork' :
-            $query = "SELECT DISTINCT COUNT(*) AS cpt
-                      FROM `glpi_ipaddresses_ipnetworks`
-                      WHERE `glpi_ipaddresses_ipnetworks`.`ipnetworks_id` = '".$item->getID()."'";
-            $result = $DB->query($query);
-            $ligne  = $DB->fetch_assoc($result);
-            return $ligne['cpt'];
+            $result = $DB->request([
+               'COUNT'  => 'cpt',
+               'FROM'   => 'glpi_ipaddresses_ipnetworks',
+               'WHERE'  => [
+                  'ipnetworks_id'   => $item->getID()
+               ]
+            ])->next();
+            return $result['cpt'];
       }
    }
 
@@ -359,13 +352,13 @@ class IPAddress extends CommonDBChild {
     * If the field name is empty, then, the field is not set
     * If the object is not valid, then, version = 0, textual = "" and binary = (0, 0, 0, 0)
     *
-    * @param $array        array the array to Fill
-    * @param $versionField       the name of the key inside $array that contains de IP version number
-    * @param $textualField       the name of the key inside $array that contains de textual version
-    * @param $binaryField        the name of the key inside $array that contains de binary.
-    *                            Each element of the array is post-fixed by _i, with i the index
+    * @param array  $array         the array to Fill
+    * @param string $versionField  the name of the key inside $array that contains de IP version number
+    * @param string $textualField  the name of the key inside $array that contains de textual version
+    * @param string $binaryField   the name of the key inside $array that contains de binary.
+    *                              Each element of the array is post-fixed by _i, with i the index
     *
-    * @return result the array altered
+    * @return array the array altered
    **/
    function setArrayFromAddress(array $array, $versionField, $textualField, $binaryField) {
 
@@ -405,11 +398,11 @@ class IPAddress extends CommonDBChild {
     * \brief Fill the local address object from an array
     * Fill the local address object from an array. Usefull for reading $input
     *
-    * @param $array        array the array to Fill
-    * @param $versionField       the name of the key inside $array that contains de IP version number
-    * @param $textualField       the name of the key inside $array that contains de textual version
-    * @param $binaryField        the name of the key inside $array that contains de binary.
-    *                            Each element of the array is post-fixed by _i, with i the index
+    * @param array  $array         the array to Fill
+    * @param string $versionField  the name of the key inside $array that contains de IP version number
+    * @param string $textualField  the name of the key inside $array that contains de textual version
+    * @param string $binaryField   the name of the key inside $array that contains de binary.
+    *                              Each element of the array is post-fixed by _i, with i the index
     *
     * If the field name is empty, then, the field is not set
     *
@@ -492,9 +485,9 @@ class IPAddress extends CommonDBChild {
    /**
     * Transform an IPv4 address to IPv6
     *
-    * @param $address (bytes[4] or bytes) the address to transform.
+    * @param integer|integer[] $address (bytes[4] or bytes) the address to transform.
     *
-    * @return IPv6 mapped address
+    * @return integer[]|false IPv6 mapped address
    **/
    static function getIPv4ToIPv6Address($address) {
 
@@ -511,7 +504,7 @@ class IPAddress extends CommonDBChild {
    /**
     * Check an address to see if it is IPv4 mapped to IPv6 address
     *
-    * @param $address (bytes[4]) the address to check
+    * @param integer[] $address (bytes[4]) the address to check
     *
     * @return true if the address is IPv4 mapped to IPv6
    **/
@@ -530,7 +523,7 @@ class IPAddress extends CommonDBChild {
    /**
     * Replace textual representation by its canonical form.
     *
-    * @return nothing (internal class update)
+    * @return void
    **/
    function canonicalizeTextual() {
       $this->setAddressFromBinary($this->getBinary());
@@ -544,9 +537,9 @@ class IPAddress extends CommonDBChild {
     * try to find it inside the database and load it from database.
     * \warning The resulting binary form is created inside the current object
     *
-    * @param $address   string   textual (ie. human readable) address
-    * @param $itemtype           type of the item this address has to be attached (default '')
-    * @param $items_id           id of the item this address has to be attached (default -1)
+    * @param string  $address   textual (ie. human readable) address
+    * @param string  $itemtype  type of the item this address has to be attached (default '')
+    * @param integer $items_id  id of the item this address has to be attached (default -1)
     *
     * @return true if the address is valid.
    **/
@@ -567,14 +560,18 @@ class IPAddress extends CommonDBChild {
 
       if (!empty($itemtype)
           && ($items_id > 0)) {
-         $query = "SELECT `id`
-                   FROM `".$this->getTable()."`
-                   WHERE `items_id` = '$items_id'
-                         AND `itemtype` = '$itemtype'
-                         AND `name` = '$address'";
-         $result = $DB->query($query);
-         if ($DB->numrows($result) == 1) {
-            $line = $DB->fetch_assoc($result);
+         $iterator = $DB->request([
+            'SELECT' => 'id',
+            'FROM'   => $this->getTable(),
+            'WHERE'  => [
+               'items_id'  => $items_id,
+               'itemtype'  => $itemtype,
+               'name'      => $address
+            ]
+         ]);
+
+         if (count($iterator) == 1) {
+            $line = $iterator->next();
             if ($this->getFromDB($line["id"])) {
                return true;
             }
@@ -715,9 +712,9 @@ class IPAddress extends CommonDBChild {
     * one (ie : 2001:db8:0:85a3\::ac1f:8001 rather than 2001:0db8:0000:85a3:0000:0000:ac1f:8001)
     * \warning The resulting binary form is created inside the current object
     *
-    * @param $address   (bytes[4]) binary (ie. SQL requests) address
-    * @param $itemtype  type of the item this address has to be attached (default '')
-    * @param $items_id  id of the item this address has to be attached (default -1)
+    * @param integer[] $address   (bytes[4]) binary (ie. SQL requests) address
+    * @param string    $itemtype  type of the item this address has to be attached (default '')
+    * @param integer   $items_id  id of the item this address has to be attached (default -1)
     *
     * @return true if the address is valid.
    **/
@@ -730,17 +727,23 @@ class IPAddress extends CommonDBChild {
       }
       if (!empty($itemtype)
           && ($items_id > 0)) {
-         $query = "SELECT `id`
-                   FROM `".$this->getTable()."`
-                   WHERE `items_id` = '$items_id'
-                         AND `itemtype` = '$itemtype'";
+         $where = [
+            'itemtype'  => $itemtype,
+            'items_id'  => $items_id
+         ];
 
          for ($i = 0; $i < 4; ++$i) {
-            $query .= " AND `binary_".$i."` = '".$address[$i]."'";
+            $where["binary_$i"] = $address[$i];
          }
-         $result = $DB->query($query);
-         if ($DB->numrows($result) == 1) {
-            $line = $DB->fetch_assoc($result);
+
+         $iterator = $DB->request([
+            'SELECT' => 'id',
+            'FROM'   => $this->getTable(),
+            'WHERE'  => $where
+         ]);
+
+         if (count($iterator) == 1) {
+            $line = $iterator->next();
             if ($this->getFromDB($line["id"])) {
                return true;
             }
@@ -822,8 +825,8 @@ class IPAddress extends CommonDBChild {
    /**
     * \brief add value to the address for iterator on addresses
     *
-    * @param $address   (in and out) the address to increment or decrement
-    * @param $value     the value to add or remove. Must be betwwen -0xffffffff and +0xffffffff
+    * @param integer[] $address   (in and out) the address to increment or decrement
+    * @param integer   $value     the value to add or remove. Must be betwwen -0xffffffff and +0xffffffff
     *
     * @return true if the increment is valid
    **/
@@ -861,7 +864,7 @@ class IPAddress extends CommonDBChild {
     * working on integer with bit-wise boolean operations (&, |, ^, ~), the sign of the operand
     * remain inside the result. That make problem as IP address are only positiv ones.
     *
-    * @param $value the integer that we want the absolute value
+    * @param integer $value the integer that we want the absolute value
     *
     * @return float value that is the absolute of $value
     *
@@ -877,10 +880,10 @@ class IPAddress extends CommonDBChild {
    /**
     * Search IP Addresses
     *
-    * @param $IPaddress the address to search
+    * @param string $IPaddress  the address to search
     *
-    * @return (array) each value of the array (corresponding to one IPAddress) is an array of the
-    *                 items from the master item to the IPAddress
+    * @return array  each value of the array (corresponding to one IPAddress) is an array of the
+    *                items from the master item to the IPAddress
    **/
    static function getItemsByIPAddress($IPaddress) {
       global $DB;
@@ -895,16 +898,19 @@ class IPAddress extends CommonDBChild {
          return [];
       }
 
-      $query = "SELECT `gip`.`id`
-                FROM `glpi_ipaddresses` as gip
-                WHERE `gip`.`version` = '".$address->version."'\n";
+      $criteria = [
+         'SELECT' => 'gip.id',
+         'FROM'   => 'glpi_ipaddresses AS gip',
+         'WHERE'  => ['gip.version' => $address->version]
+      ];
       $startIndex = (($address->version == 4) ? 3 : 1);
       $binaryIP = $address->getBinary();
       for ($i = $startIndex; $i < 4; ++$i) {
-         $query .= "AND `gip`.`binary_$i` = '".$binaryIP[$i]."'";
+         $criteria['WHERE']["gip.binary_$i"] = $binaryIP[$i];
       }
+      $iterator = $DB->request($criteria);
       $addressesWithItems = [];
-      foreach ($DB->request($query) as $result) {
+      while ($result = $iterator->next()) {
          if ($address->getFromDB($result['id'])) {
             $addressesWithItems[] = array_merge(array_reverse($address->recursivelyGetItems()),
                                                 [clone $address]);
@@ -917,10 +923,10 @@ class IPAddress extends CommonDBChild {
    /**
     * Get an Object ID by its IP address (only if one result is found in the entity)
     *
-    * @param $value     the ip address
-    * @param $entity    the entity to look for
+    * @param string  $value   the ip address
+    * @param integer $entity  the entity to look for
     *
-    * @return an array containing the object ID
+    * @return array containing the object ID
     *         or an empty array is no value of serverals ID where found
    **/
    static function getUniqueItemByIPAddress($value, $entity) {
@@ -962,16 +968,17 @@ class IPAddress extends CommonDBChild {
    /**
     * Check if two addresses are equals
     *
-    * @param $ipaddress the ip address to check with this
+    * @param IPAddress|string|integer[] $ipaddress  the ip address to check with this
     *
-    * @return return true if and only if both addresses are binary equals.
+    * @return boolean true if and only if both addresses are binary equals.
    **/
    function equals($ipaddress) {
 
       // To normalise the address, just make new one
       $ipaddress = new self($ipaddress);
 
-      if ((count($this->binary) != 4)
+      if (!is_array($this->binary)
+          || (count($this->binary) != 4)
           || (count($ipaddress->binary) != 4)
           || ($this->version != $ipaddress->version)) {
          return false;
@@ -1045,112 +1052,168 @@ class IPAddress extends CommonDBChild {
           && ($item->getType() == 'IPNetwork')) {
 
          $queries = [];
+         $main_criteria = [
+            'SELECT'       => [
+               'ADDR.binary_0 AS binary_0',
+               'ADDR.binary_1 AS binary_1',
+               'ADDR.binary_2 AS binary_2',
+               'ADDR.binary_3 AS binary_3',
+               'ADDR.name AS ip',
+               'ADDR.id AS id',
+               'ADDR.itemtype AS addr_item_type',
+               'ADDR.items_id AS addr_item_id',
+               'glpi_entities.completename AS entity',
+            ],
+            'FROM'         => 'glpi_ipaddresses_ipnetworks AS LINK',
+            'INNER JOIN'   => [
+               'glpi_ipaddresses AS ADDR' => [
+                  'ON' => [
+                     'ADDR'   => 'id',
+                     'LINK'   => 'ipaddresses_id', [
+                        'AND' => [
+                           'ADDR.itemtype' => 'NetworkName',
+                           'ADDR.is_deleted' => 0
+                        ]
+                     ]
+                  ]
+               ]
+            ],
+            'LEFT JOIN'    => [
+               'glpi_entities'             => [
+                  'ON' => [
+                     'ADDR'            => 'entities_id',
+                     'glpi_entities'   => 'id'
+                  ]
+               ]
+            ],
+            'WHERE'        => [
+               'LINK.ipnetworks_id' => $item->getID(),
+            ]
+         ];
+
          foreach ($CFG_GLPI["networkport_types"] as $itemtype) {
             $table = getTableForItemType($itemtype);
-            $queries[] = "(SELECT ADDR.`binary_0` AS binary_0,
-                                  ADDR.`binary_1` AS binary_1,
-                                  ADDR.`binary_2` AS binary_2,
-                                  ADDR.`binary_3` AS binary_3,
-                                  ADDR.`name`     AS ip,
-                                  ADDR.`id`       AS id,
-                                  ADDR.`itemtype` AS addr_item_type,
-                                  ADDR.`items_id` AS addr_item_id,
-                                  `glpi_entities`.`completename` AS entity,
-                                  NAME.`id`       AS name_id,
-                                  PORT.`id`       AS port_id,
-                                  ITEM.`id`       AS item_id,
-                                  '$itemtype'     AS item_type
-                           FROM `glpi_ipaddresses_ipnetworks` AS LINK
-                           JOIN `glpi_ipaddresses` AS ADDR ON (ADDR.`id` = LINK.`ipaddresses_id`
-                                                               AND ADDR.`itemtype` = 'NetworkName'
-                                                               AND ADDR.`is_deleted` = '0')
-                           LEFT JOIN `glpi_entities` ON (ADDR.`entities_id` = `glpi_entities`.`id`)
-                           JOIN `glpi_networknames` AS NAME ON (NAME.`id` = ADDR.`items_id`
-                                                                AND NAME.`itemtype` = 'NetworkPort')
-                           JOIN `glpi_networkports` AS PORT ON (NAME.`items_id` = PORT.`id`
-                                                                AND PORT.`itemtype` = '$itemtype')
-                           JOIN `$table` AS ITEM ON (ITEM.`id` = PORT.`items_id`)
-                           WHERE LINK.`ipnetworks_id` = '".$item->getID()."')";
+            $criteria = $main_criteria;
+            $criteria['SELECT'] = array_merge($criteria['SELECT'], [
+               'NAME.id AS name_id',
+               'PORT.id AS port_id',
+               'ITEM.id AS item_id',
+               new \QueryExpression("'$itemtype' AS " . $DB->quoteName('item_type'))
+            ]);
+            $criteria['INNER JOIN'] = $criteria['INNER JOIN'] + [
+               'glpi_networknames AS NAME'   => [
+                  'ON' => [
+                     'NAME'   => 'id',
+                     'ADDR'   => 'items_id', [
+                        'AND' => [
+                           'NAME.itemtype' => 'NetworkPort'
+                        ]
+                     ]
+                  ]
+               ],
+               'glpi_networkports AS PORT'   => [
+                  'ON' => [
+                     'NAME'   => 'items_id',
+                     'PORT'   => 'id', [
+                        'AND' => [
+                           'PORT.itemtype' => $itemtype
+                        ]
+                     ]
+                  ]
+               ],
+               "$table AS ITEM"              => [
+                  'ON' => [
+                     'ITEM'   => 'id',
+                     'PORT'   => 'items_id'
+                  ]
+               ]
+            ];
+            $queries[] = $criteria;
          }
 
-         $queries[] = "(SELECT ADDR.`binary_0` AS binary_0,
-                               ADDR.`binary_1` AS binary_1,
-                               ADDR.`binary_2` AS binary_2,
-                               ADDR.`binary_3` AS binary_3,
-                               ADDR.`name`     AS ip,
-                               ADDR.`id`       AS id,
-                               ADDR.`itemtype` AS addr_item_type,
-                               ADDR.`items_id` AS addr_item_id,
-                               `glpi_entities`.`completename` AS entity,
-                               NAME.`id`       AS name_id,
-                               PORT.`id`       AS port_id,
-                               NULL            AS item_id,
-                               NULL            AS item_type
-                        FROM `glpi_ipaddresses_ipnetworks` AS LINK
-                        JOIN `glpi_ipaddresses` AS ADDR ON (ADDR.`id` = LINK.`ipaddresses_id`
-                                                            AND ADDR.`itemtype` = 'NetworkName'
-                                                            AND ADDR.`is_deleted` = '0')
-                        LEFT JOIN `glpi_entities` ON (ADDR.`entities_id` = `glpi_entities`.`id`)
-                        JOIN `glpi_networknames` AS NAME ON (NAME.`id` = ADDR.`items_id`
-                                                             AND NAME.`itemtype` = 'NetworkPort')
-                        JOIN `glpi_networkports` AS PORT
-                           ON (NAME.`items_id` = PORT.`id`
-                               AND PORT.`itemtype`
-                                    NOT IN ('" .implode("', '", $CFG_GLPI["networkport_types"])."'))
-                        WHERE LINK.`ipnetworks_id` = '".$item->getID()."')";
+         $criteria = $main_criteria;
+         $criteria['SELECT'] = array_merge($criteria['SELECT'], [
+            'NAME.id AS name_id',
+            'PORT.id AS port_id',
+            new \QueryExpression('NULL AS ' . $DB->quoteName('item_id')),
+            new \QueryExpression("NULL AS " . $DB->quoteName('item_type')),
+         ]);
+         $criteria['INNER JOIN'] = $criteria['INNER JOIN'] + [
+            'glpi_networknames AS NAME'   => [
+               'ON' => [
+                  'NAME'   => 'id',
+                  'ADDR'   => 'items_id', [
+                     'AND' => [
+                        'NAME.itemtype' => 'NetworkPort'
+                     ]
+                  ]
+               ]
+            ],
+            'glpi_networkports AS PORT'   => [
+               'ON' => [
+                  'NAME'   => 'items_id',
+                  'PORT'   => 'id', [
+                     'AND' => [
+                        'NOT' => [
+                           'PORT.itemtype' => $CFG_GLPI['networkport_types']
+                        ]
+                     ]
+                  ]
+               ]
+            ]
+         ];
+         $queries[] = $criteria;
 
-         $queries[] = "(SELECT ADDR.`binary_0` AS binary_0,
-                               ADDR.`binary_1` AS binary_1,
-                               ADDR.`binary_2` AS binary_2,
-                               ADDR.`binary_3` AS binary_3,
-                               ADDR.`name`     AS ip,
-                               ADDR.`id`       AS id,
-                               ADDR.`itemtype` AS addr_item_type,
-                               ADDR.`items_id` AS addr_item_id,
-                               `glpi_entities`.`completename` AS entity,
-                               NAME.`id`       AS name_id,
-                               NULL            AS port_id,
-                               NULL            AS item_id,
-                               NULL            AS item_type
-                        FROM `glpi_ipaddresses_ipnetworks` AS LINK
-                        JOIN `glpi_ipaddresses` AS ADDR ON (ADDR.`id` = LINK.`ipaddresses_id`
-                                                            AND ADDR.`itemtype` = 'NetworkName'
-                                                            AND ADDR.`is_deleted` = '0')
-                        LEFT JOIN `glpi_entities` ON (ADDR.`entities_id` = `glpi_entities`.`id`)
-                        JOIN `glpi_networknames` AS NAME ON (NAME.`id` = ADDR.`items_id`
-                                                             AND NAME.`itemtype` != 'NetworkPort')
-                        WHERE LINK.`ipnetworks_id` = '".$item->getID()."')";
+         $criteria = $main_criteria;
+         $criteria['SELECT'] = array_merge($criteria['SELECT'], [
+            'NAME.id AS name_id',
+            new \QueryExpression("NULL AS " . $DB->quoteName('port_id')),
+            new \QueryExpression('NULL AS ' . $DB->quoteName('item_id')),
+            new \QueryExpression("NULL AS " . $DB->quoteName('item_type'))
+         ]);
+         $criteria['INNER JOIN'] = $criteria['INNER JOIN'] + [
+            'glpi_networknames AS NAME'   => [
+               'ON' => [
+                  'NAME'   => 'id',
+                  'ADDR'   => 'items_id', [
+                     'AND' => [
+                        'NAME.itemtype' => ['!=', 'NetworkPort']
+                     ]
+                  ]
+               ]
+            ]
+         ];
+         $queries[] = $criteria;
 
-         $queries[] = "(SELECT ADDR.`binary_0` AS binary_0,
-                               ADDR.`binary_1` AS binary_1,
-                               ADDR.`binary_2` AS binary_2,
-                               ADDR.`binary_3` AS binary_3,
-                               ADDR.`name`     AS ip,
-                               ADDR.`id`       AS id,
-                               ADDR.`itemtype` AS addr_item_type,
-                               ADDR.`items_id` AS addr_item_id,
-                               `glpi_entities`.`completename` AS entity,
-                               NULL            AS name_id,
-                               NULL            AS port_id,
-                               NULL            AS item_id,
-                               NULL            AS item_type
-                        FROM `glpi_ipaddresses_ipnetworks` AS LINK
-                        JOIN `glpi_ipaddresses` AS ADDR ON (ADDR.`id` = LINK.`ipaddresses_id`
-                                                            AND ADDR.`itemtype` != 'NetworkName'
-                                                            AND ADDR.`is_deleted` = '0')
-                        LEFT JOIN `glpi_entities` ON (ADDR.`entities_id` = `glpi_entities`.`id`)
-                        WHERE LINK.`ipnetworks_id` = '".$item->getID()."')";
+         $criteria = $main_criteria;
+         $criteria['SELECT'] = array_merge($criteria['SELECT'], [
+            new \QueryExpression("NULL AS name_id"),
+            new \QueryExpression("NULL AS port_id"),
+            new \QueryExpression('NULL AS item_id'),
+            new \QueryExpression("NULL AS item_type")
+         ]);
+         $criteria['INNER JOIN']['glpi_ipaddresses AS ADDR']['ON'][0]['AND']['ADDR.itemtype'] = ['!=', 'NetworkName'];
+         $queries[] = $criteria;
 
-         $query = implode('UNION ', $queries);
+         $union = new \QueryUnion($queries);
+         $criteria = [
+            'FROM'   => $union,
+         ];
 
          if (($options['order'] == 'ip')
              || ($options['order'] == 'itemtype')) {
-            $query .= " ORDER BY binary_0, binary_1, binary_2, binary_3";
+            $criteria['ORDERBY'] = [
+               'binary_0',
+               'binary_1',
+               'binary_2',
+               'binary_3'
+            ];
          }
 
          if (isset($options['SQL_options'])) {
-            $query .= "\n".$options['SQL_options'];
+            $criteria = array_merge($criteria, $options['SQL_options']);
          }
+         $iterator = $DB->request($criteria);
 
          $canedit              = (isset($options['canedit']) && $options['canedit']);
          $options['createRow'] = false;
@@ -1161,8 +1224,7 @@ class IPAddress extends CommonDBChild {
          $networkport = new NetworkPort();
 
          $item = null;
-         foreach ($DB->request($query) as $line) {
-
+         while ($line = $iterator->next()) {
             unset($row);
 
             if (($options['order'] == 'itemtype')
@@ -1234,18 +1296,22 @@ class IPAddress extends CommonDBChild {
             $item = $father->getItem();
          }
 
-         $query                = "SELECT `id`
-                                  FROM `glpi_ipaddresses`
-                                  WHERE `items_id` = '" . $item->getID() . "'
-                                        AND `itemtype` = '" . $item->getType() . "'
-                                        AND `is_deleted` = '0'";
+         $iterator = $DB->request([
+            'SELECT' => 'id',
+            'FROM'   => self::getTable(),
+            'WHERE'  => [
+               'items_id'     => $item->getID(),
+               'itemtype'     => $item->getType(),
+               'is_deleted'   => 0
+            ]
+         ]);
 
          $canedit              = (isset($options['canedit']) && $options['canedit']);
          $createRow            = (isset($options['createRow']) && $options['createRow']);
          $options['createRow'] = false;
          $address              = new self();
 
-         foreach ($DB->request($query) as $ipaddress) {
+         while ($ipaddress = $iterator->next()) {
             if ($address->getFromDB($ipaddress['id'])) {
 
                if ($createRow) {

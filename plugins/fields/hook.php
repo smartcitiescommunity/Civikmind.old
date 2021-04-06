@@ -61,9 +61,10 @@ function plugin_fields_install() {
    echo "<td align='center'>";
 
    //load all classes
+   $dir  = PLUGINFIELDS_DIR . "/inc/";
+   include_once ("{$dir}toolbox.class.php");
    foreach ($classesToInstall as $class) {
       if ($plug = isPluginItemType($class)) {
-         $dir  = GLPI_ROOT . "/plugins/fields/inc/";
          $item = strtolower($plug['class']);
          if (file_exists("$dir$item.class.php")) {
             include_once ("$dir$item.class.php");
@@ -74,10 +75,9 @@ function plugin_fields_install() {
    //install
    foreach ($classesToInstall as $class) {
       if ($plug = isPluginItemType($class)) {
-         $dir  = GLPI_ROOT . "/plugins/fields/inc/";
          $item =strtolower($plug['class']);
          if (file_exists("$dir$item.class.php")) {
-            if (!call_user_func(array($class,'install'), $migration, $version)) {
+            if (!call_user_func([$class,'install'], $migration, $version)) {
                return false;
             }
          }
@@ -131,12 +131,12 @@ function plugin_fields_uninstall() {
    foreach ($classesToUninstall as $class) {
       if ($plug = isPluginItemType($class)) {
 
-         $dir  = GLPI_ROOT . "/plugins/fields/inc/";
+         $dir  = PLUGINFIELDS_DIR . "/inc/";
          $item = strtolower($plug['class']);
 
          if (file_exists("$dir$item.class.php")) {
             include_once ("$dir$item.class.php");
-            if (!call_user_func(array($class,'uninstall'))) {
+            if (!call_user_func([$class,'uninstall'])) {
                return false;
             }
          }
@@ -177,7 +177,7 @@ function plugin_fields_getDropdown() {
    $dropdowns = [];
 
    $field_obj = new PluginFieldsField;
-   $fields    = $field_obj->find("`type` = 'dropdown'");
+   $fields    = $field_obj->find(['type' => 'dropdown']);
    foreach ($fields as $field) {
       $field['itemtype'] = PluginFieldsField::getType();
       $label = PluginFieldsLabelTranslation::getLabelFor($field);
@@ -255,7 +255,7 @@ function plugin_fields_rule_matched($params = []) {
                          WHERE f.name = '$field'";
                $res = $DB->query($query);
                if ($DB->numrows($res) > 0) {
-                  $data = $DB->fetch_assoc($res);
+                  $data = $DB->fetchAssoc($res);
 
                   //retrieve computer
                   $agents_id = $params['input']['plugin_fusioninventory_agents_id'];
@@ -263,11 +263,11 @@ function plugin_fields_rule_matched($params = []) {
 
                   // update current field
                   $container->updateFieldsValues(
-                     array(
+                     [
                         'plugin_fields_containers_id' => $data['id'],
                         $field                        => $value,
                         'items_id'                    => $agent->fields['computers_id']
-                     ),
+                     ],
                      Computer::getType()
                   );
                }
@@ -301,7 +301,7 @@ function plugin_datainjection_populate_fields() {
    global $INJECTABLE_TYPES;
 
    $container = new PluginFieldsContainer();
-   $found     = $container->find("`is_active` = 1");
+   $found     = $container->find(['is_active' => 1]);
    foreach ($found as $id => $values) {
       $types = json_decode($values['itemtypes']);
 

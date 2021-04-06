@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 include ('../inc/includes.php');
 
 Session::checkRight("config", READ);
@@ -48,19 +44,14 @@ if (Session::haveRight("config", UPDATE)) {
 }
 echo "<tr class='tab_bg_1'><td class='center b'>";
 if (Toolbox::canUseLdap()) {
-   echo "<a href='authldap.php'>". _n('LDAP directory', 'LDAP directories', 2)."</a>";
+   echo "<a href='authldap.php'>". AuthLDAP::getTypeName(Session::getPluralNumber())."</a>";
 } else {
    echo "<p class='red'>".__("The LDAP extension of your PHP parser isn't installed") ."</p>";
    echo "<p>".__('Impossible to use LDAP as external source of connection').'</p>';
 }
 echo "</td></tr>";
 echo "<tr class='tab_bg_1'><td class='center b'>";
-if (Toolbox::canUseImapPop()) {
-   echo "<a href='authmail.php'>". _n('Mail server', 'Mail servers', 2)."</a>";
-} else {
-   echo "<p class='red'>".__('Your PHP parser was compiled without the IMAP functions') ."</p>";
-   echo "<p>".__('Impossible to use email server as external source of connection').'</p>';
-}
+echo "<a href='authmail.php'>". AuthMail::getTypeName(Session::getPluralNumber())."</a>";
 echo "</td> </tr>";
 echo "<tr class='tab_bg_1'><td class='center'>".
      "<a href='auth.others.php'>" . __('Others authentication methods') ."</a></td></tr>";

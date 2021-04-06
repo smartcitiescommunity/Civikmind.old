@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -29,10 +29,6 @@
  * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
  */
-
-/** @file
-* @brief
-*/
 
 include ('../inc/includes.php');
 
@@ -78,9 +74,9 @@ if (!isset($_GET["start"])) {
 $stat = new Stat();
 Stat::title();
 
-$requester = ['user'               => ['title' => __('Requester')],
+$requester = ['user'               => ['title' => _n('Requester', 'Requesters', 1)],
                    'users_id_recipient' => ['title' => __('Writer')],
-                   'group'              => ['title' => __('Group')],
+                   'group'              => ['title' => Group::getTypeName(1)],
                    'group_tree'         => ['title' => __('Group tree')],
                    'usertitles_id'      => ['title' => _x('person', 'Title')],
                    'usercategories_id'  => ['title' => __('Category')]];
@@ -90,28 +86,28 @@ $caract    = ['itilcategories_id'   => ['title' => __('Category')],
                    'urgency'             => ['title' => __('Urgency')],
                    'impact'              => ['title' => __('Impact')],
                    'priority'            => ['title' => __('Priority')],
-                   'solutiontypes_id'    => ['title' => __('Solution type')]];
+                   'solutiontypes_id'    => ['title' => SolutionType::getTypeName(1)]];
 
 if ($_GET['itemtype'] == 'Ticket') {
-   $caract['type']            = ['title' => __('Type')];
-   $caract['requesttypes_id'] = ['title' => __('Request source')];
-   $caract['locations_id']    = ['title' => __('Location')];
+   $caract['type']            = ['title' => _n('Type', 'Types', 1)];
+   $caract['requesttypes_id'] = ['title' => RequestType::getTypeName(1)];
+   $caract['locations_id']    = ['title' => Location::getTypeName(1)];
    $caract['locations_tree']  = ['title' => __('Location tree')];
 }
 
 
-$items = [__('Requester')       => $requester,
+$items = [_n('Requester', 'Requesters', 1)       => $requester,
                __('Characteristics') => $caract,
                __('Assigned to')     => ['technicien'
                                                    => ['title' => __('Technician as assigned')],
                                               'technicien_followup'
                                                    => ['title' => __('Technician in tasks')],
                                               'groups_id_assign'
-                                                   => ['title' => __('Group')],
+                                                   => ['title' => Group::getTypeName(1)],
                                               'groups_tree_assign'
                                                    => ['title' => __('Group tree')],
                                               'suppliers_id_assign'
-                                                   => ['title' => __('Supplier')]]];
+                                                   => ['title' => Supplier::getTypeName(1)]]];
 
 $values = [];
 foreach ($items as $label => $tab) {

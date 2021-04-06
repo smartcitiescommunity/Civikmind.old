@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -41,7 +37,7 @@ if (!defined('GLPI_ROOT')) {
 /**
  * NotificationTargetTicket Class
  *
- * @since version 0.85
+ * @since 0.85
 **/
 class NotificationTargetProjectTask extends NotificationTarget {
 
@@ -123,12 +119,17 @@ class NotificationTargetProjectTask extends NotificationTarget {
    function addTeamUsers() {
       global $DB;
 
-      $query = "SELECT `items_id`
-                FROM `glpi_projecttaskteams`
-                WHERE `glpi_projecttaskteams`.`itemtype` = 'User'
-                      AND `glpi_projecttaskteams`.`projecttasks_id` = '".$this->obj->fields["id"]."'";
+      $iterator = $DB->request([
+         'SELECT' => 'items_id',
+         'FROM'   => 'glpi_projecttaskteams',
+         'WHERE'  => [
+            'itemtype'        => 'User',
+            'projecttasks_id' => $this->obj->fields['id']
+         ]
+      ]);
+
       $user = new User;
-      foreach ($DB->request($query) as $data) {
+      while ($data = $iterator->next()) {
          if ($user->getFromDB($data['items_id'])) {
             $this->addToRecipientsList(['language' => $user->getField('language'),
                                             'users_id' => $user->getField('id')]);
@@ -147,11 +148,16 @@ class NotificationTargetProjectTask extends NotificationTarget {
    function addTeamGroups($manager) {
       global $DB;
 
-      $query = "SELECT `items_id`
-                FROM `glpi_projecttaskteams`
-                WHERE `glpi_projecttaskteams`.`itemtype` = 'Group'
-                      AND `glpi_projecttaskteams`.`projecttasks_id` = '".$this->obj->fields["id"]."'";
-      foreach ($DB->request($query) as $data) {
+      $iterator = $DB->request([
+         'SELECT' => 'items_id',
+         'FROM'   => 'glpi_projecttaskteams',
+         'WHERE'  => [
+            'itemtype'        => 'Group',
+            'projecttasks_id' => $this->obj->fields['id']
+         ]
+      ]);
+
+      while ($data = $iterator->next()) {
          $this->addForGroup($manager, $data['items_id']);
       }
    }
@@ -165,12 +171,17 @@ class NotificationTargetProjectTask extends NotificationTarget {
    function addTeamContacts() {
       global $DB, $CFG_GLPI;
 
-      $query = "SELECT `items_id`
-                FROM `glpi_projecttaskteams`
-                WHERE `glpi_projecttaskteams`.`itemtype` = 'Contact'
-                      AND `glpi_projecttaskteams`.`projecttasks_id` = '".$this->obj->fields["id"]."'";
+      $iterator = $DB->request([
+         'SELECT' => 'items_id',
+         'FROM'   => 'glpi_projecttaskteams',
+         'WHERE'  => [
+            'itemtype'        => 'Contact',
+            'projecttasks_id' => $this->obj->fields['id']
+         ]
+      ]);
+
       $contact = new Contact();
-      foreach ($DB->request($query) as $data) {
+      while ($data = $iterator->next()) {
          if ($contact->getFromDB($data['items_id'])) {
             $this->addToRecipientsList(["email"    => $contact->fields["email"],
                                             "name"     => $contact->getName(),
@@ -189,12 +200,17 @@ class NotificationTargetProjectTask extends NotificationTarget {
    function addTeamSuppliers() {
       global $DB, $CFG_GLPI;
 
-      $query = "SELECT `items_id`
-                FROM `glpi_projecttaskteams`
-                WHERE `glpi_projecttaskteams`.`itemtype` = 'Supplier'
-                      AND `glpi_projecttaskteams`.`projecttasks_id` = '".$this->obj->fields["id"]."'";
+      $iterator = $DB->request([
+         'SELECT' => 'items_id',
+         'FROM'   => 'glpi_projecttaskteams',
+         'WHERE'  => [
+            'itemtype'        => 'Supplier',
+            'projecttasks_id' => $this->obj->fields['id']
+         ]
+      ]);
+
       $supplier = new Supplier();
-      foreach ($DB->request($query) as $data) {
+      while ($data = $iterator->next()) {
          if ($supplier->getFromDB($data['items_id'])) {
             $this->addToRecipientsList(["email"    => $supplier->fields["email"],
                                             "name"     => $supplier->getName(),
@@ -292,8 +308,9 @@ class NotificationTargetProjectTask extends NotificationTarget {
       }
 
       // Team infos
-      $restrict = "`projecttasks_id` = '".$item->getField('id')."'";
-      $items    = getAllDatasFromTable('glpi_projecttaskteams', $restrict);
+      $restrict = ['projecttasks_id' => $item->getField('id')];
+      $order    = ['date DESC', 'id ASC'];
+      $items    = getAllDataFromTable('glpi_projecttaskteams', $restrict);
 
       $this->data['teammembers'] = [];
       if (count($items)) {
@@ -312,10 +329,12 @@ class NotificationTargetProjectTask extends NotificationTarget {
       $this->data['##projecttask.numberofteammembers##'] = count($this->data['teammembers']);
 
       // Task infos
-      $restrict             = "`projecttasks_id`='".$item->getField('id')."'";
-      $restrict            .= " ORDER BY `date` DESC, `id` ASC";
-
-      $tasks                = getAllDatasFromTable('glpi_projecttasks', $restrict);
+      $tasks                = getAllDataFromTable(
+         'glpi_projecttasks', [
+            'WHERE'  => $restrict,
+            'ORDER'  => $order
+         ]
+      );
       $this->data['tasks'] = [];
       foreach ($tasks as $task) {
          $tmp                            = [];
@@ -369,8 +388,7 @@ class NotificationTargetProjectTask extends NotificationTarget {
       $this->data["##projecttask.numberoflogs##"] = count($this->data['log']);
 
       // Tickets infos
-      $restrict = "`projecttasks_id`='".$item->getField('id')."'";
-      $tickets  = getAllDatasFromTable('glpi_projecttasks_tickets', $restrict);
+      $tickets  = getAllDataFromTable('glpi_projecttasks_tickets', $restrict);
 
       $this->data['tickets'] = [];
       if (count($tickets)) {
@@ -396,38 +414,46 @@ class NotificationTargetProjectTask extends NotificationTarget {
       $this->data['##projecttask.numberoftickets##'] = count($this->data['tickets']);
 
       // Document
-      $query = "SELECT `glpi_documents`.*
-                FROM `glpi_documents`
-                LEFT JOIN `glpi_documents_items`
-                  ON (`glpi_documents`.`id` = `glpi_documents_items`.`documents_id`)
-                WHERE `glpi_documents_items`.`itemtype` =  'ProjectTask'
-                      AND `glpi_documents_items`.`items_id` = '".$item->getField('id')."'";
+      $iterator = $DB->request([
+         'SELECT'    => 'glpi_documents.*',
+         'FROM'      => 'glpi_documents',
+         'LEFT JOIN' => [
+            'glpi_documents_items'  => [
+               'ON' => [
+                  'glpi_documents_items'  => 'documents_id',
+                  'glpi_documents'        => 'id'
+               ]
+            ]
+         ],
+         'WHERE'     => [
+            'glpi_documents_items.itemtype'  => 'ProjectTask',
+            'glpi_documents_items.items_id'  => $item->fields['id']
+         ]
+      ]);
 
       $this->data["documents"] = [];
-      if ($result = $DB->query($query)) {
-         while ($data = $DB->fetch_assoc($result)) {
-            $tmp                      = [];
-            $tmp['##document.id##']   = $data['id'];
-            $tmp['##document.name##'] = $data['name'];
-            $tmp['##document.weblink##']
-                                      = $data['link'];
+      while ($data = $iterator->next()) {
+         $tmp                      = [];
+         $tmp['##document.id##']   = $data['id'];
+         $tmp['##document.name##'] = $data['name'];
+         $tmp['##document.weblink##']
+                                    = $data['link'];
 
-            $tmp['##document.url##']  = $this->formatURL($options['additionnaloption']['usertype'],
-                                                         "document_".$data['id']);
-            $downloadurl              = "/front/document.send.php?docid=".$data['id'];
+         $tmp['##document.url##']  = $this->formatURL($options['additionnaloption']['usertype'],
+                                                      "document_".$data['id']);
+         $downloadurl              = "/front/document.send.php?docid=".$data['id'];
 
-            $tmp['##document.downloadurl##']
-                                      = $this->formatURL($options['additionnaloption']['usertype'],
-                                                         $downloadurl);
-            $tmp['##document.heading##']
-                                      = Dropdown::getDropdownName('glpi_documentcategories',
-                                                                  $data['documentcategories_id']);
+         $tmp['##document.downloadurl##']
+                                    = $this->formatURL($options['additionnaloption']['usertype'],
+                                                      $downloadurl);
+         $tmp['##document.heading##']
+                                    = Dropdown::getDropdownName('glpi_documentcategories',
+                                                               $data['documentcategories_id']);
 
-            $tmp['##document.filename##']
-                                      = $data['filename'];
+         $tmp['##document.filename##']
+                                    = $data['filename'];
 
-            $this->data['documents'][]     = $tmp;
-         }
+         $this->data['documents'][]     = $tmp;
       }
 
       $this->data["##projecttask.urldocument##"]
@@ -436,10 +462,6 @@ class NotificationTargetProjectTask extends NotificationTarget {
 
       $this->data["##projecttask.numberofdocuments##"]
                      = count($this->data['documents']);
-
-      // Items infos
-      $restrict = "`projects_id` = '".$item->getField('id')."'";
-      $items    = getAllDatasFromTable('glpi_items_projects', $restrict);
 
       $this->getTags();
       foreach ($this->tag_descriptions[NotificationTarget::TAG_LANGUAGE] as $tag => $values) {
@@ -455,7 +477,7 @@ class NotificationTargetProjectTask extends NotificationTarget {
       $tags_all = ['projecttask.url'                 => __('URL'),
                         'projecttask.action'              => _n('Event', 'Events', 1),
                         'projecttask.name'                => __('Name'),
-                        'projecttask.project'             => __('Project'),
+                        'projecttask.project'             => Project::getTypeName(1),
                         'projecttask.description'         => __('Description'),
                         'projecttask.comments'            => __('Comments'),
                         'projecttask.creationdate'        => __('Creation date'),
@@ -466,7 +488,7 @@ class NotificationTargetProjectTask extends NotificationTarget {
                         'projecttask.realenddate'         => __('Real end date'),
                         'projecttask.father'              => __('Father'),
                         'projecttask.createbyuser'        => __('Writer'),
-                        'projecttask.type'                => __('Type'),
+                        'projecttask.type'                => _n('Type', 'Types', 1),
                         'projecttask.state'               => _x('item', 'State'),
                         'projecttask.percent'             => __('Percent done'),
                         'projecttask.plannedduration'     => __('Planned duration'),
@@ -481,7 +503,7 @@ class NotificationTargetProjectTask extends NotificationTarget {
                         'task.comments'                   => __('Comments'),
                         'task.creationdate'               => __('Creation date'),
                         'task.lastupdatedate'             => __('Last update'),
-                        'task.type'                       => __('Type'),
+                        'task.type'                       => _n('Type', 'Types', 1),
                         'task.state'                      => _x('item', 'State'),
                         'task.percent'                    => __('Percent done'),
                         'task.planstartdate'              => __('Planned start date'),
@@ -493,11 +515,11 @@ class NotificationTargetProjectTask extends NotificationTarget {
                                                                      _x('quantity',
                                                                         'Number of items')),
                         'projecttask.log.date'            => sprintf(__('%1$s: %2$s'),
-                                                                     __('Historical'), __('Date')),
+                                                                     __('Historical'), _n('Date', 'Dates', 1)),
                         'projecttask.log.user'            => sprintf(__('%1$s: %2$s'),
-                                                                     __('Historical'), __('User')),
+                                                                     __('Historical'), User::getTypeName(1)),
                         'projecttask.log.field'           => sprintf(__('%1$s: %2$s'),
-                                                                     __('Historical'), __('Field')),
+                                                                     __('Historical'), _n('Field', 'Fields', 1)),
                         'projecttask.log.content'         => sprintf(__('%1$s: %2$s'),
                                                                      __('Historical'),
                                                                      _x('name', 'Update')),
@@ -512,39 +534,39 @@ class NotificationTargetProjectTask extends NotificationTarget {
       }
 
       //Tags without lang
-      $tags = ['ticket.id'               => sprintf(__('%1$s: %2$s'), __('Ticket'), __('ID')),
-                    'ticket.date'             => sprintf(__('%1$s: %2$s'), __('Ticket'), __('Date')),
-                    'ticket.url'              => sprintf(__('%1$s: %2$s'), __('Ticket'), ('URL')),
-                    'ticket.title'            => sprintf(__('%1$s: %2$s'), __('Ticket'),
+      $tags = ['ticket.id'               => sprintf(__('%1$s: %2$s'), Ticket::getTypeName(1), __('ID')),
+                    'ticket.date'             => sprintf(__('%1$s: %2$s'), Ticket::getTypeName(1), _n('Date', 'Dates', 1)),
+                    'ticket.url'              => sprintf(__('%1$s: %2$s'), Ticket::getTypeName(1), ('URL')),
+                    'ticket.title'            => sprintf(__('%1$s: %2$s'), Ticket::getTypeName(1),
                                                          __('Title')),
-                    'ticket.content'          => sprintf(__('%1$s: %2$s'), __('Ticket'),
+                    'ticket.content'          => sprintf(__('%1$s: %2$s'), Ticket::getTypeName(1),
                                                          __('Description')),
-                    'projecttask.projecturl'  => sprintf(__('%1$s: %2$s'), __('Project'), __('URL')),
-                    'document.url'            => sprintf(__('%1$s: %2$s'), __('Document'),
+                    'projecttask.projecturl'  => sprintf(__('%1$s: %2$s'), Project::getTypeName(1), __('URL')),
+                    'document.url'            => sprintf(__('%1$s: %2$s'), Document::getTypeName(1),
                                                          __('URL')),
-                    'document.downloadurl'    => sprintf(__('%1$s: %2$s'), __('Document'),
+                    'document.downloadurl'    => sprintf(__('%1$s: %2$s'), Document::getTypeName(1),
                                                          __('Download URL')),
-                    'document.heading'        => sprintf(__('%1$s: %2$s'), __('Document'),
+                    'document.heading'        => sprintf(__('%1$s: %2$s'), Document::getTypeName(1),
                                                          __('Heading')),
-                    'document.id'             => sprintf(__('%1$s: %2$s'), __('Document'), __('ID')),
-                    'document.filename'       => sprintf(__('%1$s: %2$s'), __('Document'),
+                    'document.id'             => sprintf(__('%1$s: %2$s'), Document::getTypeName(1), __('ID')),
+                    'document.filename'       => sprintf(__('%1$s: %2$s'), Document::getTypeName(1),
                                                          __('File')),
-                    'document.weblink'        => sprintf(__('%1$s: %2$s'), __('Document'),
-                                                         __('Web Link')),
-                    'document.name'           => sprintf(__('%1$s: %2$s'), __('Document'),
+                    'document.weblink'        => sprintf(__('%1$s: %2$s'), Document::getTypeName(1),
+                                                         __('Web link')),
+                    'document.name'           => sprintf(__('%1$s: %2$s'), Document::getTypeName(1),
                                                          __('Name')),
                     'projecttask.urldocument' => sprintf(__('%1$s: %2$s'),
-                                                         _n('Document', 'Documents', Session::getPluralNumber()), __('URL')),
+                                                         Document::getTypeName(Session::getPluralNumber()), __('URL')),
                     'projecttask.entity'      => sprintf(__('%1$s (%2$s)'),
-                                                         __('Entity'), __('Complete name')),
+                                                         Entity::getTypeName(1), __('Complete name')),
                     'projecttask.shortentity' => sprintf(__('%1$s (%2$s)'),
-                                                         __('Entity'), __('Name')),
+                                                         Entity::getTypeName(1), __('Name')),
                     'teammember.name'        => sprintf(__('%1$s: %2$s'),
                                                         _n('Team member', 'Team members', 1),
                                                         __('Name')),
                     'teammember.itemtype'    => sprintf(__('%1$s: %2$s'),
                                                         _n('Team member', 'Team members', 1),
-                                                        __('Type'))
+                                                        _n('Type', 'Types', 1))
                      ];
 
       foreach ($tags as $tag => $label) {
@@ -555,10 +577,10 @@ class NotificationTargetProjectTask extends NotificationTarget {
       }
 
       //Tags with just lang
-      $tags = ['projecttask.entity'   => __('Entity'),
+      $tags = ['projecttask.entity'   => Entity::getTypeName(1),
                     'projecttask.log'      => __('Historical'),
                     'projecttask.tasks'    => _n('Task', 'Tasks', Session::getPluralNumber()),
-                    'projecttask.team'     => __('Project team'),
+                    'projecttask.team'     => ProjectTeam::getTypeName(1),
                     'projecttask.tickets'  => _n('Ticket', 'Tickets', Session::getPluralNumber())];
 
       foreach ($tags as $tag => $label) {
@@ -581,58 +603,5 @@ class NotificationTargetProjectTask extends NotificationTarget {
                                    'foreach' => true]);
       }
       asort($this->tag_descriptions);
-   }
-
-   /**
-    * Add team users to the notified user list
-    *
-    * @deprecated 9.2 Use NotificationTargetProjectTask::addTeamUsers()
-    *
-    * @return void
-   **/
-   function getTeamUsers() {
-      Toolbox::deprecated('getTeamUsers() method is deprecated');
-      $this->addTeamUsers();
-   }
-
-
-   /**
-    * Add team groups to the notified user list
-    *
-    * @param integer $manager 0 all users, 1 only supervisors, 2 all users without supervisors
-    *
-    * @deprecated 9.2 Use NotificationTargetProjectTask::addTeamGroups()
-    *
-    * @return void
-   **/
-   function getTeamGroups($manager) {
-      Toolbox::deprecated('getTeamGroups() method is deprecated');
-      $this->addTeamGroups($manager);
-   }
-
-
-   /**
-    * Add team contacts to the notified user list
-    *
-    * @deprecated 9.2 Use NotificationTargetProjectTask::addTeamContacts()
-    *
-    * @return void
-   **/
-   function getTeamContacts() {
-      Toolbox::deprecated('getTeamContacts() method is deprecated');
-      $this->addTeamContacts();
-   }
-
-
-   /**
-    * Add team suppliers to the notified user list
-    *
-    * @deprecated 9.2 Use NotificationTargetProjectTask::addTeamSuppliers()
-    *
-    * @return void
-   **/
-   function getTeamSuppliers() {
-      Toolbox::deprecated('getTeamContacts() method is deprecated');
-      $this->addTeamSuppliers();
    }
 }

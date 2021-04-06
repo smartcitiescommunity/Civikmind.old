@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -44,6 +40,10 @@ class PeripheralType extends CommonDropdown {
 
    static function getTypeName($nb = 0) {
       return _n('Devices type', 'Devices types', $nb);
+   }
+
+   static function getFieldLabel() {
+      return _n('Type', 'Types', 1);
    }
 
 }

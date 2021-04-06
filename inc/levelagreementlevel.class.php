@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -58,7 +54,7 @@ abstract class LevelAgreementLevel extends RuleTicket {
 
 
    /**
-    * @since version 0.85
+    * @since 0.85
    **/
    static function getConditionsArray() {
       // Override ruleticket one
@@ -67,7 +63,7 @@ abstract class LevelAgreementLevel extends RuleTicket {
 
 
    /**
-    * @since version 0.84
+    * @since 0.84
    **/
    function getForbiddenStandardMassiveAction() {
 
@@ -82,7 +78,7 @@ abstract class LevelAgreementLevel extends RuleTicket {
    }
 
 
-   function getSearchOptionsNew() {
+   function rawSearchOptions() {
       $tab = [];
 
       $tab[] = [
@@ -96,14 +92,15 @@ abstract class LevelAgreementLevel extends RuleTicket {
          'field'              => 'name',
          'name'               => __('Name'),
          'datatype'           => 'itemlink',
-         'massiveaction'      => false
+         'massiveaction'      => false,
+         'autocomplete'       => true,
       ];
 
       $tab[] = [
          'id'                 => '3',
-         'table'              => Sla::getTable(),
+         'table'              => static::getTable(),
          'field'              => 'name',
-         'name'               => Sla::getTypeName(),
+         'name'               => static::getTypeName(),
          'datatype'           => 'itemlink',
          'massiveaction'      => false
       ];
@@ -140,7 +137,7 @@ abstract class LevelAgreementLevel extends RuleTicket {
          'id'                 => '80',
          'table'              => Entity::getTable(),
          'field'              => 'completename',
-         'name'               => __('Entity'),
+         'name'               => Entity::getTypeName(1),
          'massiveaction'      => false,
          'datatype'           => 'dropdown'
       ];
@@ -209,7 +206,7 @@ abstract class LevelAgreementLevel extends RuleTicket {
    }
 
    /**
-    * @since version 0.84
+    * @since 0.84
     *
     * @see RuleTicket::getCriterias()
    **/
@@ -233,9 +230,11 @@ abstract class LevelAgreementLevel extends RuleTicket {
 
 
    static function getExecutionTimes($options = []) {
-      $p['value']    = '';
-      $p['max_time'] = 4*DAY_TIMESTAMP;
-      $p['used']     = [];
+      $p = [
+         'value'    => '',
+         'max_time' => 4 * DAY_TIMESTAMP,
+         'used'     => [],
+      ];
 
       if (is_array($options) && count($options)) {
          foreach ($options as $key => $val) {
@@ -301,12 +300,16 @@ abstract class LevelAgreementLevel extends RuleTicket {
     *       - max_time : max time to use
     *       - used : already used values
     *
-    * @return nothing
+    * @return integer|string
+    *    integer if option display=true (random part of elements id)
+    *    string if option display=false (HTML code)
    **/
    static function dropdownExecutionTime($name, $options = []) {
-      $p['value']    = '';
-      $p['max_time'] = 4*DAY_TIMESTAMP;
-      $p['used']     = [];
+      $p = [
+         'value'    => '',
+         'max_time' => 4 * DAY_TIMESTAMP,
+         'used'     => [],
+      ];
 
       if (is_array($options) && count($options)) {
          foreach ($options as $key => $val) {
@@ -321,7 +324,6 @@ abstract class LevelAgreementLevel extends RuleTicket {
 
       $possible_values = self::getExecutionTimes($p);
 
-      $p['value'] = $p['value'];
       return Dropdown::showFromArray($name, $possible_values, $p);
    }
 
@@ -336,11 +338,17 @@ abstract class LevelAgreementLevel extends RuleTicket {
       global $DB;
 
       $result = [];
-      $query  = "SELECT DISTINCT `execution_time`
-                 FROM `".static::getTable()."`
-                 WHERE `".static::$fkparent."` = '$las_id';";
 
-      foreach ($DB->request($query) as $data) {
+      $iterator = $DB->request([
+         'SELECT'          => 'execution_time',
+         'DISTINCT'        => true,
+         'FROM'            => static::getTable(),
+         'WHERE'           => [
+            static::$fkparent => $las_id
+         ]
+      ]);
+
+      while ($data = $iterator->next()) {
          $result[$data['execution_time']] = $data['execution_time'];
       }
       return $result;

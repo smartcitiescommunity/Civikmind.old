@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -44,7 +44,7 @@ $savedsearch = new SavedSearch();
 if (isset($_POST["add"])) {
    //Add a new saved search
    $savedsearch->check(-1, CREATE, $_POST);
-   if ($newID = $savedsearch->add($_POST)) {
+   if ($savedsearch->add($_POST)) {
       if ($_SESSION['glpibackcreated']) {
          Html::redirect($savedsearch->getLinkURL());
       }
@@ -52,8 +52,8 @@ if (isset($_POST["add"])) {
    Html::back();
 } else if (isset($_POST["purge"])) {
    // delete a saved search
-   $savedsearch->check($_POST['id'], DELETE);
-   $ok = $savedsearch->delete($_POST, 1);
+   $savedsearch->check($_POST['id'], PURGE);
+   $savedsearch->delete($_POST, 1);
    $savedsearch->redirectToList();
 } else if (isset($_POST["update"])) {
    //update a saved search
@@ -65,7 +65,11 @@ if (isset($_POST["add"])) {
    $savedsearch->createNotif();
    Html::back();
 } else {//print computer information
-   Html::header(SavedSearch::getTypeName(Session::getPluralNumber()), $_SERVER['PHP_SELF'], "tools", "savedsearch");
+   if (Session::getCurrentInterface() == "helpdesk") {
+      Html::helpHeader(SavedSearch::getTypeName(Session::getPluralNumber()));
+   } else {
+      Html::header(SavedSearch::getTypeName(Session::getPluralNumber()), $_SERVER['PHP_SELF'], 'tools', 'savedsearch');
+   }
    //show computer form to add
    $savedsearch->display(['id' => $_GET["id"]]);
    Html::footer();

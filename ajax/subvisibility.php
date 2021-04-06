@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 // Direct access to file
 if (strpos($_SERVER['PHP_SELF'], "subvisibility.php")) {
    $AJAX_INCLUDE = 1;
@@ -59,11 +55,11 @@ if (isset($_POST['type']) && !empty($_POST['type'])
       case 'Profile' :
          $params = ['value' => $_SESSION['glpiactive_entity'],
                          'name'  => $prefix.'entities_id'.$suffix];
-         if (Session::isViewAllEntities()) {
+         if (Session::canViewAllEntities()) {
             $params['toadd'] = [-1 => __('No restriction')];
          }
          echo "<table class='tab_format'><tr><td>";
-         echo __('Entity');
+         echo Entity::getTypeName(1);
          echo "</td><td>";
          Entity::dropdown($params);
          echo "</td><td>";

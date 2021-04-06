@@ -9,7 +9,7 @@
  -------------------------------------------------------------------------
 
  LICENSE
-      
+
  This file is part of resources.
 
  resources is free software; you can redistribute it and/or modify
@@ -31,11 +31,13 @@ if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access directly to this file");
 }
 
+/**
+ * Class PluginResourcesEmploymentProfessionLine
+ */
 class PluginResourcesEmploymentProfessionLine extends CommonDropdown {
-   
+
    var $can_be_translated  = true;
    public $table ='glpi_plugin_resources_professionlines';
 
 }
 
-?>

@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 use Glpi\Event;
 
 include ('../inc/includes.php');
@@ -57,7 +53,7 @@ if (isset($_GET['lostpassword'])) {
 Session::checkLoginUser();
 
 if (isset($_POST["update"])
-    && ($_POST["id"] === Session::getLoginUserID())) {
+    && ($_POST["id"] == Session::getLoginUserID())) {
    $user->update($_POST);
    Event::log($_POST["id"], "users", 5, "setup",
               //TRANS: %s is the user login
@@ -65,7 +61,7 @@ if (isset($_POST["update"])
    Html::back();
 
 } else {
-   if ($_SESSION["glpiactiveprofile"]["interface"] == "central") {
+   if (Session::getCurrentInterface() == "central") {
       Html::header(Preference::getTypeName(1), $_SERVER['PHP_SELF'], 'preference');
    } else {
       Html::helpHeader(Preference::getTypeName(1), $_SERVER['PHP_SELF']);
@@ -74,7 +70,7 @@ if (isset($_POST["update"])
    $pref = new Preference();
    $pref->display(['main_class' => 'tab_cadre_fixe']);
 
-   if ($_SESSION["glpiactiveprofile"]["interface"] == "central") {
+   if (Session::getCurrentInterface() == "central") {
       Html::footer();
    } else {
       Html::helpFooter();

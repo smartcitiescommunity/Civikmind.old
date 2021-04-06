@@ -108,13 +108,16 @@ if($sel_ent == '' || $sel_ent == -1) {
 	$ent = implode(",",$entities);
 
 	$entidade = "WHERE entities_id IN (".$ent.") OR is_recursive = 1 ";
+	$entidade_and = "AND glpi_tickets.entities_id IN (".$ent.") ";
+	$entidade_pro = "AND glpi_problems.entities_id IN (".$ent.") ";
 	$entidade_age = "AND glpi_tickets.entities_id IN (".$ent.")";
-	$entidade1 = "";
-	
+	$entidade1 = "";	
 }
 
 else {
 	$entidade = "WHERE entities_id IN (".$sel_ent.") OR is_recursive = 1 ";
+	$entidade_and = "AND glpi_tickets.entities_id IN (".$sel_ent.") ";
+	$entidade_pro = "AND glpi_problems.entities_id IN (".$sel_ent.") ";
 	$entidade_age = "AND glpi_tickets.entities_id IN (".$sel_ent.")";
 }
 
@@ -182,7 +185,7 @@ $selected = $id_grp;
    <?php echo __('Tickets','dashboard') ." ". __('by Group','dashboard'); ?> 
 	<span style="color:#8b1a1a; font-size:35pt; font-weight:bold;"> </span> 
 </div>
-<div id="datas-tec" class="col-md-12 fluid" > 
+<div id="datas-tec" class="col-md-12 col-sm-12 fluid" > 
 	<form id="form1" name="form1" class="form2" method="post" action="?date1=<?php echo $data_ini ?>&date2=<?php echo $data_fin ?>&con=1"> 
 		<table border="0" cellspacing="0" cellpadding="1" bgcolor="#efefef">
 		<tr>
@@ -240,7 +243,10 @@ $selected = $id_grp;
 
 <?php
 
-$con = $_GET['con'];
+if(isset($_REQUEST['con'])) {
+	$con = $_REQUEST['con'];
+}
+else { $con = ''; }
 
 if($con == "1") {
 
@@ -271,12 +277,10 @@ else {
 }
 
 // nome do grupo
-
 $sql_nm = "
 SELECT id, name
 FROM `glpi_groups`
-WHERE id = ".$id_grp."
-";
+WHERE id = ".$id_grp." ";
 
 $result_nm = $DB->query($sql_nm);
 $grp_name = $DB->fetch_assoc($result_nm);
@@ -290,12 +294,12 @@ AND glpi_groups_tickets.`groups_id` = glpi_groups.id
 AND glpi_groups_tickets.`tickets_id` = glpi_tickets.id
 AND glpi_tickets.is_deleted = 0
 AND glpi_tickets.date ".$datas."
-";
+". $entidade_age ." ";
 
 $result_quant = $DB->query($query_quant);
 $total = $DB->fetch_assoc($result_quant);
 
-echo '<div id="entidade" class="col-md-12 fluid" >';
+echo '<div id="entidade" class="col-md-12 col-sm-12 fluid" >';
 echo $grp_name['name']." - <span> ".$total['total']." ".__('Tickets','dashboard')."</span>";
 echo "</div>";
  ?>

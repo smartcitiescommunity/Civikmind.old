@@ -9,7 +9,7 @@
  -------------------------------------------------------------------------
 
  LICENSE
-      
+
  This file is part of resources.
 
  resources is free software; you can redistribute it and/or modify
@@ -31,20 +31,43 @@ if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access directly to this file");
 }
 
+/**
+ * Class PluginResourcesLeavingReason
+ */
 class PluginResourcesLeavingReason extends CommonDropdown {
-   
+
    static $rightname = 'plugin_resources';
    var $can_be_translated  = true;
-   
-   static function getTypeName($nb=0) {
+
+   /**
+    * @since 0.85
+    *
+    * @param $nb
+    **/
+   static function getTypeName($nb = 0) {
 
       return _n('Leaving reason', 'Leaving reasons', $nb, 'resources');
    }
-   
+
+   /**
+    * Have I the global right to "create" the Object
+    * May be overloaded if needed (ex KnowbaseItem)
+    *
+    * @return booleen
+    **/
    static function canCreate() {
-      return Session::haveRight('dropdown',array(CREATE, UPDATE, DELETE));
+      return Session::haveRight('dropdown', [CREATE, UPDATE, DELETE]);
    }
 
+   /**
+    * Have I the global right to "view" the Object
+    *
+    * Default is true and check entity if the objet is entity assign
+    *
+    * May be overloaded if needed
+    *
+    * @return booleen
+    **/
    static function canView() {
       return Session::haveRight(self::$rightname, READ);
    }
@@ -69,12 +92,12 @@ class PluginResourcesLeavingReason extends CommonDropdown {
 
          if ($result=$DB->query($query)) {
             if ($DB->numrows($result)) {
-               $data = $DB->fetch_assoc($result);
+               $data = $DB->fetchAssoc($result);
                $data = Toolbox::addslashes_deep($data);
                $input['name'] = $data['name'];
                $input['entities_id']  = $entity;
                $temp = new self();
-               $newID    = $temp->getID($input);
+               $newID    = $temp->getID();
 
                if ($newID<0) {
                   $newID = $temp->import($input);
@@ -88,4 +111,3 @@ class PluginResourcesLeavingReason extends CommonDropdown {
    }
 }
 
-?>

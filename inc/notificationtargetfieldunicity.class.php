@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -29,10 +29,6 @@
  * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
  */
-
-/** @file
-* @brief
-*/
 
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
@@ -83,9 +79,9 @@ class NotificationTargetFieldUnicity extends NotificationTarget {
       $tags = ['unicity.message'     => __('Message'),
                     'unicity.action_user' => __('Doer'),
                     'unicity.action_type' => __('Intended action'),
-                    'unicity.date'        => __('Date'),
-                    'unicity.itemtype'    => __('Type'),
-                    'unicity.entity'      => __('Entity'),
+                    'unicity.date'        => _n('Date', 'Dates', 1),
+                    'unicity.itemtype'    => _n('Type', 'Types', 1),
+                    'unicity.entity'      => Entity::getTypeName(1),
                     'unicity.action'      => __('Alert on duplicate record')];
 
       foreach ($tags as $tag => $label) {

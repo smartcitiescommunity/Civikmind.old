@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -29,10 +29,6 @@
  * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
  */
-
-/** @file
-* @brief
-*/
 
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
@@ -61,7 +57,7 @@ abstract class CommonDevice extends CommonDropdown {
    /**
     * Get all the kind of devices available inside the system.
     *
-    * @since version 0.85
+    * @since 0.85
     *
     * @return array of the types of CommonDevice available
    **/
@@ -77,13 +73,18 @@ abstract class CommonDevice extends CommonDropdown {
     * Get the assiociated item_device associated with this device
     * This method can be override, for instance by the plugin
     *
-    * @since version 0.85
+    * @since 0.85
+    * @since 9.3 added the $devicetype parameter
+    *
+    * @param string $devicetype class name of device type, defaults to called class name
     *
     * @return array of the types of CommonDevice available
    **/
-   static function getItem_DeviceType() {
+   static function getItem_DeviceType($devicetype = null) {
 
-      $devicetype = get_called_class();
+      if (null === $devicetype) {
+         $devicetype = get_called_class();
+      }
       if ($plug = isPluginItemType($devicetype)) {
          return 'Plugin'.$plug['plugin'].'Item_'.$plug['class'];
       }
@@ -94,7 +95,7 @@ abstract class CommonDevice extends CommonDropdown {
    /**
     *  @see CommonGLPI::getMenuContent()
     *
-    *  @since version 0.85
+    *  @since 0.85
    **/
    static function getMenuContent() {
 
@@ -102,6 +103,7 @@ abstract class CommonDevice extends CommonDropdown {
       if (self::canView()) {
          $menu['title'] = static::getTypeName(Session::getPluralNumber());
          $menu['page']  = '/front/devices.php';
+         $menu['icon']  = self::getIcon();
 
          $dps = Dropdown::getDeviceItemTypes();
 
@@ -113,6 +115,13 @@ abstract class CommonDevice extends CommonDropdown {
                   $menu['options'][$key]['links']['search'] = $tmp->getSearchURL(false);
                   if ($tmp->canCreate()) {
                      $menu['options'][$key]['links']['add'] = $tmp->getFormURL(false);
+                  }
+                  if ($itemClass = getItemForItemtype(self::getItem_DeviceType($key))) {
+                     $itemTypeName = sprintf(__('%1$s items'), $key::getTypeName(1));
+
+                     $listLabel = '<i class="fa fa-list pointer" title="' . $itemTypeName . '"></i>'
+                        . '<span class="sr-only">' . $itemTypeName . '</span>';
+                     $menu['options'][$key]['links'][$listLabel] = $itemClass->getSearchURL(false);
                   }
                }
             }
@@ -126,7 +135,7 @@ abstract class CommonDevice extends CommonDropdown {
 
 
    /**
-    * @since version 0.85
+    * @since 0.85
     * @see CommonDropdown::displaySpecificTypeField()
    **/
    function displaySpecificTypeField($ID, $field = []) {
@@ -142,7 +151,7 @@ abstract class CommonDevice extends CommonDropdown {
    function getAdditionalFields() {
 
       return [['name'  => 'manufacturers_id',
-                         'label' => __('Manufacturer'),
+                         'label' => Manufacturer::getTypeName(1),
                          'type'  => 'dropdownValue']];
    }
 
@@ -152,9 +161,9 @@ abstract class CommonDevice extends CommonDropdown {
     *
     * Overloaded from CommonDBTM
     *
-    * @since version 0.85
+    * @since 0.85
     *
-    * @return booleen
+    * @return boolean
    **/
    function canUnrecurs() {
       global $DB;
@@ -174,13 +183,23 @@ abstract class CommonDevice extends CommonDropdown {
       $linktype  = static::getItem_DeviceType();
       $linktable = getTableForItemType($linktype);
 
-      $sql = "SELECT `itemtype`,
-                     GROUP_CONCAT(DISTINCT `items_id`) AS ids
-              FROM `$linktable`
-              WHERE `$linktable`.`".$this->getForeignKeyField()."` = '$ID'
-              GROUP BY `itemtype`";
+      $result = $DB->request(
+         [
+            'SELECT'    => [
+               'itemtype',
+               new QueryExpression('GROUP_CONCAT(DISTINCT ' . DBmysql::quoteName('items_id') . ') AS ids'),
+            ],
+            'FROM'      => $linktable,
+            'WHERE'     => [
+               $this->getForeignKeyField() => $ID,
+            ],
+            'GROUPBY'   => [
+               'itemtype',
+            ]
+         ]
+      );
 
-      foreach ($DB->request($sql) as $data) {
+      foreach ($result as $data) {
          if (!empty($data["itemtype"])) {
             $itemtable = getTableForItemType($data["itemtype"]);
             if ($item = getItemForItemtype($data["itemtype"])) {
@@ -198,7 +217,7 @@ abstract class CommonDevice extends CommonDropdown {
    }
 
 
-   function getSearchOptionsNew() {
+   function rawSearchOptions() {
       $tab = [];
 
       $tab[] = [
@@ -212,6 +231,16 @@ abstract class CommonDevice extends CommonDropdown {
          'field'              => 'designation',
          'name'               => __('Name'),
          'datatype'           => 'itemlink',
+         'massiveaction'      => false,
+         'autocomplete'       => true,
+      ];
+
+      $tab[] = [
+         'id'                 => '2',
+         'table'              => $this->getTable(),
+         'field'              => 'id',
+         'name'               => __('ID'),
+         'datatype'           => 'number',
          'massiveaction'      => false
       ];
 
@@ -219,7 +248,7 @@ abstract class CommonDevice extends CommonDropdown {
          'id'                 => '23',
          'table'              => 'glpi_manufacturers',
          'field'              => 'name',
-         'name'               => __('Manufacturer'),
+         'name'               => Manufacturer::getTypeName(1),
          'datatype'           => 'dropdown'
       ];
 
@@ -253,7 +282,7 @@ abstract class CommonDevice extends CommonDropdown {
          'id'                 => '80',
          'table'              => 'glpi_entities',
          'field'              => 'completename',
-         'name'               => __('Entity'),
+         'name'               => Entity::getTypeName(1),
          'datatype'           => 'dropdown'
       ];
 
@@ -274,7 +303,7 @@ abstract class CommonDevice extends CommonDropdown {
 
 
    /**
-    * @since version 0.84
+    * @since 0.84
     *
     * @see CommonDBTM::getNameField
     *
@@ -286,7 +315,7 @@ abstract class CommonDevice extends CommonDropdown {
 
 
    /**
-    * @since version 0.84
+    * @since 0.84
     * get the HTMLTable Header for the current device according to the type of the item that
     * is requesting
     *
@@ -299,7 +328,7 @@ abstract class CommonDevice extends CommonDropdown {
     *                            (default NULL)
     * @param $options   array    parameter such as restriction
     *
-    * @return nothing (elements added to $base)
+    * @return HTMLTableHeader
    **/
    static function getHTMLTableHeader($itemtype, HTMLTableBase $base,
                                       HTMLTableSuperHeader $super = null,
@@ -318,7 +347,7 @@ abstract class CommonDevice extends CommonDropdown {
       }
 
       $linktype = static::getItem_DeviceType();
-      if (in_array($itemtype, $linktype::itemAffinity())) {
+      if (in_array($itemtype, $linktype::itemAffinity()) || in_array('*', $linktype::itemAffinity())) {
          $column = $base->addHeader('device', $content, $super, $father);
          $column->setItemType($this_type,
                               isset($options['itemtype_title']) ? $options['itemtype_title'] : '');
@@ -332,7 +361,7 @@ abstract class CommonDevice extends CommonDropdown {
 
 
    /**
-    * @since version 0.84
+    * @since 0.84
     *
     * @warning note the difference between getHTMLTableCellForItem and getHTMLTableCellsForItem
     *
@@ -343,8 +372,6 @@ abstract class CommonDevice extends CommonDropdown {
    **/
    function getHTMLTableCellForItem(HTMLTableRow $row = null, CommonDBTM $item = null,
                                     HTMLTableCell $father = null, array $options = []) {
-
-      global $CFG_GLPI;
 
       $this_type = $this->getType();
 
@@ -375,7 +402,7 @@ abstract class CommonDevice extends CommonDropdown {
       }
 
       $linktype = static::getItem_DeviceType();
-      if (in_array($item->getType(), $linktype::itemAffinity())) {
+      if (in_array($item->getType(), $linktype::itemAffinity()) || in_array('*', $linktype::itemAffinity())) {
          $cell = $row->addCell($row->getHeaderByName('common', 'device'),
                                $content, $father, $this);
       } else {
@@ -392,7 +419,7 @@ abstract class CommonDevice extends CommonDropdown {
     *
     * @param $input array of datas
     *
-    * @return interger ID of existing or new Device
+    * @return integer ID of existing or new Device
    **/
    function import(array $input) {
       global $DB;
@@ -407,26 +434,30 @@ abstract class CommonDevice extends CommonDropdown {
             $compare = explode(':', $compare);
             switch ($compare[0]) {
                case 'equal':
-                  $where[] = "`".$field."`='".$input[$field]."'";
+                  $where[$field] = $input[$field];
                   break;
 
                case 'delta':
-                  $where[] = "`".$field."`>'".($input[$field] - $compare[1])."'";
-                  $where[] = "`".$field."`<'".($input[$field] + $compare[1])."'";
+                  $where[] = [
+                     [$field => ['>', ((int) $input[$field] - (int) $compare[1])]],
+                     [$field => ['<', ((int) $input[$field] + (int) $compare[1])]]
+                  ];
                   break;
             }
          }
       }
 
-      $query = "SELECT `id`
-                FROM `".$this->getTable()."`
-                WHERE ".  implode(" AND ", $where);
+      $iterator = $DB->request([
+         'SELECT' => ['id'],
+         'FROM'   => $this->getTable(),
+         'WHERE'  => $where
+      ]);
 
-      $result = $DB->query($query);
-      if ($DB->numrows($result) > 0) {
-         $line = $DB->fetch_assoc($result);
+      if (count($iterator) > 0) {
+         $line = $iterator->next();
          return $line['id'];
       }
+
       return $this->add($input);
    }
 
@@ -434,7 +465,7 @@ abstract class CommonDevice extends CommonDropdown {
    /**
     * Criteria used for import function
     *
-    * @since version 0.84
+    * @since 0.84
    **/
    function getImportCriteria() {
 
@@ -446,12 +477,13 @@ abstract class CommonDevice extends CommonDropdown {
    /**
     * @see CommonDropdown::defineTabs()
     *
-    * @since version 0.85
+    * @since 0.85
     */
    function defineTabs($options = []) {
 
       $ong = [];
       $this->addDefaultFormTab($ong);
+      $this->addImpactTab($ong, $options);
       $this->addStandardTab(static::getItem_DeviceType(), $ong, $options);
       $this->addStandardTab('Document_Item', $ong, $options);
       $this->addStandardTab('Log', $ong, $options);
@@ -461,7 +493,7 @@ abstract class CommonDevice extends CommonDropdown {
 
 
    /**
-    * @since version 0.85
+    * @since 0.85
    **/
    function post_workOnItem() {
 
@@ -501,7 +533,7 @@ abstract class CommonDevice extends CommonDropdown {
 
 
    /**
-    * @since version 0.85
+    * @since 0.85
     * @see CommonDBTM::post_addItem()
    **/
    function post_addItem() {
@@ -512,7 +544,7 @@ abstract class CommonDevice extends CommonDropdown {
 
 
    /**
-    * @since version 0.85
+    * @since 0.85
     * @see CommonDBTM::post_updateItem()
    **/
    function post_updateItem($history = 1) {
@@ -539,5 +571,10 @@ abstract class CommonDevice extends CommonDropdown {
       $link = "$dir/front/device.php?itemtype=$itemtype";
 
       return $link;
+   }
+
+
+   static function getIcon() {
+      return "far fa-square";
    }
 }

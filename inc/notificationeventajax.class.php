@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -72,7 +72,7 @@ class NotificationEventAjax extends NotificationEventAbstract implements Notific
 
 
    static public function send(array $data) {
-      Toolbox::logDebug(__METHOD__ . ' should not be called!');
+      Toolbox::logError(__METHOD__ . ' should not be called!');
       return false;
    }
 }

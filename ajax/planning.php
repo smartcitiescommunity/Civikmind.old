@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 include ('../inc/includes.php');
 
 Session::checkCentralAccess();
@@ -51,6 +47,36 @@ if ($_REQUEST["action"] == "get_events") {
 if ($_REQUEST["action"] == "update_event_times") {
    echo Planning::updateEventTimes($_REQUEST);
    exit;
+}
+
+if ($_REQUEST["action"] == "view_changed") {
+   echo Planning::viewChanged($_REQUEST['view']);
+   exit;
+}
+
+if ($_REQUEST["action"] == "clone_event") {
+   echo Planning::cloneEvent($_REQUEST['event']);
+   exit;
+}
+
+if ($_REQUEST["action"] == "delete_event") {
+   echo Planning::deleteEvent($_REQUEST['event']);
+   exit;
+}
+
+if ($_REQUEST["action"] == "get_externalevent_template") {
+   $key = 'planningexternaleventtemplates_id';
+   if (isset($_POST[$key])
+       && $_POST[$key] > 0) {
+      $template = new PlanningExternalEventTemplate();
+      $template->getFromDB($_POST[$key]);
+
+      $template->fields = array_map('html_entity_decode', $template->fields);
+      $template->fields['rrule'] = json_decode($template->fields['rrule'], true);
+      header("Content-Type: application/json; charset=UTF-8");
+      echo json_encode($template->fields, JSON_NUMERIC_CHECK);
+      exit;
+   }
 }
 
 Html::header_nocache();
@@ -80,6 +106,10 @@ if ($_REQUEST["action"] == "add_group_form") {
    Planning::showAddGroupForm();
 }
 
+if ($_REQUEST["action"] == "add_external_form") {
+   Planning::showAddExternalForm();
+}
+
 if ($_REQUEST["action"] == "add_event_classic_form") {
    Planning::showAddEventClassicForm($_REQUEST);
 }
@@ -105,4 +135,3 @@ if ($_REQUEST["action"] == "delete_filter") {
 }
 
 Html::ajaxFooter();
-

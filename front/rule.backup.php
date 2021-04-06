@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,9 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
- * @brief
- * @since version 0.85
-*/
+/**
+ * @since 0.85
+ */
 
 include ("../inc/includes.php");
 
@@ -78,7 +77,8 @@ switch ($action) {
 
    case "download":
       echo "<div class='center'>";
-      echo "<a href='".Toolbox::getItemTypeSearchURL($_REQUEST['itemtype'])."'>".__('Back')."</a>";
+      $itemtype = $_REQUEST['itemtype'];
+      echo "<a href='".$itemtype::getSearchURL()."'>".__('Back')."</a>";
       echo "</div>";
       Html::redirect("rule.backup.php?action=export&itemtype=".$_REQUEST['itemtype']);
       break;

@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -46,13 +42,13 @@ class DevicePci extends CommonDevice {
    static protected $forward_entity_to = ['Item_DevicePci', 'Infocom'];
 
    static function getTypeName($nb = 0) {
-      return _n('Other component', 'Other components', $nb);
+      return _n('PCI device', 'PCI devices', $nb);
    }
 
 
    /**
     * @see CommonDevice::getAdditionalFields()
-    * @since version 0.85
+    * @since 0.85
     */
    function getAdditionalFields() {
 
@@ -63,24 +59,46 @@ class DevicePci extends CommonDevice {
                                                                                     '_registeredID',
                                                                                     null, false),
                                      'type'  => 'registeredIDChooser'],
-                         ['name'  => 'devicenetworkcardmodels_id',
-                                     'label' => __('Model'),
+                         ['name'  => 'devicepcimodels_id',
+                                     'label' => _n('Model', 'Models', 1),
                                      'type'  => 'dropdownValue']]);
    }
 
-   function getSearchOptionsNew() {
+   function rawSearchOptions() {
 
-      $tab                 = parent::getSearchOptionsNew();
+      $tab                 = parent::rawSearchOptions();
 
       $tab[] = [
          'id'                 => '17',
          'table'              => 'glpi_devicepcimodels',
          'field'              => 'name',
-         'name'               => __('Model'),
+         'name'               => _n('Model', 'Models', 1),
          'datatype'           => 'dropdown'
       ];
 
       return $tab;
    }
 
+   public static function rawSearchOptionsToAdd($itemtype, $main_joinparams) {
+      $tab = [];
+
+      $tab[] = [
+         'id'                 => '95',
+         'table'              => 'glpi_devicepcis',
+         'field'              => 'designation',
+         'name'               => __('Other component'),
+         'forcegroupby'       => true,
+         'usehaving'          => true,
+         'massiveaction'      => false,
+         'datatype'           => 'string',
+         'joinparams'         => [
+            'beforejoin'         => [
+               'table'              => 'glpi_items_devicepcis',
+               'joinparams'         => $main_joinparams
+            ]
+         ]
+      ];
+
+      return $tab;
+   }
 }

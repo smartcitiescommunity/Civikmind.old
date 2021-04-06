@@ -62,7 +62,6 @@ $sel_ent = $DB->result($result_e,0,'value');
 
 if($sel_ent == '' || $sel_ent == -1) {
 	//get user entities
-	//$entities = Profile_User::getUserEntities($_SESSION['glpiID'], true);
 	$entities = $_SESSION['glpiactiveentities'];
 	$ent = implode(",",$entities);
 
@@ -84,7 +83,10 @@ else {
 				<table border="0" cellspacing="0" cellpadding="0">
 					<tr>
 					<td style="width: 300px;">			
-					<?php			    
+					<?php	
+					$url = $_SERVER['REQUEST_URI'];
+					$arr_url = explode("?", $url);
+					$url2 = $arr_url[0];					
 					echo'
 					<table style="margin-top:6px;" border=0>
 						<tr>
@@ -127,9 +129,8 @@ else {
 			<?php Html::closeForm(); ?>
 			<!-- </form> -->
 			</div>
-
-</div>
-</div>
+	</div>
+	</div>
 </div>
 
 <div id="graf1" class="fluid">

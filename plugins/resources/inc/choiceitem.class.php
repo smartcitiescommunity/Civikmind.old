@@ -9,7 +9,7 @@
  -------------------------------------------------------------------------
 
  LICENSE
-      
+
  This file is part of resources.
 
  resources is free software; you can redistribute it and/or modify
@@ -28,47 +28,80 @@
  */
 
 if (!defined('GLPI_ROOT')) {
-	die("Sorry. You can't access directly to this file");
+    die("Sorry. You can't access directly to this file");
 }
 
+/**
+ * Class PluginResourcesChoiceItem
+ */
 class PluginResourcesChoiceItem extends CommonTreeDropdown {
-   
-   static function getTypeName($nb=0) {
+
+   /**
+    * @since 0.85
+    *
+    * @param $nb
+    **/
+   static function getTypeName($nb = 0) {
 
       return _n('Type of need', 'Types of need', $nb, 'resources');
    }
-      
+
+   /**
+    * Have I the global right to "view" the Object
+    *
+    * Default is true and check entity if the objet is entity assign
+    *
+    * May be overloaded if needed
+    *
+    * @return booleen
+    **/
    static function canView() {
       return Session::haveRight('plugin_resources', READ);
    }
 
+   /**
+    * Have I the global right to "create" the Object
+    * May be overloaded if needed (ex KnowbaseItem)
+    *
+    * @return booleen
+    **/
    static function canCreate() {
-      return Session::haveRightsOr('dropdown', array(CREATE, UPDATE, DELETE));
+      return Session::haveRightsOr('dropdown', [CREATE, UPDATE, DELETE]);
    }
-   
+
+   /**
+    * Return Additional Fileds for this type
+    **/
    function getAdditionalFields() {
 
-      return array(array('name'  => $this->getForeignKeyField(),
-                         'label' => __('As child of'),
-                         'type'  => 'parent',
-                         'list'  => false),
-                     array('name'  => 'is_helpdesk_visible',
-                         'label' => __('Last update'),
-                         'type'  => 'bool',
-                         'list'  => true));
+      return [['name'  => $this->getForeignKeyField(),
+               'label' => __('As child of'),
+               'type'  => 'parent',
+               'list'  => false],
+              ['name'  => 'is_helpdesk_visible',
+               'label' => __('Visible in the simplified interface'),
+               'type'  => 'bool',
+               'list'  => true]];
    }
-   
-   function getSearchOptions () {
-      
-      $tab = parent::getSearchOptions();
-      
-      $tab[11]['table']    = $this->getTable();
-      $tab[11]['field']    = 'is_helpdesk_visible';
-      $tab[11]['name']     = __('Last update');
-      $tab[11]['datatype'] = 'bool';
+
+   /**
+    * Get search function for the class
+    *
+    * @return array of search option
+    **/
+   function rawSearchOptions () {
+
+      $tab = parent::rawSearchOptions();
+
+      $tab[] = [
+         'id'         => '11',
+         'table'      => $this->getTable(),
+         'field'      => 'is_helpdesk_visible',
+         'name'       => __('Visible in the simplified interface'),
+         'datatype'   => 'bool'
+      ];
 
       return $tab;
    }
 }
 
-?>

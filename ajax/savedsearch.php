@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -42,7 +42,7 @@ if (isset($_POST["name"])) {
    //Add a new saved search
    header("Content-Type: application/json; charset=UTF-8");
    $savedsearch->check(-1, CREATE, $_POST);
-   if ($newID = $savedsearch->add($_POST)) {
+   if ($savedsearch->add($_POST)) {
       Session::addMessageAfterRedirect(
          __('Search has been saved'),
          false,
@@ -71,6 +71,10 @@ if (isset($_GET['mark_default'])
    }
    //to refresh slidepanel
    $_GET['action'] = 'show';
+}
+
+if (!isset($_GET['action'])) {
+   return;
 }
 
 if ($_GET['action'] == 'reorder') {

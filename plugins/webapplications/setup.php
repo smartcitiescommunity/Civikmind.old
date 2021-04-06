@@ -9,7 +9,7 @@
  -------------------------------------------------------------------------
 
  LICENSE
-      
+
  This file is part of webapplications.
 
  webapplications is free software; you can redistribute it and/or modify
@@ -27,73 +27,38 @@
  --------------------------------------------------------------------------
  */
 
+define('PLUGIN_WEBAPPLICATIONS_VERSION', '3.0.0');
+
 // Init the hooks of the plugins -Needed
 function plugin_init_webapplications() {
    global $PLUGIN_HOOKS;
 
-   $PLUGIN_HOOKS['csrf_compliant']['webapplications'] = true;
-   //load changeprofile function
-   $PLUGIN_HOOKS['change_profile']['webapplications']   = array('PluginWebapplicationsProfile',
-                                                                'initProfile');
-   $PLUGIN_HOOKS['assign_to_ticket']['webapplications'] = true;
+   $PLUGIN_HOOKS['csrf_compliant']['webapplications']   = true;
 
-   if (class_exists('PluginWebapplicationsWebapplication_Item')) { // only if plugin activated
-      $PLUGIN_HOOKS['plugin_datainjection_populate']['webapplications']
-         = 'plugin_datainjection_populate_webapplications';
-   }
+   $PLUGIN_HOOKS['change_profile']['webapplications']   = ['PluginWebapplicationsProfile',
+      'initProfile'];
 
-   // Params : plugin name - string type - number - class - table - form page
-   Plugin::registerClass('PluginWebapplicationsWebapplication',
-                         array('linkgroup_tech_types'   => true,
-                               'linkuser_tech_types'    => true,
-                               'document_types'         => true,
-                               'contract_types'         => true,
-                               'ticket_types'           => true,
-                               'helpdesk_visible_types' => true,
-                               'link_types'             => true,
-                               'addtabon'               => 'Supplier'));
-
-   if (class_exists('PluginWebapplicationsWebapplication')) {
-      Link::registerTag(PluginWebapplicationsWebapplication::$tags);
-   }
-   Plugin::registerClass('PluginWebapplicationsProfile', array('addtabon' => array('Profile')));
-
-   if (class_exists('PluginAccountsAccount')) {
-      PluginAccountsAccount::registerType('PluginWebapplicationsWebapplication');
-   }
-
-   if (class_exists('PluginCertificatesCertificate')) {
-      PluginCertificatesCertificate::registerType('PluginWebapplicationsWebapplication');
-   }
+   Plugin::registerClass('PluginWebapplicationsProfile', ['addtabon' => ['Profile']]);
 
    //if glpi is loaded
    if (Session::getLoginUserID()) {
 
-      //if environment plugin is installed
-      $plugin = new Plugin();
-      if (!$plugin->isActivated('environment')
-          && Session::haveRight("plugin_webapplications", READ)) {
-
-         $PLUGIN_HOOKS['menu_toadd']['webapplications'] = array('assets' => 'PluginWebapplicationsMenu');
-      }
-
-      if (Session::haveRight("plugin_webapplications", UPDATE)) {
-         $PLUGIN_HOOKS['use_massive_action']['webapplications'] = 1;
-      }
-
       if (Session::haveRight("plugin_webapplications", READ)
           || Session::haveRight("config", UPDATE)) {
+         $PLUGIN_HOOKS['config_page']['webapplications']        = 'front/webapplication.php';
       }
-
-      // Import from Data_Injection plugin
-      //      $PLUGIN_HOOKS['migratetypes']['webapplications']
-      //                                   = 'plugin_datainjection_migratetypes_webapplications';
-      $PLUGIN_HOOKS['plugin_pdf']['PluginWebapplicationsWebapplication']
-         = 'PluginWebapplicationsWebapplicationPDF';
    }
 
-   // End init, when all types are registered
-   $PLUGIN_HOOKS['post_init']['webapplications'] = 'plugin_webapplications_postinit';
+   $PLUGIN_HOOKS['post_item_form']['webapplications'] = ['PluginWebapplicationsAppliance', 'addFields'];
+
+   $PLUGIN_HOOKS['item_purge']['webapplications']['Appliance'] = ['PluginWebapplicationsAppliance', 'cleanRelationToAppliance'];
+
+   // Other fields inherited from webapplications
+   $PLUGIN_HOOKS['item_add']['webapplications']       = ['Appliance' => ['PluginWebapplicationsAppliance',
+                                                                         'applianceAdd']];
+
+   $PLUGIN_HOOKS['pre_item_update']['webapplications'] = ['Appliance' => ['PluginWebapplicationsAppliance',
+                                                                          'applianceUpdate']];
 }
 
 
@@ -104,13 +69,19 @@ function plugin_init_webapplications() {
  */
 function plugin_version_webapplications() {
 
-   return array('name'           => _n('Web application', 'Web applications', 2, 'webapplications'),
-                'version'        => '2.4.0',
+   return ['name'           => _n('Web application', 'Web applications', 2, 'webapplications'),
+                'version'        => PLUGIN_WEBAPPLICATIONS_VERSION,
                 'license'        => 'GPLv2+',
                 'oldname'        => 'appweb',
-                'author'         => "<a href='http://infotel.com/services/expertise-technique/glpi/'>Infotel</a>",
+                'author'         => "<a href='http://blogglpi.infotel.com'>Infotel</a>",
                 'homepage'       => 'https://github.com/InfotelGLPI/webapplications',
-                'minGlpiVersion' => '9.2');
+                'requirements'   => [
+                  'glpi' => [
+                     'min' => '9.5',
+                     'dev' => false
+                  ]
+               ]
+            ];
 }
 
 
@@ -120,11 +91,14 @@ function plugin_version_webapplications() {
  * @return bool
  */
 function plugin_webapplications_check_prerequisites() {
-
-   if (version_compare(GLPI_VERSION, '9.2', 'lt') || version_compare(GLPI_VERSION, '9.3', 'ge')) {
-      echo __('This plugin requires GLPI >= 9.2');
+   if (version_compare(GLPI_VERSION, '9.5', 'lt')
+      || version_compare(GLPI_VERSION, '9.6', 'ge')) {
+      if (method_exists('Plugin', 'messageIncompatible')) {
+         echo Plugin::messageIncompatible('core', '9.5');
+      }
       return false;
    }
+
    return true;
 }
 
@@ -136,15 +110,4 @@ function plugin_webapplications_check_prerequisites() {
  */
 function plugin_webapplications_check_config() {
    return true;
-}
-
-/**
- * @param $types
- *
- * @return mixed
- */
-function plugin_datainjection_migratetypes_webapplications($types) {
-
-   $types[1300] = 'PluginWebapplicationsWebapplication';
-   return $types;
 }

@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 use Glpi\Event;
 
 include ('../inc/includes.php');
@@ -53,7 +49,7 @@ if (isset($_POST["add"])) {
       $fic = $_POST['_filename'];
       $tag = $_POST['_tag_filename'];
       $prefix = $_POST['_prefix_filename'];
-      foreach ($fic as $key => $val) {
+      foreach (array_keys($fic) as $key) {
          $_POST['_filename']        = [$fic[$key]];
          $_POST['_tag_filename']    = [$tag[$key]];
          $_POST['_prefix_filename'] = [$prefix[$key]];
@@ -118,6 +114,9 @@ if (isset($_POST["add"])) {
 
 } else {
    Html::header(Document::getTypeName(Session::getPluralNumber()), $_SERVER['PHP_SELF'], "management", "document");
-   $doc->display(['id' =>$_GET["id"]]);
+   $doc->display([
+      'id'           => $_GET["id"],
+      'formoptions'  => "data-track-changes=true"
+   ]);
    Html::footer();
 }

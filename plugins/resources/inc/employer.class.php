@@ -9,7 +9,7 @@
  -------------------------------------------------------------------------
 
  LICENSE
-      
+
  This file is part of resources.
 
  resources is free software; you can redistribute it and/or modify
@@ -28,59 +28,120 @@
  */
 
 if (!defined('GLPI_ROOT')) {
-	die("Sorry. You can't access directly to this file");
+   die("Sorry. You can't access directly to this file");
 }
 
+/**
+ * Class PluginResourcesEmployer
+ */
 class PluginResourcesEmployer extends CommonTreeDropdown {
-   
+
    var $can_be_translated  = true;
-   
-   static function getTypeName($nb=0) {
+
+   /**
+    * @since 0.85
+    *
+    * @param $nb
+    **/
+   static function getTypeName($nb = 0) {
 
       return _n('Employer', 'Employers', $nb, 'resources');
    }
-   
+
+   /**
+    * Have I the global right to "view" the Object
+    *
+    * Default is true and check entity if the objet is entity assign
+    *
+    * May be overloaded if needed
+    *
+    * @return booleen
+    **/
    static function canView() {
       return Session::haveRight('plugin_resources', READ);
    }
 
+   /**
+    * Have I the global right to "create" the Object
+    * May be overloaded if needed (ex KnowbaseItem)
+    *
+    * @return booleen
+    **/
    static function canCreate() {
-      return Session::haveRightsOr('dropdown', array(CREATE, UPDATE, DELETE));
+      return Session::haveRightsOr('dropdown', [CREATE, UPDATE, DELETE]);
    }
 
+   /**
+    * Return Additional Fileds for this type
+    **/
    function getAdditionalFields() {
 
-      return array( array( 'name'  => $this->getForeignKeyField(),
-                           'label' => __('As child of'),
-                           'type'  => 'parent',
-                           'list'  => false),
-                     array('name'  => 'short_name',
-                           'label' => __('Short name', 'resources'),
-                           'type'  => 'text',
-                           'list'  => true),
-                     array('name'  => 'locations_id',
-                           'label' => __('Location'),
-                           'type'  => 'dropdownValue',
-                           'list'  => true));
+      return [ [ 'name'  => $this->getForeignKeyField(),
+                 'label' => __('As child of'),
+                 'type'  => 'parent',
+                 'list'  => false],
+               ['name'  => 'short_name',
+                'label' => __('Short name', 'resources'),
+                'type'  => 'text',
+                'list'  => true],
+               ['name'  => 'locations_id',
+                'label' => __('Location'),
+                'type'  => 'dropdownValue',
+                'list'  => true]];
    }
 
-   function getSearchOptions() {
+   /**
+    * Get search function for the class
+    *
+    * @return array of search option
+    **/
+   function rawSearchOptions() {
 
-      $tab = parent::getSearchOptions();
+      $tab = parent::rawSearchOptions();
 
-      $tab[14]['table']         = $this->getTable();
-      $tab[14]['field']         = 'short_name';
-      $tab[14]['name']          = __('Short name', 'resources');
-      $tab[14]['datatype']      = 'text';
+      foreach ($tab as $key => $t) {
+         if ($t['id']==13) {
+            unset($tab[$key]);
+         }
+      }
 
-      $tab[17]['table']         = 'glpi_locations';
-      $tab[17]['field']         = 'completename';
-      $tab[17]['name']          = __('Location');
+      $tab[] = [
+         'id'       => '15',
+         'table'    => $this->getTable(),
+         'field'    => 'short_name',
+         'name'     => __('Short name', 'resources'),
+         'datatype' => 'text'
+      ];
+      $tab = array_merge($tab, Location::rawSearchOptionsToAdd());
 
       return $tab;
    }
 
+   /**
+    * @param $field
+    * @param $values
+    * @param $options   array
+    *
+    * @return return|status|string
+    */
+   static function getSpecificValueToDisplay($field, $values, array $options = []) {
+      if (!is_array($values)) {
+         $values = [$field => $values];
+      }
+      switch ($field) {
+         case 'id':
+           return dropdown::getYesNo(PluginResourcesClient::isSecurityCompliance($values[$field]));
+      }
+      return parent::getSpecificValueToDisplay($field, $values, $options);
+   }
 
+
+   /**
+    * @param $ID
+    * @param $entity
+    *
+    * @return int|\the
+    */
    static function transfer($ID, $entity) {
       global $DB;
 
@@ -93,12 +154,12 @@ class PluginResourcesEmployer extends CommonTreeDropdown {
 
          if ($result=$DB->query($query)) {
             if ($DB->numrows($result)) {
-               $data = $DB->fetch_assoc($result);
+               $data = $DB->fetchAssoc($result);
                $data = Toolbox::addslashes_deep($data);
                $input['name'] = $data['name'];
                $input['entities_id']  = $entity;
                $temp = new self();
-               $newID    = $temp->getID($input);
+               $newID    = $temp->getID();
 
                if ($newID<0) {
                   $newID = $temp->import($input);
@@ -112,4 +173,3 @@ class PluginResourcesEmployer extends CommonTreeDropdown {
    }
 }
 
-?>

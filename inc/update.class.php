@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -102,23 +102,25 @@ class Update extends CommonGLPI {
       } else if (!$DB->tableExists("glpi_configs")) {
          // < 0.78
          // Get current version
-         $query = "SELECT `version`, 'language'
-                  FROM `glpi_config`";
-         $result = $DB->queryOrDie($query, "get current version");
+         $result = $DB->request([
+            'SELECT' => ['version', 'language'],
+            'FROM'   => 'glpi_config'
+         ])->next();
 
-         $currents['version']    = trim($DB->result($result, 0, 0));
+         $currents['version']    = trim($result['version']);
          $currents['dbversion']  = $currents['version'];
-         $currents['language']   = trim($DB->result($result, 0, 1));
+         $currents['language']   = trim($result['language']);
       } else if ($DB->fieldExists('glpi_configs', 'version')) {
          // < 0.85
          // Get current version and language
-         $query = "SELECT `version`, `language`
-                  FROM `glpi_configs`";
-         $result = $DB->queryOrDie($query, "get current version");
+         $result = $DB->request([
+            'SELECT' => ['version', 'language'],
+            'FROM'   => 'glpi_configs'
+         ])->next();
 
-         $currents['version']    = trim($DB->result($result, 0, 0));
+         $currents['version']    = trim($result['version']);
          $currents['dbversion']  = $currents['version'];
-         $currents['language']   = trim($DB->result($result, 0, 1));
+         $currents['language']   = trim($result['language']);
       } else {
          $currents = Config::getConfigurationValues(
             'core',
@@ -161,7 +163,8 @@ class Update extends CommonGLPI {
       $updir = __DIR__ . "/../install/";
 
       if (isCommandLine() && version_compare($current_version, '0.72.3', 'lt')) {
-         die('Upgrade from command line is not supported before 0.72.3!');
+         echo 'Upgrade from command line is not supported before 0.72.3!';
+         die(1);
       }
 
       // Update process desactivate all plugins
@@ -215,9 +218,12 @@ class Update extends CommonGLPI {
          case "0.68.3" :
             // Force update content
             if (showLocationUpdateForm()) {
-               $query = "UPDATE `glpi_config`
-                        SET `version` = ' 0.68.3x'";
-               $DB->queryOrDie($query, "0.68.3");
+               $DB->updateOrDie(
+                  'glpi_config',
+                  ['version' => ' 0.68.3x'],
+                  [0],
+                  '0.68.3'
+               );
 
                showContentUpdateForm();
                exit();
@@ -389,6 +395,9 @@ class Update extends CommonGLPI {
          case "9.1.4":
          case "9.1.5":
          case "9.1.6":
+         case "9.1.7":
+         case "9.1.7.1":
+         case "9.1.8":
          case "9.2-dev":
             include_once("{$updir}update_91_92.php");
             update91to92();
@@ -396,9 +405,89 @@ class Update extends CommonGLPI {
          case "9.2":
             include_once("{$updir}update_92_921.php");
             update92to921();
-            break;
 
          case "9.2.1":
+            include_once("{$updir}update_921_922.php");
+            update921to922();
+
+         case "9.2.2":
+            //9.2.2 upgrade script was not run from the release, see https://github.com/glpi-project/glpi/issues/3659
+            //see https://github.com/glpi-project/glpi/issues/3659
+            include_once("{$updir}update_921_922.php");
+            update921to922();
+            include_once("{$updir}update_922_923.php");
+            update922to923();
+
+         case "9.2.3":
+         case "9.2.4":
+         case "9.3-dev":
+            include_once("{$updir}update_92_93.php");
+            update92to93();
+
+         case "9.3":
+         case "9.3.0":
+            include_once "{$updir}update_930_931.php";
+            update930to931();
+
+         case "9.3.1":
+            include_once "{$updir}update_931_932.php";
+            update931to932();
+
+         case "9.3.2":
+         case "9.3.3":
+         case "9.3.4":
+         case "9.3.5":
+         case "9.4.0-dev":
+            include_once("{$updir}update_93_94.php");
+            update93to94();
+
+         case "9.4.0":
+            include_once "{$updir}update_940_941.php";
+            update940to941();
+
+         case "9.4.1":
+         case "9.4.1.1":
+            include_once "{$updir}update_941_942.php";
+            update941to942();
+
+         case "9.4.2":
+            include_once "{$updir}update_942_943.php";
+            update942to943();
+
+         case "9.4.3":
+         case "9.4.4":
+            include_once "{$updir}update_943_945.php";
+            update943to945();
+
+         case "9.4.5":
+            include_once "{$updir}update_945_946.php";
+            update945to946();
+
+         case "9.4.6":
+            include_once "{$updir}update_946_947.php";
+            update946to947();
+
+         case "9.4.7":
+         case "9.4.8":
+         case "9.4.9":
+         case "9.5.0-dev":
+            include_once "{$updir}update_94_95.php";
+            update94to95();
+
+         case "9.5.0":
+         case "9.5.1":
+            include_once "{$updir}update_951_952.php";
+            update951to952();
+
+         case "9.5.2":
+            include_once "{$updir}update_952_953.php";
+            update952to953();
+
+         case "9.5.3":
+            include_once "{$updir}update_953_954.php";
+            update953to954();
+            break;
+
          case GLPI_VERSION:
          case GLPI_SCHEMA_VERSION:
             break;
@@ -409,9 +498,11 @@ class Update extends CommonGLPI {
                $current_version
             );
             if (isCommandLine()) {
-               die("$message\n");
+               echo "$message\n";
+               die(1);
             } else {
                $this->migration->displayWarning($message, true);
+               die(1);
             }
       }
 
@@ -423,15 +514,26 @@ class Update extends CommonGLPI {
 
       if (defined('GLPI_SYSTEM_CRON')) {
          // Downstream packages may provide a good system cron
-         $query = "UPDATE `glpi_crontasks` SET `mode`=2 WHERE `name`!='watcher' AND (`allowmode` & 2)";
-         $DB->queryOrDie($query);
+         $DB->updateOrDie(
+            'glpi_crontasks', [
+               'mode'   => 2
+            ], [
+               'name'      => ['!=', 'watcher'],
+               'allowmode' => ['&', 2]
+            ]
+         );
       }
 
-      if (isCommandLine() && isset($this->args['optimize']) || !isCommandLine()) {
-         DBmysql::optimize_tables($this->migration);
-         if (isCommandLine()) {
-            $this->migration->displayWarning(__("Optimize done."));
-         }
+      // reset telemetry
+      $crontask_telemetry = new CronTask;
+      $crontask_telemetry->getFromDBbyName("Telemetry", "telemetry");
+      $crontask_telemetry->resetDate();
+      $crontask_telemetry->resetState();
+
+      //generate security key if missing, and update db
+      $glpikey = new GLPIKey();
+      if (!$glpikey->keyExists() && !$glpikey->generate()) {
+         $this->migration->displayWarning(__('Unable to create security key file! You have to run "php bin/console glpi:security:change_key" command to manually create this file.'), true);
       }
    }
 
@@ -513,5 +615,31 @@ class Update extends CommonGLPI {
    public function setMigration(Migration $migration) {
       $this->migration = $migration;
       return $this;
+   }
+
+   /**
+    * Check if expected security key file is missing.
+    *
+    * @return bool
+    */
+   public function isExpectedSecurityKeyFileMissing(): bool {
+      $expected_key_path = $this->getExpectedSecurityKeyFilePath();
+
+      if ($expected_key_path === null) {
+         return false;
+      }
+
+      return !file_exists($expected_key_path);
+   }
+
+   /**
+    * Returns expected security key file path.
+    * Will return null for GLPI versions that was not yet handling a custom security key.
+    *
+    * @return string|null
+    */
+   public function getExpectedSecurityKeyFilePath(): ?string {
+      $glpikey = new GLPIKey();
+      return $glpikey->getExpectedKeyPath($this->getCurrents()['version']);
    }
 }

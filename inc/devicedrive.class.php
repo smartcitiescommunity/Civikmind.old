@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -29,10 +29,6 @@
  * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
  */
-
-/** @file
-* @brief
-*/
 
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
@@ -61,13 +57,13 @@ class DeviceDrive extends CommonDevice {
                                      'label' => __('Interface'),
                                      'type'  => 'dropdownValue'],
                                ['name'  => 'devicedrivemodels_id',
-                                     'label' => __('Model'),
+                                     'label' => _n('Model', 'Models', 1),
                                      'type'  => 'dropdownValue']]);
    }
 
 
-   function getSearchOptionsNew() {
-      $tab = parent::getSearchOptionsNew();
+   function rawSearchOptions() {
+      $tab = parent::rawSearchOptions();
 
       $tab[] = [
          'id'                 => '12',
@@ -82,7 +78,8 @@ class DeviceDrive extends CommonDevice {
          'table'              => $this->getTable(),
          'field'              => 'speed',
          'name'               => __('Speed'),
-         'datatype'           => 'string'
+         'datatype'           => 'string',
+         'autocomplete'       => true,
       ];
 
       $tab[] = [
@@ -97,7 +94,7 @@ class DeviceDrive extends CommonDevice {
          'id'                 => '15',
          'table'              => 'glpi_devicedrivemodels',
          'field'              => 'name',
-         'name'               => __('Model'),
+         'name'               => _n('Model', 'Models', 1),
          'datatype'           => 'dropdown'
       ];
 
@@ -105,11 +102,6 @@ class DeviceDrive extends CommonDevice {
    }
 
 
-   /**
-    * @since version 0.84
-    *
-    * @see CommonDevice::getHTMLTableHeader()
-   **/
    static function getHTMLTableHeader($itemtype, HTMLTableBase $base,
                                       HTMLTableSuperHeader $super = null,
                                       HTMLTableHeader $father = null, array $options = []) {
@@ -132,11 +124,6 @@ class DeviceDrive extends CommonDevice {
    }
 
 
-   /**
-    * @since version 0.84
-    *
-    * @see CommonDevice::getHTMLTableCellForItem()
-   **/
    function getHTMLTableCellForItem(HTMLTableRow $row = null, CommonDBTM $item = null,
                                     HTMLTableCell $father = null, array $options = []) {
 
@@ -169,7 +156,7 @@ class DeviceDrive extends CommonDevice {
     *
     * @see CommonDevice::getImportCriteria()
     *
-    * @since version 0.84
+    * @since 0.84
    **/
    function getImportCriteria() {
 
@@ -178,4 +165,8 @@ class DeviceDrive extends CommonDevice {
                    'interfacetypes_id' => 'equal'];
    }
 
+
+   static function getIcon() {
+      return "fas fa-hdd";
+   }
 }

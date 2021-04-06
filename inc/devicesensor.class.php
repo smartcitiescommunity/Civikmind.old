@@ -1,9 +1,8 @@
 <?php
-
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -31,7 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access directly to this file");
 }
@@ -44,7 +42,7 @@ class DeviceSensor extends CommonDevice {
    static protected $forward_entity_to = ['Item_DeviceSensor', 'Infocom'];
 
    static function getTypeName($nb = 0) {
-      return _n('Sensors', 'Sensors', $nb);
+      return _n('Sensor', 'Sensors', $nb);
    }
 
 
@@ -52,18 +50,18 @@ class DeviceSensor extends CommonDevice {
 
       return array_merge(parent::getAdditionalFields(),
                          [['name'  => 'devicesensortypes_id',
-                           'label' => __('Type'),
+                           'label' => _n('Type', 'Types', 1),
                            'type'  => 'dropdownValue']]);
    }
 
 
-   function getSearchOptionsNew() {
-      $tab                 = parent::getSearchOptionsNew();
+   function rawSearchOptions() {
+      $tab                 = parent::rawSearchOptions();
 
       $tab[] = ['id'       => '12',
                 'table'    => 'glpi_devicesensortypes',
                 'field'    => 'name',
-                'name'     => __('Type'),
+                'name'     => _n('Type', 'Types', 1),
                 'datatype' => 'dropdown'];
 
       return $tab;
@@ -84,7 +82,7 @@ class DeviceSensor extends CommonDevice {
          case 'Computer' :
          case 'Peripheral' :
             Manufacturer::getHTMLTableHeader(__CLASS__, $base, $super, $father, $options);
-            $base->addHeader('devicesensor_type', __('Type'), $super, $father);
+            $base->addHeader('devicesensor_type', _n('Type', 'Types', 1), $super, $father);
             break;
       }
    }

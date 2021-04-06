@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,16 +30,12 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
 
 /// Class Entity_RSSFeed
-/// @since version 0.84
+/// @since 0.84
 class Entity_RSSFeed extends CommonDBRelation {
 
    // From CommonDBRelation
@@ -55,7 +51,7 @@ class Entity_RSSFeed extends CommonDBRelation {
    /**
     * Get entities for a rssfeed
     *
-    * @param $rssfeeds_id ID of the rssfeed
+    * @param integer $rssfeeds_id ID of the rssfeed
     *
     * @return array of entities linked to a rssfeed
    **/
@@ -63,11 +59,12 @@ class Entity_RSSFeed extends CommonDBRelation {
       global $DB;
 
       $ent   = [];
-      $query = "SELECT `glpi_entities_rssfeeds`.*
-                FROM `glpi_entities_rssfeeds`
-                WHERE `rssfeeds_id` = '$rssfeeds_id'";
+      $iterator = $DB->request([
+         'FROM'   => self::getTable(),
+         'WHERE'  => ['rssfeeds_id' => $rssfeeds_id]
+      ]);
 
-      foreach ($DB->request($query) as $data) {
+      while ($data = $iterator->next()) {
          $ent[$data['entities_id']][] = $data;
       }
       return $ent;

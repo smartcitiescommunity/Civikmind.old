@@ -1,6 +1,16 @@
 Changelogs for Tag plugin
 =========================
 
+GLPI Tag 2.6.0
+-------------------------------
+
++ Show tags on Kanban view.
+
+GLPI Tag 2.5.0
+-------------------------------
+
+* Add right management - Please review plugin rights after update.
+
 GLPI Tag 0.90-1.1 (2016)
 -------------------------------
 

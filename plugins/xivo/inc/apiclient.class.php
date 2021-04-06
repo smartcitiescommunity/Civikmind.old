@@ -1,4 +1,30 @@
 <?php
+/*
+ -------------------------------------------------------------------------
+ xivo plugin for GLPI
+ Copyright (C) 2017 by the xivo Development Team.
+
+ https://github.com/pluginsGLPI/xivo
+ -------------------------------------------------------------------------
+
+ LICENSE
+
+ This file is part of xivo.
+
+ xivo is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
+
+ xivo is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with xivo. If not, see <http://www.gnu.org/licenses/>.
+ --------------------------------------------------------------------------
+ */
 
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
@@ -68,33 +94,34 @@ class PluginXivoAPIClient extends CommonGLPI {
       $line_id = is_array($line) ? end($line['items'])['id'] : false;
 
       return [
-         __('Api access', 'xivo')        => !empty($this->auth_token),
+         __('REST API access', 'xivo')
+            => !empty($this->auth_token),
          __('Get phone devices', 'xivo')." (confd.devices.read)"
             => is_array($device),
          __('Get single device', 'xivo')." (confd.devices.#.read)"
-             => is_array($this->getSingleDevice($device_id, [
-            'query' => [
-               'limit' => 1
-            ]
-         ])) && is_array($this->getSingleDeviceLines($device_id, [
-            'query' => [
-               'limit' => 1
-            ]
-         ])),
+            => is_array($this->getSingleDevice($device_id, [
+               'query' => [
+                  'limit' => 1
+               ]
+            ])) && is_array($this->getSingleDeviceLines($device_id, [
+               'query' => [
+                  'limit' => 1
+               ]
+            ])),
          __('Get lines', 'xivo')." (confd.lines.read)"
-             => is_array($line),
+            => is_array($line),
          __('Get single line', 'xivo')." (confd.lines.#.read)"
-             => is_array($this->getSingleLine($line_id, [
-            'query' => [
-               'limit' => 1
-            ]
-         ])),
+            => is_array($this->getSingleLine($line_id, [
+               'query' => [
+                  'limit' => 1
+               ]
+            ])),
          __('Get users', 'xivo')." (confd.users.read)"
-             => is_array($this->getUsers([
-            'query' => [
-               'limit' => 1
-            ]
-         ])),
+            => is_array($this->getUsers([
+               'query' => [
+                  'limit' => 1
+               ]
+            ] )),
       ];
    }
 
@@ -244,7 +271,7 @@ class PluginXivoAPIClient extends CommonGLPI {
 
          $items = array_merge($items, $page['items']);
          $offset+= $limit;
-      } while($offset < $page['total']);
+      } while ($offset < $page['total']);
 
       return $items;
    }
@@ -303,7 +330,7 @@ class PluginXivoAPIClient extends CommonGLPI {
          return false;
       }
       $lines = [];
-      foreach($lines_items as $item) {
+      foreach ($lines_items as $item) {
          $lines[] = $this->getSingleLine($item['line_id']);
       }
       return $lines;
@@ -337,7 +364,7 @@ class PluginXivoAPIClient extends CommonGLPI {
     * @param  string $method   Http verb (ex: GET, POST, etc)
     * @return array  data returned by the api
     */
-   function httpQuery($resource = '', $params = array(), $method = 'GET') {
+   function httpQuery($resource = '', $params = [], $method = 'GET') {
       global $CFG_GLPI;
 
       // declare default params
@@ -420,7 +447,6 @@ class PluginXivoAPIClient extends CommonGLPI {
          $data['_headers']   = $headers;
          $data['_http_code'] = $http_code;
       }
-
 
       return $data;
    }

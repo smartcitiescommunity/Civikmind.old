@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -29,10 +29,6 @@
  * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
  */
-
-/** @file
-* @brief
-*/
 
 if (!defined('GLPI_ROOT')) {
    include ('../inc/includes.php');
@@ -61,8 +57,6 @@ if (!$rule = getItemForItemtype($sub_type)) {
 }
 $rule->checkGlobal(READ);
 
-$test_rule_output = null;
-
 Html::popHeader(__('Setup'), $_SERVER['PHP_SELF']);
 
 $rule->showRulePreviewCriteriasForm($_SERVER['PHP_SELF'], $rules_id);
@@ -77,7 +71,7 @@ if (isset($_POST["test_rule"])) {
 
    // Need for RuleEngines
    foreach ($_POST as $key => $val) {
-      $_POST[$key] = stripslashes($_POST[$key]);
+      $_POST[$key] = stripslashes($val);
    }
    //Add rules specific POST fields to the param array
    $params = $rule->addSpecificParamsForPreview($params);

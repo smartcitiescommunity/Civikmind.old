@@ -141,6 +141,17 @@ font-weight:bold;
 	margin-top: -10px;
 }
 
+#datas-tec3 {
+	min-width: 900px;
+	width: 950px;
+	margin-left: -500px;
+	left: 46%; 
+	position: relative; 
+	text-align: center;
+	margin-bottom: 12px;
+	margin-top: -10px;
+}
+
 #datas-cham {
 	min-width: 900px;
 	width: 950px;
@@ -153,9 +164,6 @@ font-weight:bold;
 }
 
 .form1 {
-	/*width: 900px;
-	margin-left: -500px;
-	left: 52%; */
 	position: relative; 
 	text-align: center;
 	margin-bottom: 5px;
@@ -1670,6 +1678,37 @@ td > a:hover {
 .head-asset {
 	width: 98%;
 	margin-bottom: 20px;
+	margin-top: 30px;	
 }
 
 .tab_tickets {color: #fff;}
+
+.navbar-collapse.in {
+	background-color: #000 !important;
+}
+
+@media (max-width: 768px) {
+	.menu1 > li > a,
+	.menu1 > li > a:hover,
+	.dropdown-menu > li > a {
+		color: #fff !important;
+		text-decoration: none;
+	}
+	.list-unstyled > li > a {
+		color:#fff;
+	}
+	
+	#head {
+		width: 120%;
+		margin-left: -9.5%;
+		margin-top: -3%;
+	}
+}
+
+
+.sons {
+	width: 300px; 
+	padding-left: 15px; 
+	text-align: left;
+	color: #fff;
+}

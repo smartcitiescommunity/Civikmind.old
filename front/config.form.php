@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,13 +30,15 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
-
 include ('../inc/includes.php');
 Session::checkRight("config", READ);
+
+if (isset($_GET['check_version'])) {
+    Session::addMessageAfterRedirect(
+        Toolbox::checkNewVersionAvailable()
+    );
+    Html::back();
+}
 
 $config = new Config();
 $_POST['id'] = 1;
@@ -45,6 +47,16 @@ if (!empty($_POST["update_auth"])) {
    Html::back();
 }
 if (!empty($_POST["update"])) {
+   $context = array_key_exists('config_context', $_POST) ? $_POST['config_context'] : 'core';
+
+   $glpikey = new GLPIKey();
+   foreach (array_keys($_POST) as $field) {
+      if ($glpikey->isConfigSecured($context, $field)) {
+         // Field must not be altered, it will be encrypted and never displayed, so sanitize is not necessary.
+         $_POST[$field] = $_UPOST[$field];
+      }
+   }
+
    $config->update($_POST);
    Html::redirect(Toolbox::getItemTypeFormURL('Config'));
 }
@@ -57,12 +69,16 @@ if (!empty($_GET['reset_opcache'])) {
 }
 if (!empty($_GET['reset_cache'])) {
    $config->checkGlobal(UPDATE);
-   if ($GLPI_CACHE->flush()) {
+   $cache = isset($_GET['optname']) ? Config::getCache($_GET['optname']) : $GLPI_CACHE;
+   if ($cache->clear()) {
       Session::addMessageAfterRedirect(__('Cache reset successful'));
    }
    Html::redirect(Toolbox::getItemTypeFormURL('Config'));
 }
 
 Html::header(Config::getTypeName(1), $_SERVER['PHP_SELF'], "config", "config");
-$config->display(['id' => 1]);
+$config->display([
+   'id'           => 1,
+   'formoptions'  => "data-track-changes=true"
+]);
 Html::footer();

@@ -35,7 +35,12 @@
  @since     2008
 ---------------------------------------------------------------------- */
 
-define ('PLUGIN_GENINVENTORYNUMBER_VERSION', '2.2.0');
+define ('PLUGIN_GENINVENTORYNUMBER_VERSION', '2.5.0');
+
+// Minimal GLPI version, inclusive
+define("PLUGIN_GENINVENTORYNUMBER_MIN_GLPI", "9.5");
+// Maximum GLPI version, exclusive
+define("PLUGIN_GENINVENTORYNUMBER_MAX_GLPI", "9.6");
 
 function plugin_init_geninventorynumber() {
    global $PLUGIN_HOOKS, $CFG_GLPI, $GENINVENTORYNUMBER_TYPES;
@@ -47,9 +52,7 @@ function plugin_init_geninventorynumber() {
                                  'Peripheral', 'Phone', 'SoftwareLicense'];
 
    $plugin = new Plugin();
-   if ($plugin->isInstalled('geninventorynumber')
-      && $plugin->isActivated('geninventorynumber')
-      && (Session::haveRight("config", CREATE))) {
+   if ($plugin->isActivated('geninventorynumber')) {
       $PLUGIN_HOOKS['use_massive_action']['geninventorynumber'] = 1;
 
       Plugin::registerClass('PluginGeninventorynumberProfile',
@@ -66,34 +69,16 @@ function plugin_init_geninventorynumber() {
 
 function plugin_version_geninventorynumber() {
    return [
-      'name'            => __('geninventorynumber', 'geninventorynumber'),
-      'version'        => PLUGIN_GENINVENTORYNUMBER_VERSION,
-      'author'         => "<a href='http://www.teclib.com'>TECLIB'</a> + KK",
-      'homepage'       => 'https://github.com/pluginsGLPI/geninventorynumber',
-      'requirements'   => [
+      'name'         => __('Inventory number generation', 'geninventorynumber'),
+      'version'      => PLUGIN_GENINVENTORYNUMBER_VERSION,
+      'author'       => "<a href='http://www.teclib.com'>TECLIB'</a> + KK",
+      'homepage'     => 'https://github.com/pluginsGLPI/geninventorynumber',
+      'license'      => 'GPLv2+',
+      'requirements' => [
          'glpi' => [
-            'min' => '9.2',
-            'dev' => true
-         ]
-      ]
+            'min' => PLUGIN_GENINVENTORYNUMBER_MIN_GLPI,
+            'max' => PLUGIN_GENINVENTORYNUMBER_MAX_GLPI,
+          ]
+       ]
    ];
-}
-
-function plugin_geninventorynumber_check_prerequisites() {
-   $version = rtrim(GLPI_VERSION, '-dev');
-   if (version_compare($version, '9.2', 'lt')) {
-      echo "This plugin requires GLPI 9.2";
-      return false;
-   }
-
-   return true;
-}
-
-/**
- * Compatibility check
- *
- * @return   bool   True if plugin compatible with configuration
- */
-function plugin_geninventorynumber_check_config() {
-   return true;
 }

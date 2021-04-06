@@ -9,17 +9,41 @@
    function GLPINotificationsAjax(options) {
 
       var _this = this;
-      var _queue = $('<div />');
-      var _queue_audio = $('<div />');
-      var _interval = null;
+      var _queue = $('<div></div>');
+      var _queue_audio = $('<div></div>');
 
       this.options = $.extend({}, GLPINotificationsAjax.default, options);
 
       this.showNotification = function(id, title, body, url) {
          /**
-          * Queue to prevent firefox bug
-          * Show next notification after 100ms
-          * @see http://stackoverflow.com/questions/33073958/multiple-notifications-with-notifications-api-continuously-in-firefox
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2021 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
           */
          _queue.queue(function () {
             var queue = this;
@@ -88,7 +112,7 @@
          var ajax = $.getJSON(CFG_GLPI.root_doc + '/ajax/notifications_ajax.php');
          ajax.done(function (data) {
             if (data) {
-               for (i = 0; i < data.length; i++) {
+               for (var i = 0; i < data.length; i++) {
                   var item = data[i];
                   _this.showNotification(item.id, item.title, item.body, item.url);
                }
@@ -123,7 +147,7 @@
 
       this.startMonitoring = function() {
          this.checkConcurrence();
-         _interval = setInterval(this.checkConcurrence.bind(this), this.options.interval);
+         setInterval(this.checkConcurrence.bind(this), this.options.interval);
       };
 
       this.checkPermission = function () {

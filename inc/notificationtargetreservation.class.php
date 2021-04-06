@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -60,7 +56,7 @@ class NotificationTargetReservation extends NotificationTarget {
          $this->addTarget(Notification::ITEM_TECH_GROUP_IN_CHARGE,
                           __('Group in charge of the hardware'));
          $this->addTarget(Notification::ITEM_USER, __('Hardware user'));
-         $this->addTarget(Notification::AUTHOR, __('Requester'));
+         $this->addTarget(Notification::AUTHOR, _n('Requester', 'Requesters', 1));
       }
       // else if ($event == 'alert') {
       //   $this->addTarget(Notification::ITEM_USER, __('User reserving equipment'));
@@ -145,7 +141,7 @@ class NotificationTargetReservation extends NotificationTarget {
 
    function getTags() {
 
-      $tags_all = ['reservation.item'     => __('Associated item'),
+      $tags_all = ['reservation.item'     => _n('Associated item', 'Associated items', 1),
                         'reservation.itemtype' => __('Item type'),
                         'reservation.url'      => __('URL'),
                         'reservation.itemurl'  => __('URL of item reserved'),
@@ -161,8 +157,8 @@ class NotificationTargetReservation extends NotificationTarget {
                                  'reservation.begin'       => __('Start date'),
                                  'reservation.end'         => __('End date'),
                                  'reservation.comment'     => __('Comments'),
-                                 'reservation.item.entity' => __('Entity'),
-                                 'reservation.item.name'   => __('Associated item'),
+                                 'reservation.item.entity' => Entity::getTypeName(1),
+                                 'reservation.item.name'   => _n('Associated item', 'Associated items', 1),
                                  'reservation.item.tech'   => __('Technician in charge of the hardware')];
 
       foreach ($tags_except_alert as $tag => $label) {
@@ -179,7 +175,7 @@ class NotificationTargetReservation extends NotificationTarget {
                                 'events'  => ['alert']]);
 
       $tag_alert = ['reservation.expirationdate' => __('End date'),
-                         'reservation.entity'         => __('Entity')];
+                         'reservation.entity'         => Entity::getTypeName(1)];
 
       foreach ($tag_alert as $tag => $label) {
          $this->addTagToList(['tag'    => $tag,

@@ -9,7 +9,7 @@
  -------------------------------------------------------------------------
 
  LICENSE
-      
+
  This file is part of resources.
 
  resources is free software; you can redistribute it and/or modify
@@ -31,88 +31,132 @@ if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access directly to this file");
 }
 
+/**
+ * Class PluginResourcesRank
+ */
 class PluginResourcesRank extends CommonDropdown {
-   
-   static function getTypeName($nb=0) {
+
+   /**
+    * @since 0.85
+    *
+    * @param $nb
+    **/
+   static function getTypeName($nb = 0) {
 
       return _n('Rank', 'Ranks', $nb, 'resources');
    }
 
+   /**
+    * Have I the global right to "create" the Object
+    * May be overloaded if needed (ex KnowbaseItem)
+    *
+    * @return booleen
+    **/
    static function canCreate() {
-      if (Session::haveRight('dropdown',UPDATE)
-         && Session::haveRight('plugin_resources_dropdown_public', UPDATE)){
+      if (Session::haveRight('dropdown', UPDATE)
+         && Session::haveRight('plugin_resources_dropdown_public', UPDATE)) {
          return true;
       }
       return false;
    }
 
+   /**
+    * Have I the global right to "view" the Object
+    *
+    * Default is true and check entity if the objet is entity assign
+    *
+    * May be overloaded if needed
+    *
+    * @return booleen
+    **/
    static function canView() {
-      if (Session::haveRight('plugin_resources_dropdown_public', READ)){
+      if (Session::haveRight('plugin_resources_dropdown_public', READ)) {
          return true;
       }
       return false;
    }
 
+   /**
+    * Return Additional Fields for this type
+    *
+    * @return array
+    **/
    function getAdditionalFields() {
 
-      return array(array('name'  => 'code',
+      return [['name'  => 'code',
                          'label' => __('Code', 'resources'),
                          'type'  => 'text',
-                         'list'  => true),
-                  array('name'  => 'short_name',
+                         'list'  => true],
+                  ['name'  => 'short_name',
                         'label' => __('Short name', 'resources'),
                         'type'  => 'text',
-                        'list'  => true),
-                  array('name'  => 'plugin_resources_professions_id',
+                        'list'  => true],
+                  ['name'  => 'plugin_resources_professions_id',
                         'label' => __('Profession', 'resources'),
                         'type'  => 'dropdownValue',
-                        'list'  => true),
-                  array('name'  => 'begin_date',
+                        'list'  => true],
+                  ['name'  => 'begin_date',
                         'label' => __('Begin date'),
                         'type'  => 'date',
-                        'list'  => false),
-                  array('name'  => 'end_date',
+                        'list'  => false],
+                  ['name'  => 'end_date',
                         'label' => __('End date'),
                         'type'  => 'date',
-                        'list'  => false),
-                  array('name'  => 'is_active',
+                        'list'  => false],
+                  ['name'  => 'is_active',
                         'label' => __('Active'),
                         'type'  => 'bool',
-                        'list'  => true),
-                  );
+                        'list'  => true],
+                  ];
    }
 
-   function getSearchOptions() {
+   /**
+    * @return array
+    */
+   function rawSearchOptions() {
 
-      $tab = parent::getSearchOptions();
-      
-      $tab[24]['table']         = $this->getTable();
-      $tab[24]['field']         = 'code';
-      $tab[24]['name']          = __('Code', 'resources');
+      $tab = parent::rawSearchOptions();
 
-      $tab[25]['table']         = $this->getTable();
-      $tab[25]['field']         = 'short_name';
-      $tab[25]['name']         = __('Short name', 'resources');
-
-      $tab[27]['table']         = 'glpi_plugin_resources_professions';
-      $tab[27]['field']         = 'name';
-      $tab[27]['name']          = __('Profession', 'resources');
-      $tab[27]['datatype']      = 'dropdown';
-      
-      $tab[28]['table']         = $this->getTable();
-      $tab[28]['field']         = 'is_active';
-      $tab[28]['name']          = __('Active');
-      $tab[28]['datatype']      = 'bool';
-
-      $tab[29]['table']         = $this->getTable();
-      $tab[29]['field']         = 'begin_date';
-      $tab[29]['name']          = __('Begin date');
-      $tab[29]['datatype']      = 'date';
-
-      $tab[30]['table']         = $this->getTable();
-      $tab[30]['field']         = 'end_date';
-      $tab[30]['name']          = __('End date');
-      $tab[30]['datatype']      = 'date';
+      $tab[] = [
+         'id'    => '24',
+         'table' => $this->getTable(),
+         'field' => 'code',
+         'name'  => __('Code', 'resources')
+      ];
+      $tab[] = [
+         'id'    => '25',
+         'table' => $this->getTable(),
+         'field' => 'short_name',
+         'name'  => __('Short name', 'resources')
+      ];
+      $tab[] = [
+         'id'       => '27',
+         'table'    => 'glpi_plugin_resources_professions',
+         'field'    => 'name',
+         'name'     => __('Profession', 'resources'),
+         'datatype' => 'dropdown'
+      ];
+      $tab[] = [
+         'id'       => '28',
+         'table'    => $this->getTable(),
+         'field'    => 'is_active',
+         'name'     => __('Active'),
+         'datatype' => 'bool'
+      ];
+      $tab[] = [
+         'id'       => '29',
+         'table'    => $this->getTable(),
+         'field'    => 'begin_date',
+         'name'     => __('Begin date'),
+         'datatype' => 'date'
+      ];
+      $tab[] = [
+         'id'       => '30',
+         'table'    => $this->getTable(),
+         'field'    => 'end_date',
+         'name'     => __('End date'),
+         'datatype' => 'date'
+      ];
 
       return $tab;
    }
@@ -124,7 +168,7 @@ class PluginResourcesRank extends CommonDropdown {
     * @static
     * @param $options
     */
-   static function showRank($options){
+   static function showRank($options) {
       global $DB;
 
       $professionId = $options['plugin_resources_professions_id'];
@@ -137,15 +181,11 @@ class PluginResourcesRank extends CommonDropdown {
          if ($sort) {
             $query = "SELECT `glpi_plugin_resources_ranks`.*
                      FROM `glpi_plugin_resources_ranks`
-                     INNER JOIN `glpi_plugin_resources_costs`
-                        ON (`glpi_plugin_resources_ranks`.`id`
-                            = `glpi_plugin_resources_costs`.`plugin_resources_ranks_id`)
-                     WHERE `glpi_plugin_resources_ranks`.`plugin_resources_professions_id` = '".$professionId."'
-                     AND `glpi_plugin_resources_costs`.`cost` <> '0.00'";
+                     WHERE `glpi_plugin_resources_ranks`.`plugin_resources_professions_id` = '" . $professionId . "'";
 
             $values[0] = Dropdown::EMPTY_VALUE;
-            if($result = $DB->query($query)){
-               while ($data = $DB->fetch_array($result)) {
+            if ($result = $DB->query($query)) {
+               while ($data = $DB->fetchArray($result)) {
                   $values[$data['id']] = $data['name'];
                }
             }
@@ -154,8 +194,8 @@ class PluginResourcesRank extends CommonDropdown {
          } else {
             $condition = " `plugin_resources_professions_id` = '".$professionId."'";
 
-            Dropdown::show('PluginResourcesRank', array('entity' => $entity,
-               'condition' => $condition));
+            Dropdown::show('PluginResourcesRank', ['entity' => $entity,
+               'condition' => $condition]);
          }
 
       } else {
@@ -185,12 +225,12 @@ class PluginResourcesRank extends CommonDropdown {
 
          if ($result=$DB->query($query)) {
             if ($DB->numrows($result)) {
-               $data = $DB->fetch_assoc($result);
+               $data = $DB->fetchAssoc($result);
                $data = Toolbox::addslashes_deep($data);
                $input['name'] = $data['name'];
                $input['entities_id']  = $entity;
                $temp = new self();
-               $newID    = $temp->getID($input);
+               $newID    = $temp->getID();
 
                if ($newID<0) {
                   $newID = $temp->import($input);
@@ -216,10 +256,10 @@ class PluginResourcesRank extends CommonDropdown {
     *
     * @return nothing|void
     */
-   function cleanDBonPurge(){
+   function cleanDBonPurge() {
 
       $temp = new PluginResourcesResourceSpeciality();
-      $temp->deleteByCriteria(array('plugin_resources_ranks_id' => $this->fields['id']));
+      $temp->deleteByCriteria(['plugin_resources_ranks_id' => $this->fields['id']]);
 
    }
 
@@ -234,4 +274,3 @@ class PluginResourcesRank extends CommonDropdown {
    }
 
 }
-?>

@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -29,10 +29,6 @@
  * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
  */
-
-/** @file
-* @brief
-*/
 
 /// Update from 0.42 to 0.5
 function update042to05() {
@@ -66,7 +62,7 @@ function update042to05() {
                 FROM `glpi_templates`";
       $result = $DB->query($query);
 
-      while ($line = $DB->fetch_array($result)) {
+      while ($line = $DB->fetchArray($result)) {
          $line = Toolbox::addslashes_deep($line);
          $query2 = "INSERT INTO `glpi_computers`
                         (`name`, `osver`, `processor_speed`, `serial`, `otherserial`, `ram`,
@@ -93,7 +89,7 @@ function update042to05() {
          $DB->queryOrDie($query2, "0.5-convert template 2 computers");
       }
 
-      $DB->free_result($result);
+      $DB->freeResult($result);
       $query = "DROP TABLE `glpi_templates`";
       $DB->queryOrDie($query, "0.5 drop table templates");
 
@@ -109,7 +105,7 @@ function update042to05() {
                    VALUES ('1', 'Blank Template', '', '', '', '', '', '')";
          $DB->queryOrDie($query, "0.5 add blank template");
       }
-      $DB->free_result($result);
+      $DB->freeResult($result);
    }
 
    //New internal peripherals ( devices ) config
@@ -582,7 +578,7 @@ function update042to05() {
             $result = $DB->queryOrDie($query, "0.5 select_init for update maintenance");
 
             if ($result) {
-               $data       = $DB->fetch_array($result);
+               $data       = $DB->fetchArray($result);
                $IDcontract = $data["ID"];
                updateMaintenanceInfos("glpi_computers", COMPUTER_TYPE, $IDcontract);
                updateMaintenanceInfos("glpi_printers", PRINTER_TYPE, $IDcontract);
@@ -613,7 +609,7 @@ function update042to05() {
       $valeur   = [];
       $curros   = -1;
       $currvers = "-------------------------";
-      while ($data=$DB->fetch_array($result)) {
+      while ($data=$DB->fetchArray($result)) {
          // Nouvel OS -> update de l'element de dropdown
          if ($data["ID"]!=$curros) {
             $curros = $data["ID"];
@@ -647,7 +643,7 @@ function update042to05() {
          }
       }
 
-      $DB->free_result($result);
+      $DB->freeResult($result);
       $query_alter = "ALTER TABLE `glpi_computers`
                       DROP `osver` ";
       $DB->queryOrDie($query_alter, "0.5 alter for update OS");
@@ -1212,11 +1208,11 @@ function update042to05() {
       if ($DB->numrows($result) != $DB->numrows($result2)) {
          $users = [];
          $i     = 0;
-         while ($line = $DB->fetch_array($result2)) {
+         while ($line = $DB->fetchArray($result2)) {
             $prefs[$i] = $line["username"];
             $i++;
          }
-         while ($line = $DB->fetch_array($result)) {
+         while ($line = $DB->fetchArray($result)) {
             if (!in_array($line["name"], $prefs)) {
                $query_insert = "INSERT INTO `glpi_prefs`
                                        (`username` , `tracking_order` , `language`)
@@ -1225,8 +1221,8 @@ function update042to05() {
             }
          }
       }
-      $DB->free_result($result);
-      $DB->free_result($result2);
+      $DB->freeResult($result);
+      $DB->freeResult($result2);
    }
 
 }
@@ -1273,13 +1269,13 @@ function updateMaintenanceInfos($table, $type, $ID) {
                 WHERE `maintenance` = '1'";
    $result = $DB->query($query);
 
-   while ($data=$DB->fetch_array($result)) {
+   while ($data=$DB->fetchArray($result)) {
       $query_insert = "INSERT INTO `glpi_contract_device`
                               (`FK_contract`, `FK_device` ,`device_type`)
                        VALUES ('$ID', '".$data["ID"]."', '$type')";
       $result_insert = $DB->queryOrDie($query_insert, "0.5 insert for update maintenance");
    }
-   $DB->free_result($result);
+   $DB->freeResult($result);
 
    $query_drop  =  "ALTER TABLE `$table`
                     DROP `maintenance`";
@@ -1300,7 +1296,7 @@ function updateWarrantyInfos($table, $type) {
                 ORDER BY `achat_date`, `date_fin_garantie`";
    $result = $DB->queryOrDie($query, "0.5 select for update warranty");
 
-   while ($data=$DB->fetch_array($result)) {
+   while ($data=$DB->fetchArray($result)) {
       if (($data['achat_date']!="0000-00-00" && !empty($data['achat_date']))
           ||($data['date_fin_garantie']!="0000-00-00" && !empty($data['date_fin_garantie']))) {
 
@@ -1323,7 +1319,7 @@ function updateWarrantyInfos($table, $type) {
          $result_insert = $DB->queryOrDie($query_insert, "0.5 insert for update warranty");
       }
    }
-   $DB->free_result($result);
+   $DB->freeResult($result);
 
    $query_drop  =  "ALTER TABLE `$table`
                     DROP `achat_date`";
@@ -1383,7 +1379,7 @@ function dropMaintenanceField() {
  * @param $compDpdName string the name of the dropdown foreign key on glpi_computers (eg : hdtype, processor)
  * @param $specif string the name of the dropdown value entry on glpi_computer (eg : hdspace, processor_speed) optionnal argument.
  *
- * @return nothing if everything is good, else display mysql query and error.
+ * @return void
  */
 function compDpd2Device($devtype, $devname, $dpdname, $compDpdName, $specif = '') {
    global $DB;
@@ -1392,19 +1388,19 @@ function compDpd2Device($devtype, $devname, $dpdname, $compDpdName, $specif = ''
              FROM `glpi_dropdown_".$dpdname."`";
 
    $result = $DB->query($query);
-   while ($lndropd = $DB->fetch_array($result)) {
+   while ($lndropd = $DB->fetchArray($result)) {
       $query2 = "INSERT INTO `glpi_device_".$devname."`
                         (`designation`, `comment`, `specif_default`)
                  VALUES ('".addslashes($lndropd["name"])."', '', '')";
       $DB->queryOrDie($query2, "unable to transfer ".$dpdname." to ".$devname." ");
 
-      $devid   = $DB->insert_id();
+      $devid   = $DB->insertId();
       $query3  = "SELECT *
                   FROM `glpi_computers`
                   WHERE `".$compDpdName."` = '".$lndropd["ID"]."'";
       $result3 = $DB->query($query3);
 
-      while ($lncomp = $DB->fetch_array($result3)) {
+      while ($lncomp = $DB->fetchArray($result3)) {
          $query4 = "INSERT INTO `glpi_computer_device`
                            (`device_type`, `FK_device`, `FK_computers`)
                     VALUES ('$devtype', '".$devid."', '".$lncomp["ID"]."')";
@@ -1424,7 +1420,7 @@ function compDpd2Device($devtype, $devname, $dpdname, $compDpdName, $specif = ''
          $DB->queryOrDie($query4, "unable to migrate from ".$dpdname." to ".$devname." for item computer:".$lncomp["ID"]);
       }
    }
-   $DB->free_result($result);
+   $DB->freeResult($result);
 
    //Delete unused elements (dropdown on the computer table, dropdown table and specif)
    $query = "ALTER TABLE `glpi_computers`

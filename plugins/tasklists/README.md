@@ -1,34 +1,44 @@
-# Tasklist GLPI plugin
+# Plugin Tasklists for GLPI
 
-This plugin was created as a way to automatically generate a list of ticket tasks based on a ticket category
+![Plugin tasklists](https://raw.githubusercontent.com/InfotelGLPI/tasklists/master/screenshots/kanban.png "Plugin tasklists")
 
-Some parts were adapted from the GLPI Plugin examples.
+This plugin is on Transifex - Help us to translate :
+https://www.transifex.com/infotelGLPI/GLPI_tasklists/
 
-Basic Usage:
- * Create new ticket categories via the setup -> dropdowns menu
- * Create a new task list via Setup -> Tasklist List Management
- * The name of the newly created tasklist must match an existing category
- * Enable or Disable the task list via the checkbox.
- * Enter the tasks in the text box.  The following format should be used
-	Task One
-	  Sub task 1
-	  Sub task 2
-	++
-	Task Two
-	  Sub task 1
-	  Sub task 2
-	++
-	Task Three
-	++
-	Task Four
- * The system will parse the text box, and separate tasks at every ++.
- * Create a new ticket, select the category for the ticket, and when the new ticket is 
-	submitted, the system will auto-generate tasks.
+See wiki for use it ? https://github.com/InfotelGLPI/tasklists/wiki
 
-## Documentation
+Adding a management of tasks & a kanban. This plugin adds in GLPI, an interface to add tasks & manage them into a kanban
 
-None yet
+Last features :
 
-## Contributing
+- [X] Clone task
+- [X] Add comments to tasks
+- [X] See authors tasks filter
+- [X] See archived tasks filter
+- [X] See in progress tasks filter
+- [X] Send notifications for add / change / delete task
+- [X] Use richtext on tasks
+- [X] Add templates by context
+- [X] Add entity pre-selection
+- [X] Use a default Backlog from list
+- [X] Link to tickets
+- [X] Preference : context by default
+- [X] See percentage of completion from tasks
+- [X] Order States
+- [X] Add context to States
+- [X] Add color to States
+- [X] Minimize closed tasks
+- [X] Can be used with mail collector to create tasks
+- [ ] Add notification for revive user in charge
+- [ ] Add min - max by state
+- [ ] Add notifications to comments
 
+For GLPI versions <9.1, for use it with mail collector you must to modify "inc/rulemailcollector.class.php" file, into  "executeActions" fonction, into switch : switch ($action->fields["action_type"]), add a default case  : 
 
+```
+default:
+   //plugins actions
+   $executeaction = clone $this;
+   $output = $executeaction->executePluginsActions($action, $output, $params);
+   break;
+```

@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -29,10 +29,6 @@
  * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
  */
-
-/** @file
-* @brief
-*/
 
 /**
  * Update from 0.80.3 to 0.83
@@ -290,7 +286,7 @@ function update0803to083() {
 
       if ($result=$DB->query($query)) {
          if ($DB->numrows($result)) {
-            while ($data = $DB->fetch_assoc($result)) {
+            while ($data = $DB->fetchAssoc($result)) {
                $query = "UPDATE `glpi_notificationtemplatetranslations`
                          SET `subject` = '".addslashes(str_replace($from, $to, $data['subject']))."',
                              `content_text` = '".addslashes(str_replace($from, $to,
@@ -314,7 +310,7 @@ function update0803to083() {
                           (`name`, `itemtype`, `date_mod`)
                    VALUES ('Problems', 'Problem', NOW())";
          $DB->queryOrDie($query, "0.83 add problem notification");
-         $notid = $DB->insert_id();
+         $notid = $DB->insertId();
 
          $query = "INSERT INTO `glpi_notificationtemplatetranslations`
                           (`notificationtemplates_id`, `language`, `subject`,
@@ -416,7 +412,7 @@ function update0803to083() {
                       VALUES ('".$notif_names[$type]."', 0, 'Problem', '$type', 'mail',
                               $notid, '', 1, 1, NOW())";
             $DB->queryOrDie($query, "0.83 add problem $type notification");
-            $notifid = $DB->insert_id();
+            $notifid = $DB->insertId();
 
             foreach ($targets as $target) {
                $query = "INSERT INTO `glpi_notificationtargets`
@@ -664,7 +660,7 @@ function update0803to083() {
 
       if ($result = $DB->query($query)) {
          if ($DB->numrows($result)>0) {
-            while ($data = $DB->fetch_assoc($result)) {
+            while ($data = $DB->fetchAssoc($result)) {
                $is_dynamic = 0;
                $ldap_servers = [];
                // manage is_dynamic :
@@ -725,7 +721,7 @@ function update0803to083() {
       $user = new User();
       if ($result = $DB->query($query)) {
          if ($DB->numrows($result)>0) {
-            while ($data = $DB->fetch_assoc($result)) {
+            while ($data = $DB->fetchAssoc($result)) {
                if ($user->getFromDB($data['users_id'])) {
                   $query = "SELECT `id`
                             FROM `glpi_groups_users`
@@ -838,7 +834,7 @@ function update0803to083() {
                        (`name`, `is_recursive`)
                 VALUES ('Default', 1)";
       $DB->queryOrDie($query, "0.83 add default ticket template");
-      $default_ticket_template = $DB->insert_id();
+      $default_ticket_template = $DB->insertId();
 
    }
 
@@ -1034,7 +1030,7 @@ function update0803to083() {
       $ADDTODISPLAYPREF['TicketRecurrent'] = [11, 12, 13, 15, 14];
    }
 
-   if (!countElementsInTable('glpi_crontasks', "`itemtype`='TicketRecurrent' AND `name`='ticketrecurrent'")) {
+   if (!countElementsInTable('glpi_crontasks', ['itemtype' => 'TicketRecurrent', 'name' => 'ticketrecurrent'])) {
       $query = "INSERT INTO `glpi_crontasks`
                        (`itemtype`, `name`, `frequency`, `param`, `state`, `mode`, `allowmode`,
                         `hourmin`, `hourmax`, `logs_lifetime`, `lastrun`, `lastcode`, `comment`)
@@ -1322,7 +1318,7 @@ function update0803to083() {
                $helpdesk_profiles[$data2['id']] = $data2['id'];
             }
             if (count($helpdesk_profiles)) {
-               while ($data = $DB->fetch_assoc($result)) {
+               while ($data = $DB->fetchAssoc($result)) {
                   foreach ($helpdesk_profiles as $pid) {
                      $query = "INSERT INTO `glpi_profiles_reminders`
                                       (`reminders_id`, `profiles_id`)
@@ -1347,7 +1343,7 @@ function update0803to083() {
 
       if ($result = $DB->query($query)) {
          if ($DB->numrows($result)>0) {
-            while ($data = $DB->fetch_assoc($result)) {
+            while ($data = $DB->fetchAssoc($result)) {
                $query = "INSERT INTO `glpi_entities_reminders`
                                 (`reminders_id`, `entities_id`, `is_recursive`)
                          VALUES ('".$data['id']."', '".$data['entities_id']."',
@@ -1436,7 +1432,7 @@ function update0803to083() {
 
       if ($result = $DB->query($query)) {
          if ($DB->numrows($result)>0) {
-            while ($data = $DB->fetch_assoc($result)) {
+            while ($data = $DB->fetchAssoc($result)) {
                $query = "INSERT INTO `glpi_entities_knowbaseitems`
                                 (`knowbaseitems_id`, `entities_id`, `is_recursive`)
                          VALUES ('".$data['id']."', '".$data['entities_id']."',
@@ -1457,7 +1453,7 @@ function update0803to083() {
    $migration->migrationOneTable('glpi_entitydatas');
    $restore_root_entity_value = false;
    // create root entity if not exist with old default values
-   if (countElementsInTable('glpi_entitydatas', 'entities_id=0') == 0) {
+   if (countElementsInTable('glpi_entitydatas', ['entities_id' => 0]) == 0) {
       $query = "INSERT INTO `glpi_entitydatas`
                        (`entities_id`, `entities_id_software`,
                         `autofill_order_date`, `autofill_delivery_date`, `autofill_buy_date`,
@@ -1577,7 +1573,7 @@ function update0803to083() {
 
    if ($result = $DB->query($query)) {
       if ($DB->numrows($result) > 0) {
-         if ($data = $DB->fetch_assoc($result)) {
+         if ($data = $DB->fetchAssoc($result)) {
 
             foreach ($fieldconfig as $field_config) {
                if ($DB->fieldExists("glpi_entitydatas", $field_config, false)
@@ -1614,7 +1610,7 @@ function update0803to083() {
 
    if ($result = $DB->query($query)) {
       if ($DB->numrows($result) > 0) {
-         if ($data = $DB->fetch_assoc($result)) {
+         if ($data = $DB->fetchAssoc($result)) {
             foreach ($fieldconfig as $field_config) {
                if ($DB->fieldExists("glpi_configs", $field_config, false)
                    && !$DB->fieldExists("glpi_entitydatas", $field_config, false)) {
@@ -1684,7 +1680,7 @@ function update0803to083() {
 
       if ($result = $DB->query($query)) {
          if ($DB->numrows($result)>0) {
-            while ($data = $DB->fetch_assoc($result)) {
+            while ($data = $DB->fetchAssoc($result)) {
                $query = "SELECT MAX(`rank`)
                          FROM `glpi_displaypreferences`
                          WHERE `users_id` = '".$data['users_id']."'

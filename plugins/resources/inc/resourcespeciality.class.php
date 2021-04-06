@@ -9,7 +9,7 @@
  -------------------------------------------------------------------------
 
  LICENSE
-      
+
  This file is part of resources.
 
  resources is free software; you can redistribute it and/or modify
@@ -31,38 +31,66 @@ if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access directly to this file");
 }
 
+/**
+ * Class PluginResourcesResourceSpeciality
+ */
 class PluginResourcesResourceSpeciality extends CommonDropdown {
-   
+
    var $can_be_translated  = true;
-   
-   static function getTypeName($nb=0) {
+
+   /**
+    * @since 0.85
+    *
+    * @param $nb
+    **/
+   static function getTypeName($nb = 0) {
 
       return _n('Speciality', 'Specialities', $nb, 'resources');
    }
 
 
+   /**
+    * Have I the global right to "create" the Object
+    * May be overloaded if needed (ex KnowbaseItem)
+    *
+    * @return booleen
+    **/
    static function canCreate() {
-      if (Session::haveRight('dropdown',UPDATE)
-         && Session::haveRight('plugin_resources_dropdown_public', UPDATE)){
+      if (Session::haveRight('dropdown', UPDATE)
+         && Session::haveRight('plugin_resources_dropdown_public', UPDATE)) {
          return true;
       }
       return false;
    }
 
+   /**
+    * Have I the global right to "view" the Object
+    *
+    * Default is true and check entity if the objet is entity assign
+    *
+    * May be overloaded if needed
+    *
+    * @return booleen
+    **/
    static function canView() {
-      if (Session::haveRight('plugin_resources_dropdown_public', READ)){
+      if (Session::haveRight('plugin_resources_dropdown_public', READ)) {
          return true;
       }
       return false;
    }
 
+   /**
+    * Return Additional Fields for this type
+    *
+    * @return array
+    **/
    function getAdditionalFields() {
 
-      return array(array('name'  => 'plugin_resources_ranks_id',
+      return [['name'  => 'plugin_resources_ranks_id',
                         'label' => __('Rank', 'resources'),
                         'type'  => 'dropdownValue',
-                        'list'  => true),
-                  );
+                        'list'  => true],
+                  ];
    }
 
    /**
@@ -71,7 +99,7 @@ class PluginResourcesResourceSpeciality extends CommonDropdown {
     * @static
     * @param $options
     */
-   static function showSpeciality($options){
+   static function showSpeciality($options) {
 
       $rankId = $options['plugin_resources_ranks_id'];
       $entity = $options['entity'];
@@ -81,13 +109,13 @@ class PluginResourcesResourceSpeciality extends CommonDropdown {
 
          $condition = " `plugin_resources_ranks_id` = '".$rankId."'";
 
-         Dropdown::show('PluginResourcesResourceSpeciality', array('entity' => $entity,
-                  'condition' => $condition));
+         Dropdown::show('PluginResourcesResourceSpeciality', ['entity' => $entity,
+                  'condition' => $condition]);
 
-         } else {
-            echo "<select name='plugin_resources_resourcespecialities_id'
+      } else {
+         echo "<select name='plugin_resources_resourcespecialities_id'
                         id='dropdown_plugin_resources_resourcespecialities_id$rand'>";
-            echo "<option value='0'>".Dropdown::EMPTY_VALUE."</option></select>";
+         echo "<option value='0'>".Dropdown::EMPTY_VALUE."</option></select>";
       }
    }
 
@@ -111,12 +139,12 @@ class PluginResourcesResourceSpeciality extends CommonDropdown {
 
          if ($result=$DB->query($query)) {
             if ($DB->numrows($result)) {
-               $data = $DB->fetch_assoc($result);
+               $data = $DB->fetchAssoc($result);
                $data = Toolbox::addslashes_deep($data);
                $input['name'] = $data['name'];
                $input['entities_id']  = $entity;
                $temp = new self();
-               $newID    = $temp->getID($input);
+               $newID    = $temp->getID();
 
                if ($newID<0) {
                   $newID = $temp->import($input);
@@ -129,14 +157,20 @@ class PluginResourcesResourceSpeciality extends CommonDropdown {
       return 0;
    }
 
-   function getSearchOptions() {
+   /**
+    * @return array
+    */
+   function rawSearchOptions() {
 
-      $tab = parent::getSearchOptions();
+      $tab = parent::rawSearchOptions();
 
-      $tab[17]['table']         = 'glpi_plugin_resources_ranks';
-      $tab[17]['field']         = 'name';
-      $tab[17]['name']          = __('Rank', 'resources');
-      $tab[17]['datatype']      = 'dropdown';
+      $tab[] = [
+         'id'       => '17',
+         'table'    => 'glpi_plugin_resources_ranks',
+         'field'    => 'name',
+         'name'     => __('Rank', 'resources'),
+         'datatype' => 'dropdown'
+      ];
 
       return $tab;
    }
@@ -144,4 +178,3 @@ class PluginResourcesResourceSpeciality extends CommonDropdown {
 
 }
 
-?>

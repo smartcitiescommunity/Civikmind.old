@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 use Glpi\Event;
 
 include ('../inc/includes.php');
@@ -48,6 +44,11 @@ $mailgate = new MailCollector();
 
 if (isset($_POST["add"])) {
    $mailgate->check(-1, CREATE, $_POST);
+
+   if (array_key_exists('passwd', $_POST)) {
+      // Password must not be altered, it will be encrypted and never displayed, so sanitize is not necessary.
+      $_POST['passwd'] = $_UPOST['passwd'];
+   }
 
    if ($newID = $mailgate->add($_POST)) {
       Event::log($newID, "mailcollector", 4, "setup",
@@ -69,6 +70,12 @@ if (isset($_POST["add"])) {
 
 } else if (isset($_POST["update"])) {
    $mailgate->check($_POST['id'], UPDATE);
+
+   if (array_key_exists('passwd', $_POST)) {
+      // Password must not be altered, it will be encrypted and never displayed, so sanitize is not necessary.
+      $_POST['passwd'] = $_UPOST['passwd'];
+   }
+
    $mailgate->update($_POST);
 
    Event::log($_POST["id"], "mailcollector", 4, "setup",

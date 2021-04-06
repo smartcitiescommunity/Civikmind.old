@@ -20,7 +20,7 @@ class %%CLASSNAME%% extends CommonDBTM
                   PRIMARY KEY                        (`id`),
                   UNIQUE INDEX `itemtype_item_container`
                      (`itemtype`, `items_id`, `plugin_fields_containers_id`)
-               ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;";
+               ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;";
          $DB->query($query) or die ($DB->error());
       }
 
@@ -45,14 +45,14 @@ class %%CLASSNAME%% extends CommonDBTM
       if ($type != 'header') {
          $sql_type = PluginFieldsMigration::getSQLType($type);
 
-         $migration = new Migration(0);
+         $migration = new PluginFieldsMigration(0);
          $migration->addField(self::getTable(), $fieldname, $sql_type);
          $migration->migrationOneTable(self::getTable());
       }
    }
 
    static function removeField($fieldname) {
-      $migration = new Migration;
+      $migration = new PluginFieldsMigration(0);
       $migration->dropField(self::getTable(), $fieldname);
 
    }

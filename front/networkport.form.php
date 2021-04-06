@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,9 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-* @since version 0.84
-*/
+/**
+ * @since 0.84
+ */
 
 use Glpi\Event;
 
@@ -42,7 +41,6 @@ include ('../inc/includes.php');
 
 $np  = new NetworkPort();
 $nn  = new NetworkPort_NetworkPort();
-$npv = new NetworkPort_Vlan();
 
 if (!isset($_GET["id"])) {
    $_GET["id"] = "";
@@ -101,7 +99,7 @@ if (isset($_POST["add"])) {
               sprintf(__('%s purges an item'), $_SESSION["glpiname"]));
 
    if ($item = getItemForItemtype($np->fields['itemtype'])) {
-      Html::redirect($item->getFormURL().'?id='.$np->fields['items_id']);
+      Html::redirect($item->getFormURLWithID($np->fields['items_id']));
    }
    Html::redirect($CFG_GLPI["root_doc"]."/front/central.php");
 

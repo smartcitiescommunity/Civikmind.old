@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -41,13 +37,13 @@ if (!defined('GLPI_ROOT')) {
 /**
  * class XHProf
  *
- * @since version 0.84
+ * @since 0.84
  *
  * Il you need to "profile" some part of code
  *
  * Install the pecl/xhprof extension
  *
- * Add XHPROF_PATH and XHPROF_URL in config/config_path.php (if needed)
+ * Add XHPROF_PATH and XHPROF_URL in config/local_define.php (if needed)
  *
  * Before the code
  *    $prof = new XHProf("something useful");
@@ -59,7 +55,7 @@ if (!defined('GLPI_ROOT')) {
  */
 class XHProf {
 
-   // this can be overloaded in config/config_path.php
+   // this can be overloaded in config/local_define.php
    const XHPROF_PATH = '/usr/share/xhprof/xhprof_lib';
    const XHPROF_URL  = '/xhprof';
 

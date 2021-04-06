@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (strpos($_SERVER['PHP_SELF'], "dropdownSoftwareLicense.php")) {
    $AJAX_INCLUDE = 1;
    include ('../inc/includes.php');
@@ -48,20 +44,20 @@ if ($_POST['softwares_id'] > 0) {
       $_POST['value'] = 0;
    }
 
-   $restrict = getEntitiesRestrictRequest(' AND', 'glpi_softwarelicenses', 'entities_id',
-                                          $_POST['entity_restrict'], true);
-
    // Make a select box
-   $query = "SELECT DISTINCT *
-             FROM `glpi_softwarelicenses`
-             WHERE `glpi_softwarelicenses`.`softwares_id` = '".$_POST['softwares_id']."'
-                   $restrict
-             ORDER BY `name`";
-   $result = $DB->query($query);
-   $number = $DB->numrows($result);
+   $iterator = $DB->request([
+      'DISTINCT'  => true,
+      'FROM'      => 'glpi_softwarelicenses',
+      'WHERE'     => [
+         'glpi_softwarelicenses.softwares_id'   => (int)$_POST['softwares_id']
+      ] + getEntitiesRestrictCriteria('glpi_softwarelicenses', 'entities_id', $_POST['entity_restrict'], true),
+      'ORDERBY'   => 'name'
+   ]);
+   $number = count($iterator);
 
+   $values = [];
    if ($number) {
-      while ($data = $DB->fetch_assoc($result)) {
+      while ($data = $iterator->next()) {
          $ID     = $data['id'];
          $output = $data['name'];
 

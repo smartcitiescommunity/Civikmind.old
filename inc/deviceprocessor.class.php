@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -29,10 +29,6 @@
  * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
  */
-
-/** @file
-* @brief
-*/
 
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
@@ -66,21 +62,22 @@ class DeviceProcessor extends CommonDevice {
                                      'label' => __('Number of threads'),
                                      'type'  => 'integer'],
                                ['name'  => 'deviceprocessormodels_id',
-                                     'label' => __('Model'),
+                                     'label' => _n('Model', 'Models', 1),
                                      'type'  => 'dropdownValue']
                            ]);
    }
 
 
-   function getSearchOptionsNew() {
-      $tab = parent::getSearchOptionsNew();
+   function rawSearchOptions() {
+      $tab = parent::rawSearchOptions();
 
       $tab[] = [
          'id'                 => '11',
          'table'              => $this->getTable(),
          'field'              => 'frequency_default',
          'name'               => __('Frequency by default'),
-         'datatype'           => 'string'
+         'datatype'           => 'string',
+         'autocomplete'       => true,
       ];
 
       $tab[] = [
@@ -88,7 +85,8 @@ class DeviceProcessor extends CommonDevice {
          'table'              => $this->getTable(),
          'field'              => 'frequence',
          'name'               => __('Frequency'),
-         'datatype'           => 'string'
+         'datatype'           => 'string',
+         'autocomplete'       => true,
       ];
 
       $tab[] = [
@@ -111,7 +109,7 @@ class DeviceProcessor extends CommonDevice {
          'id'                 => '15',
          'table'              => 'glpi_deviceprocessormodels',
          'field'              => 'name',
-         'name'               => __('Model'),
+         'name'               => _n('Model', 'Models', 1),
          'datatype'           => 'dropdown'
       ];
 
@@ -120,7 +118,7 @@ class DeviceProcessor extends CommonDevice {
 
 
    /**
-    * @since version 0.85
+    * @since 0.85
     * @param $input
     *
     * @return number
@@ -138,24 +136,15 @@ class DeviceProcessor extends CommonDevice {
 
 
    function prepareInputForAdd($input) {
-      return self::prepareInputForAddOrUpdate($input);
+      return $this->prepareInputForAddOrUpdate($input);
    }
 
 
-   /**
-    * @since version 0.85
-    * @see CommonDropdown::prepareInputForUpdate()
-   **/
    function prepareInputForUpdate($input) {
-      return self::prepareInputForAddOrUpdate($input);
+      return $this->prepareInputForAddOrUpdate($input);
    }
 
 
-   /**
-    * @since version 0.84
-    *
-    * @see CommonDevice::getHTMLTableHeader()
-   **/
    static function getHTMLTableHeader($itemtype, HTMLTableBase $base,
                                       HTMLTableSuperHeader $super = null,
                                       HTMLTableHeader $father = null, array $options = []) {
@@ -174,11 +163,6 @@ class DeviceProcessor extends CommonDevice {
    }
 
 
-   /**
-    * @since version 0.84
-    *
-    * @see CommonDevice::getHTMLTableCellForItem()
-   **/
    function getHTMLTableCellForItem(HTMLTableRow $row = null, CommonDBTM $item = null,
                                     HTMLTableCell $father = null, array $options = []) {
 
@@ -196,13 +180,6 @@ class DeviceProcessor extends CommonDevice {
    }
 
 
-   /**
-    * Criteria used for import function
-    *
-    * @see CommonDevice::getImportCriteria()
-    *
-    * @since version 0.84
-   **/
    function getImportCriteria() {
 
       return ['designation'          => 'equal',
@@ -210,4 +187,83 @@ class DeviceProcessor extends CommonDevice {
                    'frequence'            => 'delta:10'];
    }
 
+   public static function rawSearchOptionsToAdd($itemtype, $main_joinparams) {
+      global $DB;
+
+      $tab = [];
+
+      $tab[] = [
+         'id'                 => '17',
+         'table'              => 'glpi_deviceprocessors',
+         'field'              => 'designation',
+         'name'               => self::getTypeName(1),
+         'forcegroupby'       => true,
+         'usehaving'          => true,
+         'massiveaction'      => false,
+         'datatype'           => 'string',
+         'joinparams'         => [
+            'beforejoin'         => [
+               'table'              => 'glpi_items_deviceprocessors',
+               'joinparams'         => $main_joinparams
+            ]
+         ]
+      ];
+
+      $tab[] = [
+         'id'                 => '18',
+         'table'              => 'glpi_items_deviceprocessors',
+         'field'              => 'nbcores',
+         'name'               => __('processor: number of cores'),
+         'forcegroupby'       => true,
+         'usehaving'          => true,
+         'datatype'           => 'number',
+         'massiveaction'      => false,
+         'joinparams'         => $main_joinparams,
+         'computation'        =>
+            'SUM(' . $DB->quoteName('TABLE.nbcores') . ') * COUNT(DISTINCT ' .
+            $DB->quoteName('TABLE.id') . ') / COUNT(*)',
+         'nometa'             => true, // cannot GROUP_CONCAT a SUM
+      ];
+
+      $tab[] = [
+         'id'                 => '34',
+         'table'              => 'glpi_items_deviceprocessors',
+         'field'              => 'nbthreads',
+         'name'               => __('processor: number of threads'),
+         'forcegroupby'       => true,
+         'usehaving'          => true,
+         'datatype'           => 'number',
+         'massiveaction'      => false,
+         'joinparams'         => $main_joinparams,
+         'computation'        =>
+            'SUM(' . $DB->quoteName('TABLE.nbthreads') . ') * COUNT(DISTINCT ' .
+            $DB->quoteName('TABLE.id') . ') / COUNT(*)',
+         'nometa'             => true, // cannot GROUP_CONCAT a SUM
+      ];
+
+      $tab[] = [
+         'id'                 => '36',
+         'table'              => 'glpi_items_deviceprocessors',
+         'field'              => 'frequency',
+         'name'               => __('Processor frequency'),
+         'unit'               => 'MHz',
+         'forcegroupby'       => true,
+         'usehaving'          => true,
+         'datatype'           => 'number',
+         'width'              => 100,
+         'massiveaction'      => false,
+         'joinparams'         => $main_joinparams,
+         'computation'        =>
+            'SUM(' . $DB->quoteName('TABLE.frequency') . ') / COUNT(' .
+            $DB->quoteName('TABLE.id') . ')',
+         'nometa'             => true, // cannot GROUP_CONCAT a SUM
+      ];
+
+      return $tab;
+   }
+
+
+   static function getIcon() {
+      return "fas fa-microchip";
+   }
 }

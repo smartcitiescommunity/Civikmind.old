@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,9 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -81,7 +78,7 @@ class RuleRightCollection extends RuleCollection {
       $actions = $rule->getActions();
       echo "<tr><th colspan='4'>" . __('Rule results') . "</th></tr>";
       echo "<tr class='tab_bg_2'>";
-      echo "<td class='center' colspan='2'>".__('Validation')."</td><td colspan='2'>".
+      echo "<td class='center' colspan='2'>"._n('Validation', 'Validations', 1)."</td><td colspan='2'>".
            "<span class='b'>".Dropdown::getYesNo($global_result)."</span></td>";
 
       if (isset($output["_ldap_rules"]["rules_entities"])) {
@@ -156,7 +153,7 @@ class RuleRightCollection extends RuleCollection {
       echo "<tr class='tab_bg_2'>";
       switch ($name) {
          case "entity" :
-            echo "<td class='center'>".__('Entity')." </td>\n";
+            echo "<td class='center'>".Entity::getTypeName(1)." </td>\n";
             echo "<td class='center'>".Dropdown::getDropdownName("glpi_entities", $value)."</td>";
             break;
 
@@ -183,16 +180,28 @@ class RuleRightCollection extends RuleCollection {
       global $DB;
 
       $params = [];
-      $sql = "SELECT DISTINCT `value`
-              FROM `glpi_rules`,
-                   `glpi_rulecriterias`,
-                   `glpi_rulerightparameters`
-              WHERE `glpi_rules`.`sub_type` = 'RuleRight'
-                    AND `glpi_rulecriterias`.`rules_id` = `glpi_rules`.`id`
-                    AND `glpi_rulecriterias`.`criteria` = `glpi_rulerightparameters`.`value`";
-      $result = $DB->query($sql);
+      $iterator = $DB->request([
+         'SELECT'          => 'value',
+         'DISTINCT'        => true,
+         'FROM'            => 'glpi_rulerightparameters',
+         'LEFT JOIN'       => [
+            'glpi_rulecriterias' => [
+               'ON' => [
+                  'glpi_rulerightparameters' => 'value',
+                  'glpi_rulecriterias'       => 'criteria'
+               ]
+            ],
+            'glpi_rules'         => [
+               'ON' => [
+                  'glpi_rulecriterias' => 'rules_id',
+                  'glpi_rules'         => 'id'
+               ]
+            ]
+         ],
+         'WHERE'           => ['glpi_rules.sub_type' => 'RuleRight']
+      ]);
 
-      while ($param = $DB->fetch_assoc($result)) {
+      while ($param = $iterator->next()) {
          //Dn is alwsays retreived from ldap : don't need to ask for it !
          if ($param["value"] != "dn") {
             $params[] = Toolbox::strtolower($param["value"]);
@@ -213,10 +222,26 @@ class RuleRightCollection extends RuleCollection {
     * @return an array of attributes
    **/
    function prepareInputDataForProcess($input, $params) {
+      $groups = [];
+      if (isset($input) && is_array($input)) {
+         $groups = $input;
+      }
 
-      $rule_parameters = [];
+      //common parameters
+      $rule_parameters = [
+         'TYPE'       => $params["type"] ?? "",
+         'LOGIN'      => $params["login"] ?? "",
+         'MAIL_EMAIL' => $params["email"] ?? $params["mail_email"] ?? "",
+         '_groups_id' => $groups
+      ];
+
+      //IMAP/POP login method
+      if ($params["type"] == Auth::MAIL) {
+         $rule_parameters["MAIL_SERVER"] = $params["mail_server"] ?? "";
+      }
+
       //LDAP type method
-      if ($params["type"] == "LDAP") {
+      if ($params["type"] == Auth::LDAP) {
          //Get all the field to retrieve to be able to process rule matching
          $rule_fields = $this->getFieldsToLookFor();
 
@@ -226,35 +251,16 @@ class RuleRightCollection extends RuleCollection {
          $rule_input = AuthLDAP::get_entries_clean($params["connection"], $sz);
 
          if (count($rule_input)) {
-            if (isset($input)) {
-               $groups = $input;
-            } else {
-               $groups = [];
-            }
             $rule_input = $rule_input[0];
             //Get all the ldap fields
             $fields = $this->getFieldsForQuery();
             foreach ($fields as $field) {
                switch (Toolbox::strtoupper($field)) {
-                  case "LOGIN" :
-                     $rule_parameters["LOGIN"] = $params["login"];
-                     break;
-
-                  case "MAIL_EMAIL" :
-                     $rule_parameters["MAIL_EMAIL"] = $params["mail_email"];
-                     break;
-
                   case "LDAP_SERVER" :
                      $rule_parameters["LDAP_SERVER"] = $params["ldap_server"];
                      break;
 
-                  case "GROUPS" :
-                     foreach ($groups as $group) {
-                        $rule_parameters["GROUPS"][] = $group;
-                     }
-                     break;
-
-                  default :
+                  default : // ldap criteria (added by user)
                      if (isset($rule_input[$field])) {
                         if (!is_array($rule_input[$field])) {
                            $rule_parameters[$field] = $rule_input[$field];
@@ -273,15 +279,8 @@ class RuleRightCollection extends RuleCollection {
             return $rule_parameters;
          }
          return $rule_input;
-      } else if ($params["type"] == "SSO") {
-         $rule_parameters["MAIL_EMAIL"]  = $params["email"];
-         $rule_parameters["LOGIN"]       = $params["login"];
-         return $rule_parameters;
       }
-      //IMAP/POP login method
-      $rule_parameters["MAIL_SERVER"] = $params["mail_server"];
-      $rule_parameters["MAIL_EMAIL"]  = $params["email"];
-      $rule_parameters["LOGIN"]       = $params["login"];
+
       return $rule_parameters;
    }
 

@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,22 +30,22 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 //#################### INCLUDE & SESSIONS ############################
 define('GLPI_ROOT', realpath('..'));
 
 // Do not include config.php so set root_doc
 $CFG_GLPI['root_doc'] = '..';
 
-include_once (GLPI_ROOT . "/inc/autoload.function.php");
+include_once (GLPI_ROOT . "/inc/based_config.php");
 include_once (GLPI_ROOT . "/inc/db.function.php");
 include_once (GLPI_CONFIG_DIR . "/config_db.php");
 
 Session::setPath();
 Session::start();
+
+if (!isset($_SESSION['do_content_update'])) {
+   die("Sorry. You can't access this file directly");
+}
 
 // Init debug variable
 Toolbox::setDebugMode(Session::DEBUG_MODE, 0, 0, 1);
@@ -98,7 +98,7 @@ function get_update_content($DB, $table, $from, $limit, $conv_utf8) {
                          LIMIT $from, $limit");
 
    if ($result) {
-      while ($row = $DB->fetch_assoc($result)) {
+      while ($row = $DB->fetchAssoc($result)) {
          if (isset($row["id"])) {
             $insert = "UPDATE `$table`
                        SET ";
@@ -143,10 +143,10 @@ function UpdateContent($DB, $duree, $rowlimit, $conv_utf8, $complete_utf8) {
    // $histMySql, nom de la machine serveur MySQl
    // $duree=timeout pour changement de page (-1 = aucun)
 
-   $result = $DB->list_tables();
+   $result = $DB->listTables();
    $numtab = 0;
-   while ($t=$DB->fetch_row($result)) {
-      $tables[$numtab] = $t[0];
+   while ($t = $result->next()) {
+      $tables[$numtab] = $t['TABLE_NAME'];
       $numtab++;
    }
 
@@ -157,7 +157,7 @@ function UpdateContent($DB, $duree, $rowlimit, $conv_utf8, $complete_utf8) {
             $DB->query("ALTER TABLE `".$tables[$offsettable]."`
                         DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci");
 
-            $data = $DB->list_fields($tables[$offsettable]);
+            $data = $DB->listFields($tables[$offsettable]);
 
             foreach ($data as $key =>$val) {
                if (preg_match("/^char/i", $val["Type"])) {
@@ -252,7 +252,7 @@ function UpdateContent($DB, $duree, $rowlimit, $conv_utf8, $complete_utf8) {
 
 //########################### Script start ################################
 
-Session::loadLanguage();
+Session::loadLanguage('', false);
 
 // Send UTF8 Headers
 header("Content-Type: text/html; charset=UTF-8");
@@ -310,8 +310,7 @@ if (!isset($_GET["rowlimit"])) {
    $rowlimit = $_GET["rowlimit"];
 }
 
-$tab = $DB->list_tables();
-$tot = $DB->numrows($tab);
+$tot = $DB->listTables()->count();
 
 if (isset($offsettable)) {
    if ($offsettable>=0) {
@@ -339,7 +338,7 @@ if (!$DB->fieldExists($config_table, "utf8_conv", false)) {
              WHERE `id` = '1'";
 
    $result = $DB->query($query);
-   $data   = $DB->fetch_assoc($result);
+   $data   = $DB->fetchAssoc($result);
 
    if ($data["utf8_conv"]) {
       $complete_utf8 = false;

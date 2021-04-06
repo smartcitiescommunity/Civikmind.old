@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -29,10 +29,6 @@
  * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
  */
-
-/** @file
-* @brief
-*/
 
 /**
  * Update from 0.72.3 to 0.78
@@ -214,9 +210,7 @@ function update0723to078() {
 
             }
             // rename original table
-            $query = "RENAME TABLE `$original_table`
-                      TO `$new_table`";
-            $DB->queryOrDie($query, "0.78 rename $original_table to $new_table");
+            $migration->renameTable($original_table, $new_table);
          }
       }
       if ($DB->fieldExists($new_table, 'ID', false)) {
@@ -2274,7 +2268,7 @@ function update0723to078() {
                          FROM `$table`";
                if ($result=$DB->query($query)) {
                   if ($DB->numrows($result)>0) {
-                     while ($data = $DB->fetch_assoc($result)) {
+                     while ($data = $DB->fetchAssoc($result)) {
                         if (empty($data[$oldname]) && isset($update['default'])) {
                            $data[$oldname] = $update['default'];
                         }
@@ -2597,7 +2591,7 @@ function update0723to078() {
    foreach ($changes as $table => $tab) {
       $migration->displayMessage(sprintf(__('Change of the database layout - %s'), $table));
       $query = "ALTER TABLE `$table`
-                ".implode($tab, " ,\n").";";
+                ".implode(" ,\n", $tab).";";
       $DB->queryOrDie($query, "0.78 multiple alter in $table");
    }
 
@@ -2870,7 +2864,7 @@ function update0723to078() {
                 WHERE `type` = ".Bookmark::SEARCH." ";
       if ($result = $DB->query($query)) {
          if ($DB->numrows($result)>0) {
-            while ($data = $DB->fetch_assoc($result)) {
+            while ($data = $DB->fetchAssoc($result)) {
                $query2 = "UPDATE `glpi_bookmarks`
                           SET `query` = '".addslashes(preg_replace($olds, $news,
                                                       $data['query']))."'
@@ -3188,7 +3182,7 @@ function update0723to078() {
    $ADDTODISPLAYPREF['Budget']=[2,3,4,19];
 
    $migration->displayMessage(sprintf(__('Change of the database layout - %s'),
-                                      __('Automatic action')));
+                                      CronTask::getTypeName(1)));
    if (!$DB->tableExists('glpi_crontasks')) {
       $query = "CREATE TABLE `glpi_crontasks` (
                  `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -3482,7 +3476,7 @@ function update0723to078() {
                 FROM `glpi_profiles`";
       if ($result=$DB->query($query)) {
          if ($DB->numrows($result)>0) {
-            while ($data=$DB->fetch_assoc($result)) {
+            while ($data=$DB->fetchAssoc($result)) {
                $types                    = $data['helpdesk_hardware_type'];
                $CFG_GLPI["ticket_types"] = [COMPUTER_TYPE, NETWORKING_TYPE, PRINTER_TYPE,
                                                  MONITOR_TYPE, PERIPHERAL_TYPE, SOFTWARE_TYPE,
@@ -3662,9 +3656,9 @@ function update0723to078() {
       $DB->query("INSERT INTO `glpi_requesttypes`
                   VALUES(1, '".addslashes(__('Simplified interface'))."', 1, 0, NULL)");
       $DB->query("INSERT INTO `glpi_requesttypes`
-                  VALUES(2, '".addslashes(__('Email'))."', 0, 1, NULL)");
+                  VALUES(2, '".addslashes(_n('Email', 'Emails', 1))."', 0, 1, NULL)");
       $DB->query("INSERT INTO `glpi_requesttypes`
-                  VALUES(3, '".addslashes(__('Phone'))."', 0, 0, NULL)");
+                  VALUES(3, '".addslashes(Phone::getTypeName(1))."', 0, 0, NULL)");
       $DB->query("INSERT INTO `glpi_requesttypes`
                   VALUES(4, '".addslashes(__('Direct'))."', 0, 0, NULL)");
       $DB->query("INSERT INTO `glpi_requesttypes`
@@ -3865,7 +3859,7 @@ function update0723to078() {
    // Migrate devices
    if ($DB->tableExists('glpi_computer_device')) {
       $migration->displayMessage(sprintf(__('Change of the database layout - %s'),
-                                         _n('Component', 'Components', 2)));
+                                         _n('Component', 'Components', Session::getPluralNumber())));
 
       foreach ($devtypetoname as $key => $itemtype) {
          $migration->displayMessage(sprintf(__('Change of the database layout - %s'),
@@ -4076,7 +4070,7 @@ function update0723to078() {
 
       foreach ($queries as $itemtype => $query) {
          $DB->queryOrDie($query, "0.78 insert notification template for $itemtype");
-         $templates[$itemtype] = $DB->insert_id();
+         $templates[$itemtype] = $DB->insertId();
       }
 
       $ADDTODISPLAYPREF['NotificationTemplate']=[4,16];
@@ -4797,8 +4791,8 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
    }
 
    $tables = ['glpi_infocoms'           => __('Financial and administrative information'),
-                   'glpi_reservationitems'   => _n('Reservation', 'Reservations', 2),
-                   'glpi_networkports'       => _n('Network port', 'Network ports', 2)];
+                   'glpi_reservationitems'   => _n('Reservation', 'Reservations', Session::getPluralNumber()),
+                   'glpi_networkports'       => _n('Network port', 'Network ports', Session::getPluralNumber())];
    foreach ($tables as $table => $label) {
       // Migrate infocoms entity information
       if (!$DB->fieldExists($table, 'entities_id', false)) {
@@ -4812,14 +4806,14 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
 
          $DB->queryOrDie($query, "0.78 add entities_id and is_recursive in $table");
 
-         $entities    = getAllDatasFromTable('glpi_entities');
+         $entities    = getAllDataFromTable('glpi_entities');
          $entities[0] = "Root";
 
          $query = "SELECT DISTINCT `itemtype`
                    FROM `$table`";
          if ($result=$DB->query($query)) {
             if ($DB->numrows($result)>0) {
-               while ($data = $DB->fetch_assoc($result)) {
+               while ($data = $DB->fetchAssoc($result)) {
                   $migration->displayMessage(sprintf(__('Change of the database layout - %s'),
                                                      sprintf(__('%1$s - %2$s'), $label,
                                                              $data['itemtype'])));
@@ -4890,7 +4884,7 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
 
          $DB->queryOrDie($query, "0.78 add entities_id in $linkitem");
 
-         $entities    = getAllDatasFromTable('glpi_entities');
+         $entities    = getAllDataFromTable('glpi_entities');
          $entities[0] = "Root";
 
          foreach ($entities as $entID => $val) {
@@ -4918,7 +4912,7 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
 
       $DB->queryOrDie($query, "0.78 add entities_id in glpi_softwareversion");
 
-      $entities    = getAllDatasFromTable('glpi_entities');
+      $entities    = getAllDataFromTable('glpi_entities');
       $entities[0] = "Root";
 
       foreach ($entities as $entID => $val) {
@@ -5124,7 +5118,7 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
 
    if ($result = $DB->query($query)) {
       if ($DB->numrows($result)>0) {
-         while ($data = $DB->fetch_assoc($result)) {
+         while ($data = $DB->fetchAssoc($result)) {
             $num     = 0;
             $num2    = 0;
             $options = [];
@@ -5441,7 +5435,7 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
 
             $DB->queryOrDie($query, "0.78 error inserting new default maigate rule");
 
-         if ($newID = $DB->insert_id()) {
+         if ($newID = $DB->insertId()) {
             $query = "INSERT INTO `glpi_rulecriterias`
                          VALUES (NULL, $newID, 'subject', 6, '/.*/')";
 
@@ -5454,14 +5448,15 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
          }
 
       } else {
-         foreach (getAllDatasFromTable('glpi_mailcollectors') as $collector) {
+         $collectors = getAllDataFromTable('glpi_mailcollectors');
+         foreach ($collectors as $collector) {
             $query = "INSERT INTO `glpi_rules`
                       VALUES (NULL, -1, 'RuleMailCollector', $ranking, '".$collector['name']."', '',
                               'AND', 1, NULL, NULL)";
 
             $DB->queryOrDie($query, "0.78 error inserting new maigate rule ".$collector['name']);
 
-            if ($newID = $DB->insert_id()) {
+            if ($newID = $DB->insertId()) {
                $query = "INSERT INTO `glpi_rulecriterias`
                          VALUES (NULL, $newID, 'mailcollector', 0, '".$collector['id']."')";
 
@@ -5554,8 +5549,8 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
                        FROM `glpi_authldaps`";
             $result         = $DB->query($query);
             $ldapservers_id = $DB->result($result, 0, 'id');
-         } //If more than one server defined, get the most used
-         else {
+         } else {
+            //If more than one server defined, get the most used
             $query = "SELECT `auths_id`, COUNT(`auths_id`) AS cpt
                       FROM `glpi_users`
                       WHERE `authtype` = '3'
@@ -5650,7 +5645,7 @@ style=\"color: #8b8c8f; font-weight: bold; text-decoration: underline;\"&gt;
                 WHERE `itemtype` = '$type'";
       if ($result = $DB->query($query)) {
          if ($DB->numrows($result)>0) {
-            while ($data = $DB->fetch_assoc($result)) {
+            while ($data = $DB->fetchAssoc($result)) {
                $query = "SELECT max(`rank`)
                          FROM `glpi_displaypreferences`
                          WHERE `users_id` = '".$data['users_id']."'

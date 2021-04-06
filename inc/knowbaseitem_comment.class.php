@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -47,6 +43,10 @@ class KnowbaseItem_Comment extends CommonDBTM {
    }
 
    function getTabNameForItem(CommonGLPI $item, $withtemplate = 0) {
+      if (!$item->canUpdateItem()) {
+         return '';
+      }
+
       $nb = 0;
       if ($_SESSION['glpishow_count_on_tabs']) {
          $where = [];
@@ -82,16 +82,7 @@ class KnowbaseItem_Comment extends CommonDBTM {
     * @param $withtemplate    integer  withtemplate param (default 0)
    **/
    static function showForItem(CommonDBTM $item, $withtemplate = 0) {
-      global $DB, $CFG_GLPI;
-
-      $kbitem_id = null;
-      $item_id = $item->getID();
-      $item_type = $item::getType();
-      if (isset($_GET["start"])) {
-         $start = intval($_GET["start"]);
-      } else {
-         $start = 0;
-      }
+      global $CFG_GLPI;
 
       // Total Number of comments
       if ($item->getType() == KnowbaseItem::getType()) {
@@ -105,8 +96,9 @@ class KnowbaseItem_Comment extends CommonDBTM {
             'language'         => $item->fields['language']
          ];
       }
+
       $kbitem_id = $where['knowbaseitems_id'];
-      $kbitem = new KnowbaseItem_Item();
+      $kbitem = new KnowbaseItem();
       $kbitem->getFromDB($kbitem_id);
 
       $number = countElementsInTable(
@@ -114,7 +106,7 @@ class KnowbaseItem_Comment extends CommonDBTM {
          $where
        );
 
-      $cancomment = $item->canComment();
+      $cancomment = $kbitem->canComment();
       if ($cancomment) {
          echo "<div class='firstbloc'>";
 
@@ -296,12 +288,12 @@ class KnowbaseItem_Comment extends CommonDBTM {
          $html .= "</div>"; // h_user
          $html .= "</div>"; //h_info
 
-         $html .= "<div class='h_content TicketFollowup'>";
+         $html .= "<div class='h_content KnowbaseItemComment'>";
          $html .= "<div class='displayed_content'>";
 
          if ($cancomment) {
             if (Session::getLoginUserID() == $comment['users_id']) {
-               $html .= "<span class='edit_item'
+               $html .= "<span class='fa fa-pencil-square-o edit_item'
                   data-kbitem_id='{$comment['knowbaseitems_id']}'
                   data-lang='{$comment['language']}'
                   data-id='{$comment['id']}'></span>";
@@ -309,9 +301,7 @@ class KnowbaseItem_Comment extends CommonDBTM {
          }
 
          $html .= "<div class='item_content'>";
-         $html .= "<p>";
-         $html .= Toolbox::unclean_cross_side_scripting_deep($comment['comment']);
-         $html .= "</p>";
+         $html .= "<p>{$comment['comment']}</p>";
          $html .= "</div>";
          $html .= "</div>"; // displayed_content
 
@@ -369,7 +359,7 @@ class KnowbaseItem_Comment extends CommonDBTM {
       $form_title = ($edit === false ? __('New comment') : __('Edit comment'));
       $html .= "<tr class='tab_bg_2'><th colspan='3'>$form_title</th></tr>";
 
-      $html .= "<tr class='tab_bg_1'><td><label for='comment'>" . __('Comment') . "</label>
+      $html .= "<tr class='tab_bg_1'><td><label for='comment'>" . _n('Comment', 'Comments', 1) . "</label>
          &nbsp;<span class='red'>*</span></td><td>";
       $html .= "<textarea name='comment' id='comment' required='required'>{$content}</textarea>";
       $html .= "</td><td class='center'>";

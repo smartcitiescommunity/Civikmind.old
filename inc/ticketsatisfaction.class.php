@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,15 +30,13 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
 
 class TicketSatisfaction extends CommonDBTM {
+
+   static $rightname = 'ticket';
 
    public $dohistory         = true;
    public $history_blacklist = ['date_answered'];
@@ -81,7 +79,7 @@ class TicketSatisfaction extends CommonDBTM {
 
       // you can't change if your answer > 12h
       if (!is_null($this->fields['date_answered'])
-          && ((strtotime("now") - strtotime($this->fields['date_answered'])) > (12*HOUR_TIMESTAMP))) {
+          && ((time() - strtotime($this->fields['date_answered'])) > (12 * HOUR_TIMESTAMP))) {
          return false;
       }
 
@@ -164,8 +162,6 @@ class TicketSatisfaction extends CommonDBTM {
 
 
    function prepareInputForUpdate($input) {
-      global $CFG_GLPI;
-
       if ($input['satisfaction'] >= 0) {
          $input["date_answered"] = $_SESSION["glpi_currenttime"];
       }
@@ -187,7 +183,7 @@ class TicketSatisfaction extends CommonDBTM {
 
 
    /**
-    * @since version 0.85
+    * @since 0.85
    **/
    function post_UpdateItem($history = 1) {
       global $CFG_GLPI;
@@ -244,7 +240,7 @@ class TicketSatisfaction extends CommonDBTM {
 
 
    /**
-    * @since version 0.84
+    * @since 0.84
     *
     * @param $field
     * @param $values
@@ -264,7 +260,7 @@ class TicketSatisfaction extends CommonDBTM {
 
 
    /**
-    * @since version 0.84
+    * @since 0.84
     *
     * @param $field
     * @param $name                  (default '')
@@ -288,4 +284,13 @@ class TicketSatisfaction extends CommonDBTM {
       return parent::getSpecificValueToSelect($field, $name, $values, $options);
    }
 
+   static function getFormURLWithID($id = 0, $full = true) {
+
+      $satisfaction = new self();
+      if (!$satisfaction->getFromDB($id)) {
+         return '';
+      }
+
+      return Ticket::getFormURLWithID($satisfaction->fields['tickets_id']) . '&forcetab=Ticket$3';
+   }
 }

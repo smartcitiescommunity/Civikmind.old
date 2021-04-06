@@ -160,7 +160,12 @@ $_SESSION['back'] = $back;
  	
  	<!-- gauge -->
 	<script src="js/raphael.2.1.0.min.js"></script>
-	<script src="js/justgage.1.0.1.min.js"></script>	
+	<script src="js/justgage.1.0.1.min.js"></script>
+	<style type="text/css">
+		.col-xs-15{
+    		width:20%;
+		}
+	</style>	
 </head>
 
 	<?php
@@ -168,7 +173,7 @@ $_SESSION['back'] = $back;
    	echo "<body style=\"background: url('./img/".$back."') no-repeat top center fixed; \">";
    }
    else {
-   	echo "<body style='baclground-color:#E5E5E5;'>";
+   	echo "<body style='background-color:#e5e5e5e;'>";
    }	 
    ?>
                                                
@@ -205,7 +210,6 @@ if($num_years > 1) {
 	AND date IS NOT NULL
 	ORDER BY year DESC
 	LIMIT ".$num_years."";
-	
 }
 
 $result_y = $DB->query($query_y);
@@ -216,9 +220,9 @@ $conta_y = $DB->numrows($result_y);
 $arr_years = array();
 
 while ($row_y = $DB->fetch_assoc($result_y))		
-	{ 
-		$arr_years[] = $row_y['year'];			
-	} 
+{ 
+	$arr_years[] = $row_y['year'];			
+} 
 
 
 if($num_years > 1) {
@@ -268,12 +272,37 @@ $sql_users = " SELECT COUNT(DISTINCT `glpi_users`.id) AS total
                FROM glpi_profiles_users
                LEFT JOIN `glpi_users`
                   ON (`glpi_users`.`id` = `glpi_profiles_users`.`users_id`)
-               WHERE `glpi_users`.`is_deleted` = '0'  
+               WHERE `glpi_users`.`is_deleted` = '0' 
                AND is_active = 1 
      				".$entidade_u." ";
-				
+
 $result_users = $DB->query($sql_users);
 $total_users = $DB->fetch_assoc($result_users);
+
+
+$sql_ano_ab =	"SELECT COUNT(glpi_tickets.id) as total        
+      FROM glpi_tickets
+      LEFT JOIN glpi_entities ON glpi_tickets.entities_id = glpi_entities.id
+      WHERE glpi_tickets.is_deleted = '0' 
+      AND glpi_tickets.status <> 6
+      AND DATE_FORMAT( glpi_tickets.date, '%Y' ) IN (".$years.") 
+      ".$entidade." ";
+
+$result_ano_ab = $DB->query($sql_ano_ab);
+$total_ano_ab = $DB->fetch_assoc($result_ano_ab);
+
+//count due tickets
+$sql_due = "SELECT DISTINCT COUNT(glpi_tickets.id) AS total
+FROM glpi_tickets
+WHERE glpi_tickets.status NOT IN (5,6)
+AND glpi_tickets.is_deleted = 0
+AND glpi_tickets.time_to_resolve IS NOT NULL
+AND glpi_tickets.time_to_resolve < NOW()
+".$entidade." ";
+
+$result_due = $DB->query($sql_due);
+$total_due = $DB->fetch_assoc($result_due);
+
 
 ?>
 
@@ -281,70 +310,98 @@ $total_users = $DB->fetch_assoc($result_users);
 <!-- top -->
 <!-- .box-holder -->
 <!-- .content -->
-<div class="content animated fadeInBig corpo col-md-12 col-sm-12 align" style="width: 100%; margin-left:0%;" >
-    <!-- main-content 
-   <div class="main-content masked-relative masked"> -->
+<div class="content animated fadeInBig corpo col-md-12 col-sm-12 align">
       
-						<div id="panels" class="row" style="margin-left: 0%;">
-							<!-- COLUMN 1 -->															
-								  <div class="col-sm-3 col-md-3 stat">
-									 <div class="dashbox shad panel panel-default db-red">
-										<div class="panel-body">
-										   <div class="panel-left red redbg">
-												<i class="fa fa-calendar-o fa-3x"></i>
-										   </div>
-										   <div class="panel-right right">
-										     <div id="odometer1" class="odometer" style="font-size: 25px;">   </div><p></p>
-                        				<span class="chamado"><?php echo __('Tickets','dashboard'); ?></span><br>
-                        				<span class="date"><b><?php echo __('Today','dashboard'); ?></b></span>												
-										   </div>
-										</div>
-									 </div>
-								  </div>
-								  
-								  <div class="col-sm-3 col-md-3">
-									 <div class="dashbox shad panel panel-default db-blue">
-										<div class="panel-body">
-										   <div class="panel-left blue bluebg">
-												<i class="fa fa-calendar fa-3x fa-calendar-index"></i>
-										   </div>
-										   <div class="panel-right right">										 
-											<div id="odometer2" class="odometer" style="font-size: 25px;">   </div><p></p>
-                        				<span class="chamado"><?php echo __('Tickets','dashboard'); ?></span><br>
-                        				<span class="date"><b><?php echo $mes ?></b></span>
-										   </div>
-										</div>
-									 </div>
-								  </div>																		
-                     								
-								  <div class="col-sm-3 col-md-3">
-									 <div class="dashbox shad panel panel-default db-yellow">
-										<div class="panel-body">
-										   <div class="panel-left yellow yellowbg">
-												<i class="fa fa-plus-square fa-3x"></i>
-										   </div>
-										   <div class="panel-right right">
-												<div id="odometer3" class="odometer" style="font-size: 25px;">   </div><p></p>
-                        				<span class="chamado"><?php echo __('Tickets','dashboard'); ?></span><br>
-                        				<span class="date"><b><?php echo __('Total','dashboard'); ?></b></span>
-										   </div>										   
-										</div>
-									 </div>
-								  </div>
-								  <div class="col-sm-3 col-md-3">
-									 <div class="dashbox shad panel panel-default db-orange">
-										<div class="panel-body">
-										   <div class="panel-left green orangebg">
-												<i class="fa fa-users fa-3x"></i>
-										   </div>
-								   		<div class="panel-right right">
-												<div id="odometer4" class="odometer" style="font-size: 25px;">   </div><p></p>
-                        				<span class="chamado"><?php echo __('users','dashboard'); ?></span><br>                        				
-										   </div>
-										</div>
-									 </div>
-								  </div>																	                          				                           							
-						</div>        
+			<div id="panels" class="row">
+				<!-- COLUMN 1 -->															
+					  <div class="col-md-2 col-sm-2">
+						 <div class="dashbox shad panel panel-default db-red">
+							<div class="panel-body">
+							   <div class="panel-left red redbg">
+									<i class="fa fa-calendar-o fa-2x"></i>
+							   </div>
+							   <div class="panel-right right">
+							     <div id="odometer1" class="odometer" style="font-size: 25px;">   </div><p></p>
+               				<span class="chamado"><?php echo __('Tickets','dashboard'); ?></span><br>
+               				<span class="date"><b><?php echo __('Today','dashboard'); ?></b></span>												
+							   </div>
+							</div>
+						 </div>
+					  </div>
+					  
+					  <div class="col-md-2 col-sm-2">
+						 <div class="dashbox shad panel panel-default db-blue">
+							<div class="panel-body">
+							   <div class="panel-left blue bluebg">
+									<i class="fa fa-calendar fa-2x fa-calendar-index"></i>
+							   </div>
+							   <div class="panel-right right">										 
+								<div id="odometer2" class="odometer" style="font-size: 25px;">   </div><p></p>
+               				<span class="chamado"><?php echo __('Tickets','dashboard'); ?></span><br>
+               				<span class="date"><b><?php echo $mes ?></b></span>
+							   </div>
+							</div>
+						 </div>
+					  </div>																		
+            								
+					  <div class="col-md-2 col-sm-2">
+						 <div class="dashbox shad panel panel-default db-purple">
+							<div class="panel-body">
+							   <div class="panel-left purple purplebg">
+									<i class="fa fa-plus-square fa-2x"></i>
+							   </div>
+							   <div class="panel-right right">
+									<div id="odometer3" class="odometer" style="font-size: 25px;">   </div><p></p>
+               				<span class="chamado"><?php echo __('Tickets','dashboard'); ?></span><br>
+               				<span class="date"><b><?php echo __('Total','dashboard'); ?></b></span>
+							   </div>										   
+							</div>
+						 </div>
+					  </div>
+					  
+					  <div class="col-md-2 col-sm-2">
+						 <div class="dashbox shad panel panel-default db-dred">
+							<div class="panel-body">
+							   <div class="panel-left dredbg">
+									<i class="fa fa-clock-o fa-clock-o-index fa-2x"></i>
+							   </div>
+					   		<div class="panel-right right">
+									<div id="odometer4" class="odometer" style="font-size: 25px;">   </div><p></p>
+               				<span class="chamado"><?php echo __('Tickets','dashboard'); ?></span><br>
+               				<span class="date"><b><?php echo __('Late','dashboard'); ?></b></span>                        				
+							   </div>
+							</div>
+						 </div>
+					  </div>		
+					  
+					<div class="col-md-2 col-sm-2">
+						 <div class="dashbox shad panel panel-default db-brown">
+							<div class="panel-body">
+							   <div class="panel-left brownbg">
+									<i class="fa fa-tag fa-tag-index fa-2x"></i>
+							   </div>
+					   		<div class="panel-right right">
+									<div id="odometer5" class="odometer" style="font-size: 25px;">   </div><p></p>
+               				<span class="chamado"><?php echo __('Backlog','dashboard'); ?></span><br>                        				
+							   </div>
+							</div>
+						 </div>
+					</div>						 					 
+					  
+					 <div class="col-md-2 col-sm-2">
+						 <div class="dashbox shad panel panel-default db-orange">
+							<div class="panel-body">
+							   <div class="panel-left orangebg">
+									<i class="fa fa-users fa-2x"></i>
+							   </div>
+					   		<div class="panel-right right">
+									<div id="odometer6" class="odometer" style="font-size: 25px;">   </div><p></p>
+               				<span class="chamado"><?php echo __('users','dashboard'); ?></span><br>                        				
+							   </div>
+							</div>
+						 </div>
+					</div>	  																		                          				                           							
+			</div>                       
                 
 <div class="container-fluid">  
 
@@ -379,17 +436,18 @@ $total_users = $DB->fetch_assoc($result_users);
 <!-- END Theme Setting  -->  
       
 <script type="text/javascript" >
-window.odometerOptions = {
-   format: '( ddd).dd'
-};
-
-setTimeout(function(){
-    odometer1.innerHTML = <?php echo $total_hoje['total']; ?>;
-    odometer2.innerHTML = <?php echo $total_mes['total']; ?>;
-    odometer3.innerHTML = <?php echo $total_ano['total']; ?>;
-    odometer4.innerHTML = <?php echo $total_users['total']; ?>;
-}, 1000);
-
+	window.odometerOptions = {
+	   format: '( ddd).dd'
+	};
+	
+	setTimeout(function(){
+	    odometer1.innerHTML = <?php echo $total_hoje['total']; ?>;
+	    odometer2.innerHTML = <?php echo $total_mes['total']; ?>;
+	    odometer3.innerHTML = <?php echo $total_ano['total']; ?>;
+	    odometer4.innerHTML = <?php echo $total_due['total']; ?>;
+	    odometer5.innerHTML = <?php echo $total_ano_ab['total']; ?>;
+	    odometer6.innerHTML = <?php echo $total_users['total']; ?>;
+	}, 1000);
 </script> 
 
 <div id='content-main' class="container-fluid1 align col-md-12 row" style="">  
@@ -544,7 +602,7 @@ setTimeout(function(){
 	      
 	      $result_wid = $DB->query($query_wid);			            	      
 	      ?>    
-	        <table id="last_tickets" class="table table-hover table-bordered table-condensed" >
+	        <table id="last_tickets" class="table table-hover table-condensed" >
 		        <th style="text-align: center;"><?php echo __('Tickets','dashboard'); ?></th><th style="text-align: center;" ><?php echo __('Title','dashboard'); ?></th>	        
 					<?php
 						while($row = $DB->fetch_assoc($result_wid)) 
@@ -560,7 +618,7 @@ setTimeout(function(){
 	</div> 
 
 <!--  open tickets by tech-->
-	<div class="col-sm-6 col-md-6" > 	
+	<div class="col-sm-6 col-md-6"> 	
 		<div id="open_tickets" class="widget widget-table action-table striped card1">
             <div class="widget-header wyellow">
            		<h3><i class="fa fa-list-alt" style="margin-left:7px;">&nbsp;&nbsp;&nbsp;</i><a href="../../../front/ticket.php" target="_blank" style="color: #525252;"><?php echo __('Open Tickets','dashboard'). " " .__('by Technician','dashboard') ?></a></h3>
@@ -580,13 +638,13 @@ setTimeout(function(){
 					AND glpi_tickets.id = glpi_tickets_users.tickets_id
 					AND glpi_tickets.status NOT IN ".$status."
 					".$entidade."
-					GROUP BY `glpi_users`.`firstname` ASC
+					GROUP BY `glpi_users`.`firstname`
 					ORDER BY tick DESC
 					LIMIT 10 ";
 	            
 	            $result_tec = $DB->query($query_tec);			                        
 	            ?>    
-	           <table id="open_tickets" class="table table-hover table-bordered table-condensed" >
+	           <table id="open_tickets" class="table table-hover table-condensed" >
 		           <th style="text-align: center;"><?php echo __('Technician','dashboard'); ?></th><th style="text-align: center;">
 		          	<?php echo __('Open Tickets','dashboard'); ?>
 		           </th>
@@ -594,7 +652,7 @@ setTimeout(function(){
 						<?php
 							while($row = $DB->fetch_assoc($result_tec)) 
 							{					
-								echo "<tr><td><a href=./reports/rel_tecnico.php?con=1&tec=".$row['id']."&stat=open target=_blank style='color: #526273;'>
+								echo "<tr><td><a href=./reports/rel_tecnico.php?con=1&sel_tec=".$row['id']."&stat=open target=_blank style='color: #526273;'>
 								".$row['name']." ".$row['sname']."</a></td><td style='text-align: center;' >".$row['tick']."</td></tr>";											
 							}				
 						?>                                       
@@ -659,7 +717,7 @@ setTimeout(function(){
 						return $service;
 						}
 					    ?>    
-		          <table id="lastevents" class="table table-hover table-bordered table-condensed" >
+		          <table id="lastevents" class="table table-hover table table-condensed" >
 		            <th style="text-align: center;"><?php echo __('Type'); ?></th>
 						<th style="text-align: center;"><?php echo __('Date'); ?></th>
 						<!-- <th style="text-align: center;"><?php echo __('Service'); ?></th>  -->
@@ -676,18 +734,17 @@ setTimeout(function(){
 					   while ($i < $number) {
 					   
 						  $type     = $DB->result($result_evt, $i, "type");
-	       			  $date     = date_create($DB->result($result_evt, $i, "date"));
-				        // $service  = $DB->result($result_evt, $i, "service");         							        
+	       			  $date     = date_create($DB->result($result_evt, $i, "date"));				              							        
 				        $message  = $DB->result($result_evt, $i, "message");
 						
-						echo "<tr><td style='text-align: left;'>". tipo($type) ."</td>
-								<td style='text-align: left;'>" . date_format($date, $dataf.' H:i:s') . "</td>					
+						echo "<tr><td style='text-align: center;'>". tipo($type) ."</td>
+								<td style='text-align: center;'>" . date_format($date, $dataf.' H:i:s') . "</td>					
 								<td style='text-align: left;'>". substr($message,0,50) ."</td></tr>
 						";
 						++$i;													
 						}												
 						?>                                       
-              		</table>  
+              </table>  
               
             </div>
             <!-- /widget-content --> 
@@ -695,11 +752,10 @@ setTimeout(function(){
 	</div>
 
 	<div class="col-sm-6 col-md-6" >  	 				              
-		 <div id="logged_users" class="widget widget-table action-table">
+		 <div id="logged_users" class="widget widget-table action-table card1">
             <div class="widget-header wblue">
 				<?php
-				//logged users				
-				//$path = "../../../files/_sessions/";
+				//logged users								
 				$path = GLPI_SESSION_DIR . '/' ;
 				$diretorio = opendir($path);        
 				
@@ -711,9 +767,7 @@ setTimeout(function(){
 				     $arr_arq[] = $path.$arquivo;           
 				 }				 
 								
-				foreach ($arr_arq as $listar) {
-				// retira "./" e "../" para que retorne apenas pastas e arquivos
-								  
+				foreach ($arr_arq as $listar) {												  
 				   if ( is_file($listar) && $listar != '.' && $listar != '..'){ 
 							$arquivos[]=$listar;
 				   }
@@ -727,19 +781,12 @@ setTimeout(function(){
 				
 					$file = $arquivos[$i];
 					
-					$string = file_get_contents( $file ); 
-					//poderia ser um string ao invés de file_get_contents().
-					
-					$list = preg_match( '/glpiID\|s:[0-9]:"(.+)/', $string, $matches );
-					
-					$arr = isset($matches[0]) ? $matches[0] : '';
-					
-					$posicao = strpos($arr, 'glpiID|s:');
-					
-					$string2 = substr($arr, $posicao, 25);
-					
-					$string3 = explode("\"", $string2);
-					
+					$string = file_get_contents( $file ); 										
+					$list = preg_match( '/glpiID\|s:[0-9]:"(.+)/', $string, $matches );					
+					$arr = isset($matches[0]) ? $matches[0] : '';					
+					$posicao = strpos($arr, 'glpiID|s:');					
+					$string2 = substr($arr, $posicao, 25);					
+					$string3 = explode("\"", $string2);					
 					$arr_ids[] = isset($string3[1]) ? $string3[1] : '';
 					
 					}
@@ -768,16 +815,15 @@ setTimeout(function(){
 	          if($num_users <= 10) {
 	          	echo '<div class="widget-content striped" style="min-height:318px;">'; }
 	          else {
-	          	echo '<div class="widget-content striped" style="min-height:318px;">'; }
-	          	//echo '   <div class="widget-content striped ">'; }	          	
+	          	echo '<div class="widget-content striped" style="min-height:318px;">'; }	          		          	
 				?>        
-              <table id="logged_users" class="table table-hover table-bordered table-condensed" >                         
+              <table id="logged_users" class="table table-hover table-condensed" >                         
 				<?php
 								
 				while($row_name = $DB->fetch_assoc($result_name)) 
 	  			   {
 						echo "<tr>
-									<td style='text-align: left;'><img src=". User::getURLForPicture($row_name['picture']) ." alt='user' width='30px' height='35px' />&nbsp; &nbsp;<a href=../../../front/user.form.php?id=".$row_name['uid']." target=_blank style='color: #526273;'>
+									<td style='text-align: left;'><img src=". User::getURLForPicture($row_name['picture']) ." alt='' width='30px' height='35px' />&nbsp; &nbsp;<a href=../../../front/user.form.php?id=".$row_name['uid']." target=_blank style='color: #526273;'>
 										".$row_name['name']." ".$row_name['sname']." (".$row_name['uid'].")</a>	
 									</td>									
 								</tr>";												

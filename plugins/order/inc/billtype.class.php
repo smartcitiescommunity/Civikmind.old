@@ -32,32 +32,38 @@ if (!defined('GLPI_ROOT')) {
 }
 
 class PluginOrderBillType extends CommonDropdown {
+
    public static $rightname = 'plugin_order_bill';
+
 
    public static function getTypeName($nb = 0) {
       return __("Bill type", "order");
    }
 
+
    public static function install(Migration $migration) {
       global $DB;
 
-      $table = getTableForItemType(__CLASS__);
-      if (!TableExists($table)) {
+      $table = self::getTable();
+      if (!$DB->tableExists($table)) {
          $migration->displayMessage("Installing $table");
-         $query ="CREATE TABLE IF NOT EXISTS `glpi_plugin_order_billtypes` (
+         $query = "CREATE TABLE IF NOT EXISTS `glpi_plugin_order_billtypes` (
                     `id` int(11) NOT NULL AUTO_INCREMENT,
                     `name` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
                     `comment` text COLLATE utf8_unicode_ci,
                     PRIMARY KEY (`id`),
                     KEY `name` (`name`)
-                  ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci ;";
+                  ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci ;";
          $DB->query($query) or die ($DB->error());
       }
    }
 
+
    public static function uninstall() {
       global $DB;
 
-      $DB->query("DROP TABLE IF EXISTS `" . getTableForItemType(__CLASS__) . "`") or die ($DB->error());
+      $DB->query("DROP TABLE IF EXISTS `".self::getTable()."`") or die ($DB->error());
    }
+
+
 }

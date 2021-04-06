@@ -9,7 +9,7 @@
  -------------------------------------------------------------------------
 
  LICENSE
-      
+
  This file is part of databases.
 
  databases is free software; you can redistribute it and/or modify
@@ -29,10 +29,14 @@
 
 include('../../../inc/includes.php');
 
-if (!isset($_GET["id"])) $_GET["id"] = "";
-if (!isset($_GET["withtemplate"])) $_GET["withtemplate"] = "";
+if (!isset($_GET["id"])) {
+   $_GET["id"] = "";
+}
+if (!isset($_GET["withtemplate"])) {
+   $_GET["withtemplate"] = "";
+}
 
-$database = new PluginDatabasesDatabase();
+$database      = new PluginDatabasesDatabase();
 $database_item = new PluginDatabasesDatabase_Item();
 
 if (isset($_POST["add"])) {
@@ -79,7 +83,7 @@ if (isset($_POST["add"])) {
 } else if (isset($_POST["deleteitem"])) {
 
    foreach ($_POST["item"] as $key => $val) {
-      $input = array('id' => $key);
+      $input = ['id' => $key];
       if ($val == 1) {
          $database_item->check($key, UPDATE);
          $database_item->delete($input);
@@ -89,7 +93,7 @@ if (isset($_POST["add"])) {
 
 } else if (isset($_POST["deletedatabases"])) {
 
-   $input = array('id' => $_POST["id"]);
+   $input = ['id' => $_POST["id"]];
    $database_item->check($_POST["id"], UPDATE);
    $database_item->delete($input);
    Html::back();
@@ -101,10 +105,10 @@ if (isset($_POST["add"])) {
    $plugin = new Plugin();
    if ($plugin->isActivated("environment")) {
       Html::header(PluginDatabasesDatabase::getTypeName(2),
-         '', "assets", "pluginenvironmentdisplay", "databases");
+                   '', "assets", "pluginenvironmentdisplay", "databases");
    } else {
       Html::header(PluginDatabasesDatabase::getTypeName(2), '', "assets",
-         "plugindatabasesmenu");
+                   "plugindatabasesmenu");
    }
    $database->display($_GET);
 

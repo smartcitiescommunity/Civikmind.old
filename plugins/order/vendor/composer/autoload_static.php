@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInitd61d2623b19f6828f43914029b602fa6
+class ComposerStaticInit277c052ac792be2f7952cd1d986ee1ba
 {
     public static $files = array (
         '880da49e486e7549b21df41865f33ab7' => __DIR__ . '/..' . '/masnathan/odtphp/lib/pclzip.lib.php',
@@ -40,9 +40,9 @@ class ComposerStaticInitd61d2623b19f6828f43914029b602fa6
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInitd61d2623b19f6828f43914029b602fa6::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInitd61d2623b19f6828f43914029b602fa6::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInitd61d2623b19f6828f43914029b602fa6::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit277c052ac792be2f7952cd1d986ee1ba::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit277c052ac792be2f7952cd1d986ee1ba::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit277c052ac792be2f7952cd1d986ee1ba::$classMap;
 
         }, null, ClassLoader::class);
     }

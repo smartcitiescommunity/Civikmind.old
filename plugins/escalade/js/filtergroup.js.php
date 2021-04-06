@@ -3,6 +3,7 @@ include ("../../../inc/includes.php");
 
 //change mimetype
 header("Content-type: application/javascript");
+$token = Session::getNewIDORToken(Group::getType());
 
 $JS = <<<JAVASCRIPT
 if (location.pathname.indexOf('ticket.form.php') == 0) {
@@ -10,12 +11,13 @@ if (location.pathname.indexOf('ticket.form.php') == 0) {
 }
 
 // only in ticket form
-
-var urlGroup = '{$CFG_GLPI['root_doc']}/plugins/escalade/ajax/group_values.php';
-var urlUser = '{$CFG_GLPI['root_doc']}/plugins/escalade/ajax/user_values.php';
+var plugin_url = CFG_GLPI.root_doc+"/"+GLPI_PLUGINS_PATH.escalade;
+var urlGroup   = plugin_url+'/ajax/group_values.php';
+var urlUser    = plugin_url+'/ajax/user_values.php';
 var tickets_id = getUrlParameter('id');
 
-function redefineDropdown(id, url, tickets_id, itemtype) {
+
+function redefineDropdown(id, url, tickets_id, itemtype, token) {
 
 $('#' + id).select2({
    width: '80%',
@@ -27,7 +29,7 @@ $('#' + id).select2({
       url: url,
       dataType: 'json',
       type: 'POST',
-      data: function (term, page) {
+      data: function (params, page) {
          return {
             ticket_id: tickets_id,
             itemtype: itemtype,
@@ -37,13 +39,13 @@ $('#' + id).select2({
             condition: "",
             used: [],
             toadd: [],
-            entity_restrict: 0,
             limit: "50",
             permit_select_parent: 0,
             specific_tags: [],
-            searchText: term,
+            searchText: params.term,
             page_limit: 100, // page size
             page: page, // page number
+            _idor_token: token,
                };
             },
             results: function (data, page) {
@@ -75,7 +77,8 @@ $('#' + id).select2({
                      limit: "50",
                      permit_select_parent: false,
                      specific_tags: [],
-                     _one_id: id},
+                     _one_id: id,
+                     _idor_token: token},
                      dataType: 'json',
                      type: 'POST'
                }).done(function(data) { callback(data); });
@@ -83,20 +86,6 @@ $('#' + id).select2({
          }
 
       },
-      formatResult: function(result, container, query, escapeMarkup) {
-         var markup=[];
-         window.Select2.util.markMatch(result.text, query.term, markup, escapeMarkup);
-         if (result.level) {
-            var a='';
-            var i=result.level;
-            while (i>1) {
-               a = a+'&nbsp;&nbsp;&nbsp;';
-               i=i-1;
-            }
-            return a+'&raquo;'+markup.join('');
-         }
-         return markup.join('');
-      }
    });
 }
 
@@ -110,8 +99,8 @@ $(document).ready(function() {
       $('#tabspanel + div.ui-tabs').on("tabsload", function( event, ui ) {
          setTimeout(function() {
             // Group
-            var assign_select_dom_id = $("*[name='_groups_id_assign']")[0].id;
-            redefineDropdown(assign_select_dom_id, urlGroup, 0, 'Group');
+            var assign_select_dom_id = $("[name='_groups_id_assign']")[0].id;
+            redefineDropdown(assign_select_dom_id, urlGroup, 0, 'Group', "{$token}");
 
             // User
             /*var assign_select_dom_id = $("*[name='_users_id_assign']")[0].id;
@@ -123,16 +112,15 @@ $(document).ready(function() {
       // -----------------------
       // ---- Update Ticket ----
       // -----------------------
-
       $(document).ajaxSend(function( event, jqxhr, settings ) {
          // Group
          if (settings.url.indexOf("dropdownItilActors.php") > 0
             && settings.data.indexOf("group") > 0
                && settings.data.indexOf("assign") > 0
             ) {
-            checkDOMChange("input[name='_itil_assign[groups_id]'", function() {
-               var assign_select_dom_id = $("input[name='_itil_assign[groups_id]']")[0].id;
-               redefineDropdown(assign_select_dom_id, urlGroup, tickets_id, 'Group');
+            checkDOMChange("[name='_itil_assign[groups_id]'", function() {
+               var assign_select_dom_id = $("[name='_itil_assign[groups_id]']")[0].id;
+               redefineDropdown(assign_select_dom_id, urlGroup, tickets_id, 'Group', "{$token}");
             });
          }
 

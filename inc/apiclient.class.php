@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,9 +30,9 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @since version 9.1
-*/
+/**
+ * @since 9.1
+ */
 
 class APIClient extends CommonDBTM {
 
@@ -44,6 +44,10 @@ class APIClient extends CommonDBTM {
 
    // From CommonDBTM
    public $dohistory                   = true;
+
+   static $undisclosedFields = [
+      'app_token'
+   ];
 
    static function canCreate() {
       return Session::haveRight(static::$rightname, UPDATE);
@@ -66,7 +70,7 @@ class APIClient extends CommonDBTM {
       return $ong;
    }
 
-   function getSearchOptionsNew() {
+   function rawSearchOptions() {
       $tab = [];
 
       $tab[] = [
@@ -79,7 +83,8 @@ class APIClient extends CommonDBTM {
          'table'              => $this->getTable(),
          'field'              => 'name',
          'name'               => __('Name'),
-         'datatype'           => 'itemlink'
+         'datatype'           => 'itemlink',
+         'autocomplete'       => true,
       ];
 
       $tab[] = [
@@ -133,7 +138,8 @@ class APIClient extends CommonDBTM {
          'table'              => $this->getTable(),
          'field'              => 'ipv6',
          'name'               => __('IPv6 address'),
-         'datatype'           => 'text'
+         'datatype'           => 'text',
+         'autocomplete'       => true,
       ];
 
       $tab[] = [
@@ -142,7 +148,8 @@ class APIClient extends CommonDBTM {
          'field'              => 'app_token',
          'name'               => __('Application token'),
          'massiveaction'      => false,
-         'datatype'           => 'text'
+         'datatype'           => 'text',
+         'autocomplete'       => true,
       ];
 
       return $tab;
@@ -157,7 +164,10 @@ class APIClient extends CommonDBTM {
 
          case 'ipv4_range_start':
          case 'ipv4_range_end':
-            return long2ip($values[$field]);
+            if (empty($values[$field])) {
+               return '';
+            }
+            return long2ip((int)$values[$field]);
       }
 
       return parent::getSpecificValueToDisplay($field, $values, $options);
@@ -207,7 +217,7 @@ class APIClient extends CommonDBTM {
 
       echo "<tr class='tab_bg_1'>";
       echo "<td colspan='4'>";
-      echo "<i>".__('Leave these parameters empty to disable api access restriction')."</i>";
+      echo "<i>".__('Leave these parameters empty to disable API access restriction')."</i>";
       echo "<br><br><br>";
       echo "</td></tr>";
 
@@ -226,7 +236,9 @@ class APIClient extends CommonDBTM {
       echo "<td>".__('IPv6 address')."</td>";
       echo "<td>";
       Html::autocompletionTextField($this, "ipv6");
-      echo "</td></tr>";
+      echo "</td>";
+      echo "<td colspan='2'></td>";
+      echo "</tr>";
 
       echo "<tr class='tab_bg_1'>";
       echo "<td>".sprintf(__('%1$s (%2$s)'), __('Application token'), "app_token")."</td>";
@@ -234,7 +246,7 @@ class APIClient extends CommonDBTM {
       Html::autocompletionTextField($this, "app_token");
       echo "<br><input type='checkbox' name='_reset_app_token' id='app_token'>&nbsp;";
       echo "<label for='app_token'>".__('Regenerate')."</label>";
-      echo "</td></tr>";
+      echo "</td><td></td></tr>";
 
       $this->showFormButtons($options);
    }
@@ -268,6 +280,10 @@ class APIClient extends CommonDBTM {
                $input['ipv4_range_start'] = $tmp;
             }
          }
+      }
+
+      if (isset($input['ipv6']) && empty($input['ipv6'])) {
+         $input['ipv6'] = "NULL";
       }
 
       if (isset($input['_reset_app_token'])) {

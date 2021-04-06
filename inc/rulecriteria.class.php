@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,9 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -41,6 +38,7 @@ if (!defined('GLPI_ROOT')) {
 class RuleCriteria extends CommonDBChild {
 
    // From CommonDBChild
+   static public $itemtype        = 'Rule';
    static public $items_id        = 'rules_id';
    public $dohistory              = true;
    public $auto_message_on_action = false;
@@ -48,7 +46,7 @@ class RuleCriteria extends CommonDBChild {
 
 
    /**
-    * @since version 0.84
+    * @since 0.84
    **/
    function getForbiddenStandardMassiveAction() {
 
@@ -67,7 +65,7 @@ class RuleCriteria extends CommonDBChild {
 
 
    /**
-    * @since version 0.84.3
+    * @since 0.84.3
     *
     * @see CommonDBTM::post_getFromDB()
     */
@@ -94,11 +92,7 @@ class RuleCriteria extends CommonDBChild {
       return _n('Criterion', 'Criteria', $nb);
    }
 
-
-   /**
-    * @see CommonDBTM::getRawName()
-   **/
-   function getRawName() {
+   protected function computeFriendlyName() {
 
       if ($rule = getItemForItemtype(static::$itemtype)) {
          return Html::clean($rule->getMinimalCriteriaText($this->fields));
@@ -106,9 +100,8 @@ class RuleCriteria extends CommonDBChild {
       return '';
    }
 
-
    /**
-    * @since version 0.84
+    * @since 0.84
     *
     * @see CommonDBChild::post_addItem()
    **/
@@ -124,7 +117,7 @@ class RuleCriteria extends CommonDBChild {
 
 
    /**
-    * @since version 0.84
+    * @since 0.84
     *
     * @see CommonDBTM::post_purgeItem()
    **/
@@ -140,7 +133,7 @@ class RuleCriteria extends CommonDBChild {
 
 
    /**
-    * @since version 0.84
+    * @since 0.84
    **/
    function prepareInputForAdd($input) {
 
@@ -151,7 +144,7 @@ class RuleCriteria extends CommonDBChild {
    }
 
 
-   function getSearchOptionsNew() {
+   function rawSearchOptions() {
       $tab = [];
 
       $tab[] = [
@@ -181,7 +174,8 @@ class RuleCriteria extends CommonDBChild {
          'name'               => __('Reason'),
          'massiveaction'      => false,
          'datatype'           => 'specific',
-         'additionalfields'   => ['rules_id', 'criteria', 'condition']
+         'additionalfields'   => ['rules_id', 'criteria', 'condition'],
+         'autocomplete'       => true,
       ];
 
       return $tab;
@@ -189,7 +183,7 @@ class RuleCriteria extends CommonDBChild {
 
 
    /**
-    * @since version 0.84
+    * @since 0.84
     *
     * @param $field
     * @param $values
@@ -207,7 +201,7 @@ class RuleCriteria extends CommonDBChild {
                 && !empty($values['rules_id'])
                 && $generic_rule->getFromDB($values['rules_id'])) {
                if ($rule = getItemForItemtype($generic_rule->fields["sub_type"])) {
-                  return $rule->getCriteria($values[$field]);
+                  return $rule->getCriteriaName($values[$field]);
                }
             }
             break;
@@ -220,7 +214,7 @@ class RuleCriteria extends CommonDBChild {
                if (isset($values['criteria']) && !empty($values['criteria'])) {
                   $criterion = $values['criteria'];
                }
-               return $rule->getConditionByID($values[$field], $generic_rule->fields["sub_type"], $criterion);
+               return self::getConditionByID($values[$field], $generic_rule->fields["sub_type"], $criterion);
             }
             break;
 
@@ -244,7 +238,7 @@ class RuleCriteria extends CommonDBChild {
 
 
    /**
-    * @since version 0.84
+    * @since 0.84
     *
     * @param $field
     * @param $name               (default '')
@@ -252,8 +246,6 @@ class RuleCriteria extends CommonDBChild {
     * @param $options      array
    **/
    static function getSpecificValueToSelect($field, $name = '', $values = '', array $options = []) {
-      global $DB;
-
       if (!is_array($values)) {
          $values = [$field => $values];
       }
@@ -458,7 +450,9 @@ class RuleCriteria extends CommonDBChild {
                // And add to $regex_result array
                $res = [];
                foreach ($results as $data) {
-                  $res[] = $data[0];
+                  foreach ($data as $val) {
+                     $res[] = $val;
+                  }
                }
                $regex_result[]               = $res;
                $criterias_results[$criteria] = $pattern;
@@ -533,7 +527,7 @@ class RuleCriteria extends CommonDBChild {
          $crit = $item->getCriteria($criterion);
 
          if (isset($crit['type']) && ($crit['type'] == 'dropdown')) {
-            $crititemtype = getItemtypeForTable($crit['table']);
+            $crititemtype = getItemTypeForTable($crit['table']);
 
             if (($item = getItemForItemtype($crititemtype))
                 && $item instanceof CommonTreeDropdown) {
@@ -577,7 +571,7 @@ class RuleCriteria extends CommonDBChild {
 
    /** form for rule criteria
     *
-    * @since version 0.85
+    * @since 0.85
     *
     * @param $ID      integer  Id of the criteria
     * @param $options array    of possible options:
@@ -633,7 +627,7 @@ class RuleCriteria extends CommonDBChild {
                   " onClick=\"".Html::jsGetElementbyID('addcriterion'.$rand).".dialog('open');\">".
                   "<span class='sr-only'>" . __s('Add a criterion') . "</span></span>";
          Ajax::createIframeModalWindow('addcriterion'.$rand,
-                                       Toolbox::getItemTypeFormURL($itemtype),
+                                       $itemtype::getFormURL(),
                                        ['reloadonclose' => true]);
       }
 

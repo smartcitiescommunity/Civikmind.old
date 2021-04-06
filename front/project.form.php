@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,9 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-* @since version 0.85
-*/
+/**
+ * @since 0.85
+ */
 
 use Glpi\Event;
 
@@ -109,9 +108,14 @@ if (isset($_POST["add"])) {
 
    if (isset($_GET['showglobalgantt']) && $_GET['showglobalgantt']) {
       $project->showGantt(-1);
+   } else if (isset($_GET['showglobalkanban']) && $_GET['showglobalkanban']) {
+      $project->showKanban(0);
    } else {
-      $project->display(['id'           => $_GET["id"],
-                         'withtemplate' => $_GET["withtemplate"]]);
+      $project->display([
+         'id'           => $_GET["id"],
+         'withtemplate' => $_GET["withtemplate"],
+         'formoptions'  => "data-track-changes=true"
+      ]);
    }
    Html::footer();
 }

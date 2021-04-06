@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,15 +30,15 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    include ('../inc/includes.php');
 }
 
-Html::header(__('Saved searches'), $_SERVER['PHP_SELF'], 'tools', 'savedsearch');
+if (Session::getCurrentInterface() == "helpdesk") {
+   Html::helpHeader(SavedSearch::getTypeName(Session::getPluralNumber()));
+} else {
+   Html::header(SavedSearch::getTypeName(Session::getPluralNumber()), $_SERVER['PHP_SELF'], 'tools', 'savedsearch');
+}
 
 $savedsearch = new SavedSearch();
 

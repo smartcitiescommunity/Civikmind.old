@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -28,10 +28,6 @@
  * You should have received a copy of the GNU General Public License
  * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
-*/
-
-/** @file
-* @brief
 */
 
 if (!defined('GLPI_ROOT')) {
@@ -72,7 +68,7 @@ class WifiNetwork extends CommonDropdown {
                    'master'    => __('Master'),
                    'repeater'  => __('Repeater'),
                    'secondary' => __('Secondary'),
-                   'monitor'   => __('Monitor'),
+                   'monitor'   => Monitor::getTypeName(1),
                    'auto'      => __('Automatic')];
    }
 
@@ -118,15 +114,16 @@ class WifiNetwork extends CommonDropdown {
    }
 
 
-   function getSearchOptionsNew() {
-      $tab = parent::getSearchOptionsNew();
+   function rawSearchOptions() {
+      $tab = parent::rawSearchOptions();
 
       $tab[] = [
          'id'                 => '10',
          'table'              => $this->getTable(),
          'field'              => 'essid',
          'name'               => __('ESSID'),
-         'datatype'           => 'string'
+         'datatype'           => 'string',
+         'autocomplete'       => true,
       ];
 
       return $tab;

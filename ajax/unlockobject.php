@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,9 +30,8 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
- * @brief
- * @since version 9.1
+/**
+ * @since 9.1
  */
 
 // here we are going to try to unlock the given object

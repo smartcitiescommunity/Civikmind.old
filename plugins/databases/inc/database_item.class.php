@@ -9,7 +9,7 @@
  -------------------------------------------------------------------------
 
  LICENSE
-      
+
  This file is part of databases.
 
  databases is free software; you can redistribute it and/or modify
@@ -61,14 +61,14 @@ class PluginDatabasesDatabase_Item extends CommonDBRelation {
     *
     * @param CommonDBTM|Object $item Object to use
     *
-    * @return nothing
+    * @return void
     */
    public static function cleanForItem(CommonDBTM $item) {
 
       $temp = new self();
       $temp->deleteByCriteria(
-         array('itemtype' => $item->getType(),
-               'items_id' => $item->getField('id'))
+         ['itemtype' => $item->getType(),
+          'items_id' => $item->getField('id')]
       );
    }
 
@@ -139,14 +139,15 @@ class PluginDatabasesDatabase_Item extends CommonDBRelation {
     */
    static function countForDatabase(PluginDatabasesDatabase $item) {
 
-      $types = implode("','", $item->getTypes());
-      if (empty($types)) {
+      $types = $item->getTypes();
+      if (count($types) == 0) {
          return 0;
       }
       $dbu = new DbUtils();
       return $dbu->countElementsInTable('glpi_plugin_databases_databases_items',
-                                        "`itemtype` IN ('$types')
-                                   AND `plugin_databases_databases_id` = '" . $item->getID() . "'");
+                                        ["plugin_databases_databases_id" => $item->getID(),
+                                         "itemtype"                      => $types
+                                        ]);
    }
 
 
@@ -158,8 +159,8 @@ class PluginDatabasesDatabase_Item extends CommonDBRelation {
    static function countForItem(CommonDBTM $item) {
       $dbu = new DbUtils();
       return $dbu->countElementsInTable('glpi_plugin_databases_databases_items',
-                                        "`itemtype`='" . $item->getType() . "'
-                                   AND `items_id` = '" . $item->getID() . "'");
+                                        ["itemtype" => $item->getType(),
+                                         "items_id" => $item->getID()]);
    }
 
    /**
@@ -180,7 +181,7 @@ class PluginDatabasesDatabase_Item extends CommonDBRelation {
          if ($DB->numrows($result) != 1) {
             return false;
          }
-         $this->fields = $DB->fetch_assoc($result);
+         $this->fields = $DB->fetchAssoc($result);
          if (is_array($this->fields) && count($this->fields)) {
             return true;
          } else {
@@ -195,9 +196,9 @@ class PluginDatabasesDatabase_Item extends CommonDBRelation {
     */
    function addItem($values) {
 
-      $this->add(array('plugin_databases_databases_id' => $values["plugin_databases_databases_id"],
-                       'items_id'                      => $values["items_id"],
-                       'itemtype'                      => $values["itemtype"]));
+      $this->add(['plugin_databases_databases_id' => $values["plugin_databases_databases_id"],
+                  'items_id'                      => $values["items_id"],
+                  'itemtype'                      => $values["itemtype"]]);
 
    }
 
@@ -209,7 +210,7 @@ class PluginDatabasesDatabase_Item extends CommonDBRelation {
    function deleteItemByDatabasesAndItem($plugin_databases_databases_id, $items_id, $itemtype) {
 
       if ($this->getFromDBbyDatabasesAndItem($plugin_databases_databases_id, $items_id, $itemtype)) {
-         $this->delete(array('id' => $this->fields["id"]));
+         $this->delete(['id' => $this->fields["id"]]);
       }
    }
 
@@ -236,9 +237,12 @@ class PluginDatabasesDatabase_Item extends CommonDBRelation {
       global $DB;
 
       $instID = $database->fields['id'];
-      if (!$database->can($instID, READ)) return false;
+      if (!$database->can($instID, READ)) {
+         return false;
+      }
 
       $rand = mt_rand();
+      $dbu  = new DbUtils();
 
       $canedit = $database->can($instID, UPDATE);
 
@@ -268,16 +272,16 @@ class PluginDatabasesDatabase_Item extends CommonDBRelation {
 
          echo "<tr class='tab_bg_1'><td colspan='" . (3 + $colsup) . "' class='center'>";
          echo "<input type='hidden' name='plugin_databases_databases_id' value='$instID'>";
-         Dropdown::showSelectItemFromItemtypes(array('items_id_name' => 'items_id',
-                                                     'itemtypes'     => PluginDatabasesDatabase::getTypes(true),
-                                                     'entity_restrict'
-                                                                     => ($database->fields['is_recursive']
-                                                        ? getSonsOf('glpi_entities',
-                                                                    $database->fields['entities_id'])
-                                                        : $database->fields['entities_id']),
-                                                     'checkright'
-                                                                     => true,
-                                               ));
+         Dropdown::showSelectItemFromItemtypes(['items_id_name' => 'items_id',
+                                                'itemtypes'     => PluginDatabasesDatabase::getTypes(true),
+                                                'entity_restrict'
+                                                                => ($database->fields['is_recursive']
+                                                   ? $dbu->getSonsOf('glpi_entities',
+                                                               $database->fields['entities_id'])
+                                                   : $database->fields['entities_id']),
+                                                'checkright'
+                                                                => true,
+                                               ]);
          echo "</td>";
          echo "<td colspan='2' class='tab_bg_2'>";
          echo "<input type='submit' name='additem' value=\"" . _sx('button', 'Add') . "\" class='submit'>";
@@ -290,7 +294,7 @@ class PluginDatabasesDatabase_Item extends CommonDBRelation {
       echo "<div class='spaced'>";
       if ($canedit && $number) {
          Html::openMassiveActionsForm('mass' . __CLASS__ . $rand);
-         $massiveactionparams = array();
+         $massiveactionparams = [];
          Html::showMassiveActions($massiveactionparams);
       }
       echo "<table class='tab_cadre_fixe'>";
@@ -302,8 +306,9 @@ class PluginDatabasesDatabase_Item extends CommonDBRelation {
 
       echo "<th>" . __('Type') . "</th>";
       echo "<th>" . __('Name') . "</th>";
-      if (Session::isMultiEntitiesMode())
+      if (Session::isMultiEntitiesMode()) {
          echo "<th>" . __('Entity') . "</th>";
+      }
       echo "<th>" . __('Serial number') . "</th>";
       echo "<th>" . __('Inventory number') . "</th>";
       echo "</tr>";
@@ -311,13 +316,13 @@ class PluginDatabasesDatabase_Item extends CommonDBRelation {
       for ($i = 0; $i < $number; $i++) {
          $itemType = $DB->result($result, $i, "itemtype");
 
-         if (!($item = getItemForItemtype($itemType))) {
+         if (!($item = $dbu->getItemForItemtype($itemType))) {
             continue;
          }
 
          if ($item->canView()) {
             $column    = "name";
-            $itemTable = getTableForItemType($itemType);
+            $itemTable = $dbu->getTableForItemType($itemType);
 
             $query = "SELECT `" . $itemTable . "`.*,
                              `glpi_plugin_databases_databases_items`.`id` AS items_id,
@@ -327,7 +332,7 @@ class PluginDatabasesDatabase_Item extends CommonDBRelation {
                      . " WHERE `" . $itemTable . "`.`id` = `glpi_plugin_databases_databases_items`.`items_id`
                 AND `glpi_plugin_databases_databases_items`.`itemtype` = '$itemType'
                 AND `glpi_plugin_databases_databases_items`.`plugin_databases_databases_id` = '$instID' "
-                     . getEntitiesRestrictRequest(" AND ", $itemTable, '', '', $item->maybeRecursive());
+                     . $dbu->getEntitiesRestrictRequest(" AND ", $itemTable, '', '', $item->maybeRecursive());
 
             if ($item->maybeTemplate()) {
                $query .= " AND `" . $itemTable . "`.`is_template` = '0'";
@@ -339,7 +344,7 @@ class PluginDatabasesDatabase_Item extends CommonDBRelation {
 
                   Session::initNavigateListItems($itemType, PluginDatabasesDatabase::getTypeName(2) . " = " . $database->fields['name']);
 
-                  while ($data = $DB->fetch_assoc($result_linked)) {
+                  while ($data = $DB->fetchAssoc($result_linked)) {
 
                      $item->getFromDB($data["id"]);
 
@@ -347,8 +352,9 @@ class PluginDatabasesDatabase_Item extends CommonDBRelation {
 
                      $ID = "";
 
-                     if ($_SESSION["glpiis_ids_visible"] || empty($data["name"]))
+                     if ($_SESSION["glpiis_ids_visible"] || empty($data["name"])) {
                         $ID = " (" . $data["id"] . ")";
+                     }
 
                      $link = Toolbox::getItemTypeFormURL($itemType);
                      $name = "<a href=\"" . $link . "?id=" . $data["id"] . "\">"
@@ -366,8 +372,9 @@ class PluginDatabasesDatabase_Item extends CommonDBRelation {
                      echo "<td class='center' " . (isset($data['is_deleted']) && $data['is_deleted'] ? "class='tab_bg_2_2'" : "") .
                           ">" . $name . "</td>";
 
-                     if (Session::isMultiEntitiesMode())
+                     if (Session::isMultiEntitiesMode()) {
                         echo "<td class='center'>" . Dropdown::getDropdownName("glpi_entities", $data['entity']) . "</td>";
+                     }
 
                      echo "<td class='center'>" . (isset($data["serial"]) ? "" . $data["serial"] . "" : "-") . "</td>";
                      echo "<td class='center'>" . (isset($data["otherserial"]) ? "" . $data["otherserial"] . "" : "-") . "</td>";
@@ -421,6 +428,7 @@ class PluginDatabasesDatabase_Item extends CommonDBRelation {
       $canedit      = $item->canAddItem('PluginDatabasesDatabase');
       $rand         = mt_rand();
       $is_recursive = $item->isRecursive();
+      $dbu          = new DbUtils();
 
       $query = "SELECT `glpi_plugin_databases_databases_items`.`id` AS assocID,
                        `glpi_entities`.`id` AS entity,
@@ -433,7 +441,7 @@ class PluginDatabasesDatabase_Item extends CommonDBRelation {
                 WHERE `glpi_plugin_databases_databases_items`.`items_id` = '$ID'
                       AND `glpi_plugin_databases_databases_items`.`itemtype` = '" . $item->getType() . "' ";
 
-      $query .= getEntitiesRestrictRequest(" AND", "glpi_plugin_databases_databases", '', '', true);
+      $query .= $dbu->getEntitiesRestrictRequest(" AND", "glpi_plugin_databases_databases", '', '', true);
 
       $query .= " ORDER BY `assocName`";
 
@@ -441,11 +449,11 @@ class PluginDatabasesDatabase_Item extends CommonDBRelation {
       $number = $DB->numrows($result);
       $i      = 0;
 
-      $databases = array();
+      $databases = [];
       $database  = new PluginDatabasesDatabase();
-      $used      = array();
+      $used      = [];
       if ($numrows = $DB->numrows($result)) {
-         while ($data = $DB->fetch_assoc($result)) {
+         while ($data = $DB->fetchAssoc($result)) {
             $databases[$data['assocID']] = $data;
             $used[$data['id']]           = $data['id'];
          }
@@ -463,12 +471,12 @@ class PluginDatabasesDatabase_Item extends CommonDBRelation {
             }
 
             if ($item->isRecursive()) {
-               $entities = getSonsOf('glpi_entities', $entity);
+               $entities = $dbu->getSonsOf('glpi_entities', $entity);
             } else {
                $entities = $entity;
             }
          }
-         $limit = getEntitiesRestrictRequest(" AND ", "glpi_plugin_databases_databases", '', $entities, true);
+         $limit = $dbu->getEntitiesRestrictRequest(" AND ", "glpi_plugin_databases_databases", '', $entities, true);
          $q     = "SELECT COUNT(*)
                FROM `glpi_plugin_databases_databases`
                WHERE `is_deleted` = '0'
@@ -478,7 +486,6 @@ class PluginDatabasesDatabase_Item extends CommonDBRelation {
          $nb     = $DB->result($result, 0, 0);
 
          echo "<div class='firstbloc'>";
-
 
          if (Session::haveRight('plugin_databases', READ)
              && ($nb > count($used))
@@ -496,8 +503,8 @@ class PluginDatabasesDatabase_Item extends CommonDBRelation {
                echo "<input type='hidden' name='tickets_id' value='$ID'>";
             }
 
-            PluginDatabasesDatabase::dropdownDatabase(array('entity' => $entities,
-                                                            'used'   => $used));
+            PluginDatabasesDatabase::dropdownDatabase(['entity' => $entities,
+                                                       'used'   => $used]);
 
             echo "</td><td class='center' width='20%'>";
             echo "<input type='submit' name='additem' value=\"" .
@@ -514,7 +521,7 @@ class PluginDatabasesDatabase_Item extends CommonDBRelation {
       echo "<div class='spaced'>";
       if ($canedit && $number && ($withtemplate < 2)) {
          Html::openMassiveActionsForm('mass' . __CLASS__ . $rand);
-         $massiveactionparams = array('num_displayed' => $number);
+         $massiveactionparams = ['num_displayed' => $number];
          Html::showMassiveActions($massiveactionparams);
       }
       echo "<table class='tab_cadre_fixe'>";
@@ -532,7 +539,7 @@ class PluginDatabasesDatabase_Item extends CommonDBRelation {
       echo "<th>" . __('Supplier') . "</th>";
       echo "<th>" . __('Editor', 'databases') . "</th>";
       echo "</tr>";
-      $used = array();
+      $used = [];
 
       if ($number) {
 
@@ -541,7 +548,6 @@ class PluginDatabasesDatabase_Item extends CommonDBRelation {
             //        %2$s is the name of the item (used for headings of a list)
                                         sprintf(__('%1$s = %2$s'),
                                                 $item->getTypeName(1), $item->getName()));
-
 
          foreach ($databases as $data) {
             $databaseID = $data["id"];
@@ -572,14 +578,14 @@ class PluginDatabasesDatabase_Item extends CommonDBRelation {
             echo "<td>";
             echo "<a href=\"" . $CFG_GLPI["root_doc"] . "/front/supplier.form.php?id=" . $data["suppliers_id"] . "\">";
             echo Dropdown::getDropdownName("glpi_suppliers", $data["suppliers_id"]);
-            if ($_SESSION["glpiis_ids_visible"] == 1)
+            if ($_SESSION["glpiis_ids_visible"] == 1) {
                echo " (" . $data["suppliers_id"] . ")";
+            }
             echo "</a></td>";
             echo "</tr>";
             $i++;
          }
       }
-
 
       echo "</table>";
       if ($canedit && $number && ($withtemplate < 2)) {

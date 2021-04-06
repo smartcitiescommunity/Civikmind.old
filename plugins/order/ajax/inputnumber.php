@@ -47,12 +47,21 @@ if (isset($_POST['name'])) {
       $step = PLUGIN_ORDER_NUMBER_STEP;
    }
 
-   $class="";
+   $class = "";
    if (isset($_REQUEST['class'])) {
-      $class="class='".$_REQUEST['class']."'";
+      $class = "class='".$_REQUEST['class']."'";
+   }
+
+   $min = 0;
+   if (isset($_REQUEST['min'])) {
+      if (isset($_REQUEST['force_integer']) && $_REQUEST['force_integer']) {
+         $min = (int)$_REQUEST['min'];
+      } else {
+         $min = (float)$_REQUEST['min'];
+      }
    }
 
    $data = Html::cleanInputText(Toolbox::clean_cross_side_scripting_deep(rawurldecode(stripslashes($_POST["data"]))));
 
-   echo "<input type='number' step='$step' name='".$_POST['name']."' value='$data' $class>";
+   echo "<input type='number' step='$step' min='$min' name='".$_POST['name']."' value='$data' $class>";
 }

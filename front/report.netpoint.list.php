@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 include ('../inc/includes.php');
 
 Session::checkRight("reports", READ);
@@ -49,18 +45,30 @@ if (isset($_POST["prise"]) && $_POST["prise"]) {
    echo "<div class='center spaced'><h2>".sprintf(__('Network report by outlet: %s'), $name).
         "</h2></div>";
 
-   Report::reportForNetworkInformations("`glpi_netpoints`
-                                         LEFT JOIN `glpi_locations`
-                                             ON (`glpi_locations`.`id`
-                                                   = `glpi_netpoints`.`locations_id`)
-                                         INNER JOIN `glpi_networkportethernets`
-                                             ON (`glpi_networkportethernets`.`netpoints_id`
-                                                   = `glpi_netpoints`.`id`)",
-                                        "PORT_1.`id` = `glpi_networkportethernets`.`networkports_id`",
-                                        "`glpi_netpoints`.`id` = '".$_POST["prise"]."'",
-                                        '',
-                                        "`glpi_locations`.`completename` AS extra,",
-                                        Location::getTypeName());
+   Report::reportForNetworkInformations(
+      'glpi_netpoints', //from
+      ['PORT_1' => 'id', 'glpi_networkportethernets' => 'networkports_id'], //joincrit
+      ['glpi_netpoints.id' => (int) $_POST["prise"]], //where
+      ['glpi_locations.completename AS extra'], //select
+      [
+         'glpi_locations'  => [
+            'ON'  => [
+               'glpi_locations'  => 'id',
+               'glpi_netpoints'  => 'locations_id'
+            ]
+         ]
+      ], //left join
+      [
+         'glpi_networkportethernets'   => [
+            'ON'  => [
+               'glpi_networkportethernets'   => 'netpoints_id',
+               'glpi_netpoints'              => 'id'
+            ]
+         ]
+      ], //inner join
+      [], //order
+      Location::getTypeName()
+   );
 
    Html::footer();
 

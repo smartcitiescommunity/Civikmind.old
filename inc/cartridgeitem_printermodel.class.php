@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -29,10 +29,6 @@
  * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
  */
-
-/** @file
-* @brief
-*/
 
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
@@ -79,7 +75,7 @@ class CartridgeItem_PrinterModel extends CommonDBRelation {
          switch ($item->getType()) {
             case 'CartridgeItem' :
                if ($_SESSION['glpishow_count_on_tabs']) {
-                  $nb = self::countForCartridgeItem($item);
+                  $nb = self::countForItem($item);
                }
                return self::createTabEntry(PrinterModel::getTypeName(Session::getPluralNumber()), $nb);
          }
@@ -89,25 +85,13 @@ class CartridgeItem_PrinterModel extends CommonDBRelation {
 
 
    /**
-    * @param $item   CartridgeItem object
-   **/
-   static function countForCartridgeItem(CartridgeItem $item) {
-
-      return countElementsInTable(['glpi_printermodels', static::getTable()],
-                                  [static::getTable().'.cartridgeitems_id' => $item->getField('id'),
-                                    'FKEY' => [static::getTable() => 'printermodels_id', 'glpi_printermodels' => 'id']]);
-   }
-
-
-   /**
     * Show the printer types that are compatible with a cartridge type
     *
     * @param $item   CartridgeItem object
     *
-    * @return nothing (display)
+    * @return boolean|void
    **/
    static function showForCartridgeItem(CartridgeItem $item) {
-      global $DB, $CFG_GLPI;
 
       $instID = $item->getField('id');
       if (!$item->can($instID, READ)) {
@@ -116,25 +100,14 @@ class CartridgeItem_PrinterModel extends CommonDBRelation {
       $canedit = $item->canEdit($instID);
       $rand    = mt_rand();
 
-      $query = "SELECT `".static::getTable()."`.`id`,
-                       `glpi_printermodels`.`name` AS `type`,
-                       `glpi_printermodels`.`id` AS `pmid`
-                FROM `".static::getTable()."`,
-                     `glpi_printermodels`
-                WHERE `".static::getTable()."`.`printermodels_id` = `glpi_printermodels`.`id`
-                      AND `".static::getTable()."`.`cartridgeitems_id` = '$instID'
-                ORDER BY `glpi_printermodels`.`name`";
-
-      $result = $DB->query($query);
-      $i      = 0;
+      $iterator = self::getListForItem($item);
+      $number = count($iterator);
 
       $used  = [];
       $datas = [];
-      if ($number = $DB->numrows($result)) {
-         while ($data = $DB->fetch_assoc($result)) {
-            $used[$data["pmid"]] = $data["pmid"];
-            $datas[$data["id"]]  = $data;
-         }
+      while ($data = $iterator->next()) {
+         $used[$data["id"]] = $data["id"];
+         $datas[$data["linkid"]]  = $data;
       }
 
       if ($canedit) {
@@ -178,14 +151,14 @@ class CartridgeItem_PrinterModel extends CommonDBRelation {
             $header_bottom .= Html::getCheckAllAsCheckbox('mass'.__CLASS__.$rand);
             $header_end    .= "</th>";
          }
-         $header_end .= "<th>".__('Model')."</th></tr>";
+         $header_end .= "<th>"._n('Model', 'Models', 1)."</th></tr>";
          echo $header_begin.$header_top.$header_end;
 
          foreach ($datas as $data) {
             echo "<tr class='tab_bg_1'>";
             if ($canedit) {
                echo "<td width='10'>";
-               Html::showMassiveActionCheckBox(__CLASS__, $data["id"]);
+               Html::showMassiveActionCheckBox(__CLASS__, $data["linkid"]);
                echo "</td>";
             }
             $opt = [
@@ -194,12 +167,12 @@ class CartridgeItem_PrinterModel extends CommonDBRelation {
                   [
                      'field'      => 40, // printer model
                      'searchtype' => 'equals',
-                     'value'      => $data["pmid"],
+                     'value'      => $data["id"],
                   ]
                ]
             ];
             $url = Printer::getSearchURL()."?".Toolbox::append_params($opt, '&amp;');
-            echo "<td class='center'><a href='".$url."'>".$data["type"]."</a></td>";
+            echo "<td class='center'><a href='".$url."'>".$data["name"]."</a></td>";
             echo "</tr>";
          }
          echo $header_begin.$header_bottom.$header_end;

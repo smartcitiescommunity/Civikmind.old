@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,9 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -79,7 +76,7 @@ class RuleDictionnaryPrinter extends Rule {
       $criterias['name']['table']         = 'glpi_printers';
 
       $criterias['manufacturer']['field'] = 'name';
-      $criterias['manufacturer']['name']  = __('Manufacturer');
+      $criterias['manufacturer']['name']  = Manufacturer::getTypeName(1);
       $criterias['manufacturer']['table'] = '';
 
       $criterias['comment']['field']      = 'comment';
@@ -103,7 +100,7 @@ class RuleDictionnaryPrinter extends Rule {
       $actions['_ignore_import']['name']     = __('To be unaware of import');
       $actions['_ignore_import']['type']     = 'yesonly';
 
-      $actions['manufacturer']['name']       = __('Manufacturer');
+      $actions['manufacturer']['name']       = Manufacturer::getTypeName(1);
       $actions['manufacturer']['table']      = 'glpi_manufacturers';
       $actions['manufacturer']['type']       = 'dropdown';
 

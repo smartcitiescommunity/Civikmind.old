@@ -9,7 +9,7 @@
  -------------------------------------------------------------------------
 
  LICENSE
-      
+
  This file is part of resources.
 
  resources is free software; you can redistribute it and/or modify
@@ -29,7 +29,7 @@
 
 include ('../../../inc/includes.php');
 
-Html::header(PluginResourcesResource::getTypeName(2), '', "admin", "pluginresourcesresource", "pluginresourcesbudget");
+Html::header(PluginResourcesResource::getTypeName(2), '', "admin", PluginResourcesMenu::getType(), strtolower(PluginResourcesBudget::getType()));
 
 $budget = new PluginResourcesBudget();
 if ($budget->canView() || Session::haveRight("config", UPDATE)) {
@@ -41,4 +41,3 @@ if ($budget->canView() || Session::haveRight("config", UPDATE)) {
 
 Html::footer();
 
-?>

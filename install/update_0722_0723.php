@@ -4,7 +4,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -32,14 +32,10 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 /// Update from 0.72.2 to 0.72.3
 
 function update0722to0723() {
-   global $DB, $CFG_GLPI;
+   global $DB;
 
    //TRANS: %s is the number of new version
    echo "<h3>".sprintf(__('Update to %s'), '0.72.3')."</h3>";
@@ -105,7 +101,7 @@ function update0722to0723() {
              FROM `glpi_doc_device`";
    if ($result = $DB->query($query)) {
       if ($DB->numrows($result)>0) {
-         while ($data = $DB->fetch_assoc($result)) {
+         while ($data = $DB->fetchAssoc($result)) {
             if (isset($LINK_ID_TABLE[$data['device_type']])) {
                $table = $LINK_ID_TABLE[$data['device_type']];
 

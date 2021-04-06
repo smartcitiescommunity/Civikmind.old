@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -34,14 +34,13 @@ namespace Glpi;
 
 use \Ajax;
 use \CommonDBTM;
+use CronTask;
+use Document;
 use \Html;
 use \Session;
 use \Toolbox;
-
-/** @file
-* @brief
-*/
-
+use \Infocom;
+use \DBConnection;
 
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
@@ -126,12 +125,12 @@ class Event extends CommonDBTM {
 
       $secs = $day * DAY_TIMESTAMP;
 
-      $query_exp = "DELETE
-                    FROM `glpi_events`
-                    WHERE UNIX_TIMESTAMP(date) < UNIX_TIMESTAMP()-$secs";
-      $DB->query($query_exp);
-
-      return $DB->affected_rows();
+      $DB->delete(
+         'glpi_events', [
+            new \QueryExpression("UNIX_TIMESTAMP(date) < UNIX_TIMESTAMP()-$secs")
+         ]
+      );
+      return $DB->affectedRows();
    }
 
 
@@ -160,12 +159,12 @@ class Event extends CommonDBTM {
                           'planning'     => __('Planning'),
                           'tools'        => __('Tools'),
                           'financial'    => __('Management'),
-                          'login'        => __('Connection'),
+                          'login'        => _n('Connection', 'Connections', 1),
                           'setup'        => __('Setup'),
                           'security'     => __('Security'),
                           'reservation'  => _n('Reservation', 'Reservations', Session::getPluralNumber()),
-                          'cron'         => _n('Automatic action', 'Automatic actions', Session::getPluralNumber()),
-                          'document'     => _n('Document', 'Documents', Session::getPluralNumber()),
+                          'cron'         => CronTask::getTypeName(Session::getPluralNumber()),
+                          'document'     => Document::getTypeName(Session::getPluralNumber()),
                           'notification' => _n('Notification', 'Notifications', Session::getPluralNumber()),
                           'plugin'       => _n('Plugin', 'Plugins', Session::getPluralNumber())];
 
@@ -194,9 +193,9 @@ class Event extends CommonDBTM {
                echo " <a href='#' onClick=\"".Html::jsGetElementbyID('infocom'.$rand).".
                        dialog('open');\">$items_id</a>";
                Ajax::createIframeModalWindow('infocom'.$rand,
-                                             $CFG_GLPI["root_doc"]."/front/infocom.form.php".
-                                                "?id=".$items_id,
+                                             Infocom::getFormURLWithID($items_id),
                                              ['height' => 600]);
+               break;
 
             case "devices" :
                echo $items_id;
@@ -211,10 +210,10 @@ class Event extends CommonDBTM {
                $type = getSingular($type);
                $url  = '';
                if ($item = getItemForItemtype($type)) {
-                  $url  =  $item->getFormURL();
+                  $url  =  $item->getFormURLWithID($items_id);
                }
                if (!empty($url)) {
-                  echo "<a href=\"".$url."?id=".$items_id."\">".$items_id."</a>";
+                  echo "<a href=\"".$url."\">".$items_id."</a>";
                } else {
                   echo $items_id;
                }
@@ -244,16 +243,15 @@ class Event extends CommonDBTM {
       }
 
       // Query Database
-      $query = "SELECT *
-                FROM `glpi_events`
-                WHERE `message` LIKE '".$usersearch."%'
-                ORDER BY `date` DESC
-                LIMIT 0,".intval($_SESSION['glpilist_limit']);
-      // Get results
-      $result = $DB->query($query);
+      $iterator = $DB->request([
+         'FROM'   => 'glpi_events',
+         'WHERE'  => ['message' => ['LIKE', $usersearch . '%']],
+         'ORDER'  => 'date DESC',
+         'LIMIT'  => (int)$_SESSION['glpilist_limit']
+      ]);
 
       // Number of results
-      $number = $DB->numrows($result);
+      $number = count($iterator);;
 
       // No Events in database
       if ($number < 1) {
@@ -273,18 +271,19 @@ class Event extends CommonDBTM {
              sprintf(__('Last %d events'), $_SESSION['glpilist_limit'])."</a>";
       echo "</th></tr>";
 
-      echo "<tr><th colspan='2'>".__('Source')."</th>";
-      echo "<th>".__('Date')."</th>";
-      echo "<th width='8%'>".__('Service')."</th>";
-      echo "<th width='60%'>".__('Message')."</th></tr>";
+      echo "<tr><th>".__('Source')."</th>";
+      echo "<th>".__('Id')."</th>";
+      echo "<th>"._n('Date', 'Dates', 1)."</th>";
+      echo "<th width='10%'>".__('Service')."</th>";
+      echo "<th width='50%'>".__('Message')."</th></tr>";
 
-      while ($i < $number) {
-         $ID       = $DB->result($result, $i, "id");
-         $items_id = $DB->result($result, $i, "items_id");
-         $type     = $DB->result($result, $i, "type");
-         $date     = $DB->result($result, $i, "date");
-         $service  = $DB->result($result, $i, "service");
-         $message  = $DB->result($result, $i, "message");
+      while ($data = $iterator->next()) {
+         $ID       = $data['id'];
+         $items_id = $data['items_id'];
+         $type     = $data['type'];
+         $date     = $data['date'];
+         $service  = $data['service'];
+         $message  = $data['message'];
 
          $itemtype = "&nbsp;";
          if (isset($logItemtype[$type])) {
@@ -297,10 +296,10 @@ class Event extends CommonDBTM {
          }
 
          echo "<tr class='tab_bg_2'><td>".$itemtype."</td>";
-         echo "<td class='center'>";
+         echo "<td>";
          self::displayItemLogID($type, $items_id);
-         echo "</td><td class='center'>".Html::convDateTime($date)."</td>";
-         echo "<td class='center'>".(isset($logService[$service])?$logService[$service]:'');
+         echo "</td><td>".Html::convDateTime($date)."</td>";
+         echo "<td>".(isset($logService[$service])?$logService[$service]:'');
          echo "</td><td>".$message."</td></tr>";
 
          $i++;
@@ -315,13 +314,13 @@ class Event extends CommonDBTM {
     *
     * Print a great tab to present lasts events occured on glpi
     *
-    * @param $target    where to go when complete
-    * @param $order     order by clause occurences (eg: ) (default 'DESC')
-    * @param $sort      order by clause occurences (eg: date) (defaut 'date')
-    * @param $start     (default 0)
+    * @param string  $target  where to go when complete
+    * @param string  $order   order by clause occurences (eg: ) (default 'DESC')
+    * @param string  $sort    order by clause occurences (eg: date) (defaut 'date')
+    * @param integer $start   (default 0)
    **/
    static function showList($target, $order = 'DESC', $sort = 'date', $start = 0) {
-      global $DB, $CFG_GLPI;
+      $DBread = DBConnection::getReadConnection();
 
       // Show events from $result in table form
       list($logItemtype, $logService) = self::logArray();
@@ -329,7 +328,7 @@ class Event extends CommonDBTM {
       // Columns of the Table
       $items = ["type"     => [__('Source'), ""],
                      "items_id" => [__('ID'), ""],
-                     "date"     => [__('Date'), ""],
+                     "date"     => [_n('Date', 'Dates', 1), ""],
                      "service"  => [__('Service'), "width='8%'"],
                      "level"    => [__('Level'), "width='8%'"],
                      "message"  => [__('Message'), "width='50%'"]];
@@ -343,16 +342,17 @@ class Event extends CommonDBTM {
       }
 
       // Query Database
-      $query_limit = "SELECT *
-                      FROM `glpi_events`
-                      ORDER BY `$sort` $order
-                      LIMIT ".intval($start).",".intval($_SESSION['glpilist_limit']);
+      $iterator = $DBread->request([
+         'FROM'   => 'glpi_events',
+         'ORDER'  => "$sort $order",
+         'START'  => (int)$start,
+         'LIMIT'  => (int)$_SESSION['glpilist_limit']
+      ]);
 
       // Number of results
       $numrows = countElementsInTable("glpi_events");
       // Get results
-      $result = $DB->query($query_limit);
-      $number = $DB->numrows($result);
+      $number = count($iterator);
 
       // No Events in database
       if ($number < 1) {
@@ -380,14 +380,14 @@ class Event extends CommonDBTM {
       }
       echo "</tr>";
 
-      while ($i < $number) {
-         $ID       = $DB->result($result, $i, "id");
-         $items_id = $DB->result($result, $i, "items_id");
-         $type     = $DB->result($result, $i, "type");
-         $date     = $DB->result($result, $i, "date");
-         $service  = $DB->result($result, $i, "service");
-         $level    = $DB->result($result, $i, "level");
-         $message  = $DB->result($result, $i, "message");
+      while ($row = $iterator->next()) {
+         $ID       = $row["id"];
+         $items_id = $row["items_id"];
+         $type     = $row["type"];
+         $date     = $row["date"];
+         $service  = $row["service"];
+         $level    = $row["level"];
+         $message  = $row["message"];
 
          $itemtype = "&nbsp;";
          if (isset($logItemtype[$type])) {
@@ -413,34 +413,7 @@ class Event extends CommonDBTM {
    }
 
 
-   /** Display how many logins since
-    *
-    * @return  nothing
-   **/
-   static function getCountLogin() {
-      global $DB;
-
-      $query = "SELECT COUNT(*)
-                FROM `glpi_events`
-                WHERE `message` LIKE '%logged in%'";
-
-      $query2 = "SELECT `date`
-                 FROM `glpi_events`
-                 ORDER BY `date` ASC
-                 LIMIT 1";
-
-      $result   = $DB->query($query);
-      $result2  = $DB->query($query2);
-      $nb_login = $DB->result($result, 0, 0);
-      $date     = $DB->result($result2, 0, 0);
-      // Only for DEMO mode (not need to be translated)
-      printf(_n('%1$s login since %2$s', '%1$s logins since %2$s', $nb_login),
-             '<span class="b">'.$nb_login.'</span>', $date);
+   static function getIcon() {
+      return "fas fa-scroll";
    }
-
-}
-
-// For compatibility
-if (!class_exists('Event', false)) {
-   class_alias('Glpi\\Event', 'Event');
 }

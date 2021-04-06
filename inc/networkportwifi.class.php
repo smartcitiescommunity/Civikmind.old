@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -50,13 +46,10 @@ class NetworkPortWifi extends NetworkPortInstantiation {
 
 
    function getNetworkCardInterestingFields() {
-      return ['link.`mac`' => 'mac'];
+      return ['link.mac' => 'mac'];
    }
 
 
-   /**
-    * @see NetworkPortInstantiation::showInstantiationForm()
-   **/
    function showInstantiationForm(NetworkPort $netport, $options, $recursiveItems) {
 
       if (!$options['several']) {
@@ -90,9 +83,6 @@ class NetworkPortWifi extends NetworkPortInstantiation {
    }
 
 
-   /**
-    * @see NetworkPortInstantiation::getInstantiationHTMLTableHeaders
-   **/
    function getInstantiationHTMLTableHeaders(HTMLTableGroup $group, HTMLTableSuperHeader $super,
                                              HTMLTableSuperHeader $internet_super = null,
                                              HTMLTableHeader $father = null,
@@ -109,9 +99,6 @@ class NetworkPortWifi extends NetworkPortInstantiation {
    }
 
 
-   /**
-    * @see NetworkPortInstantiation::getInstantiationHTMLTable()
-   **/
    function getInstantiationHTMLTable(NetworkPort $netport, HTMLTableRow $row,
                                       HTMLTableCell $father = null, array $options = []) {
 
@@ -130,7 +117,7 @@ class NetworkPortWifi extends NetworkPortInstantiation {
    }
 
 
-   function getSearchOptionsNew() {
+   function rawSearchOptions() {
       $tab = [];
 
       $tab[] = [
@@ -140,11 +127,14 @@ class NetworkPortWifi extends NetworkPortInstantiation {
 
       $tab[] = [
          'id'                 => '10',
-         'table'              => $this->getTable(),
+         'table'              => NetworkPort::getTable(),
          'field'              => 'mac',
+         'datatype'           => 'mac',
          'name'               => __('MAC'),
          'massiveaction'      => false,
-         'datatype'           => 'mac'
+         'joinparams'         => [
+            'jointype'           => 'empty'
+         ]
       ];
 
       $tab[] = [

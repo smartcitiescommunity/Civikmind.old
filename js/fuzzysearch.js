@@ -1,3 +1,36 @@
+/**
+ * ---------------------------------------------------------------------
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2021 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
+ */
+
+/* global fuzzy */
+
 $(document).ready(function() {
    var list = [];
 
@@ -12,8 +45,6 @@ $(document).ready(function() {
 
    // when the shortcut for fuzzy is called
    $(document).bind('keyup', 'alt+ctrl+g', function() {
-      console.log('start fuzzy search');
-
       // retrieve html of fuzzy input
       $.get(CFG_GLPI.root_doc+'/ajax/fuzzysearch.php', {
          'action': 'getHtml'
@@ -53,7 +84,7 @@ $(document).ready(function() {
                   }
                   break;
             }
-         })
+         });
 
          // when a key is pressed in fuzzy input, launch match
          $("#fuzzysearch input").focus()
@@ -67,7 +98,7 @@ $(document).ready(function() {
             });
 
          // event for close icon
-         $("#fuzzysearch .fa-close").click(function() {
+         $("#fuzzysearch .fa-times").click(function() {
             removeFuzzy();
          });
 
@@ -79,9 +110,6 @@ $(document).ready(function() {
       });
    });
 
-   /**
-    * Call Fuzzy lib and match the current input with the menu list
-    */
    var startFuzzy = function() {
       // retrieve input
       var input_text = $("#fuzzysearch input").val();
@@ -96,7 +124,7 @@ $(document).ready(function() {
       results.map(function(el) {
          //console.log(el.string);
          $("#fuzzysearch .results")
-            .append("<li><a href='"+CFG_GLPI.root_doc+el.original.url+"'>"+el.string+"</a></li>")
+            .append("<li><a href='"+CFG_GLPI.root_doc+el.original.url+"'>"+el.string+"</a></li>");
       });
 
       selectFirst();
@@ -115,7 +143,7 @@ $(document).ready(function() {
    var selectFirst = function() {
       $("#fuzzysearch .results li:first()").addClass("selected");
       scrollToSelected();
-   }
+   };
 
    /**
     * Select the last element in the results list
@@ -123,7 +151,7 @@ $(document).ready(function() {
    var selectLast = function() {
       $("#fuzzysearch .results li:last()").addClass("selected");
       scrollToSelected();
-   }
+   };
 
    /**
     * Select the next element in the results list.

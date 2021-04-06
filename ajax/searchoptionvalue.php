@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,12 +30,10 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
+$ajax = false;
 // Direct access to file
 if (strpos($_SERVER['PHP_SELF'], "searchoptionvalue.php")) {
+   $ajax = true;
    include ('../inc/includes.php');
    header("Content-Type: text/html; charset=UTF-8");
    Html::header_nocache();
@@ -47,8 +45,9 @@ Session::checkLoginUser();
 
 if (isset($_POST['searchtype'])) {
    $searchopt      = $_POST['searchopt'];
-   $_POST['value'] = rawurldecode($_POST['value']);
-
+   if ($ajax) {
+      $_POST['value'] = rawurldecode($_POST['value']);
+   }
    $fieldname = 'criteria';
    if (isset($_POST['meta']) && $_POST['meta']) {
       $fieldname = 'metacriteria';
@@ -109,7 +108,8 @@ if (isset($_POST['searchtype'])) {
 
 
                case "glpi_users.name" :
-                  $options2['right'] = (isset($searchopt['right']) ? $searchopt['right'] : 'all');
+                  $options2['right']            = (isset($searchopt['right']) ? $searchopt['right'] : 'all');
+                  $options2['inactive_deleted'] = 1;
                   break;
             }
 
@@ -134,14 +134,16 @@ if (isset($_POST['searchtype'])) {
             //Could display be handled by a plugin ?
             if (!$display
                 && $plug = isPluginItemType(getItemTypeForTable($searchopt['table']))) {
-               $function = 'plugin_'.$plug['plugin'].'_searchOptionsValues';
-               if (function_exists($function)) {
-                  $params = ['name'           => $inputname,
-                                  'searchtype'     => $_POST['searchtype'],
-                                  'searchoption'   => $searchopt,
-                                  'value'          => $_POST['value']];
-                  $display = $function($params);
-               }
+               $display = Plugin::doOneHook(
+                  $plug['plugin'],
+                  'searchOptionsValues',
+                  [
+                     'name'           => $inputname,
+                     'searchtype'     => $_POST['searchtype'],
+                     'searchoption'   => $searchopt,
+                     'value'          => $_POST['value']
+                  ]
+               );
             }
 
          }

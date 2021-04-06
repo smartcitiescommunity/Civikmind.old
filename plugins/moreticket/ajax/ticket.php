@@ -29,9 +29,9 @@
 
 include('../../../inc/includes.php');
 
+Html::header_nocache();
 Session::checkLoginUser();
-
-//Html::header_nocache();
+header("Content-Type: text/html; charset=UTF-8");
 
 if (!isset($_POST['tickets_id']) || empty($_POST['tickets_id'])) {
    $_POST['tickets_id'] = 0;
@@ -40,7 +40,6 @@ if (!isset($_POST['tickets_id']) || empty($_POST['tickets_id'])) {
 if (isset($_POST['action'])) {
    switch ($_POST['action']) {
       case 'showForm':
-         header("Content-Type: text/html; charset=UTF-8");
          $config = new PluginMoreticketConfig();
 
          // Ticket is waiting
@@ -59,9 +58,12 @@ if (isset($_POST['action'])) {
          break;
 
       case 'showFormTicketTask':
-         header("Content-Type: text/html; charset=UTF-8");
          $config = new PluginMoreticketConfig();
 
+         if($config->useQuestion()){
+            $waiting_ticket = new PluginMoreticketWaitingTicket();
+            $waiting_ticket->showQuestionSign($_POST['tickets_id']);
+         }
          // Ticket is waiting
          if ($config->useWaiting()) {
             $waiting_ticket = new PluginMoreticketWaitingTicket();
@@ -70,13 +72,22 @@ if (isset($_POST['action'])) {
 
          break;
       case 'showFormUrgency':
-         header("Content-Type: text/html; charset=UTF-8");
          $config = new PluginMoreticketConfig();
+
 
          // Ticket is waiting
          if ($config->useUrgency()) {
             $urgency_ticket = new PluginMoreticketUrgencyTicket();
             $urgency_ticket->showForm($_POST['tickets_id']);
+         }
+         break;
+
+      case 'showFormSolution':
+         $config = new PluginMoreticketConfig();
+
+         if ($config->useDurationSolution()) {
+            $solution = new PluginMoreticketSolution();
+            $solution->showFormSolution($_POST['tickets_id']);
          }
          break;
    }

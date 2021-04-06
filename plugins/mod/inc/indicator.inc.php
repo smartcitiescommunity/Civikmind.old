@@ -1,8 +1,14 @@
 <?php
 
-echo Html::css($CFG_GLPI["root_doc"]."/css/font-awesome.css");
 
-//Stevenes Donato
+if (!defined('GLPI_ROOT')) {
+   die("Sorry. You can't access directly to this file");
+}
+
+global $DB, $CFG_GLPI;
+
+echo Html::css("css/styles.min.css");
+
 //satisfação por tecnico
 $query_sat = "
 SELECT glpi_users.id, avg( `glpi_ticketsatisfactions`.satisfaction ) AS media
@@ -25,8 +31,8 @@ WHERE glpi_tickets.status NOT IN (5,6)
 AND glpi_tickets.is_deleted = 0
 AND glpi_tickets.id = glpi_tickets_users.tickets_id
 AND glpi_tickets_users.users_id = glpi_users.id
-AND glpi_tickets.due_date IS NOT NULL
-AND glpi_tickets.due_date < NOW()
+AND glpi_tickets.time_to_resolve IS NOT NULL
+AND glpi_tickets.time_to_resolve < NOW()
 AND glpi_tickets_users.type = 2
 AND glpi_users.id = ".$_SESSION['glpiID']." ";
 
@@ -95,15 +101,21 @@ if($due == 0)  { $label = 'label-success'; }
 if($due >= 1 ) { $label = 'label-danger'; }
 
 if($number <= 0)  { $label2 = 'label-success'; }
- 		if($number >= 1  && $number <= 3) { $label2 = 'label-primary'; }
+if($number >= 1  && $number <= 3) { $label2 = 'label-primary'; }
 if($number >= 4  && $number <= 5) { $label2 = 'label-warning'; }
 if($number > 5) { $label2 = 'label-danger'; }	     
+							
+echo "
+<style>
+	@media screen and (max-width: 750px) {
+	  #count { display:none; }
+	}
+</style>\n";
 
-//echo "</ul>\n"; 
 
 //tasks
-
-echo "<li id='count' class='' style='font-size:12px;' title='". _n('Ticket task','Ticket tasks',2) ."'>";
+echo "<ul>\n";
+echo "<li id='count' class='' style='font-size:12px;' title='". _n('Ticket task','Ticket tasks',2) ."'>\n";
 echo "<a href='".$href_tasks."' class='' data-toggle='dropdown' role='button' aria-expanded='false'>
 		<i class='fa fa-tasks' style='vertical-align:bottom; font-size:15px;'></i> 
 		<span class='label ".$label3."' style='font-size:12px;' >". $num_tasks. "</span></a>\n";
@@ -111,29 +123,47 @@ echo "</li>\n";
 
 //late tickets
 echo "<li id='count' class='dropdown' style='font-size:12px;' title='". __('Late') ."'>
-<a href='".$href_due."'>
-<i style='vertical-align:bottom; font-size:15px;' class='fa fa-clock-o'></i>
-<span class='label ".$label."' style='font-size:12px;'>". $due. "</span></a></li>\n";
+		<a href='".$href_due."'>
+		<i style='vertical-align:bottom; font-size:15px;' class='fa fa-clock '></i>
+		<span class='label ".$label."' style='font-size:12px;'>". $due. "</span></a></li>\n";
 
 //tickets
 echo "<li id='count' class='dropdown' style='font-size:12px;' title='". _nx('ticket','Opened','Opened',2) ."'>
-<a href='".$href_cham."'>
-<i style='vertical-align:bottom; font-size:16px;' class='fa fa-ticket' ></i>
-<span class='label ".$label2."' style='font-size:12px;' >". $number. "</span></a></li>\n";
+		<a href='".$href_cham."'>
+		<i style='vertical-align:bottom; font-size:16px;' class='fa fa-ticket-alt' ></i>
+		<span class='label ".$label2."' style='font-size:12px;' >". $number. "</span></a></li>\n";
 
-
+//new ticket
 echo "<li id='count' class='' style='font-size:12px; margin-top:0px;' title='". __('Create ticket') ."'>";
 echo "<a href='".$CFG_GLPI["root_doc"]."/front/ticket.form.php' style='margin-top:2px;' data-toggle='dropdown' role='button' aria-expanded='false'>
 		<!-- <i class='fa fa-plus' style='vertical-align:bottom; font-size:15px;'></i>  -->
 		<span class='label label-primary' style='font-size:12px;' >
-			<i class='fa fa-plus' style='vertical-align:bottom; font-size:15px;'></i> 
+			<i class='fa fa-plus fa-plus-mod' style='vertical-align:bottom; font-size:15px;'></i> 
 		</span></a>\n";
 echo "</li>\n";
 
 
-//echo "</ul>";
-//echo "</div>\n";
-//Stevenes - end
+//check new version
+/*if(Session::haveRight("profile", READ)){		
+	
+	$ver = explode(" ",implode(" ",plugin_version_mod())); 																																																
+	$urlv = "https://sourceforge.net/p/glpithemes/screenshot/".$ver[11]."-".$ver[2].".png";
+	$headers = get_headers($urlv, 1);	
+	
+	if($headers[0] != '') {
+		//if ($headers[0] == 'HTTP/1.1 200 OK') { 
+		if ($headers[0] == 'HTTP/1.0 404 Not Found' || $headers[0] == 'HTTP/1.1 404 Not Found') {
+			$newversion = "<a href='https://sourceforge.net/projects/glpithemes/files' target='_blank' style='margin-right: 12px; color:#fff;' class='blink_me'><i class='fa fa-refresh'></i><span>&nbsp;&nbsp;".  __('New version'). " ". __( 'avaliable'). " </span></a>";		
+	
+			echo "<li id='count' class='' style='font-size:12px;' title='Plugin Modifications'>";
+			echo $newversion;
+			echo "</li>\n";	
+		
+		}
+	}
+}*/
+
+echo "</ul>\n";
       
      
 ?>     

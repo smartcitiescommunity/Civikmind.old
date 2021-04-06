@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -44,7 +40,7 @@ class HTMLTableCellFatherCoherentHeader  extends Exception {}
 class HTMLTableCellWithoutFather         extends Exception {}
 
 /**
- * @since version 0.84
+ * @since 0.84
 **/
 class HTMLTableCell extends HTMLTableEntity {
 
@@ -58,11 +54,11 @@ class HTMLTableCell extends HTMLTableEntity {
    private  $attributForTheRow = false;
 
    /**
-    * @param $row
-    * @param $header
-    * @param $content   see HTMLTableEntity#__construct()
-    * @param $father    HTMLTableCell object (default NULL)
-    * @param $item      CommonDBTM object: The item associated with the current cell (default NULL)
+    * @param HTMLTableHeader $row
+    * @param HTMLTableHeader $header
+    * @param string          $content  see HTMLTableEntity#__construct()
+    * @param HTMLTableCell   $father   HTMLTableCell object (default NULL)
+    * @param CommonDBTM      $item     The item associated with the current cell (default NULL)
    **/
    function __construct($row, $header, $content, HTMLTableCell $father = null,
                         CommonDBTM $item = null) {
@@ -81,7 +77,7 @@ class HTMLTableCell extends HTMLTableEntity {
       if (!is_null($this->father)) {
 
          if ($this->father->row != $this->row) {
-            throw new HTMLTableCellSameRow();
+            throw new HTMLTableCellFatherSameRow();
          }
 
          if ($this->father->header != $this->header->getFather()) {
@@ -118,8 +114,7 @@ class HTMLTableCell extends HTMLTableEntity {
       $this->copyAttributsFrom($this->header);
       if (is_string($content)) {
          $string = trim($content);
-         $string = str_replace('&nbsp;', '', $string);
-         $string = str_replace('<br>', '', $string);
+         $string = str_replace(['&nbsp;', '<br>'], '', $string);
          if (!empty($string)) {
             $this->header->addCell();
          }

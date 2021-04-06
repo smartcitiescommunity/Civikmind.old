@@ -9,7 +9,7 @@
  -------------------------------------------------------------------------
 
  LICENSE
-      
+
  This file is part of resources.
 
  resources is free software; you can redistribute it and/or modify
@@ -29,40 +29,45 @@
 
 include ('../../../inc/includes.php');
 
-if ($_SESSION['glpiactiveprofile']['interface'] == 'central') {
+if (Session::getCurrentInterface() == 'central') {
    //from central
-   Html::header(PluginResourcesResource::getTypeName(2), '', "admin", "pluginresourcesresource");
+   Html::header(PluginResourcesResource::getTypeName(2), '', "admin", PluginResourcesMenu::getType());
 } else {
    //from helpdesk
    Html::helpHeader(PluginResourcesResource::getTypeName(2));
 }
 
-if (!isset($_GET["id"]))
+if (!isset($_GET["id"])) {
    $_GET["id"] = "";
+}
 
 $holiday = new PluginResourcesResourceHoliday();
 
 if (isset($_POST["addholidayresources"]) && $_POST["plugin_resources_resources_id"] != 0) {
    $holiday->add($_POST);
    Html::back();
-   
+
 } else if (isset($_POST["updateholidayresources"]) && $_POST["plugin_resources_resources_id"] != 0) {
    $holiday->update($_POST);
    Html::back();
-   
+
 } else if (isset($_POST["deleteholidayresources"]) && $_POST["plugin_resources_resources_id"] != 0) {
    $holiday->delete($_POST, 1);
    $holiday->redirectToList();
-   
+
+} else if (isset($_GET['menu'])) {
+   if ($holiday->canView() || Session::haveRight("config", UPDATE)) {
+      $holiday->showMenu();
+   }
+
 } else {
    if ($holiday->canView() || Session::haveRight("config", UPDATE)) {
       $holiday->display($_GET);
    }
 }
 
-if ($_SESSION['glpiactiveprofile']['interface'] == 'central') {
+if (Session::getCurrentInterface() == 'central') {
    Html::footer();
 } else {
    Html::helpFooter();
 }
-?>

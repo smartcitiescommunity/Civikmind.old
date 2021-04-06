@@ -1,34 +1,26 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
-
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * --------------------------------------------------------------------------
+ * LICENSE
+ *
+ * This file is part of useditemsexport.
+ *
+ * useditemsexport is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * useditemsexport is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * --------------------------------------------------------------------------
+ * @author    François Legastelois
+ * @copyright Copyright © 2015 - 2018 Teclib'
+ * @license   AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+ * @link      https://github.com/pluginsGLPI/useditemsexport
+ * @link      https://pluginsglpi.github.io/useditemsexport/
+ * -------------------------------------------------------------------------
  */
 
 if (!defined('GLPI_ROOT')) {
@@ -44,7 +36,7 @@ class PluginUseditemsexportConfig extends CommonDBTM {
     *
     * @return value name of this itemtype
     **/
-   static function getTypeName($nb=0) {
+   static function getTypeName($nb = 0) {
 
       return __('General setup of useditemsexport', 'useditemsexport');
    }
@@ -57,7 +49,7 @@ class PluginUseditemsexportConfig extends CommonDBTM {
     *
     * @return Nothing (display)
    **/
-   function showForm($ID, $options=array()) {
+   function showForm($ID, $options = []) {
 
       $this->initForm($ID, $options);
       $this->showFormHeader($options);
@@ -65,12 +57,12 @@ class PluginUseditemsexportConfig extends CommonDBTM {
       echo "<tr class='tab_bg_1'>";
       echo "<td>".__('Active')."</td>";
       echo "<td>";
-      Dropdown::showYesNo("is_active",$this->fields["is_active"]);
+      Dropdown::showYesNo("is_active", $this->fields["is_active"]);
       echo "</td></tr>";
 
       echo "<tr class='tab_bg_1'>";
       echo "<td>" . __('Footer text', 'useditemsexport') . "</td>";
-      echo "<td><input type='text' name='footer_text' size='60' value='" 
+      echo "<td><input type='text' name='footer_text' size='60' value='"
                   . $this->fields["footer_text"] . "'></td>";
       echo "</tr>";
 
@@ -105,9 +97,9 @@ class PluginUseditemsexportConfig extends CommonDBTM {
     */
    function dropdownOrientation($value) {
       Dropdown::showFromArray("orientation",
-                        array('L' => __('Landscape', 'useditemsexport'),
-                              'P' => __('Portrait', 'useditemsexport')),
-                        array('value'  => $value));
+                        ['L' => __('Landscape', 'useditemsexport'),
+                              'P' => __('Portrait', 'useditemsexport')],
+                        ['value'  => $value]);
    }
 
    /**
@@ -117,10 +109,10 @@ class PluginUseditemsexportConfig extends CommonDBTM {
     */
    function dropdownFormat($value) {
       Dropdown::showFromArray("format",
-                        array('A3' => __('A3'),
+                        ['A3' => __('A3'),
                               'A4' => __('A4'),
-                              'A5' => __('A5')),
-                        array('value'  => $value));
+                              'A5' => __('A5')],
+                        ['value'  => $value]);
    }
 
    /**
@@ -131,18 +123,18 @@ class PluginUseditemsexportConfig extends CommonDBTM {
    function dropdownLanguage($value) {
       global $CFG_GLPI;
 
-      $supported_languages = array('ca','cs','da','de','en','es','fr','it','nl','pt','tr');
+      $supported_languages = ['ca','cs','da','de','en','es','fr','it','nl','pt','tr'];
 
-      $languages = array();
+      $languages = [];
       foreach ($CFG_GLPI['languages'] as $lang => $datas) {
-         $short_code = substr($lang,0,2);
+         $short_code = substr($lang, 0, 2);
          if (in_array($short_code, $supported_languages)) {
             $languages[$short_code] = $datas[0];
          }
       }
 
       Dropdown::showFromArray("language", $languages,
-                        array('value'  => $value));
+                        ['value'  => $value]);
    }
 
    /**
@@ -158,7 +150,7 @@ class PluginUseditemsexportConfig extends CommonDBTM {
    }
 
    /**
-    * Install all necessary table for the plugin
+    * Install all necessary tables for the plugin
     *
     * @return boolean True if success
     */
@@ -167,7 +159,7 @@ class PluginUseditemsexportConfig extends CommonDBTM {
 
       $table = getTableForItemType(__CLASS__);
 
-      if (!TableExists($table)) {
+      if (!$DB->tableExists($table)) {
          $migration->displayMessage("Installing $table");
 
          $query = "CREATE TABLE IF NOT EXISTS `$table` (
@@ -178,7 +170,7 @@ class PluginUseditemsexportConfig extends CommonDBTM {
                      `format` VARCHAR(2) NOT NULL DEFAULT 'A4',
                      `language` VARCHAR(2) NOT NULL DEFAULT 'fr',
                PRIMARY KEY  (`id`)
-            ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;";
+            ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;";
             $DB->query($query) or die ($DB->error());
 
          $query = "INSERT INTO `$table` (id) VALUES (1)";
@@ -192,13 +184,13 @@ class PluginUseditemsexportConfig extends CommonDBTM {
 
       $migration->displayMessage("Copy default logo from GLPi core");
       if (!file_exists(GLPI_PLUGIN_DOC_DIR.'/useditemsexport/logo.png')) {
-         copy(GLPI_ROOT.'/pics/logos/logo-GLPI-250-black.png', 
+         copy(GLPI_ROOT.'/pics/logos/logo-GLPI-250-black.png',
                GLPI_PLUGIN_DOC_DIR.'/useditemsexport/logo.png');
       }
    }
 
    /**
-    * Uninstall previously installed table of the plugin
+    * Uninstall previously installed tables of the plugin
     *
     * @return boolean True if success
     */

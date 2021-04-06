@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,9 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-* @since version 9.2
-*/
+/**
+ * @since 9.2
+ */
 
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
@@ -58,14 +57,12 @@ class OlaLevel extends LevelAgreementLevel {
 
 
    function cleanDBonPurge() {
-      global $DB;
 
-      parent::cleanDBOnPurge();
+      parent::cleanDBonPurge();
 
-      $sql = "DELETE
-              FROM `glpi_olalevels_tickets`
-              WHERE `".$this->rules_id_field."` = '".$this->fields['id']."'";
-      $DB->query($sql);
+      // OlaLevel_Ticket does not extends CommonDBConnexity
+      $olt = new OlaLevel_Ticket();
+      $olt->deleteByCriteria([$this->rules_id_field => $this->fields['id']]);
    }
 
 
@@ -77,7 +74,7 @@ class OlaLevel extends LevelAgreementLevel {
    /**
     * @param $ola OLA object
     *
-    * @since version 9.1 (before showForOLA)
+    * @since 9.1 (before showForOLA)
    **/
    function showForOLA(OLA $ola) {
       global $DB;
@@ -123,12 +120,12 @@ class OlaLevel extends LevelAgreementLevel {
          echo "</div>";
       }
 
-      $query = "SELECT *
-                FROM `glpi_olalevels`
-                WHERE `olas_id` = '$ID'
-                ORDER BY `execution_time`";
-      $result  = $DB->query($query);
-      $numrows = $DB->numrows($result);
+      $iterator = $DB->request([
+         'FROM'   => 'glpi_olalevels',
+         'WHERE'  => ['olas_id' => $ID],
+         'ORDER'  => 'execution_time'
+      ]);
+      $numrows = count($iterator);
 
       echo "<div class='spaced'>";
       if ($canedit && $numrows) {
@@ -152,7 +149,7 @@ class OlaLevel extends LevelAgreementLevel {
                                      sprintf(__('%1$s = %2$s'), OLA::getTypeName(1),
                                              $ola->getName()));
 
-      while ($data = $DB->fetch_assoc($result)) {
+      while ($data = $iterator->next()) {
          Session::addToNavigateListItems('OlaLevel', $data["id"]);
 
          echo "<tr class='tab_bg_2'>";
@@ -218,11 +215,9 @@ class OlaLevel extends LevelAgreementLevel {
     * @param $ID              ID of the rule
     * @param $options   array of possible options
     *
-    * @return nothing
+    * @return void
    **/
    function showForm($ID, $options = []) {
-
-      $canedit = $this->can('ola', UPDATE);
 
       $this->initForm($ID, $options);
       $this->showFormHeader($options);
@@ -270,23 +265,27 @@ class OlaLevel extends LevelAgreementLevel {
     *
     * @param $olas_id   integer  id of the OLA
     *
-    * @since version 9.1 (before getFirst OlaLevel)
+    * @since 9.1 (before getFirst OlaLevel)
     *
     * @return id of the ola level : 0 if not exists
    **/
    static function getFirstOlaLevel($olas_id) {
       global $DB;
 
-      $query = "SELECT `id`
-                FROM `glpi_olalevels`
-                WHERE `olas_id` = '$olas_id'
-                     AND `is_active` = 1
-                ORDER BY `execution_time` ASC LIMIT 1;";
+      $iterator = $DB->request([
+         'SELECT' => 'id',
+         'FROM'   => 'glpi_olalevels',
+         'WHERE'  => [
+            'olas_id'   => $olas_id,
+            'is_active' => 1
+         ],
+         'ORDER'  => 'execution_time ASC',
+         'LIMIT'  => 1
+      ]);
 
-      if ($result = $DB->query($query)) {
-         if ($DB->numrows($result)) {
-            return $DB->result($result, 0, 0);
-         }
+      if (count($iterator)) {
+         $result = $iterator->next();
+         return $result['id'];
       }
       return 0;
    }
@@ -303,27 +302,32 @@ class OlaLevel extends LevelAgreementLevel {
    static function getNextOlaLevel($olas_id, $olalevels_id) {
       global $DB;
 
-      $query = "SELECT `execution_time`
-                FROM `glpi_olalevels`
-                WHERE `id` = '$olalevels_id';";
+      $iterator = $DB->request([
+         'SELECT' => 'execution_time',
+         'FROM'   => 'glpi_olalevels',
+         'WHERE'  => ['id' => $olalevels_id]
+      ]);
 
-      if ($result = $DB->query($query)) {
-         if ($DB->numrows($result)) {
-            $execution_time = $DB->result($result, 0, 0);
+      if (count($iterator)) {
+         $result = $iterator->next();
+         $execution_time = $result['execution_time'];
 
-            $query = "SELECT `id`
-                      FROM `glpi_olalevels`
-                       WHERE `olas_id` = '$olas_id'
-                             AND `id` <> '$olalevels_id'
-                             AND `execution_time` > '$execution_time'
-                             AND `is_active` = 1
-                      ORDER BY `execution_time` ASC LIMIT 1;";
+         $iterator = $DB->request([
+            'SELECT' => 'id',
+            'FROM'   => 'glpi_olalevels',
+            'WHERE'  => [
+               'olas_id'         => $olas_id,
+               'id'              => ['<>', $olalevels_id],
+               'execution_time'  => ['>', $execution_time],
+               'is_active'       => 1
+            ],
+            'ORDER'  => 'execution_time ASC',
+            'LIMIT'  => 1
+         ]);
 
-            if ($result = $DB->query($query)) {
-               if ($DB->numrows($result)) {
-                  return $DB->result($result, 0, 0);
-               }
-            }
+         if (count($iterator)) {
+            $result = $iterator->next();
+            return $result['id'];
          }
       }
       return 0;

@@ -10,21 +10,21 @@ Session::checkRight("profile", READ);
 
 if(!empty($_POST['submit']))
 {
-	$data_ini =  $_POST['date1'];
-	$data_fin = $_POST['date2'];
+	$data_ini = $_REQUEST['date1'];
+	$data_fin = $_REQUEST['date2'];
 }
 
 else {
 	$data_ini = date("Y-m-01");
 	$data_fin = date("Y-m-d");
-	}
+}
 
-if(!isset($_REQUEST["sel_loc"])) {
-	$id_loc = $_GET["loc"];
+if(!isset($_POST["sel_loc"])) {
+	$id_loc = $_REQUEST["sel_loc"];
 }
 
 else {
-	$id_loc = $_REQUEST["sel_loc"];
+	$id_loc = $_POST["sel_loc"];
 }
 
 
@@ -108,10 +108,10 @@ else {
 	<div id="charts" class="fluid chart">
 	<div id="pad-wrapper" >
 	<div id="head-rel" class="fluid">
-	<a href="../index.php"><i class="fa fa-home" style="font-size:14pt; margin-left:25px;"></i><span></span></a>
+	<a href="../index.php"><i class="fa fa-home home-rel" style="font-size:14pt; margin-left:25px;"></i><span></span></a>
 
 	<div id="titulo_rel"> <?php echo __('Tickets', 'dashboard') .'  '. __('by Location', 'dashboard') ?> </div>
-	<div id="datas-tec" class="span12 fluid" >
+	<div id="datas-tec" class="col-md-12 col-sm-12 fluid" >
 	<form id="form1" name="form1" class="form_rel" method="post" action="rel_localidade.php?con=1">
 			<table border="0" cellspacing="0" cellpadding="3" bgcolor="#efefef" >
 				<tr>
@@ -203,9 +203,9 @@ else {
 
 <?php
 
-//categorias
-
-$con = $_GET['con'];
+//localidades
+if(isset($_GET['con'])){$con = $_GET['con'];}
+else {$con = '';}
 
 if($con == "1") {
 
@@ -221,7 +221,7 @@ else {
 }
 
 if(!isset($_POST["sel_loc"])) {
-	$id_loc = $_GET["loc"];
+	$id_loc = $_REQUEST["sel_loc"];
 }
 
 else {
@@ -256,13 +256,13 @@ if(isset($_GET['stat'])) {
 		$status = $status_close;
 	}
 	else {
-	$status = $status_all;
+		$status = $status_all;
 	}
 }
 
 else {
 	$status = $status_all;
-	}
+}
 
 // Chamados
 $sql_cham =
@@ -322,17 +322,22 @@ else {
 	//porcentagem
 	$perc = round(($abertos*100)/$conta_cons,1);
 	$barra = 100 - $perc;
+	$cor = '';
 
 	// cor barra
 	if($barra == 100) { $cor = "progress-bar-success"; }
-	if($barra >= 80 and $barra < 100) { $cor = " "; }
+	if($barra >= 80 and $barra < 100) { $cor = "progress-bar-default"; }
 	if($barra > 51 and $barra < 80) { $cor = "progress-bar-warning"; }
 	if($barra > 0 and $barra <= 50) { $cor = "progress-bar-danger"; }
 	if($barra < 0) { $cor = "progress-bar-danger"; $barra = 0; }
 
 	}
 }
-else { $barra = 0;}
+
+else { 
+	$barra = 0;
+	$cor = '';
+}
 
 // nome da localidade
 $sql_nm = "
@@ -346,8 +351,7 @@ $ent_name = $DB->fetch_assoc($result_nm);
 
 //listar chamados
 echo "
-
-<div class='well info_box fluid col-md-12 report' style='margin-left: -1px;'>
+<div class='well info_box fluid col-md-12 col-sm-12 report' style='margin-left: -1px;'>
 <table class='fluid'  style='font-size: 18px; font-weight:bold; width:100%;' cellpadding='1px' border='0' >
 <tr>
 	<td style='font-size: 16px; font-weight:bold; vertical-align:middle; width:55%;'><span style='color:#000;'> ".__('Location').": </span>".$ent_name['name']." </td>
@@ -358,7 +362,7 @@ echo "
 
 		<td style='vertical-align:middle; width: 190px; '>
 		<div class='progress'>
-			<div class='progress-bar ". $cor ." progress-bar-striped active' role='progressbar' aria-valuenow='".$barra."' aria-valuemin='0' aria-valuemax='100' style='width: ".$barra."%;'>
+			<div class='progress-bar ". $cor ." ' role='progressbar' aria-valuenow='".$barra."' aria-valuemin='0' aria-valuemax='100' style='width: ".$barra."%;'>
     			".$barra." % ".__('Closed', 'dashboard') ."
     		</div>
 		</div>
@@ -369,9 +373,9 @@ echo "
 <table align='right' style='margin-bottom:3px;'>
 		<tr>
 			<td colspan=3>
-				<button class='btn btn-primary btn-sm' type='button' name='abertos' value='Abertos' onclick='location.href=\"rel_localidade.php?con=1&stat=open&loc=".$id_loc."&date1=".$data_ini2."&date2=".$data_fin2."\"' <i class='icon-white icon-trash'></i> ".__('Opened', 'dashboard') ." </button>
-				<button class='btn btn-primary btn-sm' type='button' name='fechados' value='Fechados' onclick='location.href=\"rel_localidade.php?con=1&stat=close&loc=".$id_loc."&date1=".$data_ini2."&date2=".$data_fin2."\"' <i class='icon-white icon-trash'></i> ".__('Closed', 'dashboard')." </button>
-				<button class='btn btn-primary btn-sm' type='button' name='todos' value='Todos' onclick='location.href=\"rel_localidade.php?con=1&stat=all&loc=".$id_loc."&date1=".$data_ini2."&date2=".$data_fin2."\"' <i class='icon-white icon-trash'></i> ".__('All', 'dashboard')." </button>
+				<button class='btn btn-primary btn-sm' type='button' name='abertos' value='Abertos' onclick='location.href=\"rel_localidade.php?con=1&stat=open&sel_loc=".$id_loc."&date1=".$data_ini2."&date2=".$data_fin2."\"' <i class='icon-white icon-trash'></i> ".__('Opened', 'dashboard') ." </button>
+				<button class='btn btn-primary btn-sm' type='button' name='fechados' value='Fechados' onclick='location.href=\"rel_localidade.php?con=1&stat=close&sel_loc=".$id_loc."&date1=".$data_ini2."&date2=".$data_fin2."\"' <i class='icon-white icon-trash'></i> ".__('Closed', 'dashboard')." </button>
+				<button class='btn btn-primary btn-sm' type='button' name='todos' value='Todos' onclick='location.href=\"rel_localidade.php?con=1&stat=all&sel_loc=".$id_loc."&date1=".$data_ini2."&date2=".$data_fin2."\"' <i class='icon-white icon-trash'></i> ".__('All', 'dashboard')." </button>
 			</td>
 		</tr>
 </table>
@@ -460,7 +464,7 @@ $('#local')
 $(document).ready(function() {
     $('#local').DataTable( {    	
 
-		  select: true,	    	    	
+		select: true,	    	    	
         dom: 'Blfrtip',
         filter: false,        
         pagingType: "full_numbers",
@@ -468,21 +472,21 @@ $(document).ready(function() {
 		  displayLength: 25,
         lengthMenu: [[25, 50, 75, 100], [25, 50, 75, 100]],        
         buttons: [
-        	    {
+        	 	{
                  extend: "copyHtml5",
                  text: "<?php echo __('Copy'); ?>"
              },
              {
              	  extend: "collection",
                  text: "<?php echo __('Print','dashboard'); ?>",
-						  buttons:[ 
-						  	{               
+					  buttons:[ 
+						 {               
 		                 extend: "print",
 		                 autoPrint: true,
 		                 text: "<?php echo __('All','dashboard'); ?>",
 		                 message: "<div id='print' class='info_box fluid' style='margin-bottom:35px; margin-left: -1px;'><table id='print_tb' class='fluid'  style='width: 80%; margin-left: 10%; font-size: 18px; font-weight:bold;' cellpadding = '1px'><td style='font-size: 16px; font-weight:bold; vertical-align:middle;'><span style='color:#000;'> <?php echo __('Location'); ?> : </span><?php echo $ent_name['name']; ?> </td> <td colspan='2' style='font-size: 16px; font-weight:bold; vertical-align:middle;'><span style='color:#000;'> <?php echo  __('Tickets','dashboard'); ?> : </span><?php echo $consulta ; ?></td><td colspan='2' style='font-size: 16px; font-weight:bold; vertical-align:middle; width:200px;'><span style='color:#000;'> <?php echo  __('Period','dashboard'); ?> : </span> <?php echo conv_data($data_ini2); ?> a <?php echo conv_data($data_fin2); ?> </td> </table></div>",		     
 		                }, 
-							  {               
+							{               
 		                 extend: "print",
 		                 autoPrint: true,
 		                 text: "<?php echo __('Selected','dashboard'); ?>",
@@ -491,30 +495,29 @@ $(document).ready(function() {
 		                    modifier: {
 		                        selected: true
 		                    }
-		                }
+								}
 		                }
 	                ]
              },
              {
-                 extend:    "collection",
+                 extend:  "collection",
                  text: "<?php echo _x('button', 'Export'); ?>",
                  buttons: [ "csvHtml5", "excelHtml5",
                   {
                  		extend: "pdfHtml5",
                  		orientation: "landscape",
                  		message: "<?php echo __('Location'); ?> : <?php echo $ent_name['name'] .'  -  '; ?>  <?php echo  __('Tickets','dashboard'); ?> : <?php echo $consulta . '  -  '; ?> <?php echo  __('Period','dashboard'); ?> : <?php echo conv_data($data_ini2); ?> a <?php echo conv_data($data_fin2); ?>",
-                  } 
-                  ]
+                  }]
              }
         ]
         
-    } );
-} );
+    });
+});
 
 </script>
 
 <?php
-echo '</div><br>';
+echo "</div><br>\n";
 }
 
 else {
@@ -526,7 +529,6 @@ else {
 				<td style='vertical-align:middle; text-align:center;'> <span style='color: #000;'>" . __('No ticket found', 'dashboard') . "</td></tr>
 			<tr></tr>
 	</table></div>\n";
-
 }
 
 }

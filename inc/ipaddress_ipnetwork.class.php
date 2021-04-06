@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -29,10 +29,6 @@
  * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
  */
-
-/** @file
-* @brief
-*/
 
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
@@ -66,21 +62,26 @@ class IPAddress_IPNetwork extends CommonDBRelation {
       $ipnetworks_id = $network->getID();
 
       // First, remove all links of the current Network
-      $query = "SELECT `id`
-                FROM `$linkTable`
-                WHERE `ipnetworks_id` = '$ipnetworks_id'";
-      foreach ($DB->request($query) as $link) {
+      $iterator = $DB->request([
+         'SELECT' => 'id',
+         'FROM'   => $linkTable,
+         'WHERE'  => ['ipnetworks_id' => $ipnetworks_id]
+      ]);
+      while ($link = $iterator->next()) {
          $linkObject->delete(['id' => $link['id']]);
       }
 
       // Then, look each IP address contained inside current Network
-      $query = "SELECT '".$ipnetworks_id."' AS ipnetworks_id,
-                       `id` AS ipaddresses_id
-                FROM `glpi_ipaddresses`
-                WHERE ".$network->getWHEREForMatchingElement('glpi_ipaddresses', 'binary',
-                                                             'version')."
-                GROUP BY `id`";
-      foreach ($DB->request($query) as $link) {
+      $iterator = $DB->request([
+         'SELECT' => [
+            new \QueryExpression($DB->quoteValue($ipnetworks_id) . ' AS ' . $DB->quoteName('ipnetworks_id')),
+            'id AS ipaddresses_id'
+         ],
+         'FROM'   => 'glpi_ipaddresses',
+         'WHERE'  => $network->getCriteriaForMatchingElement('glpi_ipaddresses', 'binary', 'version'),
+         'GROUP'  => 'id'
+      ]);
+      while ($link = $iterator->next()) {
          $linkObject->add($link);
       }
    }

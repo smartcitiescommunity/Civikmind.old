@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -29,18 +29,6 @@
  * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
  */
-
-/** @file
-* @brief
-*/
-
-// ----------------------------------------------------------------------
-// Based on the original file:
-//* Author  : Roberto B.               *
-//* E-Mail  : roberto.butti@libero.it  *
-//* Version : 1.0.3                    *
-// Purpose of file:
-// ----------------------------------------------------------------------
 
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
@@ -148,8 +136,8 @@ class XML {
          fputs($fp, "   <fields>\n");
          $i = 0;
          $FieldsVector = [];
-         while ($i < $DB->num_fields ($result)) {
-            $name = $DB->field_name($result, $i);
+         while ($i < $DB->numFields ($result)) {
+            $name = $DB->fieldName($result, $i);
             fputs($fp, "      <field>".$name."</field>\n");
             $FieldsVector[] = $name;
             $i++;
@@ -158,7 +146,7 @@ class XML {
          fputs($fp, "   </fields>\n");
          // And NOW the Data ...
          fputs($fp, "   <rows>\n");
-         while ($row = $DB->fetch_row($result)) {
+         while ($row = $DB->fetchRow($result)) {
             fputs($fp, "      <row>\n");
             for ($j=0; $j<$i; $j++) {
                $FieldName  = "";   // Name of TAG
@@ -187,7 +175,7 @@ class XML {
          }
          fputs($fp, "   </rows>\n");
 
-         $DB->free_result($result);
+         $DB->freeResult($result);
       }
       fputs($fp, "</dataxml>");
       //OK free ...;)

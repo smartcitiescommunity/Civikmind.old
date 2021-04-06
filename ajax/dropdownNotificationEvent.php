@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (strpos($_SERVER['PHP_SELF'], "dropdownNotificationEvent.php")) {
    include ('../inc/includes.php');
    header("Content-Type: text/html; charset=UTF-8");
@@ -42,4 +38,4 @@ if (strpos($_SERVER['PHP_SELF'], "dropdownNotificationEvent.php")) {
 
 Session::checkRight("notification", UPDATE);
 
-NotificationEvent::dropdownEvents($_POST['itemtype']);
+NotificationEvent::dropdownEvents(Toolbox::stripslashes_deep($_POST['itemtype']));

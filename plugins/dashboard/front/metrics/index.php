@@ -1,5 +1,26 @@
 <?php
+
+if(isset($_REQUEST['ent'])) {
+	$id_ent = $_REQUEST['ent'];
+	$indexw = "indexw.php?ent=".$id_ent;
+	$indexb = "index.php?ent=".$id_ent;
+	include "metrics_ent.inc.php";
+}
+	
+elseif(isset($_REQUEST['grp'])) {
+	$id_grp = $_REQUEST['grp'];
+	$indexw = "indexw.php?grp=".$id_grp;
+	$indexb = "index.php?grp=".$id_grp;
+	include "metrics_grp.inc.php";
+}
+
+else {
+	$id_grp = "";
+	$indexw = "indexw.php";
+	$indexb = "index.php";
 	include "metrics.inc.php";
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -63,13 +84,13 @@
 				</a>
 			</li>
 			<li class="current cf-nav-shortcut">
-				<a href="index.php" class="current active">
+				<a href="<?php echo $indexb; ?>" class="current active">
 					<span class="cf-nav-min">B</span>
 					<span class="cf-nav-max">Black</span>
 				</a>
 			</li>
 			<li class="cf-nav-shortcut">
-				<a href="indexw.php">
+				<a href="<?php echo $indexw; ?>">
 					<span class="cf-nav-min">W</span>
 					<span class="cf-nav-max">White</span>
 				</a>
@@ -117,8 +138,7 @@
 		
 		<?php
 
-		//Solved or closed ticktes	
-				
+		//Solved or closed ticktes					
 		if($solved > 0) {
 			$notopen = $solved;
 			$notopeny = $solvedy;
@@ -150,7 +170,7 @@
 
 		<div style="min-height: 100px;" class="col-lg-5 cf-item-status tickets all">				
 			<header>
-				<p><span></span><?php echo __('Total');?></p>
+				<p><span></span><?php echo __('Total')." (".__('Opened','dashboard').")";?></p>
 			</header>
 			<div class="content">
 				<div class="metric5"><?php echo $total;?></div>
@@ -168,7 +188,7 @@
 			<div class="content">
 				<div class="cf-td">
 				<!-- <div class="cf-td cf-td-12"> -->
-					<div class="cf-version metric"><?php echo 'GLPI '.$CFG_GLPI['version']; ?></div>
+					<div class="cf-version metric-small" style="font-size:30px !important;"><?php echo $actent; ?></div>
 					<div class="cf-td-time metric hora"></div>
 					<div class="cf-td-dd">
 						<!--<p class="cf-td-day metric-small" ></p>
@@ -176,15 +196,14 @@
 						-->
 						<script type="text/javascript">
 							var d_names = <?php echo '"'.$dia.'"' ; ?>;
-							var m_names = <?php echo '"'.$mes.'"' ; ?>;
-							
+							var m_names = <?php echo '"'.$mes.'"' ; ?>;							
 							var d = new Date();
 							var curr_day = d.getDay();
 							var curr_date = d.getDate();
 							var curr_month = d.getMonth();
 							var curr_year = d.getFullYear();
 		
-							document.write("<span style='font-size:32px; margin-top: -6px !important;'>" + d_names + "</span><br> <span style='font-size:32px;'>" + curr_date + " " + m_names + " " + curr_year + "</span><br>" );		
+							document.write("<span style='font-size:26px; margin-top: -6px !important;'>" + d_names + "</span><br> <span style='font-size:26px;'>" + curr_date + " " + m_names + " " + curr_year + "</span><br>" );		
 						</script>
 						<span style="font-size:20px;"><?php echo __('Period'). ": ".$period_name ?></span>
 					</div>					
@@ -202,7 +221,7 @@
 						<div class="metric total"></div>
 						<div class="change metric-small">
 							<div id="arrow"></div>
-							<span class="large"></span><!-- <span class="small">.45%</span> -->
+							<span class="large"></span>
 						</div>
 					</div>
 					<div class="cf-sparkline clearfix" style="margin-top:15px;">
@@ -227,7 +246,7 @@
 							<div class="metric total-month"><?php echo $today_tickets; ?></div>
 							<div class="change metric-small daily">
 								<div id="arrow-2"></div>
-								<span class="large large-2"></span><!-- <span class="small">.45%</span> ((V2-V1)/V1 × 100) -->
+								<span class="large large-2"></span>
 							</div>
 						</div>
 						<div class="cf-sparkline clearfix" style="margin-top:15px;">
@@ -283,11 +302,10 @@
 						<p><span></span><?php echo _n('Ticket','Tickets',2)." ". __('by Type','dashboard') ;?></p>
 					</header>
 					<div class="content" >					
-						<div id="cf-rag-1" class="cf-rag">
-						<?php //include ("grafpie_tipo.inc.php");  ?>
-						<div class="cf-bars"></div>
-							<div class="cf-figs "></div>
-								<div class="cf-txts"></div> 
+						<div id="cf-rag-1" class="cf-rag">						
+							<div class="cf-bars"></div>
+								<div class="cf-figs "></div>
+									<div class="cf-txts"></div> 
 						</div>
 					</div>				
 			</div> 	<!-- //end cf-item -->	
@@ -321,10 +339,10 @@
 					<?php 
 					//satisfaction, or not					
 						if($sat != 0) {
-							echo '<div class="chart" data-percent="' . $satisf .'" > <span class="percent">' . $satisf . '</span><sup></sup> </div>';	
-							}
+							echo '<div class="chart" data-percent="' . $satisf .'" style="margin-left: 20%;"> <span class="percent">' . $satisf . '</span><sup></sup> </div>';	
+						}
 						else {
-							echo '<div id="grafsat" class="content cf-piexx" style="margin-left:0px;">';
+						   echo '<div id="grafsat" class="content cf-piexx" style="margin-left:0px;">';
 							include ("grafbar_grupo.inc.php");
 							echo ' </div>';
 						}							
@@ -353,10 +371,8 @@
 					
 			
 	</div> <!-- //end row -->
-</div> <!-- //end main --> 
- 	
-</div> <!-- //end row -->		
-		
+</div> <!-- //end main -->  	
+</div> <!-- //end row -->				
 </div> <!-- //end container -->
 
 </div>

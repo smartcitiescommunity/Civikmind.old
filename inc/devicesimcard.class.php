@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
- * @brief
- */
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -53,7 +49,7 @@ class DeviceSimcard extends CommonDevice {
          [
             [
                'name'  => 'devicesimcardtypes_id',
-               'label' => __('Type'),
+               'label' => _n('Type', 'Types', 1),
                'type'  => 'dropdownValue'
             ],
             [
@@ -71,22 +67,23 @@ class DeviceSimcard extends CommonDevice {
       );
    }
 
-   function getSearchOptionsNew() {
-      $tab = parent::getSearchOptionsNew();
+   function rawSearchOptions() {
+      $tab = parent::rawSearchOptions();
 
       $tab[] = [
             'id'                 => '12',
-            'table'              => 'glpi_devicesimcardvoltages',
-            'field'              => 'name',
+            'table'              => $this->getTable(),
+            'field'              => 'voltage',
             'name'               => __('Voltage'),
-            'datatype'           => 'string'
+            'datatype'           => 'string',
+            'autocomplete'       => true,
       ];
 
       $tab[] = [
             'id'                 => '13',
             'table'              => 'glpi_devicesimcardtypes',
             'field'              => 'name',
-            'name'               => __('Type'),
+            'name'               => _n('Type', 'Types', 1),
             'datatype'           => 'dropdown'
       ];
 
@@ -106,7 +103,7 @@ class DeviceSimcard extends CommonDevice {
     *
     * @see CommonDevice::getImportCriteria()
     *
-    * @since version 9.2
+    * @since 9.2
     **/
    function getImportCriteria() {
 
@@ -117,4 +114,8 @@ class DeviceSimcard extends CommonDevice {
       ];
    }
 
+
+   static function getIcon() {
+      return "fas fa-sim-card";
+   }
 }

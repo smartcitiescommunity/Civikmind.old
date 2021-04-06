@@ -24,17 +24,16 @@ LIMIT 5 ";
 $result4 = $DB->query($query4) or die('erro');
 
 $arr_grf4 = array();
-while ($row_result = $DB->fetch_assoc($result4))
-	{
-		$v_row_result = $row_result['cat_name']." (".$row_result['id'].")";
-		$arr_grf4[$v_row_result] = $row_result['cat_tick'];
-	}
+while ($row_result = $DB->fetch_assoc($result4))	{
+	$v_row_result = $row_result['cat_name']." (".$row_result['id'].")";
+	$arr_grf4[$v_row_result] = $row_result['cat_tick'];
+}
 
 $grf4 = array_keys($arr_grf4) ;
 $quant4 = array_values($arr_grf4) ;
 $soma4 = array_sum($arr_grf4);
 
-$grf_3 = json_encode($grf3);
+$grf_3 = json_encode($grf4);
 $quant_2a = implode(',',$quant4);
 
 
@@ -86,6 +85,7 @@ $(function () {
                 }
             },
             series: [{
+            	 colorByPoint: true, 
                 name: '".__('Tickets','dashboard')."',
                 data: [$quant_2a],
                 dataLabels: {

@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,9 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-* @since version 9.2
-*/
+/**
+ * @since 9.2
+ */
 
 use Glpi\Event;
 
@@ -56,7 +55,7 @@ if (isset($_POST["update"])) {
 } else if (isset($_POST["add"])) {
    $item->check(-1, CREATE, $_POST);
 
-   if ($newID = $item->add($_POST)) {
+   if ($item->add($_POST)) {
       Event::log($_POST["olas_id"], "olas", 4, "setup",
                  //TRANS: %s is the user login
                  sprintf(__('%s adds a link with an item'), $_SESSION["glpiname"]));

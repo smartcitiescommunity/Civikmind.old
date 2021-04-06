@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -43,16 +39,30 @@ if (!defined('GLPI_ROOT')) {
  * Peripheral Class
 **/
 class Peripheral extends CommonDBTM {
+   use Glpi\Features\DCBreadcrumb;
+   use Glpi\Features\Clonable;
 
    // From CommonDBTM
    public $dohistory                   = true;
 
    static protected $forward_entity_to = ['Infocom', 'NetworkPort', 'ReservationItem',
-                                          'Item_OperatingSystem'];
+                                          'Item_OperatingSystem', 'Item_SoftwareVersion'];
 
    static $rightname                   = 'peripheral';
    protected $usenotepad               = true;
 
+   public function getCloneRelations() :array {
+      return [
+         Item_OperatingSystem::class,
+         Item_Devices::class,
+         Infocom::class,
+         NetworkPort::class,
+         Contract_Item::class,
+         Document_Item::class,
+         Computer_Item::class,
+         KnowbaseItem_Item::class
+      ];
+   }
 
    /**
     * Name of the type
@@ -67,7 +77,7 @@ class Peripheral extends CommonDBTM {
    /**
     * @see CommonDBTM::useDeletedToLockIfDynamic()
     *
-    * @since version 0.84
+    * @since 0.84
    **/
    function useDeletedToLockIfDynamic() {
       return false;
@@ -78,6 +88,9 @@ class Peripheral extends CommonDBTM {
 
       $ong = [];
       $this->addDefaultFormTab($ong);
+      $this->addImpactTab($ong, $options);
+      $this->addStandardTab('Item_OperatingSystem', $ong, $options);
+      $this->addStandardTab('Item_SoftwareVersion', $ong, $options);
       $this->addStandardTab('Item_Devices', $ong, $options);
       $this->addStandardTab('Computer_Item', $ong, $options);
       $this->addStandardTab('NetworkPort', $ong, $options);
@@ -92,6 +105,8 @@ class Peripheral extends CommonDBTM {
       $this->addStandardTab('Notepad', $ong, $options);
       $this->addStandardTab('Reservation', $ong, $options);
       $this->addStandardTab('Certificate_Item', $ong, $options);
+      $this->addStandardTab('Domain_Item', $ong, $options);
+      $this->addStandardTab('Appliance_Item', $ong, $options);
       $this->addStandardTab('Log', $ong, $options);
 
       return $ong;
@@ -109,49 +124,15 @@ class Peripheral extends CommonDBTM {
    }
 
 
-   function post_addItem() {
-      global $DB, $CFG_GLPI;
-
-      // Manage add from template
-      if (isset($this->input["_oldID"])) {
-         // ADD Devices
-         Item_devices::cloneItem($this->getType(), $this->input["_oldID"], $this->fields['id']);
-
-         // ADD Infocoms
-         Infocom::cloneItem($this->getType(), $this->input["_oldID"], $this->fields['id']);
-
-         // ADD Ports
-         NetworkPort::cloneItem($this->getType(), $this->input["_oldID"], $this->fields['id']);
-
-         // ADD Contract
-         Contract_Item::cloneItem($this->getType(), $this->input["_oldID"], $this->fields['id']);
-
-         // ADD Documents
-         Document_Item::cloneItem($this->getType(), $this->input["_oldID"], $this->fields['id']);
-
-         // ADD Computers
-         Computer_Item::cloneItem($this->getType(), $this->input["_oldID"], $this->fields['id']);
-
-         //Add KB links
-         KnowbaseItem_Item::cloneItem($this->getType(), $this->input["_oldID"], $this->fields['id']);
-      }
-
-   }
-
    function cleanDBonPurge() {
-      global $DB;
 
-      $ci = new Computer_Item();
-      $ci->cleanDBonItemDelete(__CLASS__, $this->fields['id']);
-
-      $ip = new Item_Problem();
-      $ip->cleanDBonItemDelete(__CLASS__, $this->fields['id']);
-
-      $ci = new Change_Item();
-      $ci->cleanDBonItemDelete(__CLASS__, $this->fields['id']);
-
-      $ip = new Item_Project();
-      $ip->cleanDBonItemDelete(__CLASS__, $this->fields['id']);
+      $this->deleteChildrenAndRelationsFromDb(
+         [
+            Certificate_Item::class,
+            Computer_Item::class,
+            Item_Project::class,
+         ]
+      );
 
       Item_Devices::cleanItemDeviceDBOnItemDelete($this->getType(), $this->fields['id'],
                                                   (!empty($this->input['keep_devices'])));
@@ -188,18 +169,22 @@ class Peripheral extends CommonDBTM {
       echo "</td>\n";
       echo "<td>".__('Status')."</td>\n";
       echo "<td>";
-      State::dropdown(['value'     => $this->fields["states_id"],
-                            'entity'    => $this->fields["entities_id"],
-                            'condition' => "`is_visible_peripheral`"]);
+      State::dropdown([
+         'value'     => $this->fields["states_id"],
+         'entity'    => $this->fields["entities_id"],
+         'condition' => ['is_visible_peripheral' => 1]
+      ]);
       echo "</td></tr>\n";
 
+      $this->showDcBreadcrumb();
+
       echo "<tr class='tab_bg_1'>";
-      echo "<td>".__('Location')."</td>\n";
+      echo "<td>".Location::getTypeName(1)."</td>\n";
       echo "<td>";
       Location::dropdown(['value'  => $this->fields["locations_id"],
                                'entity' => $this->fields["entities_id"]]);
       echo "</td>\n";
-      echo "<td>".__('Type')."</td>\n";
+      echo "<td>"._n('Type', 'Types', 1)."</td>\n";
       echo "<td>";
       PeripheralType::dropdown(['value' => $this->fields["peripheraltypes_id"]]);
       echo "</td></tr>\n";
@@ -212,7 +197,7 @@ class Peripheral extends CommonDBTM {
                            'right'  => 'own_ticket',
                            'entity' => $this->fields["entities_id"]]);
       echo "</td>";
-      echo "<td>".__('Manufacturer')."</td>\n";
+      echo "<td>".Manufacturer::getTypeName(1)."</td>\n";
       echo "<td>";
       Manufacturer::dropdown(['value' => $this->fields["manufacturers_id"]]);
       echo "</td></tr>\n";
@@ -220,12 +205,14 @@ class Peripheral extends CommonDBTM {
       echo "<tr class='tab_bg_1'>";
       echo "<td>".__('Group in charge of the hardware')."</td>";
       echo "<td>";
-      Group::dropdown(['name'      => 'groups_id_tech',
-                            'value'     => $this->fields['groups_id_tech'],
-                            'entity'    => $this->fields['entities_id'],
-                            'condition' => '`is_assign`']);
+      Group::dropdown([
+         'name'      => 'groups_id_tech',
+         'value'     => $this->fields['groups_id_tech'],
+         'entity'    => $this->fields['entities_id'],
+         'condition' => ['is_assign' => 1]
+      ]);
       echo "</td>";
-      echo "<td>".__('Model')."</td>\n";
+      echo "<td>"._n('Model', 'Models', 1)."</td>\n";
       echo "<td>";
       PeripheralModel::dropdown(['value' => $this->fields["peripheralmodels_id"]]);
       echo "</td></tr>\n";
@@ -257,7 +244,7 @@ class Peripheral extends CommonDBTM {
       echo "</td></tr>\n";
 
       echo "<tr class='tab_bg_1'>";
-      echo "<td>".__('User')."</td>\n";
+      echo "<td>".User::getTypeName(1)."</td>\n";
       echo "<td>";
       User::dropdown(['value'  => $this->fields["users_id"],
                            'entity' => $this->fields["entities_id"],
@@ -275,11 +262,13 @@ class Peripheral extends CommonDBTM {
 
       $rowspan        = 2;
       echo "<tr class='tab_bg_1'>";
-      echo "<td>".__('Group')."</td>\n";
+      echo "<td>".Group::getTypeName(1)."</td>\n";
       echo "<td>";
-      Group::dropdown(['value'     => $this->fields["groups_id"],
-                            'entity'    => $this->fields["entities_id"],
-                            'condition' => '`is_itemgroup`']);
+      Group::dropdown([
+         'value'     => $this->fields["groups_id"],
+         'entity'    => $this->fields["entities_id"],
+         'condition' => ['is_itemgroup' => 1]
+      ]);
       echo "</td>\n";
       echo "<td rowspan='$rowspan'>".__('Comments')."</td>\n";
       echo "<td rowspan='$rowspan'>
@@ -311,17 +300,21 @@ class Peripheral extends CommonDBTM {
     * Return the linked items (in computers_items)
     *
     * @return an array of linked items  like array('Computer' => array(1,2), 'Printer' => array(5,6))
-    * @since version 0.84.4
+    * @since 0.84.4
    **/
    function getLinkedItems() {
       global $DB;
 
-      $query = "SELECT 'Computer', `computers_id`
-                FROM `glpi_computers_items`
-                WHERE `itemtype` = '".$this->getType()."'
-                      AND `items_id` = '" . $this->fields['id']."'";
+      $iterator = $DB->request([
+         'SELECT' => 'computers_id',
+         'FROM'   => 'glpi_computers_items',
+         'WHERE'  => [
+            'itemtype'  => $this->getType(),
+            'items_id'  => $this->fields['id']
+         ]
+      ]);
       $tab = [];
-      foreach ($DB->request($query) as $data) {
+      while ($data = $iterator->next()) {
          $tab['Computer'][$data['computers_id']] = $data['computers_id'];
       }
       return $tab;
@@ -337,35 +330,15 @@ class Peripheral extends CommonDBTM {
 
       if (static::canUpdate()) {
          Computer_Item::getMassiveActionsForItemtype($actions, __CLASS__, 0, $checkitem);
-         MassiveAction::getAddTransferList($actions);
-
-         $kb_item = new KnowbaseItem();
-         $kb_item->getEmpty();
-         if ($kb_item->canViewItem()) {
-            $actions['KnowbaseItem_Item'.MassiveAction::CLASS_ACTION_SEPARATOR.'add'] = _x('button', 'Link knowledgebase article');
-         }
+         KnowbaseItem_Item::getMassiveActionsForItemtype($actions, __CLASS__, 0, $checkitem);
       }
 
       return $actions;
    }
 
 
-   function getSearchOptionsNew() {
-      $tab = [];
-
-      $tab[] = [
-         'id'                 => 'common',
-         'name'               => __('Characteristics')
-      ];
-
-      $tab[] = [
-         'id'                 => '1',
-         'table'              => $this->getTable(),
-         'field'              => 'name',
-         'name'               => __('Name'),
-         'datatype'           => 'itemlink',
-         'massiveaction'      => false
-      ];
+   function rawSearchOptions() {
+      $tab = parent::rawSearchOptions();
 
       $tab[] = [
          'id'                 => '2',
@@ -376,13 +349,13 @@ class Peripheral extends CommonDBTM {
          'datatype'           => 'number'
       ];
 
-      $tab = array_merge($tab, Location::getSearchOptionsToAddNew());
+      $tab = array_merge($tab, Location::rawSearchOptionsToAdd());
 
       $tab[] = [
          'id'                 => '4',
          'table'              => 'glpi_peripheraltypes',
          'field'              => 'name',
-         'name'               => __('Type'),
+         'name'               => _n('Type', 'Types', 1),
          'datatype'           => 'dropdown'
       ];
 
@@ -390,7 +363,7 @@ class Peripheral extends CommonDBTM {
          'id'                 => '40',
          'table'              => 'glpi_peripheralmodels',
          'field'              => 'name',
-         'name'               => __('Model'),
+         'name'               => _n('Model', 'Models', 1),
          'datatype'           => 'dropdown'
       ];
 
@@ -400,7 +373,7 @@ class Peripheral extends CommonDBTM {
          'field'              => 'completename',
          'name'               => __('Status'),
          'datatype'           => 'dropdown',
-         'condition'          => '`is_visible_peripheral`'
+         'condition'          => ['is_visible_peripheral' => 1]
       ];
 
       $tab[] = [
@@ -408,7 +381,8 @@ class Peripheral extends CommonDBTM {
          'table'              => $this->getTable(),
          'field'              => 'serial',
          'name'               => __('Serial number'),
-         'datatype'           => 'string'
+         'datatype'           => 'string',
+         'autocomplete'       => true,
       ];
 
       $tab[] = [
@@ -416,7 +390,8 @@ class Peripheral extends CommonDBTM {
          'table'              => $this->getTable(),
          'field'              => 'otherserial',
          'name'               => __('Inventory number'),
-         'datatype'           => 'string'
+         'datatype'           => 'string',
+         'autocomplete'       => true,
       ];
 
       $tab[] = [
@@ -424,7 +399,8 @@ class Peripheral extends CommonDBTM {
          'table'              => $this->getTable(),
          'field'              => 'contact',
          'name'               => __('Alternate username'),
-         'datatype'           => 'string'
+         'datatype'           => 'string',
+         'autocomplete'       => true,
       ];
 
       $tab[] = [
@@ -432,14 +408,15 @@ class Peripheral extends CommonDBTM {
          'table'              => $this->getTable(),
          'field'              => 'contact_num',
          'name'               => __('Alternate username number'),
-         'datatype'           => 'string'
+         'datatype'           => 'string',
+         'autocomplete'       => true,
       ];
 
       $tab[] = [
          'id'                 => '70',
          'table'              => 'glpi_users',
          'field'              => 'name',
-         'name'               => __('User'),
+         'name'               => User::getTypeName(1),
          'datatype'           => 'dropdown',
          'right'              => 'all'
       ];
@@ -448,8 +425,8 @@ class Peripheral extends CommonDBTM {
          'id'                 => '71',
          'table'              => 'glpi_groups',
          'field'              => 'completename',
-         'name'               => __('Group'),
-         'condition'          => '`is_itemgroup`',
+         'name'               => Group::getTypeName(1),
+         'condition'          => ['is_itemgroup' => 1],
          'datatype'           => 'dropdown'
       ];
 
@@ -484,14 +461,15 @@ class Peripheral extends CommonDBTM {
          'table'              => $this->getTable(),
          'field'              => 'brand',
          'name'               => __('Brand'),
-         'datatype'           => 'string'
+         'datatype'           => 'string',
+         'autocomplete'       => true,
       ];
 
       $tab[] = [
          'id'                 => '23',
          'table'              => 'glpi_manufacturers',
          'field'              => 'name',
-         'name'               => __('Manufacturer'),
+         'name'               => Manufacturer::getTypeName(1),
          'datatype'           => 'dropdown'
       ];
 
@@ -511,15 +489,27 @@ class Peripheral extends CommonDBTM {
          'field'              => 'completename',
          'linkfield'          => 'groups_id_tech',
          'name'               => __('Group in charge of the hardware'),
-         'condition'          => '`is_assign`',
+         'condition'          => ['is_assign' => 1],
          'datatype'           => 'dropdown'
+      ];
+
+      $tab[] = [
+         'id'                 => '61',
+         'table'              => $this->getTable(),
+         'field'              => 'template_name',
+         'name'               => __('Template name'),
+         'datatype'           => 'text',
+         'massiveaction'      => false,
+         'nosearch'           => true,
+         'nodisplay'          => true,
+         'autocomplete'       => true,
       ];
 
       $tab[] = [
          'id'                 => '80',
          'table'              => 'glpi_entities',
          'field'              => 'completename',
-         'name'               => __('Entity'),
+         'name'               => Entity::getTypeName(1),
          'massiveaction'      => false,
          'datatype'           => 'dropdown'
       ];
@@ -534,10 +524,17 @@ class Peripheral extends CommonDBTM {
       ];
 
       // add objectlock search options
-      $tab = array_merge($tab, ObjectLock::getSearchOptionsToAddNew(get_class($this)));
+      $tab = array_merge($tab, ObjectLock::rawSearchOptionsToAdd(get_class($this)));
 
-      $tab = array_merge($tab, Notepad::getSearchOptionsToAddNew());
+      $tab = array_merge($tab, Notepad::rawSearchOptionsToAdd());
+
+      $tab = array_merge($tab, Datacenter::rawSearchOptionsToAdd(get_class($this)));
 
       return $tab;
+   }
+
+
+   static function getIcon() {
+      return "fab fa-usb";
    }
 }

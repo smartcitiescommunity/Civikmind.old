@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,17 +30,13 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 /**
  * Update from 9.1 to 9.1.1
  *
  * @return bool for success (will die for most error)
 **/
 function update91to911() {
-   global $DB, $migration, $CFG_GLPI;
+   global $DB, $migration;
 
    $current_config   = Config::getConfigurationValues('core');
    $updateresult     = true;
@@ -52,6 +48,7 @@ function update91to911() {
 
    $backup_tables = false;
    // table already exist but deleted during the migration
+   // not table created during the migration
    // not table created during the migration
    $newtables     = [];
 
@@ -71,13 +68,16 @@ function update91to911() {
    }
 
    // rectify missing right in 9.1 update
-   if (countElementsInTable("glpi_profilerights", "`name` = 'license'") == 0) {
-      foreach ($DB->request("glpi_profilerights", "`name` = 'software'") as $profrights) {
-         $query = "INSERT INTO `glpi_profilerights`
-                          (`id`, `profiles_id`, `name`, `rights`)
-                   VALUES (NULL, '".$profrights['profiles_id']."', 'license',
-                           '".$profrights['rights']."')";
-         $DB->queryOrDie($query, "9.1 add right for softwarelicense");
+   if (countElementsInTable("glpi_profilerights", ['name' => 'license']) == 0) {
+      foreach ($DB->request("glpi_profilerights", ["name" => 'software']) as $profrights) {
+         $DB->insertOrDie("glpi_profilerights", [
+               'id'           => null,
+               'profiles_id'  => $profrights['profiles_id'],
+               'name'         => "license",
+               'rights'       => $profrights['rights']
+            ],
+            "9.1 add right for softwarelicense"
+         );
       }
    }
 

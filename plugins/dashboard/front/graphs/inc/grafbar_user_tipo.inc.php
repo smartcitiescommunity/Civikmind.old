@@ -14,7 +14,7 @@ FROM glpi_tickets_users, glpi_users, glpi_tickets
 WHERE glpi_tickets_users.users_id = glpi_users.id
 AND glpi_tickets.id = glpi_tickets_users.tickets_id
 AND glpi_tickets.type = ".$id_tip."
-AND glpi_tickets.date ".$datas."
+AND (glpi_tickets.date ".$datas." OR glpi_tickets.closedate ".$datas.")
 AND glpi_tickets_users.type = 2
 AND glpi_tickets.is_deleted = 0
 ".$entidade_a."
@@ -24,7 +24,6 @@ LIMIT 10 ";
 
 $query_grp_b = $DB->query($sql_grpb);
 
-//var_dump($sql_grpb);
 
 echo "
 <script type='text/javascript'>
@@ -44,13 +43,13 @@ $(function () {
             xAxis: {
             categories: ";
 
-$categories = array();
-while ($grupo = $DB->fetch_assoc($query_grp_b)) {
-    $categories[] = $grupo['name']." ".$grupo['sname'];
-}
-echo json_encode($categories);
-
-echo ",
+				$categories = array();
+				while ($grupo = $DB->fetch_assoc($query_grp_b)) {
+					$categories[] = $grupo['name']." ".$grupo['sname'];
+				}
+				echo json_encode($categories);
+				
+				echo ",
                 title: {
                     text: null
                 },
@@ -101,23 +100,23 @@ echo ",
                 enabled: false
             },
             series: [{
+					colorByPoint: true, 
             	 dataLabels: {
             	 	//color: '#000099'
             	 	},
                 name: '". __('Tickets','dashboard')."',
                 data: [
-";
-
-//zerar rows para segundo while
-
-$DB->data_seek($query_grp_b, 0) ;
-
-while ($grupo = $DB->fetch_assoc($query_grp_b))
-{
-	echo $grupo['conta'].",";
-}
-
-echo "]
+				";
+				
+				//zerar rows para segundo while
+				$DB->data_seek($query_grp_b, 0);
+				
+				while ($grupo = $DB->fetch_assoc($query_grp_b))
+				{
+					echo $grupo['conta'].",";
+				}
+				
+				echo "]
             }]
         });
     });

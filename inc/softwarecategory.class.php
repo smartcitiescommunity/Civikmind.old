@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -53,4 +49,44 @@ class SoftwareCategory extends CommonTreeDropdown {
       Rule::cleanForItemAction($this);
    }
 
+
+   function cleanRelationData() {
+
+      parent::cleanRelationData();
+
+      if ($this->isUsedAsCategoryOnSoftwareDeletion()) {
+         $newval = (isset($this->input['_replace_by']) ? $this->input['_replace_by'] : 0);
+
+         Config::setConfigurationValues(
+            'core',
+            [
+               'softwarecategories_id_ondelete' => $newval,
+            ]
+         );
+      }
+   }
+
+
+   function isUsed() {
+
+      if (parent::isUsed()) {
+         return true;
+      }
+
+      return $this->isUsedAsCategoryOnSoftwareDeletion();
+   }
+
+
+   /**
+    * Check if type is used as category for softwares deleted by rules.
+    *
+    * @return boolean
+    */
+   private function isUsedAsCategoryOnSoftwareDeletion() {
+
+      $config_values = Config::getConfigurationValues('core', ['softwarecategories_id_ondelete']);
+
+      return array_key_exists('softwarecategories_id_ondelete', $config_values)
+         && $config_values['softwarecategories_id_ondelete'] == $this->fields['id'];
+   }
 }

@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -42,6 +38,8 @@ if (!defined('GLPI_ROOT')) {
  * Class which manages notification events
 **/
 class NotificationEvent extends CommonDBTM {
+
+   static protected $notable = true;
 
    static function getTypeName($nb = 0) {
       return _n('Event', 'Events', $nb);
@@ -79,7 +77,7 @@ class NotificationEvent extends CommonDBTM {
    /**
     * retrieve the label for an event
     *
-    * @since version 0.83
+    * @since 0.83
     *
     * @param string $itemtype name of the type
     * @param string $event    name of the event
@@ -104,7 +102,7 @@ class NotificationEvent extends CommonDBTM {
     * Raise a notification event
     *
     * @param string     $event   the event raised for the itemtype
-    * @param CommonDBTM $item    the object which raised the event
+    * @param CommonGLPI $item    the object which raised the event
     * @param array      $options array   of options used
     * @param string     $label   used for debugEvent() (default '')
     *
@@ -123,33 +121,63 @@ class NotificationEvent extends CommonDBTM {
          //Process more infos (for example for tickets)
          $notificationtarget->addAdditionnalInfosForTarget();
 
-         //Get template's information
-         $template           = new NotificationTemplate();
-
-         $entity             = $notificationtarget->getEntity();
          //Foreach notification
          $notifications = Notification::getNotificationsByEventAndType(
             $event,
-            $item->getType(),
-            $entity
+            addslashes($item->getType()),
+            $notificationtarget->getEntity()
          );
 
+         $processed = []; // targets list
          foreach ($notifications as $data) {
             $notificationtarget->clearAddressesList();
             $notificationtarget->setMode($data['mode']);
+            $notificationtarget->setAllowResponse($data['allow_response']);
+
+            //Get template's information
+            $template = new NotificationTemplate();
             $template->getFromDB($data['notificationtemplates_id']);
             $template->resetComputedTemplates();
 
             $notify_me = false;
+            $emitter = null;
+
             if (Session::isCron()) {
                // Cron notify me
                $notify_me = true;
+
+               // If mailcollector_user is set, use the given user preferences
+               if (isset($_SESSION['mailcollector_user'])) {
+                  $mailcollector_user = $_SESSION['mailcollector_user'];
+
+                  if (is_int($mailcollector_user)) {
+                     // Try to load the given user and his preferences
+                     $user = new User();
+                     $res = $user->getFromDB($_SESSION['mailcollector_user']);
+
+                     if ($res) {
+                        $user->computePreferences();
+                        $notify_me = $user->fields['notification_to_myself'];
+                        $emitter = $_SESSION['mailcollector_user'];
+                     }
+                  } else {
+                     // Special case for anonymous helpdesk, we have an email
+                     // instead of an ID
+                     // -> load the global conf and use the email as the emitter
+                     $notify_me = $CFG_GLPI['notification_to_myself'];
+                     $emitter = $mailcollector_user;
+                  }
+               }
             } else {
                // Not cron see my pref
                $notify_me = $_SESSION['glpinotification_to_myself'];
             }
 
             $options['mode'] = $data['mode'];
+            if (!isset($processed[$data['mode']])) { // targets list per mode to avoid spam
+               $processed[$data['mode']] = [];
+            }
+            $options['processed'] = &$processed[$data['mode']];
             $eventclass = Notification_NotificationTemplate::getModeClass($data['mode'], 'event');
             if (class_exists($eventclass)) {
                $eventclass::raise(
@@ -160,10 +188,11 @@ class NotificationEvent extends CommonDBTM {
                   $data,
                   $notificationtarget->setEvent($eventclass),
                   $template,
-                  $notify_me
+                  $notify_me,
+                  $emitter
                );
             } else {
-               Toolbox::logDebug('Missing event class for mode ' . $data['mode'] . ' (' . $eventclass . ')');
+               Toolbox::logWarning('Missing event class for mode ' . $data['mode'] . ' (' . $eventclass . ')');
                $label = Notification_NotificationTemplate::getMode($data['mode'])['label'];
                Session::addMessageAfterRedirect(
                   sprintf(__('Unable to send notification using %1$s'), $label),

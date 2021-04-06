@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -29,10 +29,6 @@
  * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
  */
-
-/** @file
-* @brief
-*/
 
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
@@ -62,34 +58,18 @@ class Supplier extends CommonDBTM {
 
 
    function cleanDBonPurge() {
-      global $DB;
 
-      $supplierjob = new Supplier_Ticket();
-      $supplierjob->cleanDBonItemDelete($this->getType(), $this->fields['id']);
-
-      $ps = new Problem_Supplier();
-      $ps->cleanDBonItemDelete($this->getType(), $this->fields['id']);
-
-      $cs = new Change_Supplier();
-      $cs->cleanDBonItemDelete($this->getType(), $this->fields['id']);
-
-      $query1 = "DELETE
-                 FROM `glpi_projecttaskteams`
-                 WHERE `items_id` = '".$this->fields['id']."'
-                       AND `itemtype` = '".__CLASS__."'";
-      $DB->query($query1);
-
-      $query1 = "DELETE
-                 FROM `glpi_projectteams`
-                 WHERE `items_id` = '".$this->fields['id']."'
-                       AND `itemtype` = '".__CLASS__."'";
-      $DB->query($query1);
-
-      $cs  = new Contract_Supplier();
-      $cs->cleanDBonItemDelete($this->getType(), $this->fields['id']);
-
-      $cs  = new Contact_Supplier();
-      $cs->cleanDBonItemDelete($this->getType(), $this->fields['id']);
+      $this->deleteChildrenAndRelationsFromDb(
+         [
+            Change_Supplier::class,
+            Contact_Supplier::class,
+            Contract_Supplier::class,
+            Problem_Supplier::class,
+            ProjectTaskTeam::class,
+            ProjectTeam::class,
+            Supplier_Ticket::class,
+         ]
+      );
 
       // Ticket rules use suppliers_id_assign
       Rule::cleanForItemAction($this, 'suppliers_id%');
@@ -124,7 +104,7 @@ class Supplier extends CommonDBTM {
     *     - target form target
     *     - withtemplate boolean : template or basic item
     *
-    *@return Nothing (display)
+    *@return void
    **/
    function showForm($ID, $options = []) {
 
@@ -136,18 +116,18 @@ class Supplier extends CommonDBTM {
       echo "<td>";
       Html::autocompletionTextField($this, "name");
       echo "</td>";
-      echo "<td>".__('Third party type')."</td>";
+      echo "<td>".SupplierType::getTypeName(1)."</td>";
       echo "<td>";
       SupplierType::dropdown(['value' => $this->fields["suppliertypes_id"]]);
       echo "</td></tr>";
 
       echo "<tr class='tab_bg_1'>";
-      echo "<td>". __('Phone')."</td>";
+      echo "<td>". Phone::getTypeName(1)."</td>";
       echo "<td>";
       Html::autocompletionTextField($this, "phonenumber");
       echo "</td>";
-      echo "<td rowspan='8' class='middle right'>".__('Comments')."</td>";
-      echo "<td class='center middle' rowspan='8'>";
+      echo "<td rowspan='7' class='middle'>".__('Comments')."</td>";
+      echo "<td class='middle' rowspan='7'>";
       echo "<textarea cols='45' rows='13' name='comment' >".$this->fields["comment"]."</textarea>";
       echo "</td></tr>";
 
@@ -193,6 +173,11 @@ class Supplier extends CommonDBTM {
       echo "<td>".__('Country')."</td>";
       echo "<td>";
       Html::autocompletionTextField($this, "country");
+      echo "</td>";
+
+      echo "<td>".__('Active')."</td>";
+      echo "<td>";
+      Dropdown::showYesNo('is_active', $this->fields['is_active']);
       echo "</td></tr>";
 
       $this->showFormButtons($options);
@@ -201,6 +186,11 @@ class Supplier extends CommonDBTM {
 
    }
 
+   static function dropdown($options = []) {
+      $condition = ['is_active' => true];
+      $options['condition'] = (isset($options['condition']) ? $options['condition'] + $condition : $condition);
+      return Dropdown::show(get_called_class(), $options);
+   }
 
    /**
     * @see CommonDBTM::getSpecificMassiveActions()
@@ -212,13 +202,13 @@ class Supplier extends CommonDBTM {
       if ($isadmin) {
          $actions['Contact_Supplier'.MassiveAction::CLASS_ACTION_SEPARATOR.'add']
                = _x('button', 'Add a contact');
-
-         MassiveAction::getAddTransferList($actions);
       }
       return $actions;
    }
 
-   function getSearchOptionsNew() {
+   function rawSearchOptions() {
+      global $DB;
+
       $tab = [];
 
       $tab[] = [
@@ -232,7 +222,8 @@ class Supplier extends CommonDBTM {
          'field'              => 'name',
          'name'               => __('Name'),
          'datatype'           => 'itemlink',
-         'massiveaction'      => false
+         'massiveaction'      => false,
+         'autocomplete'       => true,
       ];
 
       $tab[] = [
@@ -257,7 +248,8 @@ class Supplier extends CommonDBTM {
          'table'              => $this->getTable(),
          'field'              => 'fax',
          'name'               => __('Fax'),
-         'datatype'           => 'string'
+         'datatype'           => 'string',
+         'autocomplete'       => true,
       ];
 
       $tab[] = [
@@ -265,7 +257,8 @@ class Supplier extends CommonDBTM {
          'table'              => $this->getTable(),
          'field'              => 'town',
          'name'               => __('City'),
-         'datatype'           => 'string'
+         'datatype'           => 'string',
+         'autocomplete'       => true,
       ];
 
       $tab[] = [
@@ -273,7 +266,8 @@ class Supplier extends CommonDBTM {
          'table'              => $this->getTable(),
          'field'              => 'postcode',
          'name'               => __('Postal code'),
-         'datatype'           => 'string'
+         'datatype'           => 'string',
+         'autocomplete'       => true,
       ];
 
       $tab[] = [
@@ -281,7 +275,8 @@ class Supplier extends CommonDBTM {
          'table'              => $this->getTable(),
          'field'              => 'state',
          'name'               => _x('location', 'State'),
-         'datatype'           => 'string'
+         'datatype'           => 'string',
+         'autocomplete'       => true,
       ];
 
       $tab[] = [
@@ -289,7 +284,8 @@ class Supplier extends CommonDBTM {
          'table'              => $this->getTable(),
          'field'              => 'country',
          'name'               => __('Country'),
-         'datatype'           => 'string'
+         'datatype'           => 'string',
+         'autocomplete'       => true,
       ];
 
       $tab[] = [
@@ -297,15 +293,17 @@ class Supplier extends CommonDBTM {
          'table'              => $this->getTable(),
          'field'              => 'website',
          'name'               => __('Website'),
-         'datatype'           => 'weblink'
+         'datatype'           => 'weblink',
+         'autocomplete'       => true,
       ];
 
       $tab[] = [
          'id'                 => '5',
          'table'              => $this->getTable(),
          'field'              => 'phonenumber',
-         'name'               => __('Phone'),
-         'datatype'           => 'string'
+         'name'               => Phone::getTypeName(1),
+         'datatype'           => 'string',
+         'autocomplete'       => true,
       ];
 
       $tab[] = [
@@ -313,14 +311,15 @@ class Supplier extends CommonDBTM {
          'table'              => $this->getTable(),
          'field'              => 'email',
          'name'               => _n('Email', 'Emails', 1),
-         'datatype'           => 'email'
+         'datatype'           => 'email',
+         'autocomplete'       => true,
       ];
 
       $tab[] = [
          'id'                 => '9',
          'table'              => 'glpi_suppliertypes',
          'field'              => 'name',
-         'name'               => __('Third party type'),
+         'name'               => SupplierType::getTypeName(1),
          'datatype'           => 'dropdown'
       ];
 
@@ -358,7 +357,7 @@ class Supplier extends CommonDBTM {
          'forcegroupby'       => true,
          'datatype'           => 'itemlink',
          'massiveaction'      => false,
-         'computation'        => "CONCAT(TABLE.`$name1`, ' ', TABLE.`$name2`)",
+         'computation'        => "CONCAT(".$DB->quoteName("TABLE.$name1").", ' ', ".$DB->quoteName("TABLE.$name2").")",
          'computationgroupby' => true,
          'joinparams'         => [
             'beforejoin'         => [
@@ -382,7 +381,7 @@ class Supplier extends CommonDBTM {
          'id'                 => '80',
          'table'              => 'glpi_entities',
          'field'              => 'completename',
-         'name'               => __('Entity'),
+         'name'               => Entity::getTypeName(1),
          'massiveaction'      => false,
          'datatype'           => 'dropdown'
       ];
@@ -414,9 +413,9 @@ class Supplier extends CommonDBTM {
       ];
 
       // add objectlock search options
-      $tab = array_merge($tab, ObjectLock::getSearchOptionsToAddNew(get_class($this)));
+      $tab = array_merge($tab, ObjectLock::rawSearchOptionsToAdd(get_class($this)));
 
-      $tab = array_merge($tab, Notepad::getSearchOptionsToAddNew());
+      $tab = array_merge($tab, Notepad::rawSearchOptionsToAdd());
 
       return $tab;
    }
@@ -444,8 +443,7 @@ class Supplier extends CommonDBTM {
       }
 
       if ($this->can($this->fields['id'], READ)) {
-         $ret .= "<a href='".$CFG_GLPI["root_doc"]."/front/supplier.form.php?id=".
-                   $this->fields['id']."'>
+         $ret .= "<a href='".Supplier::getFormURLWithID($this->fields['id'])."'>
                   <img src='".$CFG_GLPI["root_doc"]."/pics/edit.png' class='middle' alt=\"".
                    __s('Update')."\" title=\"".__s('Update')."\"></a>";
       }
@@ -456,46 +454,40 @@ class Supplier extends CommonDBTM {
    /**
     * Print the HTML array for infocoms linked
     *
-    *@return Nothing (display)
+    *@return void
     *
    **/
    function showInfocoms() {
-      global $DB, $CFG_GLPI;
+      global $DB;
 
       $instID = $this->fields['id'];
       if (!$this->can($instID, READ)) {
          return false;
       }
 
-      $query = "SELECT DISTINCT `itemtype`
-                FROM `glpi_infocoms`
-                WHERE `suppliers_id` = '$instID'
-                      AND `itemtype` NOT IN ('ConsumableItem', 'CartridgeItem', 'Software')
-                ORDER BY `itemtype`";
-
-      $result = $DB->query($query);
-      $number = $DB->numrows($result);
+      $types_iterator = Infocom::getTypes(['suppliers_id' => $instID]);
+      $number = count($types_iterator);
 
       echo "<div class='spaced'><table class='tab_cadre_fixe'>";
       echo "<tr><th colspan='2'>";
       Html::printPagerForm();
       echo "</th><th colspan='3'>";
-      if ($DB->numrows($result) == 0) {
+      if ($number == 0) {
          echo __('No associated item');
       } else {
-         echo _n('Associated item', 'Associated items', $DB->numrows($result));
+         echo _n('Associated item', 'Associated items', $number);
       }
       echo "</th></tr>";
-      echo "<tr><th>".__('Type')."</th>";
-      echo "<th>".__('Entity')."</th>";
+      echo "<tr><th>"._n('Type', 'Types', 1)."</th>";
+      echo "<th>".Entity::getTypeName(1)."</th>";
       echo "<th>".__('Name')."</th>";
       echo "<th>".__('Serial number')."</th>";
       echo "<th>".__('Inventory number')."</th>";
       echo "</tr>";
 
       $num = 0;
-      for ($i=0; $i < $number; $i++) {
-         $itemtype = $DB->result($result, $i, "itemtype");
+      while ($row = $types_iterator->next()) {
+         $itemtype = $row['itemtype'];
 
          if (!($item = getItemForItemtype($itemtype))) {
             continue;
@@ -506,45 +498,76 @@ class Supplier extends CommonDBTM {
             $linkfield = 'id';
             $itemtable = getTableForItemType($itemtype);
 
-            $query = "SELECT `glpi_infocoms`.`entities_id`, `NAME_FIELD`, `$itemtable`.*
-                      FROM `glpi_infocoms`
-                      INNER JOIN `$itemtable` ON (`$itemtable`.`id` = `glpi_infocoms`.`items_id`) ";
+            $criteria = [
+               'SELECT'       => [],
+               'FROM'         => 'glpi_infocoms',
+               'INNER JOIN'   => [
+                  $itemtable  => [
+                     'ON' => [
+                        'glpi_infocoms'   => 'items_id',
+                        $itemtable        => 'id'
+                     ]
+                  ]
+               ]
+            ];
 
             // Set $linktype for entity restriction AND link to search engine
             if ($itemtype == 'Cartridge') {
-               $query .= "INNER JOIN `glpi_cartridgeitems`
-                            ON (`glpi_cartridgeitems`.`id`=`glpi_cartridges`.`cartridgeitems_id`) ";
+               $criteria['INNER JOIN']['glpi_cartridgeitems'] = [
+                  'ON' => [
+                     'glpi_cartridgeitems'   => 'id',
+                     'glpi_cartridges'       => 'cartridgeitems_id'
+                  ]
+               ];
 
                $linktype  = 'CartridgeItem';
                $linkfield = 'cartridgeitems_id';
             }
 
             if ($itemtype == 'Consumable') {
-               $query .= "INNER JOIN `glpi_consumableitems`
-                            ON (`glpi_consumableitems`.`id`=`glpi_consumables`.`consumableitems_id`) ";
+               $criteria['INNER JOIN']['glpi_consumableitems'] = [
+                  'ON' => [
+                     'glpi_consumableitems'  => 'id',
+                     'glpi_consumables'      => 'cartridgeitems_id'
+                  ]
+               ];
 
                $linktype  = 'ConsumableItem';
                $linkfield = 'consumableitems_id';
             }
 
             if ($itemtype == 'Item_DeviceControl') {
-               $query .= "INNER JOIN `glpi_devicecontrols`
-                           ON (`glpi_items_devicecontrols`.`devicecontrols_id`=`glpi_devicecontrols`.`id`)";
+               $criteria['INNER JOIN']['glpi_devicecontrols'] = [
+                  'ON' => [
+                     'glpi_items_devicecontrols'   => 'devicecontrols_id',
+                     'glpi_devicecontrols'         => 'id'
+                  ]
+               ];
+
                $linktype = 'DeviceControl';
                $linkfield = 'devicecontrols_id';
             }
 
             $linktable = getTableForItemType($linktype);
 
-            $query = str_replace('NAME_FIELD', $linktype::getNameField(), $query);
-            $query .= "WHERE `glpi_infocoms`.`itemtype` = '$itemtype'
-                             AND `glpi_infocoms`.`suppliers_id` = '$instID'".
-                             getEntitiesRestrictRequest(" AND", $linktable) ."
-                       ORDER BY `glpi_infocoms`.`entities_id`,
-                                `$linktable`.`" . $linktype::getNameField() . "`";
+            $criteria['SELECT'] = [
+               'glpi_infocoms.entities_id',
+               $linktype::getNameField(),
+               "$itemtable.*"
+            ];
 
-            $result_linked = $DB->query($query);
-            $nb            = $DB->numrows($result_linked);
+            $criteria['WHERE'] = [
+               'glpi_infocoms.itemtype'      => $itemtype,
+               'glpi_infocoms.suppliers_id'  => $instID,
+            ] + getEntitiesRestrictCriteria($linktable);
+
+            $criteria['ORDERBY'] = [
+               'glpi_infocoms.entities_id',
+               "$linktable." . $linktype::getNameField()
+            ];
+
+            $iterator = $DB->request($criteria);
+            $nb = count($iterator);
 
             if ($nb > $_SESSION['glpilist_limit']) {
                echo "<tr class='tab_bg_1'>";
@@ -571,7 +594,8 @@ class Supplier extends CommonDBTM {
                echo "<td class='center'>-</td><td class='center'>-</td></tr>";
 
             } else if ($nb) {
-               for ($prem=true; $data=$DB->fetch_assoc($result_linked); $prem=false) {
+               $prem = true;
+               while ($data = $iterator->next()) {
                   $name = $data[$linktype::getNameField()];
                   if ($_SESSION["glpiis_ids_visible"] || empty($data["name"])) {
                      $name = sprintf(__('%1$s (%2$s)'), $name, $data["id"]);
@@ -585,6 +609,7 @@ class Supplier extends CommonDBTM {
                   }
                   echo "'>";
                   if ($prem) {
+                     $prem = false;
                      $title = $item->getTypeName($nb);
                      if ($nb > 0) {
                         $title = sprintf(__('%1$s: %2$s'), $title, $nb);
@@ -611,5 +636,29 @@ class Supplier extends CommonDBTM {
                                              : "&nbsp;")."</td>";
       echo "<td colspan='4'>&nbsp;</td></tr> ";
       echo "</table></div>";
+   }
+
+   /**
+    * Get suppliers matching a given email
+    *
+    * @since 9.5
+    *
+    * @param $email boolean : also display name ? (false by default)
+   **/
+   public static function getSuppliersByEmail($email) {
+      global $DB;
+
+      $suppliers = $DB->request([
+         'SELECT' => ["id"],
+         'FROM' => 'glpi_suppliers',
+         'WHERE' => ['email' => $email]
+      ]);
+
+      return $suppliers;
+   }
+
+
+   static function getIcon() {
+      return "fas fa-dolly";
    }
 }

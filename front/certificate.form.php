@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -29,10 +29,6 @@
  * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
  */
-
-/** @file
-* @brief
-*/
 
 use Glpi\Event;
 
@@ -102,8 +98,10 @@ if (isset($_POST["add"])) {
 } else {
    Html::header(Certificate::getTypeName(Session::getPluralNumber()),
                 $_SERVER['PHP_SELF'], 'management', 'certificate');
-   $certificate->display(['id'           => $_GET["id"],
-                          'withtemplate' => $_GET["withtemplate"]
-                         ]);
+   $certificate->display([
+      'id'           => $_GET["id"],
+      'withtemplate' => $_GET["withtemplate"],
+      'formoptions'  => "data-track-changes=true"
+   ]);
    Html::footer();
 }

@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -29,10 +29,6 @@
  * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
  */
-
-/** @file
-* @brief
-*/
 
 use Glpi\Event;
 
@@ -105,11 +101,14 @@ if (isset($_POST["add"])) {
               //TRANS: %s is the user login
               sprintf(__('%s sets unitary management'), $_SESSION["glpiname"]));
 
-   Html::redirect($CFG_GLPI["root_doc"]."/front/phone.form.php?id=".$_POST["id"]);
+   Html::redirect($phone->getFormURLWithID($_POST["id"]));
 
 } else {
    Html::header(Phone::getTypeName(Session::getPluralNumber()), $_SERVER['PHP_SELF'], 'assets', 'phone');
-   $phone->display(['id'           => $_GET["id"],
-                         'withtemplate' => $_GET["withtemplate"]]);
+   $phone->display([
+      'id'           => $_GET["id"],
+      'withtemplate' => $_GET["withtemplate"],
+      'formoptions'  => "data-track-changes=true"
+   ]);
    Html::footer();
 }

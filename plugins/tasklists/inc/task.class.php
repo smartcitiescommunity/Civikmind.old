@@ -9,7 +9,7 @@
  -------------------------------------------------------------------------
 
  LICENSE
-      
+
  This file is part of Tasklists.
 
  Tasklists is free software; you can redistribute it and/or modify
@@ -34,20 +34,19 @@ if (!defined('GLPI_ROOT')) {
 /**
  * Class PluginTasklistsTask
  */
-class PluginTasklistsTask extends CommonDBTM
-{
+class PluginTasklistsTask extends CommonDBTM {
 
-   public $dohistory = true;
-   static $rightname = 'plugin_tasklists';
+   public    $dohistory  = true;
+   static    $rightname  = 'plugin_tasklists';
    protected $usenotepad = true;
-   static $types = array();
+   static    $types      = [];
 
    /**
     * @param int $nb
+    *
     * @return translated
     */
-   static function getTypeName($nb = 0)
-   {
+   static function getTypeName($nb = 0) {
 
       return _n('Task', 'Tasks', $nb);
    }
@@ -56,114 +55,190 @@ class PluginTasklistsTask extends CommonDBTM
    /**
     * @return array
     */
-   function getSearchOptions()
-   {
+   function rawSearchOptions() {
 
-      $tab = array();
+      $tab = [];
 
-      $tab['common'] = self::getTypeName(2);
+      $tab[] = [
+         'id'   => 'common',
+         'name' => self::getTypeName(2)
+      ];
 
-      $tab[1]['table'] = $this->getTable();
-      $tab[1]['field'] = 'name';
-      $tab[1]['name'] = __('Name');
-      $tab[1]['datatype'] = 'itemlink';
-      $tab[1]['itemlink_type'] = $this->getType();
+      $tab[] = [
+         'id'            => '1',
+         'table'         => $this->getTable(),
+         'field'         => 'name',
+         'name'          => __('Name'),
+         'datatype'      => 'itemlink',
+         'itemlink_type' => $this->getType()
+      ];
 
-      $tab[2]['table'] = 'glpi_plugin_tasklists_tasktypes';
-      $tab[2]['field'] = 'name';
-      $tab[2]['name'] = _n('Context', 'Contexts', 1, 'tasklists');
-      $tab[2]['datatype'] = 'dropdown';
+      $tab[] = [
+         'id'       => '2',
+         'table'    => 'glpi_plugin_tasklists_tasktypes',
+         'field'    => 'name',
+         'name'     => _n('Context', 'Contexts', 1, 'tasklists'),
+         'datatype' => 'dropdown'
+      ];
 
-      $tab[3]['table'] = 'glpi_users';
-      $tab[3]['field'] = 'name';
-      $tab[3]['linkfield'] = 'users_id';
-      $tab[3]['name'] = __('User');
-      $tab[3]['datatype'] = 'dropdown';
+      $tab[] = [
+         'id'        => '3',
+         'table'     => 'glpi_users',
+         'field'     => 'name',
+         'linkfield' => 'users_id',
+         'name'      => __('User'),
+         'datatype'  => 'dropdown'
+      ];
 
-      $tab[4]['table'] = $this->getTable();
-      $tab[4]['field'] = 'actiontime';
-      $tab[4]['name'] = __('Planned duration');
-      $tab[4]['datatype'] = 'timestamp';
-      $tab[4]['massiveaction'] = false;
+      $tab[] = [
+         'id'            => '4',
+         'table'         => $this->getTable(),
+         'field'         => 'actiontime',
+         'name'          => __('Planned duration'),
+         'datatype'      => 'timestamp',
+         'massiveaction' => false
+      ];
 
-      $tab[5]['table'] = $this->getTable();
-      $tab[5]['field'] = 'percent_done';
-      $tab[5]['name'] = __('Percent done');
-      $tab[5]['datatype'] = 'number';
-      $tab[5]['unit'] = '%';
-      $tab[5]['min'] = 0;
-      $tab[5]['max'] = 100;
-      $tab[5]['step'] = 5;
+      $tab[] = [
+         'id'       => '5',
+         'table'    => $this->getTable(),
+         'field'    => 'percent_done',
+         'name'     => __('Percent done'),
+         'datatype' => 'number',
+         'unit'     => '%',
+         'min'      => 0,
+         'max'      => 100,
+         'step'     => 5
+      ];
 
-      $tab[6]['table'] = $this->getTable();
-      $tab[6]['field'] = 'due_date';
-      $tab[6]['name'] = __('Due date', 'tasklists');
-      $tab[6]['datatype'] = 'date';
+      $tab[] = [
+         'id'       => '6',
+         'table'    => $this->getTable(),
+         'field'    => 'due_date',
+         'name'     => __('Due date', 'tasklists'),
+         'datatype' => 'date'
+      ];
 
-      $tab[7]['table'] = $this->getTable();
-      $tab[7]['field'] = 'comment';
-      $tab[7]['name'] = __('Description');
-      $tab[7]['datatype'] = 'text';
+      $tab[] = [
+         'id'       => '7',
+         'table'    => $this->getTable(),
+         'field'    => 'comment',
+         'name'     => __('Description'),
+         'datatype' => 'text'
+      ];
 
-      $tab[8]['table'] = $this->getTable();
-      $tab[8]['field'] = 'priority';
-      $tab[8]['name'] = __('Priority');
-      $tab[8]['searchtype'] = 'equals';
-      $tab[8]['datatype'] = 'specific';
+      $tab[] = [
+         'id'         => '8',
+         'table'      => $this->getTable(),
+         'field'      => 'priority',
+         'name'       => __('Priority'),
+         'searchtype' => 'equals',
+         'datatype'   => 'specific'
+      ];
 
-      $tab[9]['table'] = $this->getTable();
-      $tab[9]['field'] = 'visibility';
-      $tab[9]['name'] = __('Visibility');
-      $tab[9]['searchtype'] = 'equals';
-      $tab[9]['datatype'] = 'specific';
-      $tab[9]['massiveaction'] = false;
+      $tab[] = [
+         'id'            => '9',
+         'table'         => $this->getTable(),
+         'field'         => 'visibility',
+         'name'          => __('Visibility'),
+         'searchtype'    => 'equals',
+         'datatype'      => 'specific',
+         'massiveaction' => false
+      ];
 
-      $tab[10]['table'] = 'glpi_groups';
-      $tab[10]['field'] = 'name';
-      $tab[10]['linkfield'] = 'groups_id';
-      $tab[10]['name'] = __('Group');
-      $tab[10]['condition'] = '`is_assign`';
-      $tab[10]['datatype'] = 'dropdown';
+      $tab[] = [
+         'id'        => '10',
+         'table'     => 'glpi_groups',
+         'field'     => 'name',
+         'linkfield' => 'groups_id',
+         'name'      => __('Group'),
+         'condition' => '`is_usergroup`',
+         'datatype'  => 'dropdown'
+      ];
 
-      $tab[11]['table'] = $this->getTable();
-      $tab[11]['field'] = 'state';
-      $tab[11]['name'] = __('Status');
-      $tab[11]['searchtype'] = 'equals';
-      $tab[11]['datatype'] = 'specific';
+      $tab[] = [
+         'id'         => '11',
+         'table'      => $this->getTable(),
+         'field'      => 'plugin_tasklists_taskstates_id',
+         'name'       => __('Status'),
+         'searchtype' => ['equals', 'notequals'],
+         'datatype'   => 'specific'
+      ];
 
-      $tab[12]['table'] = $this->getTable();
-      $tab[12]['field'] = 'date_mod';
-      $tab[12]['massiveaction'] = false;
-      $tab[12]['name'] = __('Last update');
-      $tab[12]['datatype'] = 'datetime';
+      $tab[] = [
+         'id'            => '12',
+         'table'         => $this->getTable(),
+         'field'         => 'date_mod',
+         'massiveaction' => false,
+         'name'          => __('Last update'),
+         'datatype'      => 'datetime'
+      ];
 
-      $tab[18]['table'] = $this->getTable();
-      $tab[18]['field'] = 'is_recursive';
-      $tab[18]['name'] = __('Child entities');
-      $tab[18]['datatype'] = 'bool';
+      $tab[] = [
+         'id'       => '13',
+         'table'    => $this->getTable(),
+         'field'    => 'is_archived',
+         'name'     => __('Archived', 'tasklists'),
+         'datatype' => 'bool'
+      ];
 
-      $tab[30]['table'] = $this->getTable();
-      $tab[30]['field'] = 'id';
-      $tab[30]['name'] = __('ID');
-      $tab[30]['datatype'] = 'number';
+      $tab[] = [
+         'id'       => '14',
+         'table'    => $this->getTable(),
+         'field'    => 'client',
+         'name'     => __('Other client', 'tasklists'),
+         'datatype' => 'text'
+      ];
 
-      $tab[80]['table'] = 'glpi_entities';
-      $tab[80]['field'] = 'completename';
-      $tab[80]['name'] = __('Entity');
-      $tab[80]['datatype'] = 'dropdown';
+      $tab[] = [
+         'id'            => '121',
+         'table'         => $this->getTable(),
+         'field'         => 'date_creation',
+         'name'          => __('Creation date'),
+         'datatype'      => 'datetime',
+         'massiveaction' => false
+      ];
 
+      $tab[] = [
+         'id'       => '18',
+         'table'    => $this->getTable(),
+         'field'    => 'is_recursive',
+         'name'     => __('Child entities'),
+         'datatype' => 'bool'
+      ];
+
+      $tab[] = [
+         'id'       => '30',
+         'table'    => $this->getTable(),
+         'field'    => 'id',
+         'name'     => __('ID'),
+         'datatype' => 'number'
+      ];
+
+      $tab[] = [
+         'id'       => '80',
+         'table'    => 'glpi_entities',
+         'field'    => 'completename',
+         'name'     => __('Entity'),
+         'datatype' => 'dropdown'
+      ];
       return $tab;
    }
 
    /**
     * @param array $options
+    *
     * @return array
     */
-   function defineTabs($options = array())
-   {
+   function defineTabs($options = []) {
 
-      $ong = array();
+      $ong = [];
       $this->addDefaultFormTab($ong);
+      $this->addStandardTab('Document_Item', $ong, $options);
+      if (!isset($options['withtemplate']) || empty($options['withtemplate'])) {
+         $this->addStandardTab('PluginTasklistsTask_Comment', $ong, $options);
+         $this->addStandardTab('PluginTasklistsTicket', $ong, $options);
+      }
       $this->addStandardTab('Notepad', $ong, $options);
       $this->addStandardTab('Log', $ong, $options);
 
@@ -173,49 +248,149 @@ class PluginTasklistsTask extends CommonDBTM
    /**
     *
     */
-   function post_getEmpty()
-   {
+   function post_getEmpty() {
 
-      $this->fields['priority'] = 3;
+      $this->fields['priority']     = 3;
       $this->fields['percent_done'] = 0;
-      $this->fields['users_id'] = Session::getLoginUserID();
-      $this->fields['state'] = Planning::TODO;
+      $this->fields['users_id']     = Session::getLoginUserID();
+      $this->fields['visibility']   = 2;
+   }
+
+   /**
+    * @see CommonDBTM::cleanDBonPurge()
+    *
+    * @since 0.83.1
+    **/
+   function cleanDBonPurge() {
+
+      /// PluginTasklistsTask_Comment does not extends CommonDBConnexity
+      $kbic = new PluginTasklistsTask_Comment();
+      $kbic->deleteByCriteria(['plugin_tasklists_tasks_id' => $this->fields['id']]);
    }
 
    /**
     * @param datas $input
+    *
     * @return datas
     */
-   function prepareInputForAdd($input)
-   {
+   function prepareInputForAdd($input) {
 
-      if (isset($input['due_date']) && empty($input['due_date']))
+      if (isset($input['due_date']) && empty($input['due_date'])) {
          $input['due_date'] = 'NULL';
+      }
+      if (isset($input["id"]) && ($input["id"] > 0)) {
+         $input["_oldID"] = $input["id"];
+      }
+      unset($input['id']);
 
       return $input;
+   }
+
+   function post_addItem() {
+      global $CFG_GLPI;
+
+      // Manage add from template
+      if (isset($this->input["_oldID"])) {
+         // ADD Documents
+         Document_Item::cloneItem($this->getType(), $this->input["_oldID"], $this->fields['id']);
+
+         //Add notepad
+         Notepad::cloneItem($this->getType(), $this->input["_oldID"], $this->fields['id']);
+      }
+
+      if (isset($this->input['withtemplate'])
+          && $this->input["withtemplate"] != 1
+      ) {
+         if ($CFG_GLPI["notifications_mailing"]) {
+            NotificationEvent::raiseEvent("newtask", $this);
+         }
+      }
    }
 
    /**
     * @param datas $input
+    *
     * @return datas
     */
-   function prepareInputForUpdate($input)
-   {
+   function prepareInputForUpdate($input) {
 
-      if (isset($input['due_date']) && empty($input['due_date']))
+      if (isset($input['due_date']) && empty($input['due_date'])) {
          $input['due_date'] = 'NULL';
-
+      }
+      if (isset($input['plugin_tasklists_taskstates_id'])) {
+         $state = new PluginTasklistsTaskState();
+         if ($state->getFromDB($input['plugin_tasklists_taskstates_id'])) {
+            if ($state->getFinishedState()) {
+               $input['percent_done'] = 100;
+            }
+         }
+      }
+      if (isset($input['is_archived'])
+          && $input['is_archived'] == 1) {
+         $state = new PluginTasklistsTaskState();
+         if ($state->getFromDB($this->fields['plugin_tasklists_taskstates_id'])) {
+            if (!$state->getFinishedState()) {
+               Session::addMessageAfterRedirect(__('You cannot archive a task with this state', 'tasklists'), false, ERROR);
+               return false;
+            }
+         }
+      }
       return $input;
+   }
+
+   /**
+    * Actions done after the UPDATE of the item in the database
+    *
+    * @param int $history store changes history ? (default 1)
+    *
+    * @return void
+    */
+   function post_updateItem($history = 1) {
+      global $CFG_GLPI;
+
+      if (count($this->updates)
+          && isset($this->input["withtemplate"])
+          && $this->input["withtemplate"] != 1
+      ) {
+
+         if ($CFG_GLPI["notifications_mailing"]) {
+            NotificationEvent::raiseEvent("updatetask", $this);
+         }
+      }
    }
 
 
    /**
-    * @param $ID
+    * Actions done before the DELETE of the item in the database /
+    * Maybe used to add another check for deletion
+    *
+    * @return bool : true if item need to be deleted else false
+    **/
+   function pre_deleteItem() {
+      global $CFG_GLPI;
+
+      if ($CFG_GLPI["notifications_mailing"]
+          && $this->fields["is_template"] != 1
+          && isset($this->input['_delete'])
+      ) {
+
+         NotificationEvent::raiseEvent("deletetask", $this);
+      }
+
+      return true;
+   }
+
+
+   /**
+    * @param       $ID
     * @param array $options
+    *
     * @return bool
     */
-   function showForm($ID, $options = array())
-   {
+   function showForm($ID, $options = []) {
+      global $CFG_GLPI;
+
+      Html::initEditorSystem('comment');
 
       $this->initForm($ID, $options);
       $this->showFormHeader($options);
@@ -224,80 +399,129 @@ class PluginTasklistsTask extends CommonDBTM
 
       echo "<td>" . __('Name') . "</td>";
       echo "<td>";
-      Html::autocompletionTextField($this, "name");
+      Html::autocompletionTextField($this, "name", ['option' => "size='40'"]);
+      if (isset($options['from_edit_ajax'])
+          && $options['from_edit_ajax']) {
+         echo Html::hidden('from_edit_ajax', ['value' => $options['from_edit_ajax']]);
+      }
+      if (isset($options['withtemplate']) && empty($options['withtemplate'])) {
+         $options['withtemplate'] = 0;
+      }
+      echo Html::hidden('withtemplate', ['value' => $options['withtemplate']]);
       echo "</td>";
 
-
+      $plugin_tasklists_tasktypes_id = $this->fields["plugin_tasklists_tasktypes_id"];
+      if (isset($options['plugin_tasklists_tasktypes_id'])
+          && $options['plugin_tasklists_tasktypes_id']) {
+         $plugin_tasklists_tasktypes_id = $options['plugin_tasklists_tasktypes_id'];
+      }
       echo "<td>" . _n('Context', 'Contexts', 1, 'tasklists') . "</td><td>";
-      Dropdown::show('PluginTasklistsTaskType', array('name' => "plugin_tasklists_tasktypes_id",
-         'value' => $this->fields["plugin_tasklists_tasktypes_id"],
-         'entity' => $this->fields["entities_id"]));
+      $types     = PluginTasklistsTypeVisibility::seeAllowedTypes();
+      $rand_type = Dropdown::show('PluginTasklistsTaskType', ['name'      => "plugin_tasklists_tasktypes_id",
+                                                              'value'     => $plugin_tasklists_tasktypes_id,
+                                                              'entity'    => $this->fields["entities_id"],
+                                                              'condition' => ['id' => $types],
+                                                              'on_change' => "plugin_tasklists_load_states();",]);
       echo "</td>";
-
-
       echo "</tr>";
 
       echo "<tr class='tab_bg_1'>";
 
       echo "<td>" . __('Priority') . "</td>";
       echo "<td>";
-      CommonITILObject::dropdownPriority(array('value' => $this->fields['priority'],
-         'withmajor' => 1));
+      $priority = $this->fields['priority'];
+      if (isset($options['priority'])
+          && $options['priority']) {
+         $priority = $options['priority'];
+      }
+      CommonITILObject::dropdownPriority(['value'     => $priority,
+                                          'withmajor' => 1]);
       echo "</td>";
 
       echo "<td>" . __('Planned duration') . "</td>";
       echo "<td>";
-      $toadd = array();
-      //for ($i=9 ; $i<=100 ; $i++) {
-      //   $toadd[] = $i*HOUR_TIMESTAMP;
-      //}
-
-      Dropdown::showTimeStamp("actiontime", array('min' => 0,
-         'max' => 50 * DAY_TIMESTAMP,
-         'step' => DAY_TIMESTAMP,
-         'value' => $this->fields["actiontime"],
-         //'addfirstminutes' => true,
-         //'inhours'         => true,
-         'toadd' => $toadd));
+      Dropdown::showTimeStamp("actiontime", ['min'   => HOUR_TIMESTAMP * 2,
+                                             'max'   => MONTH_TIMESTAMP * 2,
+                                             'step'  => HOUR_TIMESTAMP * 2,
+                                             'value' => $this->fields["actiontime"]]);
       echo "</td>";
 
       echo "</tr>";
 
+      if (isset($_SESSION["glpiactiveentities"])
+          && count($_SESSION["glpiactiveentities"]) > 1
+          && ($ID == 0 || (isset($options['withtemplate']) && ($options['withtemplate'] == 2)))) {
+
+         echo "<tr class='tab_bg_1'>";
+
+         echo "<td>" . __('Existing client', 'tasklists') . "</td>";
+         echo "<td>";
+         $entities_id = $this->fields['entities_id'];
+         if (isset($options['entities_id'])
+             && $options['entities_id']) {
+            $entities_id = $options['entities_id'];
+         }
+         $rand_entity = Dropdown::show('Entity', ['name'         => "entities_id",
+                                                  'value'        => $entities_id,
+                                                  'entity'       => $_SESSION["glpiactiveentities"],
+                                                  'is_recursive' => true,
+                                                  'on_change'    => "plugin_tasklists_load_entities();",]);
+         echo "</td>";
+
+         echo "<td colspan='2' id='plugin_tasklists_entity'>";
+         $JS     = "function plugin_tasklists_load_entities(){";
+         $params = ['entities_id' => '__VALUE__',
+                    'entity'      => $this->fields["entities_id"]];
+         $JS     .= Ajax::updateItemJsCode("plugin_tasklists_entity",
+                                           $CFG_GLPI["root_doc"] . "/plugins/tasklists/ajax/inputEntity.php",
+                                           $params, 'dropdown_entities_id' . $rand_entity, false);
+         $JS     .= "}";
+         echo Html::scriptBlock($JS);
+         echo "</td>";
+         echo "</tr>";
+      }
+
       echo "<tr class='tab_bg_1'>";
 
-      echo "<td>" . __('Visibility') . "</td>";
+      echo "<td>" . __('Other client', 'tasklists') . "</td>";
       echo "<td>";
-      self::dropdownVisibility(array('value' => $this->fields['visibility']));
+      $client = $this->fields['client'];
+      if (isset($options['client'])
+          && $options['client']) {
+         $client = $options['client'];
+      }
+      Html::autocompletionTextField($this, "client", ['option' => "size='40'",
+                                                      'value'  => $client]);
       echo "</td>";
-
-      echo "<td>" . __('Due date', 'tasklists');
-      echo "&nbsp;";
-      Html::showToolTip(nl2br(__('Empty for infinite', 'tasklists')));
-      echo "</td>";
+      echo "<td>" . __("Due date", "tasklists") . "</td>";
       echo "<td>";
       Html::showDateField("due_date", ['value' => $this->fields["due_date"]]);
       echo "</td>";
-
       echo "</tr>";
 
       echo "<tr class='tab_bg_1'>";
 
       echo "<td>" . __('User') . "</td><td>";
-      User::dropdown(array('name' => "users_id",
-         'value' => $this->fields["users_id"],
-         'entity' => $this->fields["entities_id"],
-         'right' => 'all'));
+      $users_id = $this->fields['users_id'];
+      if (isset($options['users_id'])
+          && $options['users_id']) {
+         $users_id = $options['users_id'];
+      }
+
+      User::dropdown(['name'   => "users_id",
+                      'value'  => $users_id,
+                      'entity' => $this->fields["entities_id"],
+                      'right'  => 'all']);
       echo "</td>";
 
       echo "<td>" . __('Percent done') . "</td>";
       echo "<td>";
-      Dropdown::showNumber("percent_done", array('value' => $this->fields['percent_done'],
-         'min' => 0,
-         'max' => 100,
-         'step' => 20,
-         'unit' => '%'));
+      Dropdown::showNumber("percent_done", ['value' => $this->fields['percent_done'],
+                                            'min'   => 0,
+                                            'max'   => 100,
+                                            'step'  => 10,
+                                            'unit'  => '%']);
       echo "</td>";
-
 
       echo "</tr>";
 
@@ -305,14 +529,38 @@ class PluginTasklistsTask extends CommonDBTM
 
       echo "<td>" . __('Group') . "</td>";
       echo "<td>";
-      Dropdown::show('Group', array('name' => "groups_id",
-         'value' => $this->fields["groups_id"],
-         'entity' => $this->fields["entities_id"],
-         'condition' => '`is_assign`'));
+      $groups_id = $this->fields['groups_id'];
+      if (isset($options['groups_id'])
+          && $options['groups_id']) {
+         $groups_id = $options['groups_id'];
+      }
+      Dropdown::show('Group', ['name'      => "groups_id",
+                               'value'     => $groups_id,
+                               'entity'    => $this->fields["entities_id"],
+                               'condition' => ['is_usergroup' => 1]
+      ]);
       echo "</td>";
 
-      echo "<td>" . __('Status') . "</td><td>";
-      Planning::dropdownState("state", $this->fields["state"]);
+      echo "<td>" . __('Status') . "</td><td id='plugin_tasklists_state'>";
+
+      $plugin_tasklists_taskstates_id = $this->fields["plugin_tasklists_taskstates_id"];
+      if (isset($options['plugin_tasklists_taskstates_id'])
+          && $options['plugin_tasklists_taskstates_id']) {
+         $plugin_tasklists_taskstates_id = $options['plugin_tasklists_taskstates_id'];
+      }
+
+      if ($plugin_tasklists_tasktypes_id) {
+         self::displayState($plugin_tasklists_tasktypes_id, $plugin_tasklists_taskstates_id);
+      }
+      $JS     = "function plugin_tasklists_load_states(){";
+      $params = ['plugin_tasklists_tasktypes_id' => '__VALUE__',
+                 'entity'                        => $this->fields["entities_id"]];
+      $JS     .= Ajax::updateItemJsCode("plugin_tasklists_state",
+                                        $CFG_GLPI["root_doc"] . "/plugins/tasklists/ajax/dropdownState.php",
+                                        $params, 'dropdown_plugin_tasklists_tasktypes_id' . $rand_type, false);
+      $JS     .= "}";
+      echo Html::scriptBlock($JS);
+
       echo "</td>";
 
       echo "</tr>";
@@ -322,7 +570,35 @@ class PluginTasklistsTask extends CommonDBTM
       echo "<td>";
       echo __('Description') . "</td>";
       echo "<td colspan = '3' class='center'>";
-      echo "<textarea cols='100' rows='15' name='comment' >" . $this->fields["comment"] . "</textarea>";
+      $rand_text  = mt_rand();
+      $content_id = "comment$rand_text";
+      $cols       = 100;
+      $rows       = 15;
+      Html::textarea(['name'            => 'comment',
+                      'value'           => $this->fields["comment"],
+                      'rand'            => $rand_text,
+                      'editor_id'       => $content_id,
+                      'enable_richtext' => true,
+                      'cols'            => $cols,
+                      'rows'            => $rows]);
+      echo "</td>";
+
+      echo "</tr>";
+
+      echo "<tr class='tab_bg_1'>";
+      echo "<td>" . __('Visibility') . "</td>";
+      echo "<td>";
+      $visibility = $this->fields['visibility'];
+      if (isset($options['visibility'])
+          && $options['visibility']) {
+         $visibility = $options['visibility'];
+      }
+      self::dropdownVisibility(['value' => $visibility]);
+      echo "</td>";
+
+      echo "<td>" . __('Archived', 'tasklists') . "</td>";
+      echo "<td>";
+      Dropdown::showYesNo("is_archived", $this->fields["is_archived"]);
       echo "</td>";
 
       echo "</tr>";
@@ -330,6 +606,113 @@ class PluginTasklistsTask extends CommonDBTM
       $this->showFormButtons($options);
 
       return true;
+   }
+
+
+   /**
+    * States by type dropdown list
+    *
+    * @param     $plugin_tasklists_tasktypes_id
+    * @param int $plugin_tasklists_taskstates_id
+    */
+   static function displayState($plugin_tasklists_tasktypes_id, $plugin_tasklists_taskstates_id = 0) {
+
+
+      $states[]      = ['id'   => 0,
+                        'name' => __('Backlog', 'tasklists'),
+                        'rank' => 0];
+      $ranked        = [];
+      $states_ranked = [];
+      $dbu           = new DbUtils();
+      $datastates    = $dbu->getAllDataFromTable($dbu->getTableForItemType('PluginTasklistsTaskState'));
+      if (!empty($datastates)) {
+         foreach ($datastates as $datastate) {
+            $tasktypes = json_decode($datastate['tasktypes']);
+            if (is_array($tasktypes)) {
+               if (in_array($plugin_tasklists_tasktypes_id, $tasktypes)) {
+
+                  $condition = ['plugin_tasklists_taskstates_id' => $datastate['id'],
+                                'plugin_tasklists_tasktypes_id'  => $plugin_tasklists_tasktypes_id];
+                  $order     = new PluginTasklistsStateOrder();
+                  $ranks     = $order->find($condition);
+                  $ranking   = 0;
+                  if (count($ranks) > 0) {
+                     foreach ($ranks as $rank) {
+                        $ranking = $rank['ranking'];
+                     }
+                  }
+                  //                  $states[$datastate['id']] = $datastate['name'];
+                  if (empty($name = DropdownTranslation::getTranslatedValue($datastate['id'], 'PluginTasklistsTaskState', 'name', $_SESSION['glpilanguage']))) {
+                     $name = $datastate['name'];
+                  }
+                  $states[] = ['id'   => $datastate['id'],
+                               'name' => $name,
+                               'rank' => $ranking];
+
+
+                  foreach ($states as $key => $row) {
+                     $ranked[$key] = $row['rank'];
+                  }
+                  array_multisort($ranked, SORT_ASC, $states);
+               }
+            }
+         }
+      }
+      foreach ($states as $k => $v) {
+         $states_ranked[$v['id']] = $v['name'];
+      }
+      $rand = mt_rand();
+      Dropdown::showFromArray('plugin_tasklists_taskstates_id', $states_ranked, ['rand'    => $rand,
+                                                                                 'value'   => $plugin_tasklists_taskstates_id,
+                                                                                 'display' => true]);
+
+   }
+
+
+   /**
+    * Closed States for a task
+    *
+    * @param     $plugin_tasklists_tasks_id
+    */
+   static function getClosedStateForTask($plugin_tasklists_tasks_id) {
+
+      $task = new PluginTasklistsTask();
+      if ($task->getFromDB($plugin_tasklists_tasks_id)) {
+         $state      = $task->fields["plugin_tasklists_taskstates_id"];
+         $dbu        = new DbUtils();
+         $condition  = ["is_finished" => 1];
+         $datastates = $dbu->getAllDataFromTable($dbu->getTableForItemType('PluginTasklistsTaskState'), $condition);
+         if (!empty($datastates)) {
+            foreach ($datastates as $datastate) {
+               $tasktypes = json_decode($datastate['tasktypes']);
+               if (is_array($tasktypes)) {
+                  if (in_array($task->fields["plugin_tasklists_tasktypes_id"], $tasktypes)) {
+                     $state = $datastate['id'];
+                  }
+               }
+            }
+         }
+         return $state;
+      }
+   }
+
+   /**
+    * @param $value
+    *
+    * @return string
+    */
+   static function getStateName($value) {
+
+      switch ($value) {
+
+         case 0 :
+            return __('Backlog', 'tasklists');
+
+         default :
+            // Return $value if not define
+            return Dropdown::getDropdownName("glpi_plugin_tasklists_taskstates", $value);
+
+      }
    }
 
    /**
@@ -344,15 +727,16 @@ class PluginTasklistsTask extends CommonDBTM
     * @param $options array of possible options
     *
     * @return nothing (print out an HTML select box)
-    * */
-   static function dropdownTasklists($options = array())
-   {
+    *
+    * @throws \GlpitestSQLError
+    */
+   static function dropdownTasklists($options = []) {
 
       global $DB, $CFG_GLPI;
 
-      $p['name'] = 'plugin_tasklists_tasklists_id';
-      $p['entity'] = '';
-      $p['used'] = array();
+      $p['name']    = 'plugin_tasklists_tasklists_id';
+      $p['entity']  = '';
+      $p['used']    = [];
       $p['display'] = true;
 
       if (is_array($options) && count($options)) {
@@ -361,16 +745,16 @@ class PluginTasklistsTask extends CommonDBTM
          }
       }
 
-      $rand = mt_rand();
-
-      $where = " WHERE `glpi_plugin_tasklists_tasklists`.`is_deleted` = '0' ";
-      $where .= getEntitiesRestrictRequest("AND", 'glpi_plugin_tasklists_tasklists', '', $p['entity'], true);
+      $rand  = mt_rand();
+      $dbu   = new DbUtils();
+      $where = " WHERE `glpi_plugin_tasklists_tasklists`.`is_deleted` = '0'  AND `glpi_plugin_tasklists_tasks`.`is_template` = 0";
+      $where .= $dbu->getEntitiesRestrictRequest("AND", 'glpi_plugin_tasklists_tasklists', '', $p['entity'], true);
 
       if (count($p['used'])) {
          $where .= " AND `id` NOT IN (0, " . implode(",", $p['used']) . ")";
       }
 
-      $query = "SELECT *
+      $query  = "SELECT *
         FROM `glpi_plugin_tasklists_tasktypes`
         WHERE `id` IN (SELECT DISTINCT `plugin_tasklists_tasktypes_id`
                        FROM `glpi_plugin_tasklists_tasks`
@@ -378,23 +762,23 @@ class PluginTasklistsTask extends CommonDBTM
         ORDER BY `name`";
       $result = $DB->query($query);
 
-      $values = array(0 => Dropdown::EMPTY_VALUE);
+      $values = [0 => Dropdown::EMPTY_VALUE];
 
-      while ($data = $DB->fetch_assoc($result)) {
+      while ($data = $DB->fetchAssoc($result)) {
          $values[$data['id']] = $data['name'];
       }
 
-      $out = Dropdown::showFromArray('_tasktype', $values, array('width' => '30%',
-         'rand' => $rand,
-         'display' => false));
+      $out      = Dropdown::showFromArray('_tasktype', $values, ['width'   => '30%',
+                                                                 'rand'    => $rand,
+                                                                 'display' => false]);
       $field_id = Html::cleanId("dropdown__tasktype$rand");
 
-      $params = array('tasktypes' => '__VALUE__',
-         'entity' => $p['entity'],
-         'rand' => $rand,
-         'myname' => $p['name'],
-         'used' => $p['used']
-      );
+      $params = ['tasktypes' => '__VALUE__',
+                 'entity'    => $p['entity'],
+                 'rand'      => $rand,
+                 'myname'    => $p['name'],
+                 'used'      => $p['used']
+      ];
 
       $out .= Ajax::updateItemOnSelectEvent($field_id, "show_" . $p['name'] . $rand, $CFG_GLPI["root_doc"] . "/plugins/tasklists/ajax/dropdownTypeTasks.php", $params, false);
 
@@ -402,7 +786,7 @@ class PluginTasklistsTask extends CommonDBTM
       $out .= "</span>\n";
 
       $params['tasktype'] = 0;
-      $out .= Ajax::updateItem("show_" . $p['name'] . $rand, $CFG_GLPI["root_doc"] . "/plugins/tasklists/ajax/dropdownTypeTasks.php", $params, false);
+      $out                .= Ajax::updateItem("show_" . $p['name'] . $rand, $CFG_GLPI["root_doc"] . "/plugins/tasklists/ajax/dropdownTypeTasks.php", $params, false);
       if ($p['display']) {
          echo $out;
          return $rand;
@@ -411,12 +795,13 @@ class PluginTasklistsTask extends CommonDBTM
    }
 
    //Massive action
+
    /**
     * @param null $checkitem
-    * @return an
+    *
+    * @return array
     */
-   function getSpecificMassiveActions($checkitem = NULL)
-   {
+   function getSpecificMassiveActions($checkitem = null) {
       $isadmin = static::canUpdate();
       $actions = parent::getSpecificMassiveActions($checkitem);
 
@@ -433,19 +818,20 @@ class PluginTasklistsTask extends CommonDBTM
    }
 
    /**
+    * @param MassiveAction $ma
+    *
+    * @return bool|false
     * @since version 0.85
     *
     * @see CommonDBTM::showMassiveActionsSubForm()
-    * @param MassiveAction $ma
-    * @return bool|false
+    *
     */
-   static function showMassiveActionsSubForm(MassiveAction $ma)
-   {
+   static function showMassiveActionsSubForm(MassiveAction $ma) {
 
       switch ($ma->getAction()) {
          case "transfer" :
             Dropdown::show('Entity');
-            echo Html::submit(_x('button', 'Post'), array('name' => 'massiveaction'));
+            echo Html::submit(_x('button', 'Post'), ['name' => 'massiveaction']);
             return true;
             break;
       }
@@ -453,16 +839,18 @@ class PluginTasklistsTask extends CommonDBTM
    }
 
    /**
+    * @param MassiveAction $ma
+    * @param CommonDBTM    $item
+    * @param array         $ids
+    *
+    * @return nothing|void
+    * @throws \GlpitestSQLError
+    * @see CommonDBTM::processMassiveActionsForOneItemtype()
+    *
     * @since version 0.85
     *
-    * @see CommonDBTM::processMassiveActionsForOneItemtype()
-    * @param MassiveAction $ma
-    * @param CommonDBTM $item
-    * @param array $ids
-    * @return nothing|void
     */
-   static function processMassiveActionsForOneItemtype(MassiveAction $ma, CommonDBTM $item, array $ids)
-   {
+   static function processMassiveActionsForOneItemtype(MassiveAction $ma, CommonDBTM $item, array $ids) {
 
       switch ($ma->getAction()) {
          case "transfer" :
@@ -472,12 +860,12 @@ class PluginTasklistsTask extends CommonDBTM
                   $item->getFromDB($key);
                   $type = PluginTasklistsTaskType::transfer($item->fields["plugin_tasklists_tasktypes_id"], $input['entities_id']);
                   if ($type > 0) {
-                     $values["id"] = $key;
+                     $values["id"]                            = $key;
                      $values["plugin_tasklists_tasktypes_id"] = $type;
                      $item->update($values);
                   }
                   unset($values);
-                  $values["id"] = $key;
+                  $values["id"]          = $key;
                   $values["entities_id"] = $input['entities_id'];
 
                   if ($item->update($values)) {
@@ -496,12 +884,11 @@ class PluginTasklistsTask extends CommonDBTM
    /**
     * For other plugins, add a type to the linkable types
     *
-    * @since version 1.3.0
-    *
     * @param $type string class name
-    * */
-   static function registerType($type)
-   {
+    * *@since version 1.3.0
+    *
+    */
+   static function registerType($type) {
       if (!in_array($type, self::$types)) {
          self::$types[] = $type;
       }
@@ -514,8 +901,7 @@ class PluginTasklistsTask extends CommonDBTM
     *
     * @return array of types
     * */
-   static function getTypes($all = false)
-   {
+   static function getTypes($all = false) {
 
       if ($all) {
          return self::$types;
@@ -540,63 +926,66 @@ class PluginTasklistsTask extends CommonDBTM
    /**
     * display a value according to a field
     *
-    * @since version 0.83
-    *
     * @param $field     String         name of the field
     * @param $values    String / Array with the value to display
     * @param $options   Array          of option
     *
     * @return a string
-    **/
-   static function getSpecificValueToDisplay($field, $values, array $options = array())
-   {
+    **@since version 0.83
+    *
+    */
+   static function getSpecificValueToDisplay($field, $values, array $options = []) {
 
       if (!is_array($values)) {
-         $values = array($field => $values);
+         $values = [$field => $values];
       }
       switch ($field) {
          case 'priority':
             return CommonITILObject::getPriorityName($values[$field]);
          case 'visibility':
             return self::getVisibilityName($values[$field]);
-         case 'state' :
-            return Planning::getState($values[$field]);
+         case 'plugin_tasklists_taskstates_id':
+            return self::getStateName($values[$field]);
       }
       return parent::getSpecificValueToDisplay($field, $values, $options);
    }
 
    /**
-    * @since version 0.84
-    *
     * @param $field
     * @param $name (default '')
     * @param $values (default '')
     * @param $options   array
     *
     * @return string
-    **/
-   static function getSpecificValueToSelect($field, $name = '', $values = '', array $options = array())
-   {
+    **@since version 0.84
+    *
+    */
+   static function getSpecificValueToSelect($field, $name = '', $values = '', array $options = []) {
 
       if (!is_array($values)) {
-         $values = array($field => $values);
+         $values = [$field => $values];
       }
       $options['display'] = false;
 
       switch ($field) {
          case 'priority':
-            $options['name'] = $name;
-            $options['value'] = $values[$field];
+            $options['name']      = $name;
+            $options['value']     = $values[$field];
             $options['withmajor'] = 1;
             return CommonITILObject::dropdownPriority($options);
 
          case 'visibility':
-            $options['name'] = $name;
+            $options['name']  = $name;
             $options['value'] = $values[$field];
             return self::dropdownVisibility($options);
 
-         case 'state':
-            return Planning::dropdownState($name, $values[$field], false);
+         case 'plugin_tasklists_taskstates_id':
+            return Dropdown::show('PluginTasklistsTaskState', ['name'       => $name,
+                                                               'value'      => $values[$field],
+                                                               'emptylabel' => __('Backlog', 'tasklists'),
+                                                               'display'    => false,
+                                                               'width'      => '200px'
+            ]);
       }
       return parent::getSpecificValueToSelect($field, $name, $values, $options);
    }
@@ -614,15 +1003,15 @@ class PluginTasklistsTask extends CommonDBTM
    **/
    /**
     * @param array $options
+    *
     * @return int|string
     */
-   static function dropdownVisibility(array $options = array())
-   {
+   static function dropdownVisibility(array $options = []) {
 
-      $p['name'] = 'visibility';
-      $p['value'] = 0;
-      $p['showtype'] = 'normal';
-      $p['display'] = true;
+      $p['name']      = 'visibility';
+      $p['value']     = 0;
+      $p['showtype']  = 'normal';
+      $p['display']   = true;
       $p['withmajor'] = false;
 
       if (is_array($options) && count($options)) {
@@ -631,7 +1020,7 @@ class PluginTasklistsTask extends CommonDBTM
          }
       }
 
-      $values = array();
+      $values = [];
 
       $values[1] = static::getVisibilityName(1);
       $values[2] = static::getVisibilityName(2);
@@ -648,8 +1037,7 @@ class PluginTasklistsTask extends CommonDBTM
     *
     * @return priority|string
     */
-   static function getVisibilityName($value)
-   {
+   static function getVisibilityName($value) {
 
       switch ($value) {
 
@@ -670,17 +1058,42 @@ class PluginTasklistsTask extends CommonDBTM
    }
 
    /**
+    * @param $id
+    *
+    * @return bool
+    */
+   function checkVisibility($id) {
+
+      if (Session::haveRight("plugin_tasklists_see_all", 1)) {
+         return true;
+      }
+      if ($this->getFromDB(($id))) {
+         $groupusers = Group_User::getGroupUsers($this->fields['groups_id']);
+         $groups     = [];
+         foreach ($groupusers as $groupuser) {
+            $groups[] = $groupuser["id"];
+         }
+         if (($this->fields['visibility'] == 1 && $this->fields['users_id'] == Session::getLoginUserID())
+             || ($this->fields['visibility'] == 2 && ($this->fields['users_id'] == Session::getLoginUserID()
+                                                      || in_array(Session::getLoginUserID(), $groups)))
+             || ($this->fields['visibility'] == 3)) {
+            return true;
+         }
+      }
+      return false;
+   }
+
+   /**
     * @see Rule::getActions()
     * */
-   function getActions()
-   {
+   function getActions() {
 
-      $actions = array();
+      $actions = [];
 
-      $actions['tasklists']['name'] = __('Affect entity for create task', 'tasklists');
-      $actions['tasklists']['type'] = 'dropdown';
-      $actions['tasklists']['table'] = 'glpi_entities';
-      $actions['tasklists']['force_actions'] = array('send');
+      $actions['tasklists']['name']          = __('Affect entity for create task', 'tasklists');
+      $actions['tasklists']['type']          = 'dropdown';
+      $actions['tasklists']['table']         = 'glpi_entities';
+      $actions['tasklists']['force_actions'] = ['send'];
 
       return $actions;
    }
@@ -691,10 +1104,10 @@ class PluginTasklistsTask extends CommonDBTM
     * @param $action
     * @param $output the fields to manipulate
     * @param $params parameters
+    *
     * @return the $output array modified
     */
-   function executeActions($action, $output, $params)
-   {
+   function executeActions($action, $output, $params) {
 
       switch ($params['rule_itemtype']) {
          case 'RuleMailCollector':
@@ -717,8 +1130,8 @@ class PluginTasklistsTask extends CommonDBTM
                   $input['state'] = 1;
 
                   if (isset($input['name'])
-                     && $input['name'] !== false
-                     && isset($input['entities_id'])
+                      && $input['name'] !== false
+                      && isset($input['entities_id'])
                   ) {
                      $this->add($input);
                   }
@@ -727,6 +1140,112 @@ class PluginTasklistsTask extends CommonDBTM
             }
       }
       return $output;
+   }
+
+   /**
+    * @param $options
+    *
+    * @return bool
+    */
+   function hasTemplate($options) {
+
+      $templates = [];
+      $dbu       = new DbUtils();
+      $restrict  = ["is_template" => 1] +
+                   ["is_deleted" => 0] +
+                   ["is_archived" => 0] +
+                   ["plugin_tasklists_tasktypes_id" => $options['plugin_tasklists_tasktypes_id']] +
+                   //                  ["users_id" => Session::getLoginUserID()] +
+                   $dbu->getEntitiesRestrictCriteria($this->getTable(), '', '', $this->maybeRecursive());
+
+      $templates = $dbu->getAllDataFromTable($this->getTable(), $restrict);
+      reset($templates);
+      foreach ($templates as $template) {
+         return $template['id'];
+      }
+      return false;
+   }
+
+
+   /**
+    * @param       $target
+    * @param int   $add
+    * @param array $options
+    */
+   function listOfTemplates($target, $add = 0) {
+      $dbu = new DbUtils();
+
+      $restrict = ["is_template" => 1] +
+                  $dbu->getEntitiesRestrictCriteria($this->getTable(), '', '', $this->maybeRecursive()) +
+                  ["ORDER" => "name"];
+
+      $templates = $dbu->getAllDataFromTable($this->getTable(), $restrict);
+
+      if (Session::isMultiEntitiesMode()) {
+         $colsup = 1;
+      } else {
+         $colsup = 0;
+      }
+
+      echo "<div align='center'><table class='tab_cadre_fixe'>";
+      if ($add) {
+         echo "<tr><th colspan='" . (2 + $colsup) . "'>" . __('Choose a template') . " - " . self::getTypeName(2) . "</th>";
+      } else {
+         echo "<tr><th colspan='" . (2 + $colsup) . "'>" . __('Templates') . " - " . self::getTypeName(2) . "</th>";
+      }
+
+      echo "</tr>";
+      if ($add) {
+
+         echo "<tr>";
+         echo "<td colspan='" . (2 + $colsup) . "' class='center tab_bg_1'>";
+         echo "<a href=\"$target?id=-1&amp;withtemplate=2\">&nbsp;&nbsp;&nbsp;" . __('Blank Template') . "&nbsp;&nbsp;&nbsp;</a></td>";
+         echo "</tr>";
+      }
+
+      foreach ($templates as $template) {
+
+         $templname = $template["template_name"];
+         if ($_SESSION["glpiis_ids_visible"] || empty($template["template_name"])) {
+            $templname .= "(" . $template["id"] . ")";
+         }
+
+         echo "<tr>";
+         echo "<td class='center tab_bg_1'>";
+         if (!$add) {
+            echo "<a href=\"$target?id=" . $template["id"] . "&amp;withtemplate=1\">&nbsp;&nbsp;&nbsp;$templname&nbsp;&nbsp;&nbsp;</a></td>";
+
+            if (Session::isMultiEntitiesMode()) {
+               echo "<td class='center tab_bg_2'>";
+               echo Dropdown::getDropdownName("glpi_entities", $template['entities_id']);
+               echo "</td>";
+            }
+            echo "<td class='center tab_bg_2'>";
+            Html::showSimpleForm($target,
+                                 'purge',
+                                 _x('button', 'Delete permanently'),
+                                 ['id' => $template["id"], 'withtemplate' => 1]);
+            echo "</td>";
+
+         } else {
+            echo "<a href=\"$target?id=" . $template["id"] . "&amp;withtemplate=2\">&nbsp;&nbsp;&nbsp;$templname&nbsp;&nbsp;&nbsp;</a></td>";
+
+            if (Session::isMultiEntitiesMode()) {
+               echo "<td class='center tab_bg_2'>";
+               echo Dropdown::getDropdownName("glpi_entities", $template['entities_id']);
+               echo "</td>";
+            }
+         }
+         echo "</tr>";
+      }
+      if (!$add) {
+         echo "<tr>";
+         echo "<td colspan='" . (2 + $colsup) . "' class='tab_bg_2 center'>";
+         echo "<b><a href=\"$target?withtemplate=1\">" . __('Add a template...') . "</a></b>";
+         echo "</td>";
+         echo "</tr>";
+      }
+      echo "</table></div>";
    }
 
 }

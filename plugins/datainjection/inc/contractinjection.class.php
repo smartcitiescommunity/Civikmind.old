@@ -1,6 +1,6 @@
 <?php
 /*
- * @version $Id$
+ * @version $Id: HEADER 14684 2011-06-11 06:32:40Z remi $
  LICENSE
 
  This file is part of the datainjection plugin.
@@ -20,23 +20,24 @@
  --------------------------------------------------------------------------
  @package   datainjection
  @author    the datainjection plugin team
- @copyright Copyright (c) 2010-2013 Datainjection plugin team
+ @copyright Copyright (c) 2010-2017 Datainjection plugin team
  @license   GPLv2+
             http://www.gnu.org/licenses/gpl.txt
- @link      https://forge.indepnet.net/projects/datainjection
+ @link      https://github.com/pluginsGLPI/datainjection
  @link      http://www.glpi-project.org/
  @since     2009
  ---------------------------------------------------------------------- */
 
 if (!defined('GLPI_ROOT')) {
-   die("Sorry. You can't access directly to this file");
+    die("Sorry. You can't access directly to this file");
 }
 
 class PluginDatainjectionContractInjection extends Contract
-                                           implements PluginDatainjectionInjectionInterface {
+                                           implements PluginDatainjectionInjectionInterface
+{
 
 
-   static function getTable() {
+   static function getTable($classname = null) {
 
       $parenttype = get_parent_class();
       return $parenttype::getTable();
@@ -44,19 +45,21 @@ class PluginDatainjectionContractInjection extends Contract
 
 
    function isPrimaryType() {
+
       return true;
    }
 
 
    function connectedTo() {
-      return array();
+
+      return [];
    }
 
 
-   /**
+    /**
     * @see plugins/datainjection/inc/PluginDatainjectionInjectionInterface::getOptions()
    **/
-   function getOptions($primary_type='') {
+   function getOptions($primary_type = '') {
 
       $tab                       = Search::getOptions(get_parent_class($this));
 
@@ -87,27 +90,27 @@ class PluginDatainjectionContractInjection extends Contract
 
       //Remove some options because some fields cannot be imported
       $blacklist     = PluginDatainjectionCommonInjectionLib::getBlacklistedOptions(get_parent_class($this));
-      $notimportable = array(12, 13, 20, 41, 42, 43, 44, 45, 72);
+      $notimportable = [12, 13, 20, 41, 42, 43, 44, 45, 72];
 
       $options['ignore_fields'] = array_merge($blacklist, $notimportable);
 
-      $options['displaytype']   = array("dropdown"         => array(4),
-                                        "date"             => array(5),
-                                        "dropdown_integer" => array(6, 7, 21),
-                                        "bool"             => array(86),
-                                        "alert"            => array(59),
-                                        "billing"          => array(22),
-                                        "renewal"          => array(23),
-                                        "multiline_text"   => array(16 ,90));
+      $options['displaytype']   = ["dropdown"         => [4],
+                                      "date"             => [5],
+                                      "dropdown_integer" => [6, 7, 21],
+                                      "bool"             => [86],
+                                      "alert"            => [59],
+                                      "billing"          => [22],
+                                      "renewal"          => [23],
+                                      "multiline_text"   => [16 ,90]];
 
       return PluginDatainjectionCommonInjectionLib::addToSearchOptions($tab, $options, $this);
    }
 
 
-   /**
+    /**
     * @see plugins/datainjection/inc/PluginDatainjectionInjectionInterface::addOrUpdateObject()
    **/
-   function addOrUpdateObject($values=array(), $options=array()) {
+   function addOrUpdateObject($values = [], $options = []) {
 
       $lib = new PluginDatainjectionCommonInjectionLib($this, $values, $options);
       $lib->processAddOrUpdate();
@@ -115,17 +118,17 @@ class PluginDatainjectionContractInjection extends Contract
    }
 
 
-   /**
+    /**
     * @param $info      array
     * @param $option    array
    **/
-   function showAdditionalInformation($info=array(),$option=array()) {
+   function showAdditionalInformation($info = [], $option = []) {
 
       $name = "info[".$option['linkfield']."]";
 
       switch ($option['displaytype']) {
          case 'alert' :
-            Contract::dropdownAlert(array('name' => $name));
+            Contract::dropdownAlert(['name' => $name]);
             break;
 
          case 'renewal' :
@@ -133,20 +136,38 @@ class PluginDatainjectionContractInjection extends Contract
             break;
 
          case 'billing' :
-            Dropdown::showNumber($name, array('value' => 0,
-                                              'min'   => 12,
-                                              'max'   => 60,
-                                              'step'  => 12,
-                                              'toadd' => array(0 => Dropdown::EMPTY_VALUE,
-                                                               1 => sprintf(_n('%d month',
-                                                                            '%d months', 1), 1),
-                                                               2 => sprintf(_n('%d month',
-                                                                            '%d months', 2), 2),
-                                                               3 => sprintf(_n('%d month',
-                                                                            '%d months', 3), 3),
-                                                               6 => sprintf(_n('%d month',
-                                                                            '%d months', 6), 6))),
-                                 array('unit' => 'month'));
+            Dropdown::showNumber(
+                $name, ['value' => 0,
+                                            'min'   => 12,
+                                            'max'   => 60,
+                                            'step'  => 12,
+                                            'toadd' => [0 => Dropdown::EMPTY_VALUE,
+                                                             1 => sprintf(
+                                                                 _n(
+                                                                     '%d month',
+                                                                     '%d months', 1
+                                                                 ), 1
+                                                             ),
+                                                             2 => sprintf(
+                                                                 _n(
+                                                                     '%d month',
+                                                                     '%d months', 2
+                                                                 ), 2
+                                                             ),
+                                                             3 => sprintf(
+                                                                 _n(
+                                                                     '%d month',
+                                                                     '%d months', 3
+                                                                 ), 3
+                                                             ),
+                                                             6 => sprintf(
+                                                                 _n(
+                                                                     '%d month',
+                                                                     '%d months', 6
+                                                                 ), 6
+                                                             )]],
+                ['unit' => 'month']
+            );
             break;
 
          default:
@@ -155,4 +176,3 @@ class PluginDatainjectionContractInjection extends Contract
    }
 
 }
-?>

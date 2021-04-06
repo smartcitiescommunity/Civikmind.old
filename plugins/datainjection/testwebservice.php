@@ -1,6 +1,6 @@
 <?php
 /*
- * @version $Id$
+ * @version $Id: HEADER 14684 2011-06-11 06:32:40Z remi $
  LICENSE
 
  This file is part of the datainjection plugin.
@@ -20,10 +20,10 @@
  --------------------------------------------------------------------------
  @package   datainjection
  @author    the datainjection plugin team
- @copyright Copyright (c) 2010-2013 Datainjection plugin team
+ @copyright Copyright (c) 2010-2017 Datainjection plugin team
  @license   GPLv2+
             http://www.gnu.org/licenses/gpl.txt
- @link      https://forge.indepnet.net/projects/datainjection
+ @link      https://github.com/pluginsGLPI/datainjection
  @link      http://www.glpi-project.org/
  @since     2009
  ---------------------------------------------------------------------- */
@@ -34,13 +34,13 @@ if (!extension_loaded("xmlrpc")) {
 
 chdir(dirname($_SERVER["SCRIPT_FILENAME"]));
 chdir("../../..");
-$url = "/".basename(getcwd())."/plugins/webservices/xmlrpc.php";
+$url = "/".basename(getcwd()).Plugin::getWebDir('webservices', false)."/xmlrpc.php";
 
-$args = array();
+$args = [];
 if ($_SERVER['argc'] > 1) {
-   for ($i=1 ; $i<count($_SERVER['argv']) ; $i++) {
-      $it           = explode("=",$argv[$i],2);
-      $it[0]        = preg_replace('/^--/','',$it[0]);
+   for ($i=1; $i<count($_SERVER['argv']); $i++) {
+      $it           = explode("=", $argv[$i], 2);
+      $it[0]        = preg_replace('/^--/', '', $it[0]);
       $args[$it[0]] = (isset($it[1]) ? $it[1] : true);
    }
 }
@@ -67,9 +67,9 @@ $attrs['login_password']   = (isset($args['password'])?$args['password']:'glpi')
 $attrs['host']             = (isset($args['host'])?$args['host']:'localhost');
 $attrs['url']              = (isset($args['url'])?$args['url']
                                                  :'glpi080/plugins/webservices/xmlrpc.php');
-$attrs['additional']       = (isset($args['additional'])?$args['additional']:array());
+$attrs['additional']       = (isset($args['additional'])?$args['additional']:[]);
 
-$response = call('glpi.doLogin',$attrs);
+$response = call('glpi.doLogin', $attrs);
 
 if ($response) {
    $attrs['session'] = $response['session'];
@@ -84,21 +84,27 @@ $attrs['entities_id'] = $args['entities_id'];
 $attrs['uri']         = $args['uri'];
 
 //Inject file
-$response = call('datainjection.inject',$attrs);
+$response = call('datainjection.inject', $attrs);
 print_r($response);
 
-print_r(call('glpi.doLogout',$attrs));
+print_r(call('glpi.doLogout', $attrs));
 
 
-function call($method,$params) {
+function call($method, $params) {
 
    $header  = "Content-Type: text/xml";
    echo "+ Calling '$method' on http://".$params['host']."/".$params['url']."\n";
 
    $request = xmlrpc_encode_request($method, $params);
-   $context = stream_context_create(array('http' => array('method'  => "POST",
-                                                          'header'  => $header,
-                                                          'content' => $request)));
+   $context = stream_context_create(
+      [
+         'http' => [
+            'method'  => "POST",
+            'header'  => $header,
+            'content' => $request
+         ]
+      ]
+   );
 
    $file = file_get_contents("http://".$params['host']."/".$params['url'], false, $context);
    if (!$file) {
@@ -117,4 +123,3 @@ function call($method,$params) {
    }
    return $response;
 }
-?>

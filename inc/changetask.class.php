@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -43,16 +39,14 @@ class ChangeTask extends CommonITILTask {
    static $rightname = 'task';
 
 
-   /**
-    * @since version 0.84
-   **/
    static function getTypeName($nb = 0) {
       return _n('Change task', 'Change tasks', $nb);
    }
 
 
    static function canCreate() {
-      return Session::haveRight('change', UPDATE);
+      return Session::haveRight('change', UPDATE)
+          || Session::haveRight(self::$rightname, parent::ADDALLITEM);
    }
 
 
@@ -62,7 +56,8 @@ class ChangeTask extends CommonITILTask {
 
 
    static function canUpdate() {
-      return Session::haveRight('change', UPDATE);
+      return Session::haveRight('change', UPDATE)
+          || Session::haveRight(self::$rightname, parent::UPDATEALL);
    }
 
 
@@ -77,30 +72,30 @@ class ChangeTask extends CommonITILTask {
 
 
    /**
-    * Is the current user have right to show the current task ?
+    * Does current user have right to show the current task?
     *
     * @return boolean
    **/
    function canViewItem() {
-      return parent::canReadITILItem();
+      return $this->canReadITILItem();
    }
 
 
    /**
-    * Is the current user have right to create the current task ?
+    * Does current user have right to create the current task?
     *
     * @return boolean
    **/
    function canCreateItem() {
 
-      if (!parent::canReadITILItem()) {
+      if (!$this->canReadITILItem()) {
          return false;
       }
 
       $change = new Change();
-
       if ($change->getFromDB($this->fields['changes_id'])) {
-         return (Session::haveRight('change', UPDATE)
+         return (Session::haveRight(self::$rightname, parent::ADDALLITEM)
+                 || Session::haveRight('change', UPDATE)
                  || (Session::haveRight('change', Change::READMY)
                      && ($change->isUser(CommonITILActor::ASSIGN, Session::getLoginUserID())
                          || (isset($_SESSION["glpigroups"])
@@ -113,18 +108,19 @@ class ChangeTask extends CommonITILTask {
 
 
    /**
-    * Is the current user have right to update the current task ?
+    * Does current user have right to update the current task?
     *
     * @return boolean
    **/
    function canUpdateItem() {
 
-      if (!parent::canReadITILItem()) {
+      if (!$this->canReadITILItem()) {
          return false;
       }
 
       if (($this->fields["users_id"] != Session::getLoginUserID())
-          && !Session::haveRight('change', UPDATE)) {
+          && !Session::haveRight('change', UPDATE)
+          && !Session::haveRight(self::$rightname, parent::UPDATEALL)) {
          return false;
       }
 
@@ -133,7 +129,7 @@ class ChangeTask extends CommonITILTask {
 
 
    /**
-    * Is the current user have right to purge the current task ?
+    * Does current user have right to purge the current task?
     *
     * @return boolean
    **/
@@ -147,13 +143,13 @@ class ChangeTask extends CommonITILTask {
     *
     * @param $options array of possible options:
     *    - who ID of the user (0 = undefined)
-    *    - who_group ID of the group of users (0 = undefined)
+    *    - whogroup ID of the group of users (0 = undefined)
     *    - begin Date
     *    - end Date
     *
     * @return array of planning item
    **/
-   static function populatePlanning($options = []) {
+   static function populatePlanning($options = []) :array {
       return parent::genericPopulatePlanning(__CLASS__, $options);
    }
 
@@ -161,29 +157,29 @@ class ChangeTask extends CommonITILTask {
    /**
     * Display a Planning Item
     *
-    * @param $val array of the item to display
+    * @param array           $val       array of the item to display
+    * @param integer         $who       ID of the user (0 if all)
+    * @param string          $type      position of the item in the time block (in, through, begin or end)
+    * @param integer|boolean $complete  complete display (more details)
     *
-    * @return Already planned information
-   **/
-   static function getAlreadyPlannedInformation($val) {
-      return parent::genericGetAlreadyPlannedInformation(__CLASS__, $val);
-   }
-
-
-   /**
-    * Display a Planning Item
-    *
-    * @param $val       array of the item to display
-    * @param $who             ID of the user (0 if all)
-    * @param $type            position of the item in the time block (in, through, begin or end)
-    *                         (default '')
-    * @param $complete        complete display (more details) (default 0)
-    *
-    * @return Nothing (display function)
-   **/
+    * @return string
+    */
    static function displayPlanningItem(array $val, $who, $type = "", $complete = 0) {
       return parent::genericDisplayPlanningItem(__CLASS__, $val, $who, $type, $complete);
    }
 
-
+   /**
+    * Populate the planning with not planned ticket tasks
+    *
+    * @param $options array of possible options:
+    *    - who ID of the user (0 = undefined)
+    *    - whogroup ID of the group of users (0 = undefined)
+    *    - begin Date
+    *    - end Date
+    *
+    * @return array of planning item
+   **/
+   static function populateNotPlanned($options = []) :array {
+      return parent::genericPopulateNotPlanned(__CLASS__, $options);
+   }
 }

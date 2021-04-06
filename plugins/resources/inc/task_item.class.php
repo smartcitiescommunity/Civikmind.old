@@ -9,7 +9,7 @@
  -------------------------------------------------------------------------
 
  LICENSE
-      
+
  This file is part of resources.
 
  resources is free software; you can redistribute it and/or modify
@@ -31,18 +31,33 @@ if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access directly to this file");
 }
 
+/**
+ * Class PluginResourcesTask_Item
+ */
 class PluginResourcesTask_Item extends CommonDBTM {
 
    static $rightname = 'plugin_resources_task';
 
+   /**
+    * @return bool|\booleen
+    */
    static function canView() {
       return Session::haveRight(self::$rightname, READ);
    }
 
+   /**
+    * @return bool|\booleen
+    */
    static function canCreate() {
-      return Session::haveRightsOr(self::$rightname, array(CREATE, UPDATE, DELETE));
+      return Session::haveRightsOr(self::$rightname, [CREATE, UPDATE, DELETE]);
    }
 
+   /**
+    * @param \CommonGLPI $item
+    * @param int         $withtemplate
+    *
+    * @return array|string
+    */
    function getTabNameForItem(CommonGLPI $item, $withtemplate = 0) {
 
       if (!$withtemplate) {
@@ -56,6 +71,13 @@ class PluginResourcesTask_Item extends CommonDBTM {
       return '';
    }
 
+   /**
+    * @param \CommonGLPI $item
+    * @param int         $tabnum
+    * @param int         $withtemplate
+    *
+    * @return bool
+    */
    static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0) {
 
       $self = new self();
@@ -65,16 +87,31 @@ class PluginResourcesTask_Item extends CommonDBTM {
       return true;
    }
 
+   /**
+    * @param \PluginResourcesTask $item
+    *
+    * @return int
+    */
    static function countForResourceTask(PluginResourcesTask $item) {
 
-      $types = implode("','", PluginResourcesResource::getTypes());
-      if (empty($types)) {
+      $types = PluginResourcesResource::getTypes();
+      if (count($types) == 0) {
          return 0;
       }
-      return countElementsInTable('glpi_plugin_resources_tasks_items', "`itemtype` IN ('$types')
-                                   AND `plugin_resources_tasks_id` = '".$item->getID()."'");
+      $dbu   = new DbUtils();
+      return $dbu->countElementsInTable('glpi_plugin_resources_tasks_items',
+                                        ["plugin_resources_tasks_id" => $item->getID(),
+                                         "itemtype"                      => $types
+                                        ]);
    }
 
+   /**
+    * @param $plugin_resources_tasks_id
+    * @param $items_id
+    * @param $itemtype
+    *
+    * @return bool
+    */
    function getFromDBbyTaskAndItem($plugin_resources_tasks_id, $items_id, $itemtype) {
       global $DB;
 
@@ -86,7 +123,7 @@ class PluginResourcesTask_Item extends CommonDBTM {
          if ($DB->numrows($result) != 1) {
             return false;
          }
-         $this->fields = $DB->fetch_assoc($result);
+         $this->fields = $DB->fetchAssoc($result);
          if (is_array($this->fields) && count($this->fields)) {
             return true;
          } else {
@@ -96,30 +133,45 @@ class PluginResourcesTask_Item extends CommonDBTM {
       return false;
    }
 
+   /**
+    * @param $values
+    */
    function addTaskItem($values) {
 
       $args = explode(",", $values['item_item']);
       if (isset($args[0]) && isset($args[1])) {
-         $this->add(array('plugin_resources_tasks_id' => $values["plugin_resources_tasks_id"],
+         $this->add(['plugin_resources_tasks_id' => $values["plugin_resources_tasks_id"],
              'items_id' => $args[0],
-             'itemtype' => $args[1]));
+             'itemtype' => $args[1]]);
       }
    }
 
+   /**
+    * @param $plugin_resources_tasks_id
+    * @param $items_id
+    * @param $itemtype
+    *
+    * @return bool
+    */
    function deleteItemByTaskAndItem($plugin_resources_tasks_id, $items_id, $itemtype) {
 
       if ($this->getFromDBbyTaskAndItem($plugin_resources_tasks_id, $items_id, $itemtype)) {
-         return $this->delete(array('id' => $this->fields["id"]));
+         return $this->delete(['id' => $this->fields["id"]]);
       }
-      
+
       return false;
    }
 
+   /**
+    * @param        $instID
+    * @param string $withtemplate
+    */
    function showItemFromPlugin($instID, $withtemplate = '') {
       global $DB, $CFG_GLPI;
 
-      if (empty($withtemplate))
+      if (empty($withtemplate)) {
          $withtemplate = 0;
+      }
 
       $PluginResourcesTask = new PluginResourcesTask();
       if ($PluginResourcesTask->getFromDB($instID)) {
@@ -144,10 +196,12 @@ class PluginResourcesTask_Item extends CommonDBTM {
          echo "</th></tr>";
          echo "<tr><th>"._n('Type', 'Types', 2)."</th>";
          echo "<th>".__('Name')."</th>";
-         if ($canedit && $this->canCreate() && $withtemplate < 2)
+         if ($canedit && $this->canCreate() && $withtemplate < 2) {
             echo "<th>&nbsp;</th>";
+         }
          echo "</tr>";
-         $used = array();
+         $used = [];
+         $dbu = new DbUtils();
          if ($number != "0") {
 
             for ($i = 0; $i < $number; $i++) {
@@ -158,7 +212,7 @@ class PluginResourcesTask_Item extends CommonDBTM {
                }
                $item = new $type();
                if ($item->canView()) {
-                  $table = getTableForItemType($type);
+                  $table = $dbu->getTableForItemType($type);
                   $query = "SELECT `".$table."`.*, `".$this->getTable()."`.`id` as items_id 
                         FROM `".$this->getTable()."` 
                         INNER JOIN `".$table."` ON (`".$table."`.`id` = `".$this->getTable()."`.`items_id`) 
@@ -170,15 +224,17 @@ class PluginResourcesTask_Item extends CommonDBTM {
 
                   if ($DB->numrows($result_linked)) {
 
-                     while ($data = $DB->fetch_assoc($result_linked)) {
+                     while ($data = $DB->fetchAssoc($result_linked)) {
                         $ID = "";
                         $itemID = $data["id"];
                         $used[] = $itemID;
-                        if ($_SESSION["glpiis_ids_visible"] || empty($data["name"]))
+                        if ($_SESSION["glpiis_ids_visible"] || empty($data["name"])) {
                            $ID = " (".$data["id"].")";
+                        }
                         $itemname = $data["name"];
-                        if ($type == 'User')
-                           $itemname = getUserName($itemID);
+                        if ($type == 'User') {
+                           $itemname = $dbu->getUserName($itemID);
+                        }
 
                         $link = Toolbox::getItemTypeFormURL($type);
                         $name = "<a href=\"".$link."\">".$itemname."$ID</a>";
@@ -188,7 +244,7 @@ class PluginResourcesTask_Item extends CommonDBTM {
                         echo "<td class='center' ".(isset($data['is_deleted']) && $data['is_deleted'] == '1' ? "class='tab_bg_2_2'" : "").">".$name."</td>";
                         if ($canedit && $this->canCreate() && $withtemplate < 2) {
                            echo "<td class='center' class='tab_bg_2'>";
-                           Html::showSimpleForm($CFG_GLPI['root_doc'].'/plugins/resources/front/task.form.php', 'deletetaskitem', _x('button', 'Delete permanently'), array('id' => $data["items_id"]));
+                           Html::showSimpleForm($CFG_GLPI['root_doc'].'/plugins/resources/front/task.form.php', 'deletetaskitem', _x('button', 'Delete permanently'), ['id' => $data["items_id"]]);
                            echo "</td>";
                         }
                         echo "</tr>";
@@ -218,4 +274,3 @@ class PluginResourcesTask_Item extends CommonDBTM {
 
 }
 
-?>

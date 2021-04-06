@@ -32,9 +32,13 @@ if (!defined('GLPI_ROOT')) {
 }
 
 class PluginOrderReference_Supplier extends CommonDBChild {
+
    public static $rightname = 'plugin_order_reference';
+
    public static $itemtype  = 'PluginOrderReference';
+
    public static $items_id  = 'plugin_order_references_id';
+
    public $dohistory        = true;
 
 
@@ -42,10 +46,17 @@ class PluginOrderReference_Supplier extends CommonDBChild {
       return __("Supplier for the reference", "order");
    }
 
+   protected function computeFriendlyName() {
+      $ref = new PluginOrderReference();
+      $ref->getFromDB($this->fields['plugin_order_references_id']);
+      return sprintf(__('Supplier for the reference "%1$s"'), $ref->getName());
+   }
+
+
    public function getFromDBByReference($plugin_order_references_id) {
       global $DB;
 
-      $table = $this->getTable();
+      $table = self::getTable();
       $query = "SELECT *
                 FROM `$table`
                 WHERE `plugin_order_references_id` = '$plugin_order_references_id'";
@@ -53,7 +64,7 @@ class PluginOrderReference_Supplier extends CommonDBChild {
          if ($DB->numrows($result) != 1) {
             return false;
          }
-         $this->fields = $DB->fetch_assoc($result);
+         $this->fields = $DB->fetchAssoc($result);
          if (is_array($this->fields) && count($this->fields)) {
             return true;
          } else {
@@ -63,39 +74,59 @@ class PluginOrderReference_Supplier extends CommonDBChild {
       return false;
    }
 
-   public function getSearchOptions() {
-      $tab                     = array();
+   public function rawSearchOptions() {
 
-      $tab['common']           = __("Supplier for the reference", "order");
+      $tab = [];
 
-      $tab[1]['table']         = $this->getTable();
-      $tab[1]['field']         = 'reference_code';
-      $tab[1]['name']          = __("Manufacturer's product reference", "order");
-      $tab[1]['datatype']      = 'text';
+      $tab[] = [
+         'id'            => 'common',
+         'name'          => __('Supplier for the reference', 'order'),
+      ];
 
-      $tab[2]['table']         = $this->getTable();
-      $tab[2]['field']         = 'price_taxfree';
-      $tab[2]['name']          = __("Unit price tax free", "order");
-      $tab[2]['datatype']      = 'decimal';
+      $tab[] = [
+         'id'            => 1,
+         'table'         => self::getTable(),
+         'field'         => 'reference_code',
+         'name'          => __('Manufacturer\'s product reference', 'order'),
+         'datatype'      => 'text',
+         'autocomplete'  => true,
+      ];
 
-      $tab[3]['table']         = 'glpi_suppliers';
-      $tab[3]['field']         = 'name';
-      $tab[3]['name']          =  __("Supplier");
-      $tab[3]['datatype']      = 'itemlink';
-      $tab[3]['itemlink_type'] = 'Supplier';
-      $tab[3]['forcegroupby']  = true;
+      $tab[] = [
+         'id'            => 2,
+         'table'         => self::getTable(),
+         'field'         => 'price_taxfree',
+         'name'          => __('Unit price tax free', 'order'),
+         'datatype'      => 'decimal',
+      ];
 
-      $tab[30]['table']        = $this->getTable();
-      $tab[30]['field']        = 'id';
-      $tab[30]['name']         = __("ID");
+      $tab[] = [
+         'id'            => 3,
+         'table'         => 'glpi_suppliers',
+         'field'         => 'name',
+         'name'          => __('Supplier'),
+         'datatype'      => 'itemlink',
+         'itemlink_type' => 'Supplier',
+         'forcegroupby'  => true,
+      ];
 
-      /* entity */
-      $tab[80]['table']        = 'glpi_entities';
-      $tab[80]['field']        = 'completename';
-      $tab[80]['name']         = __("Entity");
+      $tab[] = [
+         'id'            => 30,
+         'table'         => self::getTable(),
+         'field'         => 'id',
+         'name'          => __('ID'),
+      ];
+
+      $tab[] = [
+         'id'            => 80,
+         'table'         => 'glpi_entities',
+         'field'         => 'completename',
+         'name'          => __('Entity'),
+      ];
 
       return $tab;
    }
+
 
    public function prepareInputForAdd($input) {
       // Not attached to reference -> not added
@@ -106,36 +137,40 @@ class PluginOrderReference_Supplier extends CommonDBChild {
       return $input;
    }
 
-   public function defineTabs($options = array()) {
-      $ong = array();
+
+   public function defineTabs($options = []) {
+      $ong = [];
       $this->addDefaultFormTab($ong);
       $this->addStandardTab('Document_Item', $ong, $options);
       $this->addStandardTab('Log', $ong, $options);
       return $ong;
    }
 
+
    public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0) {
       if (get_class($item) == __CLASS__) {
-         return array (1 => __("Main"));
-      } else if (get_class($item) == 'PluginOrderReference') {
-         return array(1 => __("Supplier Detail", "order"));
+         return [1 => __("Main")];
+      } else if ($item instanceof PluginOrderReference) {
+         return [1 => __("Supplier Detail", "order")];
       }
       return '';
    }
 
+
    public static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0) {
       $reference_supplier = new self();
-      if ($item->getType()=='PluginOrderReference') {
+      if ($item->getType() == 'PluginOrderReference') {
          $reference_supplier->showReferenceManufacturers($item->getID());
          if ($item->can($item->getID(), UPDATE)) {
-            $reference_supplier->showForm(0, array('plugin_order_references_id' => $item->getID()));
+            $reference_supplier->showForm(0, ['plugin_order_references_id' => $item->getID()]);
          }
       }
 
       return true;
    }
 
-   public function showForm ($ID, $options = array()) {
+
+   public function showForm ($ID, $options = []) {
       global $DB;
 
       $plugin_order_references_id = -1;
@@ -148,13 +183,12 @@ class PluginOrderReference_Supplier extends CommonDBChild {
 
       $PluginOrderReference = new PluginOrderReference();
       $PluginOrderReference->getFromDB($plugin_order_references_id);
-      echo "<input type='hidden' name='plugin_order_references_id' value='$plugin_order_references_id'>";
-      echo "<input type='hidden' name='entities_id' value='" . $PluginOrderReference->getEntityID() . "'>";
-      echo "<input type='hidden' name='is_recursive' value='" . $PluginOrderReference->isRecursive() . "'>";
+      echo Html::hidden('plugin_order_references_id', ['value' => $plugin_order_references_id]);
+      echo Html::hidden('entities_id', ['value' => $PluginOrderReference->getEntityID()]);
+      echo Html::hidden('is_recursive', ['value' => $PluginOrderReference->isRecursive()]);
 
       echo "<tr class='tab_bg_1'>";
-
-      echo "<td>" . __("Supplier") . ": </td>";
+      echo "<td>".__("Supplier").": </td>";
       echo "<td>";
 
       if ($ID > 0) {
@@ -162,24 +196,24 @@ class PluginOrderReference_Supplier extends CommonDBChild {
          $supplier->getFromDB($this->fields['suppliers_id']);
          echo $supplier->getLink(Session::haveRight('supplier', READ));
       } else {
-         $suppliers = array();
+         $suppliers = [];
          $query = "SELECT `suppliers_id`
-                     FROM `" . $this->getTable() . "`
+                     FROM `".self::getTable()."`
                      WHERE `plugin_order_references_id` = '$plugin_order_references_id'";
          $result = $DB->query($query);
-         while ($data = $DB->fetch_array($result)) {
+         while ($data = $DB->fetchArray($result)) {
             $suppliers[] = $data["suppliers_id"];
          }
 
-         Supplier::Dropdown(array(
+         Supplier::Dropdown([
             'name'   => 'suppliers_id',
             'used'   => $suppliers,
             'entity' => $PluginOrderReference->getEntityID()
-         ));
+         ]);
       }
       echo "</td>";
 
-      echo "<td>" . __("Manufacturer's product reference", "order") . ": </td>";
+      echo "<td>".__("Manufacturer's product reference", "order").": </td>";
       echo "<td>";
       Html::autocompletionTextField($this, "reference_code");
       echo "</td></tr>";
@@ -188,10 +222,10 @@ class PluginOrderReference_Supplier extends CommonDBChild {
 
       echo "<tr class='tab_bg_1'>";
 
-      echo "<td>" . __("Unit price tax free", "order") . ": </td>";
+      echo "<td>".__("Unit price tax free", "order").": </td>";
       echo "<td>";
-      echo "<input type='number' step='".PLUGIN_ORDER_NUMBER_STEP."' name='price_taxfree' value=\""
-         . Html::formatNumber($this->fields["price_taxfree"], true) . "\" class='decimal'>";
+      echo "<input type='number' min='0' step='".PLUGIN_ORDER_NUMBER_STEP."' name='price_taxfree' value=\""
+        .Html::formatNumber($this->fields["price_taxfree"], true)."\" class='decimal'>";
       echo "</td>";
 
       echo "<td></td>";
@@ -204,6 +238,7 @@ class PluginOrderReference_Supplier extends CommonDBChild {
       return true;
    }
 
+
    public function showReferenceManufacturers($ID) {
       global $DB, $CFG_GLPI;
 
@@ -215,35 +250,35 @@ class PluginOrderReference_Supplier extends CommonDBChild {
                             __("Product reference", "order") ." = ". $ref->fields["name"]);
 
       $candelete = $ref->can($ID, DELETE);
-      $query     = "SELECT * FROM `".$this->getTable()."` WHERE `plugin_order_references_id` = '$ID' ";
-      $query    .= getEntitiesRestrictRequest(" AND", $this->getTable(), "entities_id",
+      $query     = "SELECT * FROM `".self::getTable()."` WHERE `plugin_order_references_id` = '$ID' ";
+      $query    .= getEntitiesRestrictRequest(" AND", self::getTable(), "entities_id",
                                               $ref->fields['entities_id'],
                                               $ref->fields['is_recursive']);
       $result    = $DB->query($query);
       $rand      = mt_rand();
       echo "<div class='center'>";
       echo "<form method='post' name='show_supplierref$rand' id='show_supplierref$rand' action=\"$target\">";
-      echo "<input type='hidden' name='plugin_order_references_id' value='" . $ID . "'>";
+      echo Html::hidden('plugin_order_references_id', ['value' => $ID]);
       echo "<table class='tab_cadre_fixe'>";
 
       echo "<tr><th colspan='5'>".__("Supplier Detail", "order")."</th></tr>";
       echo "<tr><th>&nbsp;</th>";
-      echo "<th>" . __("Supplier") . "</th>";
-      echo "<th>" . __("Product reference", "order") . "</th>";
-      echo "<th>" . __("Unit price tax free", "order") . "</th>";
+      echo "<th>".__("Supplier")."</th>";
+      echo "<th>".__("Product reference", "order")."</th>";
+      echo "<th>".__("Unit price tax free", "order")."</th>";
       echo "</tr>";
 
       if ($DB->numrows($result) > 0) {
          echo "<form method='post' name='show_ref_manu' action=\"$target\">";
-         echo "<input type='hidden' name='plugin_order_references_id' value='" . $ID . "'>";
+         echo Html::hidden('plugin_order_references_id', ['value' => $ID]);
 
-         while ($data = $DB->fetch_array($result)) {
+         while ($data = $DB->fetchArray($result)) {
             Session::addToNavigateListItems($this->getType(), $data['id']);
-            echo "<input type='hidden' name='item[" . $data["id"] . "]' value='" . $ID . "'>";
+            echo Html::hidden("item[".$data["id"]."]", ['value' => $ID]);
             echo "<tr class='tab_bg_1 center'>";
             echo "<td>";
             if ($candelete) {
-               echo "<input type='checkbox' name='check[" . $data["id"] . "]'";
+               echo "<input type='checkbox' name='check[".$data["id"]."]'";
                if (isset($_POST['check']) && $_POST['check'] == 'all') {
                   echo " checked ";
                }
@@ -252,8 +287,8 @@ class PluginOrderReference_Supplier extends CommonDBChild {
             echo "</td>";
 
             $link = Toolbox::getItemTypeFormURL($this->getType());
-            echo "<td><a href='" . $link . "?id=" . $data["id"] . "&plugin_order_references_id=" . $ID . "'>"
-               . Dropdown::getDropdownName("glpi_suppliers", $data["suppliers_id"]) . "</a></td>";
+            echo "<td><a href='".$link."?id=".$data["id"]."&plugin_order_references_id=".$ID."'>"
+              .Dropdown::getDropdownName("glpi_suppliers", $data["suppliers_id"])."</a></td>";
             echo "<td>";
             echo $data["reference_code"];
             echo "</td>";
@@ -267,15 +302,15 @@ class PluginOrderReference_Supplier extends CommonDBChild {
          if ($candelete) {
             echo "<div class='center'>";
             echo "<table width='900px' class='tab_glpi'>";
-            echo "<tr><td><img src=\"" . $CFG_GLPI["root_doc"] . "/pics/arrow-left.png\" alt=''></td>";
+            echo "<tr><td><img src=\"".$CFG_GLPI["root_doc"]."/pics/arrow-left.png\" alt=''></td>";
             echo "<td class='center'><a onclick= \"if ( markCheckboxes('show_supplierref$rand') ) "
-               . "return false;\" href='#'>" . __("Check all") . "</a></td>";
+              ."return false;\" href='#'>".__("Check all")."</a></td>";
 
             echo "<td>/</td><td class='center'><a onclick= \"if ( unMarkCheckboxes('show_supplierref$rand') ) "
-               . "return false;\" href='#'>" . __("Uncheck all") . "</a>";
+              ."return false;\" href='#'>".__("Uncheck all")."</a>";
             echo "</td><td align='left' width='80%'>";
-            echo "<input type='submit' name='delete' value=\"" . __("Delete permanently")
-               . "\" class='submit' >";
+            echo "<input type='submit' name='delete' value=\"".__("Delete permanently")
+              ."\" class='submit' >";
             echo "</td>";
             echo "</table>";
             echo "</div>";
@@ -288,10 +323,11 @@ class PluginOrderReference_Supplier extends CommonDBChild {
       echo "</div>";
    }
 
+
    public function getPriceByReferenceAndSupplier($plugin_order_references_id, $suppliers_id) {
       global $DB;
 
-      $table = $this->getTable();
+      $table = self::getTable();
       $query = "SELECT `price_taxfree`
                 FROM `$table`
                 WHERE `plugin_order_references_id` = '$plugin_order_references_id'
@@ -305,10 +341,11 @@ class PluginOrderReference_Supplier extends CommonDBChild {
       }
    }
 
+
    public function getReferenceCodeByReferenceAndSupplier($plugin_order_references_id, $suppliers_id) {
       global $DB;
 
-      $table = $this->getTable();
+      $table = self::getTable();
       $query = "SELECT `reference_code`
                 FROM `$table`
                 WHERE `plugin_order_references_id` = '$plugin_order_references_id'
@@ -322,11 +359,12 @@ class PluginOrderReference_Supplier extends CommonDBChild {
       }
    }
 
+
    public static function install(Migration $migration) {
       global $DB;
 
-      $table = getTableForItemType(__CLASS__);
-      if (!TableExists($table) && !TableExists("glpi_plugin_order_references_manufacturers")) {
+      $table = self::getTable();
+      if (!$DB->tableExists($table) && !$DB->tableExists("glpi_plugin_order_references_manufacturers")) {
          $migration->displayMessage("Installing $table");
 
          $query = "CREATE TABLE IF NOT EXISTS `glpi_plugin_order_references_suppliers` (
@@ -341,13 +379,13 @@ class PluginOrderReference_Supplier extends CommonDBChild {
                      KEY `entities_id` (`entities_id`),
                      KEY `plugin_order_references_id` (`plugin_order_references_id`),
                      KEY `suppliers_id` (`suppliers_id`)
-                  ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;";
+                  ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;";
          $DB->query($query) or die($DB->error());
       } else {
          $migration->displayMessage("Upgrading $table");
 
          //1.1.0
-         if (TableExists("glpi_plugin_order_references_manufacturers")) {
+         if ($DB->tableExists("glpi_plugin_order_references_manufacturers")) {
             $migration->addField("glpi_plugin_order_references_manufacturers", "reference_code",
                               "varchar(255) NOT NULL collate utf8_unicode_ci default ''");
             $migration->migrationOneTable("glpi_plugin_order_references_manufacturers");
@@ -372,15 +410,15 @@ class PluginOrderReference_Supplier extends CommonDBChild {
                                  "decimal(20,6) NOT NULL DEFAULT '0.000000'");
          $migration->migrationOneTable($table);
 
-         Plugin::migrateItemType(array(3152 => 'PluginOrderReference_Supplier'),
-                                 array("glpi_bookmarks", "glpi_bookmarks_users",
-                                     "glpi_displaypreferences", "glpi_documents_items",
-                                     "glpi_infocoms", "glpi_logs"),
-                                 array());
-         if (FieldExists('glpi_tickets', 'itemtype')) {
-            Plugin::migrateItemType(array(3152 => 'PluginOrderReference_Supplier'),
-                                    array("glpi_tickets"),
-                                    array());
+         Plugin::migrateItemType([3152 => 'PluginOrderReference_Supplier'],
+                                 ["glpi_savedsearches", "glpi_savedsearches_users",
+                                  "glpi_displaypreferences", "glpi_documents_items",
+                                  "glpi_infocoms", "glpi_logs"],
+                                 []);
+         if ($DB->fieldExists('glpi_tickets', 'itemtype')) {
+            Plugin::migrateItemType([3152 => 'PluginOrderReference_Supplier'],
+                                    ["glpi_tickets"],
+                                    []);
          }
 
          //1.5.0
@@ -394,6 +432,7 @@ class PluginOrderReference_Supplier extends CommonDBChild {
       }
    }
 
+
    public static function uninstall() {
       global $DB;
 
@@ -401,25 +440,32 @@ class PluginOrderReference_Supplier extends CommonDBChild {
       $DB->query("DROP TABLE IF EXISTS `glpi_plugin_order_references_manufacturers`");
 
       //Current table name
-      $DB->query("DROP TABLE IF EXISTS  `".getTableForItemType(__CLASS__)."`");
+      $DB->query("DROP TABLE IF EXISTS  `".self::getTable()."`");
    }
+
 
    public static function showReferencesFromSupplier($ID) {
       global $DB, $CFG_GLPI;
 
       if (isset($_POST["start"])) {
-         $start = $_POST["start"];
+         $start = (int) $_POST["start"];
       } else {
          $start = 0;
       }
 
-      $query = "SELECT  `gr`.`id`, `gr`.`manufacturers_id`, `gr`.`entities_id`, `gr`.`itemtype`, `gr`.`name`,
-                        `grm`.`price_taxfree`, `grm`.`reference_code`
-               FROM `glpi_plugin_order_references_suppliers` AS grm, `glpi_plugin_order_references` AS gr
+      $query = "SELECT  `gr`.`id`,
+                        `gr`.`manufacturers_id`,
+                        `gr`.`entities_id`,
+                        `gr`.`itemtype`,
+                        `gr`.`name`,
+                        `grm`.`price_taxfree`,
+                        `grm`.`reference_code`
+               FROM `glpi_plugin_order_references_suppliers` AS grm,
+                    `glpi_plugin_order_references` AS gr
                WHERE `grm`.`suppliers_id` = '$ID'
                AND `grm`.`plugin_order_references_id` = `gr`.`id`"
-               . getEntitiesRestrictRequest(" AND ", "gr", '', '', true);
-      $query_limit = $query . " LIMIT " . intval($start) . "," . intval($_SESSION['glpilist_limit']);
+              .getEntitiesRestrictRequest(" AND ", "gr", '', '', true);
+      $query_limit = $query." LIMIT $start, ".(int) $_SESSION['glpilist_limit'];
       $result = $DB->query($query);
       $nb     = $DB->numrows($result);
       echo "<div class='center'>";
@@ -431,14 +477,14 @@ class PluginOrderReference_Supplier extends CommonDBChild {
 
          echo "<table class='tab_cadre_fixe'>";
          echo "<tr>";
-         echo "<th>" . __("Entity") . "</th>";
-         echo "<th>" . __("Manufacturer") . "</th>";
-         echo "<th>" . __("Product reference", "order") . "</th>";
-         echo "<th>" . __("Reference") . "</th>";
-         echo "<th>" . __("Product reference", "order") . "</th>";
-         echo "<th>" . __("Unit price tax free", "order") . "</th></tr>";
+         echo "<th>".__("Entity")."</th>";
+         echo "<th>".__("Manufacturer")."</th>";
+         echo "<th>".__("Product reference", "order")."</th>";
+         echo "<th>".__("Reference")."</th>";
+         echo "<th>".__("Product reference", "order")."</th>";
+         echo "<th>".__("Unit price tax free", "order")."</th></tr>";
 
-         while ($data = $DB->fetch_array($result)) {
+         while ($data = $DB->fetchArray($result)) {
             echo "<tr class='tab_bg_1' align='center'>";
             echo "<td>";
             echo Dropdown::getDropdownName("glpi_entities", $data["entities_id"]);
@@ -471,4 +517,6 @@ class PluginOrderReference_Supplier extends CommonDBChild {
       echo "</table>";
       echo "</div>";
    }
+
+
 }

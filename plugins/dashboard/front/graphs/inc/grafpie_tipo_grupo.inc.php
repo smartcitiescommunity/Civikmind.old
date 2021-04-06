@@ -2,11 +2,11 @@
 <?php
 
 if($data_ini == $data_fin) {
-$datas = "LIKE '".$data_ini."%'";	
+	$datas = "LIKE '".$data_ini."%'";	
 }	
 
 else {
-$datas = "BETWEEN '".$data_ini." 00:00:00' AND '".$data_fin." 23:59:59'";	
+	$datas = "BETWEEN '".$data_ini." 00:00:00' AND '".$data_fin." 23:59:59'";	
 }
 
 //problems
@@ -17,6 +17,7 @@ WHERE glpi_problems.is_deleted = 0
 AND glpi_groups_problems.groups_id = ".$id_grp."
 AND glpi_problems.id = glpi_groups_problems.problems_id    
 AND glpi_problems.date ".$datas."
+". $entidade_pro ."
  ";		
  
 $result_p = $DB->query($query_p) or die('erro-tipo');
@@ -30,6 +31,7 @@ FROM glpi_tickets, glpi_groups_tickets
 WHERE glpi_tickets.is_deleted = '0'
 AND glpi_tickets.date ".$datas."
 AND glpi_groups_tickets.groups_id = ".$id_grp."
+". $entidade_and ."
 AND glpi_tickets.id = glpi_groups_tickets.tickets_id   
 GROUP BY glpi_tickets.type
 ORDER BY tipo  ASC    
@@ -39,17 +41,14 @@ $result2 = $DB->query($query2) or die('erro');
 
 $arr_grft2 = array();
 while ($row_result = $DB->fetch_assoc($result2))		
-	{ 			
+{ 			
 	$v_row_result = $row_result['tipo'];
 	$arr_grft2[$v_row_result] = $row_result['tick'];			
-	} 
+} 
 	
 $grft2 = array_keys($arr_grft2);
-
 $quantt2 = array_values($arr_grft2);
-
 $conta = count($arr_grft2);
-
 
 if($conta == 1) {
 
@@ -73,7 +72,6 @@ if($conta > 1) {
 	$grft2[2] = __('Problem'); 
 	$quantt2[2] = $problems['total']; 		
 }
-
 	
 echo "
 <script type='text/javascript'>

@@ -1,79 +1,78 @@
 <?php
-/*
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
-
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * ---------------------------------------------------------------------Civikmind
+ * GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2015-2021 Teclib' and contributors.
+ *
+ * http://glpi-project.org
+ *
+ * based on GLPI - Gestionnaire Libre de Parc Informatique
+ * Copyright (C) 2003-2014 by the INDEPNET Development Team.
+ *
+ * ---------------------------------------------------------------------
+ *
+ * LICENSE
+ *
+ * This file is part of GLPI.
+ *
+ * GLPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GLPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------
  */
-
-/** @file
-* @brief
-*/
-
 
 define('GLPI_ROOT', realpath('..'));
 
-include_once (GLPI_ROOT . "/inc/autoload.function.php");
+include_once (GLPI_ROOT . "/inc/based_config.php");
 include_once (GLPI_ROOT . "/inc/db.function.php");
+
+$GLPI = new GLPI();
+$GLPI->initLogger();
+$GLPI->initErrorHandler();
 
 Config::detectRootDoc();
 
-   //Print a correct  Html header for application
+//Print a correct  Html header for application
 function header_html($etape) {
+   global $CFG_GLPI;
 
    // Send UTF8 Headers
    header("Content-Type: text/html; charset=UTF-8");
 
    echo "<!DOCTYPE html'>";
    echo "<html lang='es'>";
-   echo "<head>";
-   echo "<meta charset='utf-8'>";
+    echo "<head>";
+    echo "<meta charset='utf-8'>";
    echo "<meta http-equiv='Content-Script-Type' content='text/javascript'> ";
-   echo "<meta http-equiv='Content-Style-Type' content='text/css'> ";
-   echo "<meta http-equiv='Content-Language' content='es'> ";
-   echo "<meta name='generator' content=''>";
-   echo "<meta name='DC.Language' content='es' scheme='RFC1766'>";
-   echo "<title>Configurar Civikmind</title>";
-   
-       // LIBS
-   echo Html::script("lib/jquery/js/jquery-1.10.2.min.js");
-   echo Html::script('lib/jquery/js/jquery-ui-1.10.4.custom.js');
-   echo Html::script("lib/jqueryplugins/select2/select2.min.js");
-   echo Html::css('lib/jquery/css/smoothness/jquery-ui-1.10.4.custom.css');
-   echo Html::css("lib/jqueryplugins/select2/select2.css");
+    echo "<meta http-equiv='Content-Style-Type' content='text/css'> ";
+   echo "<title>Configuración de Civikmind</title>";
 
-   // CSS
+   // CFG
+   echo Html::getCoreVariablesForJavascript();
+
+    // LIBS
+   echo Html::script("public/lib/base.js");
+   echo Html::script("public/lib/fuzzy.js");
+   echo Html::script("js/common.js");
+
+    // CSS
+   echo Html::css('public/lib/base.css');
    echo Html::css("css/style_install.css");
    echo "</head>";
    echo "<body>";
    echo "<div id='principal'>";
    echo "<div id='bloc'>";
    echo "<div id='logo_bloc'></div>";
-   echo "<h2>Configuración Civikmind</h2>";
+   echo "<h2>Configuración de Civikmind</h2>";
    echo "<br><h3>". $etape ."</h3>";
 }
 
@@ -82,6 +81,7 @@ function header_html($etape) {
 function footer_html() {
    echo "</div></div></body></html>";
 }
+
 
 // choose language
 function choose_language() {
@@ -93,13 +93,14 @@ function choose_language() {
    // fix missing param for js drodpown
    $CFG_GLPI['ajax_limit_count'] = 15;
 
-   Dropdown::showLanguages("language", array('value' => "es_CO"));
+   Dropdown::showLanguages("language", ['value' => $_SESSION['glpilanguage']]);
    echo "</p>";
    echo "";
    echo "<p class='submit'><input type='hidden' name='install' value='lang_select'>";
    echo "<input type='submit' name='submit' class='submit' value='OK'></p>";
    Html::closeForm();
 }
+
 
 function acceptLicense() {
 
@@ -109,7 +110,7 @@ function acceptLicense() {
    echo "</textarea>";
 
    echo "<br><a target='_blank' href='http://www.gnu.org/licenses/old-licenses/gpl-2.0-translations.html'>".
-         __('Traducciones no oficiales tambien estan disponibles')."</a>";
+         __('También están disponibles traducciones no oficiales')."</a>";
 
    echo "<form action='install.php' method='post'>";
    echo "<p id='license'>";
@@ -117,26 +118,27 @@ function acceptLicense() {
    echo "<label for='agree' class='radio'>";
    echo "<input type='radio' name='install' id='agree' value='License'>";
    echo "<span class='outer'><span class='inner'></span></span>";
-   echo __('He leido y estoy de acuerdo con los terminos y condiciones de la licencia.');
+   echo __('He leído y ACEPTO los términos de la licencia escritos arriba.');
    echo " </label>";
 
    echo "<label for='disagree' class='radio'>";
    echo "<input type='radio' name='install' value='lang_select' id='disagree' checked='checked'>";
    echo "<span class='outer'><span class='inner'></span></span>";
-   echo __('He leido y NO estoy de acuerdo con los terminos y condiciones de la licencia');
+   echo __('He leído y NO ACEPTO los términos de la licencia escritos arriba');
    echo " </label>";
 
-   echo "<p><input type='submit' name='submit' class='submit' value=\"".__s('Continue')."\"></p>";
+   echo "<p><input type='submit' name='submit' class='submit' value=\"".__s('Continuar')."\"></p>";
    Html::closeForm();
    echo "</div>";
 }
 
+
 //confirm install form
 function step0() {
 
-   echo "<h3>".__('Instalar o actualizar el Civikmind')."</h3>";
-   echo "<p>".__s("Seleccione Instalar para una completa instalación del Civikmind.")."</p>";
-   echo "<p> ".__s("Seleccione Actualizar para mejorar la versión anterior que tiene actualmente instalada")."</p>";
+   echo "<h3>".__('Instalación o actualización de Civikmind')."</h3>";
+   echo "<p>".__s("Elija 'Instalar' para una instalación completamente nueva de Civikmind.")."</p>";
+   echo "<p> ".__s("Seleccione 'Actualizar' para actualizar su versión de Civikmind desde una versión anterior")."</p>";
    echo "<form action='install.php' method='post'>";
    echo "<input type='hidden' name='update' value='no'>";
    echo "<p class='submit'><input type='hidden' name='install' value='Etape_0'>";
@@ -150,16 +152,14 @@ function step0() {
    Html::closeForm();
 }
 
+
 //Step 1 checking some compatibility issue and some write tests.
 function step1($update) {
-   global $CFG_GLPI;
-
-   $error = 0;
-   echo "<h3>".__s('Revisando la compatibilidad de Entorno para la puesta en marcha de Civikmind').
+   echo "<h3>".__s('Comprobación de la compatibilidad de su entorno con la ejecución de Civikmind').
         "</h3>";
    echo "<table class='tab_check'>";
 
-   $error = Toolbox::commonCheckForUseGLPI();
+   $error = Toolbox::commonCheckForUseGLPI(true);
 
    echo "</table>";
    switch ($error) {
@@ -168,18 +168,18 @@ function step1($update) {
          echo "<input type='hidden' name='update' value='". $update."'>";
          echo "<input type='hidden' name='language' value='". $_SESSION['glpilanguage']."'>";
          echo "<p class='submit'><input type='hidden' name='install' value='Etape_1'>";
-         echo "<input type='submit' name='submit' class='submit' value=\"".__('Continue')."\">";
+         echo "<input type='submit' name='submit' class='submit' value=\"".__('Continuar')."\">";
          echo "</p>";
          Html::closeForm();
          break;
 
       case 1 :
-         echo "<h3>".__('Deseas continuar?')."</h3>";
+         echo "<h3>".__('¿Quieres continuar?')."</h3>";
          echo "<div class='submit'><form action='install.php' method='post' class='inline'>";
          echo "<input type='hidden' name='install' value='Etape_1'>";
          echo "<input type='hidden' name='update' value='". $update."'>";
          echo "<input type='hidden' name='language' value='". $_SESSION['glpilanguage']."'>";
-         echo "<input type='submit' name='submit' class='submit' value=\"".__('Continue')."\">";
+         echo "<input type='submit' name='submit' class='submit' value=\"".__('Continuar')."\">";
          Html::closeForm();
          echo "&nbsp;&nbsp;";
 
@@ -187,17 +187,17 @@ function step1($update) {
          echo "<input type='hidden' name='update' value='". $update."'>";
          echo "<input type='hidden' name='language' value='". $_SESSION['glpilanguage']."'>";
          echo "<input type='hidden' name='install' value='Etape_0'>";
-         echo "<input type='submit' name='submit' class='submit' value=\"".__('Intenta de nuevo')."\">";
+         echo "<input type='submit' name='submit' class='submit' value=\"".__('Reintentar')."\">";
          Html::closeForm();
          echo "</div>";
          break;
 
       case 2 :
-         echo "<h3>".__('Deseas continuar?')."</h3>";
+         echo "<h3>".__('¿Quieres continuar?')."</h3>";
          echo "<form action='install.php' method='post'>";
          echo "<input type='hidden' name='update' value='".$update."'>";
          echo "<p class='submit'><input type='hidden' name='install' value='Etape_0'>";
-         echo "<input type='submit' name='submit' class='submit' value=\"".__('Intenta de nuevo')."\">";
+         echo "<input type='submit' name='submit' class='submit' value=\"".__('Reintentar')."\">";
          echo "</p>";
          Html::closeForm();
          break;
@@ -205,75 +205,84 @@ function step1($update) {
 
 }
 
+
 //step 2 import mysql settings.
 function step2($update) {
 
-   echo "<h3>".__('Configuracion de la base de datos')."</h3>";
+   echo "<h3>".__('Configuración de la conexión a la base de datos')."</h3>";
    echo "<form action='install.php' method='post'>";
    echo "<input type='hidden' name='update' value='".$update."'>";
-   echo "<fieldset><legend>".__('Parametros para conectar la base de datos')."</legend>";
-   echo "<p><label class='block'>".__('SQL (MariaDB o MySQL)') ." </label>";
+   echo "<fieldset><legend>".__('Parámetros de conexión a la base de datos')."</legend>";
+   echo "<p><label class='block'>".__('Servidor SQL (MariaDB o MySQL)') ." </label>";
    echo "<input type='text' name='db_host'><p>";
-   echo "<p><label class='block'>".__('SQL Usuario') ." </label>";
+   echo "<p><label class='block'>".__('Usuario SQL') ." </label>";
    echo "<input type='text' name='db_user'></p>";
-   echo "<p><label class='block'>".__('SQL Clave')." </label>";
+   echo "<p><label class='block'>".__('Contraseña SQL')." </label>";
    echo "<input type='password' name='db_pass'></p></fieldset>";
    echo "<input type='hidden' name='install' value='Etape_2'>";
    echo "<p class='submit'><input type='submit' name='submit' class='submit' value='".
-         __('Continue')."'></p>";
+         __('Continuar')."'></p>";
    Html::closeForm();
 }
+
+
 //step 3 test mysql settings and select database.
 function step3($host, $user, $password, $update) {
 
    error_reporting(16);
-   echo "<h3>".__('Conectando a la base de datos')."</h3>";
+   echo "<h3>".__('Prueba de la conexión en la base de datos')."</h3>";
 
    //Check if the port is in url
    $hostport = explode(":", $host);
    if (count($hostport) < 2) {
-     $link = new mysqli($hostport[0], $user, $password);
+      $link = new mysqli($hostport[0], $user, $password);
    } else {
-     $link = new mysqli($hostport[0], $user, $password, '', $hostport[1]);
+      $link = new mysqli($hostport[0], $user, $password, '', $hostport[1]);
    }
-
 
    if ($link->connect_error
        || empty($host)
        || empty($user)) {
-      echo "<p>".__("NO es posible conectar a la base de datos")."\n <br>".
-           sprintf(__('Respuesta del servidor: %s'), $link->connect_error)."</p>";
+      echo "<p>".__("No pude conectarme a la base de datos")."\n <br>".
+           sprintf(__('El servidor respondió: %s'), $link->connect_error)."</p>";
 
       if (empty($host)
           || empty($user)) {
-         echo "<p>".__('Campos vacios')."</p>";
+         echo "<p>".__('El campo de servidor o usuario está vacío')."</p>";
       }
 
       echo "<form action='install.php' method='post'>";
       echo "<input type='hidden' name='update' value='".$update."'>";
       echo "<input type='hidden' name='install' value='Etape_1'>";
       echo "<p class='submit'><input type='submit' name='submit' class='submit' value='".
-            __s('Regresar')."'></p>";
+            __s('Volver atrás')."'></p>";
       Html::closeForm();
 
    } else {
-      $_SESSION['db_access'] = array('host'     => $host,
+      $_SESSION['db_access'] = ['host'     => $host,
                                      'user'     => $user,
-                                     'password' => $password);
-      echo  "<h3>".__('Conectado a la base de datos')."</h3>";
+                                     'password' => $password];
+      echo  "<h3>".__('Conexión a la base de datos exitosa')."</h3>";
+
+      //get database raw version
+      $DB_ver = $link->query("SELECT version()");
+      $row = $DB_ver->fetch_array();
+      echo "<p class='center'>";
+      $checkdb = Config::displayCheckDbEngine(true, $row[0]);
+      echo "</p>";
+      if ($checkdb > 0) {
+         return;
+      }
 
       if ($update == "no") {
-         echo "<p>".__('Seleccionar base de datos:')."</p>";
+         echo "<p>".__('Seleccione una base de datos:')."</p>";
          echo "<form action='install.php' method='post'>";
 
          if ($DB_list = $link->query("SHOW DATABASES")) {
             while ($row = $DB_list->fetch_array()) {
-               if (!in_array($row['Database'], array("information_schema",
+               if (!in_array($row['Database'], ["information_schema",
                                                      "mysql",
-													 "glpi",
-													 "test",
-													 "phpmyadmin",
-                                                     "performance_schema") )) {
+                                                     "performance_schema"] )) {
                   echo "<p>";
                   echo "<label class='radio'>";
                   echo "<input type='radio' name='databasename' value='". $row['Database']."'>";
@@ -289,7 +298,7 @@ function step3($host, $user, $password, $update) {
          echo "<p>";
          echo "<label class='radio'>";
          echo "<input type='radio' name='databasename' value='0'>";
-         _e('Crear una base de datos o usar una existente:');
+         echo __('Cree una nueva base de datos o use una existente:');
          echo "<span class='outer'><span class='inner'></span></span>";
          echo "&nbsp;<input type='text' name='newdatabasename'>";
          echo " </label>";
@@ -301,7 +310,7 @@ function step3($host, $user, $password, $update) {
          Html::closeForm();
 
       } else if ($update == "yes") {
-         echo "<p>".__('Base de datos a actualizar:')."</p>";
+         echo "<p>".__('Seleccione la base de datos para actualizar:')."</p>";
          echo "<form action='install.php' method='post'>";
 
          $DB_list = $link->query("SHOW DATABASES");
@@ -334,8 +343,7 @@ function step4 ($databasename, $newdatabasename) {
    $password = $_SESSION['db_access']['password'];
 
    //display the form to return to the previous step.
-   echo "<h3>".__('Iniciando la base de datos')."</h3>";
-
+   echo "<h3>".__('Inicialización de la base de datos')."</h3>";
 
    function prev_form($host, $user, $password) {
 
@@ -346,10 +354,9 @@ function step4 ($databasename, $newdatabasename) {
       echo "<input type='hidden' name='update' value='no'>";
       echo "<input type='hidden' name='install' value='Etape_2'>";
       echo "<p class='submit'><input type='submit' name='submit' class='submit' value='".
-            __s('Volver')."'></p>";
+            __s('Volver atrás')."'></p>";
       Html::closeForm();
    }
-
 
    //Display the form to go to the next page
    function next_form() {
@@ -361,13 +368,25 @@ function step4 ($databasename, $newdatabasename) {
       Html::closeForm();
    }
 
+   //create security key
+   $glpikey = new GLPIKey();
+   $secured = $glpikey->keyExists();
+   if (!$secured) {
+      $secured = $glpikey->generate();
+   }
+
+   if (!$secured) {
+      echo "<p><strong>".__('¡No se puede generar la llave de seguridad!')."</strong></p>";
+      prev_form($host, $user, $password);
+      return;
+   }
 
    //Check if the port is in url
    $hostport = explode(":", $host);
    if (count($hostport) < 2) {
-     $link = new mysqli($hostport[0], $user, $password);
+      $link = new mysqli($hostport[0], $user, $password);
    } else {
-     $link = new mysqli($hostport[0], $user, $password, '', $hostport[1]);
+      $link = new mysqli($hostport[0], $user, $password, '', $hostport[1]);
    }
 
    $databasename    = $link->real_escape_string($databasename);
@@ -377,19 +396,19 @@ function step4 ($databasename, $newdatabasename) {
       $DB_selected = $link->select_db($databasename);
 
       if (!$DB_selected) {
-         _e('Base de datos no usable:');
-         echo "<br>".sprintf(__('Respuesta del servidor: %s'), $link->error);
+         echo __('Imposible utilizar la base de datos:');
+         echo "<br>".sprintf(__('El servidor respondió: %s'), $link->error);
          prev_form($host, $user, $password);
 
       } else {
-         if (DBConnection::createMainConfig($host,$user,$password,$databasename)) {
+         if (DBConnection::createMainConfig($host, $user, $password, $databasename)) {
             Toolbox::createSchema($_SESSION["glpilanguage"]);
-            echo "<p>".__('OK - Iniciando la base de datos')."</p>";
+            echo "<p>".__('OK - la base de datos fue inicializada')."</p>";
 
             next_form();
 
          } else { // can't create config_db file
-            echo "<p>".__('Archivo de parametros para la base de datos no escribible')."</p>";
+            echo "<p>".__('Imposible escribir el archivo de configuración de la base de datos')."</p>";
             prev_form($host, $user, $password);
          }
       }
@@ -399,13 +418,13 @@ function step4 ($databasename, $newdatabasename) {
       if ($link->select_db($newdatabasename)) {
          echo "<p>".__('Base de datos creada')."</p>";
 
-         if (DBConnection::createMainConfig($host,$user,$password,$newdatabasename)) {
+         if (DBConnection::createMainConfig($host, $user, $password, $newdatabasename)) {
             Toolbox::createSchema($_SESSION["glpilanguage"]);
-            echo "<p>".__('OK -a base de datos fue iniciada')."</p>";
+            echo "<p>".__('OK - la base de datos fue inicializada')."</p>";
             next_form();
 
          } else { // can't create config_db file
-            echo "<p>".__('Archivo de parametros para la base de datos no escribible')."</p>";
+            echo "<p>".__('Imposible escribir el archivo de configuración de la base de datos')."</p>";
             prev_form($host, $user, $password);
          }
 
@@ -414,26 +433,26 @@ function step4 ($databasename, $newdatabasename) {
             echo "<p>".__('Base de datos creada')."</p>";
 
             if ($link->select_db($newdatabasename)
-                && DBConnection::createMainConfig($host,$user,$password,$newdatabasename)) {
+                && DBConnection::createMainConfig($host, $user, $password, $newdatabasename)) {
 
                Toolbox::createSchema($_SESSION["glpilanguage"]);
-               echo "<p>".__('OK - Iniciando la base de datos')."</p>";
+               echo "<p>".__('OK - la base de datos fue inicializada')."</p>";
                next_form();
 
             } else { // can't create config_db file
-               echo "<p>".__('Archivo de parametros para la base de datos no escribible')."</p>";
+               echo "<p>".__('Imposible escribir el archivo de configuración de la base de datos')."</p>";
                prev_form($host, $user, $password);
             }
 
          } else { // can't create database
-            echo __('Error creando la base de datos!');
-            echo "<br>".sprintf(__('Respuesta del Servidor: %s'), $link->error);
+            echo __('¡Error al crear la base de datos!');
+            echo "<br>".sprintf(__('El servidor respondió: %s'), $link->error);
             prev_form($host, $user, $password);
          }
       }
 
    } else { // no db selected
-      echo "<p>".__("Escoge una base de datos!"). "</p>";
+      echo "<p>".__("¡No seleccionaste una base de datos!"). "</p>";
       //prev_form();
       prev_form($host, $user, $password);
    }
@@ -445,7 +464,7 @@ function step4 ($databasename, $newdatabasename) {
 //send telemetry informations
 function step6() {
    global $DB;
-   echo "<h3>".__('Collectar datos')."</h3>";
+   echo "<h3>".__('Recolectar datos')."</h3>";
 
    include_once(GLPI_ROOT . "/inc/dbmysql.class.php");
    include_once(GLPI_CONFIG_DIR . "/config_db.php");
@@ -454,51 +473,75 @@ function step6() {
    echo "<form action='install.php' method='post'>";
    echo "<input type='hidden' name='install' value='Etape_5'>";
 
-   echo Telemetry::showTelemetry();
-   echo Telemetry::showReference();
+ //  echo Telemetry::showTelemetry();
+ //  echo Telemetry::showReference();
 
    echo "<p class='submit'><input type='submit' name='submit' class='submit' value='".
             __('Continuar')."'></p>";
    Html::closeForm();
 }
 
+function step7() {
+   echo "<h3>".__('Una última cosa antes de empezar')."</h3>";
+
+   echo "<form action='install.php' method='post'>";
+   echo "<input type='hidden' name='install' value='Etape_6'>";
+
+   echo GLPINetwork::showInstallMessage();
+
+   echo "<p class='submit'>";
+   echo "<a href='".GLPI_NETWORK_SERVICES2."' target='_blank' class='vsubmit'>".
+            __('Donativo')."</a>&nbsp;";
+   echo "<input type='submit' name='submit' class='submit' value='".
+            __('Continuar')."'>";
+   echo "</p>";
+   Html::closeForm();
+}
 
 // finish installation
-function step7() {
-   global $CFG_GLPI;
-
+function step8() {
    include_once(GLPI_ROOT . "/inc/dbmysql.class.php");
    include_once(GLPI_CONFIG_DIR . "/config_db.php");
    $DB = new DB();
 
    if (isset($_POST['send_stats'])) {
       //user has accepted to send telemetry infos; activate cronjob
-      $query = 'UPDATE glpi_crontasks SET state = 1 WHERE name=\'telemetry\'';
-      $DB->query($query);
+      $DB->update(
+         'glpi_crontasks',
+         ['state' => 0],
+         ['name' => 'telemetry']
+      );
    }
 
    $url_base = str_replace("/install/install.php", "", $_SERVER['HTTP_REFERER']);
-   $query = "UPDATE `glpi_configs`
-             SET `value`     = '".$DB->escape($url_base)."'
-             WHERE `context` = 'core'
-                   AND `name`    = 'url_base'";
-   $DB->query($query);
+   $DB->update(
+      'glpi_configs',
+      ['value' => $DB->escape($url_base)], [
+         'context'   => 'core',
+         'name'      => 'url_base'
+      ]
+   );
 
    $url_base_api = "$url_base/apirest.php/";
-   $query = "UPDATE `glpi_configs`
-             SET `value`     = '".$DB->escape($url_base_api)."'
-             WHERE `context` = 'core'
-                   AND `name`    = 'url_base_api'";
-   $DB->query($query);
+   $DB->update(
+      'glpi_configs',
+      ['value' => $DB->escape($url_base_api)], [
+         'context'   => 'core',
+         'name'      => 'url_base_api'
+      ]
+   );
 
-   echo "<h2>".__('Instalación realizada')."</h2>";
+   Session::destroy(); // Remove session data (debug mode for instance) set by web installation
+
+   echo "<h2>".__('La instalacion esta terminada')."</h2>";
+
    echo "<p>".__('Los accesos por defecto son:')."</p>";
-   echo "<p><ul><li> ".__('civikmind/civikmind para la cuenta de administración')."</li>";
-   echo "<li>".__('gestor/gestor para la cuenta de gestión')."</li>";
-   echo "<li>".__('normal/normal para las cuentas normales')."</li>";
-   echo "<li>".__('ciudadano/ciudadano para la cuenta de solo envio')."</li></ul></p>";
-   echo "<p>".__('En Horabuena!.')."</p>";
-   echo "<p class='center'><a class='vsubmit' href='../index.php'>".__('Use Civikmind');
+   echo "<p><ul><li> ".__('civikmind/civikmind para la cuenta de adminsitración')."</li>";
+   echo "<li>".__('soporte/soporte para la cuenta técnica')."</li>";
+   echo "<li>".__('ciudadano/ciudadano para cuentas normales')."</li>";
+   echo "<li>".__('publicador/publicador para cuentas de solo envios')."</li></ul></p>";
+   echo "<p>".__('Puede eliminar o modificar estas cuentas, así como los datos iniciales.')."</p>";
+   echo "<p class='center'><a class='vsubmit' href='../index.php'>".__('Usá Civikmind');
    echo "</a></p>";
 }
 
@@ -509,17 +552,17 @@ function update1($DBname) {
    $user     = $_SESSION['db_access']['user'];
    $password = $_SESSION['db_access']['password'];
 
-   if (DBConnection::createMainConfig($host,$user,$password,$DBname) && !empty($DBname)) {
+   if (DBConnection::createMainConfig($host, $user, $password, $DBname) && !empty($DBname)) {
       $from_install = true;
       include_once(GLPI_ROOT ."/install/update.php");
 
    } else { // can't create config_db file
-      echo __("Archivo de parametros para la base de datos no escribible.");
-      echo "<h3>".__('Deseas continuar?')."</h3>";
+      echo __("No se puede crear el archivo de conexión de la base de datos, verifique los permisos del archivo.");
+      echo "<h3>".__('¿Quieres continuar?')."</h3>";
       echo "<form action='install.php' method='post'>";
       echo "<input type='hidden' name='update' value='yes'>";
       echo "<p class='submit'><input type='hidden' name='install' value='Etape_0'>";
-      echo "<input type='submit' name='submit' class='submit' value=\"".__('Continue')."\">";
+      echo "<input type='submit' name='submit' class='submit' value=\"".__('Continuar')."\">";
       echo "</p>";
       Html::closeForm();
    }
@@ -542,10 +585,10 @@ if (isset($_POST["language"])) {
    $_SESSION["glpilanguage"] = $_POST["language"];
 }
 
-Session::loadLanguage();
+Session::loadLanguage('', false);
 
 /**
- * @since version 0.84.2
+ * @since 0.84.2
 **/
 function checkConfigFile() {
 
@@ -555,11 +598,20 @@ function checkConfigFile() {
    }
 }
 
-if (!isset($_POST["install"])) {
+if (!isset($_SESSION['can_process_install']) || !isset($_POST["install"])) {
    $_SESSION = [];
 
+   $_SESSION["glpilanguage"] = Session::getPreferredLanguage();
+
    checkConfigFile();
-   header_html("Elegir Idioma");
+
+   // Add a flag that will be used to validate that installation can be processed.
+   // This flag is put here just after checking that DB config file does not exist yet.
+   // It is mandatory to validate that `Etape_4` to `Etape_6` are not used outside installation process
+   // to change GLPI base URL without even being authenticated.
+   $_SESSION['can_process_install'] = true;
+
+   header_html(__("Elige tu idioma"));
    choose_language();
 
 } else {
@@ -578,13 +630,13 @@ if (!isset($_POST["install"])) {
    switch ($_POST["install"]) {
       case "lang_select" : // lang ok, go accept licence
          checkConfigFile();
-         header_html(__('Licencia'));
+         header_html(SoftwareLicense::getTypeName(1));
          acceptLicense();
          break;
 
       case "License" : // licence  ok, go choose installation or Update
          checkConfigFile();
-         header_html(__('Empezar a instalar'));
+         header_html(__('Iniciando instalación'));
          step0();
          break;
 
@@ -624,16 +676,21 @@ if (!isset($_POST["install"])) {
                $_POST["newdatabasename"]);
          break;
 
-      case "Etape_4" : // finish installation
+      case "Etape_4" : // send telemetry informations
          header_html(sprintf(__('Paso %d'), 4));
          step6();
          break;
 
       case "Etape_5" : // finish installation
-         header_html(sprintf(__('Step %d'), 4));
+         header_html(sprintf(__('Paso %d'), 5));
          step7();
          break;
-		 
+
+      case "Etape_6" : // finish installation
+         header_html(sprintf(__('Paso %d'), 6));
+         step8();
+         break;
+
       case "update_1" :
          checkConfigFile();
          if (empty($_POST["databasename"])) {

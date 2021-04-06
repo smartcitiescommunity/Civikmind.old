@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 use Glpi\Event;
 
 if (!defined('GLPI_ROOT')) {
@@ -54,7 +50,7 @@ class Netpoint extends CommonDropdown {
    function getAdditionalFields() {
 
       return [['name'  => 'locations_id',
-                         'label' => __('Location'),
+                         'label' => Location::getTypeName(1),
                          'type'  => 'dropdownValue',
                          'list'  => true]];
    }
@@ -65,10 +61,10 @@ class Netpoint extends CommonDropdown {
    }
 
 
-   function getSearchOptionsNew() {
-      $tab  = parent::getSearchOptionsNew();
+   function rawSearchOptions() {
+      $tab  = parent::rawSearchOptions();
 
-      $tab = array_merge($tab, Location::getSearchOptionsToAddNew());
+      $tab = array_merge($tab, Location::rawSearchOptionsToAdd());
 
       foreach ($tab as &$t) {
          if ($t['id'] == 3) {
@@ -84,7 +80,7 @@ class Netpoint extends CommonDropdown {
    /**
     * Handled Multi add item
     *
-    * @since version 0.83 (before addMulti)
+    * @since 0.83 (before addMulti)
     *
     * @param $input array of values
    **/
@@ -103,14 +99,14 @@ class Netpoint extends CommonDropdown {
    /**
     * Print out an HTML "<select>" for a dropdown with preselected value
     *
-    * @param $myname             the name of the HTML select
-    * @param $value              the preselected value we want (default 0)
-    * @param $locations_id       default location ID for search (default -1)
-    * @param $display_comment    display the comment near the dropdown (default 1)
-    * @param $entity_restrict    Restrict to a defined entity(default -1)
-    * @param $devtype            (default '')
+    * @param string  $myname             the name of the HTML select
+    * @param integer $value              the preselected value we want (default 0)
+    * @param integer $locations_id       default location ID for search (default -1)
+    * @param boolean $display_comment    display the comment near the dropdown (default 1)
+    * @param integer $entity_restrict    Restrict to a defined entity(default -1)
+    * @param string  $devtype            (default '')
     *
-    * @return nothing (display the select box)
+    * @return integer random part of elements id
    **/
    static function dropdownNetpoint($myname, $value = 0, $locations_id = -1, $display_comment = 1,
                                     $entity_restrict = -1, $devtype = '') {
@@ -154,8 +150,11 @@ class Netpoint extends CommonDropdown {
                                           $item->getFormURL());
 
          }
-         $paramscomment = ['value' => '__VALUE__',
-                                'table' => "glpi_netpoints"];
+         $paramscomment = [
+            'value'       => '__VALUE__',
+            'itemtype'    => Netpoint::getType(),
+            '_idor_token' => Session::getNewIDORToken("Netpoint")
+         ];
          echo Ajax::updateItemOnSelectEvent($field_id, $comment_id,
                                             $CFG_GLPI["root_doc"]."/ajax/comments.php",
                                             $paramscomment, false);
@@ -169,25 +168,25 @@ class Netpoint extends CommonDropdown {
     *
     * @param $input array of value to import (name, locations_id, entities_id)
     *
-    * @return the ID of the new (or -1 if not found)
+    * @return integer the ID of the new (or -1 if not found)
    **/
    function findID(array &$input) {
       global $DB;
 
       if (!empty($input["name"])) {
-         $query = "SELECT `id`
-                   FROM `".$this->getTable()."`
-                   WHERE `name` = '".$input["name"]."'
-                         AND `locations_id` = '".(isset($input["locations_id"])
-                                                      ?$input["locations_id"]:0)."'".
-                         getEntitiesRestrictRequest(' AND ', $this->getTable(), '',
-                                                    $input['entities_id'], $this->maybeRecursive());
+         $iterator = $DB->request([
+            'SELECT' => 'id',
+            'FROM'   => $this->getTable(),
+            'WHERE'  => [
+               'name'         => $input['name'],
+               'locations_id' => $input["locations_id"] ?? 0
+            ] + getEntitiesRestrictCriteria($this->getTable(), $input['entities_id'], $this->maybeRecursive())
+         ]);
 
          // Check twin :
-         if ($result_twin = $DB->query($query)) {
-            if ($DB->numrows($result_twin) > 0) {
-               return $DB->result($result_twin, 0, "id");
-            }
+         if (count($iterator)) {
+            $result = $iterator->next();
+            return $result['id'];
          }
       }
       return -1;
@@ -249,10 +248,10 @@ class Netpoint extends CommonDropdown {
     *
     * @param $item Location
     *
-    * @return Nothing (display)
+    * @return void
    **/
    static function showForLocation($item) {
-      global $DB, $CFG_GLPI;
+      global $DB;
 
       $ID       = $item->getField('id');
       $netpoint = new self();
@@ -336,7 +335,7 @@ class Netpoint extends CommonDropdown {
 
          if ($canedit) {
             echo "<th width='10'>";
-            Html::checkAllAsCheckbox('mass'.__CLASS__.$rand);
+            echo Html::getCheckAllAsCheckbox('mass'.__CLASS__.$rand);
             echo "</th>";
          }
 
@@ -385,7 +384,7 @@ class Netpoint extends CommonDropdown {
 
 
    /**
-    * @since version 0.84
+    * @since 0.84
     *
     * @param $itemtype
     * @param $base            HTMLTableBase object
@@ -403,13 +402,13 @@ class Netpoint extends CommonDropdown {
          return;
       }
 
-      $base->addHeader($column_name, __('Network outlet'), $super, $father);
+      $base->addHeader($column_name, _n('Network outlet', 'Network outlets', 1), $super, $father);
 
    }
 
 
    /**
-    * @since version 0.84
+    * @since 0.84
     *
     * @param $row             HTMLTableRow object (default NULL)
     * @param $item            CommonDBTM object (default NULL)

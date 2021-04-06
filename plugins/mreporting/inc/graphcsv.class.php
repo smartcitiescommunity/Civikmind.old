@@ -37,7 +37,7 @@ class PluginMreportingGraphcsv extends PluginMreportingGraph {
       }
    }
 
-   function showHbar($params, $dashboard = false , $width = false) {
+   function showHbar($params, $dashboard = false, $width = false) {
       global $CFG_GLPI;
 
       $criterias = PluginMreportingCommon::initGraphParams($params);
@@ -50,7 +50,7 @@ class PluginMreportingGraphcsv extends PluginMreportingGraph {
          Toolbox::logdebug($raw_datas);
       }
 
-      $datas = isset($raw_datas['datas']) ? $raw_datas['datas'] : array();
+      $datas = isset($raw_datas['datas']) ? $raw_datas['datas'] : [];
 
       if (count($datas) <= 0) {
          return false;
@@ -69,22 +69,22 @@ class PluginMreportingGraphcsv extends PluginMreportingGraph {
       $values = array_values($datas);
       $labels = array_keys($datas);
 
-      $options = array("title" => $title,
-                        "desc" => $desc,
-                        "randname" => $randname,
-                        "export" => $export);
+      $options = ["title" => $title,
+                  "desc" => $desc,
+                  "randname" => $randname,
+                  "export" => $export];
 
       $this->initGraph($options);
 
       //titles
       $out = $title." - ".$desc."\r\n";
-      foreach($labels as $label) {
+      foreach ($labels as $label) {
          $out.= $label.$CFG_GLPI['csv_delimiter'];
       }
       $out = substr($out, 0, -1)."\r\n";
 
       //values
-      foreach($values as $value) {
+      foreach ($values as $value) {
          $out.= $value." ".$unit.$CFG_GLPI['csv_delimiter'];
       }
       $out = substr($out, 0, -1)."\r\n";
@@ -92,11 +92,11 @@ class PluginMreportingGraphcsv extends PluginMreportingGraph {
       echo $out;
    }
 
-   function showPie($params, $dashboard = false , $width = false) {
+   function showPie($params, $dashboard = false, $width = false) {
       $this->showHbar($params);
    }
 
-   function showHgbar($params, $dashboard = false , $width = false) {
+   function showHgbar($params, $dashboard = false, $width = false) {
       global $CFG_GLPI;
 
       $criterias = PluginMreportingCommon::initGraphParams($params);
@@ -110,7 +110,7 @@ class PluginMreportingGraphcsv extends PluginMreportingGraph {
          Toolbox::logdebug($raw_datas);
       }
 
-      $datas = isset($raw_datas['datas']) ? $raw_datas['datas'] : array();
+      $datas = isset($raw_datas['datas']) ? $raw_datas['datas'] : [];
 
       if (count($datas) <= 0) {
          return false;
@@ -128,31 +128,35 @@ class PluginMreportingGraphcsv extends PluginMreportingGraph {
 
       $labels2 = array_values($raw_datas['labels2']);
 
-      $options = array("title" => $title,
-                        "desc" => $desc,
-                        "randname" => $randname,
-                        "export" => $export);
+      $options = ["title" => $title,
+                  "desc" => $desc,
+                  "randname" => $randname,
+                  "export" => $export];
 
       $this->initGraph($options);
 
       $out = $title." - ".$desc."\r\n";
 
-      foreach($datas as $label2 => $cols) {
+      foreach ($datas as $label2 => $cols) {
          //title
          $out.= $label2."\r\n";
 
          //subtitle
          $i = 0;
-         foreach($cols as $value) {
+         foreach ($cols as $value) {
             $label = "";
-            if (isset($labels2[$i])) $label = str_replace(",", "-", $labels2[$i]);
+            if (isset($labels2[$i])) {
+               $label = str_replace(",", "-", $labels2[$i]);
+            }
             $out.= $label.$CFG_GLPI['csv_delimiter'];
             $i++;
          }
          $out = substr($out, 0, -1)."\r\n";
 
          //values
-         foreach($cols as $value) $out.= $value." ".$unit.";";
+         foreach ($cols as $value) {
+            $out.= $value." ".$unit.";";
+         }
          $out = substr($out, 0, -1)."\r\n\r\n";
       }
       $out = substr($out, 0, -1)."\r\n";
@@ -160,19 +164,19 @@ class PluginMreportingGraphcsv extends PluginMreportingGraph {
       echo $out;
    }
 
-   function showVstackbar($params, $dashboard = false , $width = false) {
+   function showVstackbar($params, $dashboard = false, $width = false) {
       $this->showHGbar($params);
    }
 
-   function showArea($params, $dashboard = false , $width = false) {
+   function showArea($params, $dashboard = false, $width = false) {
       $this->showHbar($params);
    }
 
-   function showGarea($params, $dashboard = false , $width = false) {
+   function showGarea($params, $dashboard = false, $width = false) {
       $this->showHGbar($params);
    }
 
-   function showSunburst($params, $dashboard = false , $width = false) {
+   function showSunburst($params, $dashboard = false, $width = false) {
       $criterias = PluginMreportingCommon::initGraphParams($params);
 
       foreach ($criterias as $key => $val) {
@@ -186,10 +190,12 @@ class PluginMreportingGraphcsv extends PluginMreportingGraph {
       if (isset($raw_datas['datas'])) {
          $datas = $raw_datas['datas'];
       } else {
-         $datas = array();
+         $datas = [];
       }
 
-      if (count($datas) <= 0) return false;
+      if (count($datas) <= 0) {
+         return false;
+      }
 
       $configs = PluginMreportingConfig::initConfigParams($opt['f_name'], $opt['class']);
 
@@ -201,10 +207,10 @@ class PluginMreportingGraphcsv extends PluginMreportingGraph {
          $datas = PluginMreportingCommon::compileDatasForUnit($datas, $unit);
       }
 
-      $options = array("title" => $title,
-                        "desc" => $desc,
-                        "randname" => $randname,
-                        "export" => $export);
+      $options = ["title" => $title,
+                  "desc" => $desc,
+                  "randname" => $randname,
+                  "export" => $export];
 
       $this->initGraph($options);
 
@@ -218,9 +224,11 @@ class PluginMreportingGraphcsv extends PluginMreportingGraph {
       $out = "";
 
       $i = 0;
-      foreach($datas as $label => $value) {
+      foreach ($datas as $label => $value) {
          for ($j=0; $j < $level; $j++) {
-           if ($i > 0) $out.= $CFG_GLPI['csv_delimiter'];
+            if ($i > 0) {
+               $out.= $CFG_GLPI['csv_delimiter'];
+            }
          }
 
          if (is_array($value)) {

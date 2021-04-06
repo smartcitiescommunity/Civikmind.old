@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -29,10 +29,6 @@
  * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
  */
-
-/** @file
-* @brief
-*/
 
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
@@ -67,7 +63,7 @@ class NotificationMailing implements NotificationInterface {
    static function isUserAddressValid($address, $options = ['checkdns'=>false]) {
       //drop sanitize...
       $address = Toolbox::stripslashes_deep($address);
-      $isValid = \PHPMailer::ValidateAddress($address);
+      $isValid = GLPIMailer::ValidateAddress($address);
 
       $checkdns = (isset($options['checkdns']) ? $options['checkdns'] :  false);
       if ($checkdns) {
@@ -98,7 +94,7 @@ class NotificationMailing implements NotificationInterface {
          //force recipient to configured email address
          $recipient = GLPI_FORCE_MAIL;
          //add original email addess to message body
-         $text .= "\n" . sprintf(__('Orignal email address was %1$s'), $CFG_GLPI['admin_email']);
+         $text .= "\n" . sprintf(__('Original email address was %1$s'), $CFG_GLPI['admin_email']);
       }
 
       $mmail->AddAddress($recipient, $CFG_GLPI["admin_email_name"]);
@@ -108,6 +104,7 @@ class NotificationMailing implements NotificationInterface {
       if (!$mmail->Send()) {
          Session::addMessageAfterRedirect(__('Failed to send test email to administrator'), false,
                                           ERROR);
+         GLPINetwork::addErrorMessageAfterRedirect();
          return false;
       } else {
          Session::addMessageAfterRedirect(__('Test email sent to administrator'));

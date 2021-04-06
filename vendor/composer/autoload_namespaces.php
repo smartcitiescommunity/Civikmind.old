@@ -7,5 +7,4 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'SimplePie' => array($vendorDir . '/simplepie/simplepie/library'),
-    'Michelf' => array($vendorDir . '/michelf/php-markdown'),
 );

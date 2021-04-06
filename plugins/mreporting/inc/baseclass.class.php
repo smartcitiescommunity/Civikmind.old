@@ -34,9 +34,11 @@ class PluginMreportingBaseclass {
              $sql_date_solve,
              $sql_date_closed,
              $filters,
-             $where_entities;
+             $where_entities,
+             $where_entities_array,
+             $where_entities_level;
 
-   function __construct($config = array()) {
+   function __construct($config = []) {
       global $DB, $LANG;
 
       //force MySQL DATE_FORMAT in user locale
@@ -47,41 +49,43 @@ class PluginMreportingBaseclass {
          return true;
       }
 
-      $this->filters = array(
-         'open' => array(
+      $this->filters = [
+         'open' => [
             'label' => $LANG['plugin_mreporting']['Helpdeskplus']['opened'],
-            'status' => array(
+            'status' => [
                CommonITILObject::INCOMING => _x('status', 'New'),
                CommonITILObject::ASSIGNED => _x('status', 'Processing (assigned)'),
                CommonITILObject::PLANNED  => _x('status', 'Processing (planned)'),
                CommonITILObject::WAITING  => __('Pending')
-            )
-         ),
-         'close' => array(
+            ]
+         ],
+         'close' => [
             'label' => _x('status', 'Closed'),
-            'status' => array(
+            'status' => [
                CommonITILObject::SOLVED => _x('status', 'Solved'),
                CommonITILObject::CLOSED => _x('status', 'Closed')
-            )
-         )
-      );
-      $this->status = array(CommonITILObject::INCOMING,
-                            CommonITILObject::ASSIGNED,
-                            CommonITILObject::PLANNED,
-                            CommonITILObject::WAITING,
-                            CommonITILObject::SOLVED,
-                            CommonITILObject::CLOSED);
+            ]
+         ]
+      ];
+      $this->status = [CommonITILObject::INCOMING,
+                       CommonITILObject::ASSIGNED,
+                       CommonITILObject::PLANNED,
+                       CommonITILObject::WAITING,
+                       CommonITILObject::SOLVED,
+                       CommonITILObject::CLOSED];
 
       if (isset( $_SESSION['glpiactiveentities'])) {
          $this->where_entities = "'".implode("', '", $_SESSION['glpiactiveentities'])."'";
+         $this->where_entities_array = $_SESSION['glpiactiveentities'];
       } else { // maybe cron mode
-         $entities = array();
+         $entities = [];
          $entity = new Entity;
          $found_entities = $entity->find();
-         foreach($found_entities as $entities_id => $current_entity) {
+         foreach ($found_entities as $entities_id => $current_entity) {
             $entities[] = $entities_id;
          }
          $this->where_entities = "'".implode("', '", $entities)."'";
+         $this->where_entities_array = $entities;
       }
 
       // init default value for status selector
@@ -94,12 +98,12 @@ class PluginMreportingBaseclass {
             = $_SESSION['mreporting_values']['status_6'] = 0;
       }
 
-      if (!isset($_SESSION['mreporting_values']['period']))  {
+      if (!isset($_SESSION['mreporting_values']['period'])) {
          $_SESSION['mreporting_values']['period'] = 'month';
       }
       if (isset($_SESSION['mreporting_values']['period'])
           && !empty($_SESSION['mreporting_values']['period'])) {
-         switch($_SESSION['mreporting_values']['period']) {
+         switch ($_SESSION['mreporting_values']['period']) {
             case 'day':
                $this->period_sort = '%y%m%d';
                $this->period_sort_php = $this->period_sort = '%y%m%d';
@@ -137,7 +141,7 @@ class PluginMreportingBaseclass {
                $this->period_label = 'S-%u %y';
                break;
          }
-      } else{
+      } else {
          $this->period_sort = '%y%m';
          $this->period_label = '%b %Y';
       }

@@ -1,6 +1,6 @@
 <?php
 /*
- * @version $Id$
+ * @version $Id: HEADER 14684 2011-06-11 06:32:40Z remi $
  LICENSE
 
  This file is part of the datainjection plugin.
@@ -20,15 +20,16 @@
  --------------------------------------------------------------------------
  @package   datainjection
  @author    the datainjection plugin team
- @copyright Copyright (c) 2010-2013 Datainjection plugin team
+ @copyright Copyright (c) 2010-2017 Datainjection plugin team
  @license   GPLv2+
             http://www.gnu.org/licenses/gpl.txt
- @link      https://forge.indepnet.net/projects/datainjection
+ @link      https://github.com/pluginsGLPI/datainjection
  @link      http://www.glpi-project.org/
  @since     2009
  ---------------------------------------------------------------------- */
 
-class PluginDatainjectionInfo extends CommonDBTM {
+class PluginDatainjectionInfo extends CommonDBTM
+{
 
    static $rightname = "plugin_datainjection_model";
 
@@ -41,38 +42,43 @@ class PluginDatainjectionInfo extends CommonDBTM {
 
 
    function isMandatory() {
+
       return $this->fields["is_mandatory"];
    }
 
 
    function getInfosText() {
+
       return $this->text;
    }
 
 
    function getValue() {
+
       return $this->fields["value"];
    }
 
 
    function getID() {
+
       return $this->fields["id"];
    }
 
 
    function getInfosType() {
+
       return $this->fields["itemtype"];
    }
 
-   /**
+    /**
     * @param $model     PluginDatainjectionModel object
     * @param $canedit   (false by default)
    **/
-   static function showAddInfo(PluginDatainjectionModel $model, $canedit=false) {
+   static function showAddInfo(PluginDatainjectionModel $model, $canedit = false) {
 
       if ($canedit) {
          echo "<form method='post' name='form' id='form' action='".
-                Toolbox::getItemTypeFormURL(__CLASS__)."'>";
+             Toolbox::getItemTypeFormURL(__CLASS__)."'>";
          echo "<table class='tab_cadre_fixe'>";
          echo "<tr>";
          echo "<th>" . __('Tables', 'datainjection') . "</th>";
@@ -88,10 +94,11 @@ class PluginDatainjectionInfo extends CommonDBTM {
          $info->fields['models_id'] = $model->fields['id'];
          $info->getEmpty();
 
-         $rand = PluginDatainjectionInjectionType::dropdownLinkedTypes($info,
-                                                                       array('primary_type'
-                                                                           => $model->fields['itemtype'])
-                                                                      );
+         $rand = PluginDatainjectionInjectionType::dropdownLinkedTypes(
+             $info,
+             ['primary_type'
+                                                                        => $model->fields['itemtype']]
+         );
          echo "</td>";
          echo "<td class='center'><span id='span_field_$infos_id'></span></td>";
          echo "<td class='center'><span id='span_mandatory_$infos_id'></span></td>";
@@ -106,14 +113,14 @@ class PluginDatainjectionInfo extends CommonDBTM {
          echo "</table>";
          Html::closeForm();
          echo "<br/>";
-     }
+      }
 
    }
 
 
-   /**
-    *
+    /**
     * Display additional information form from Model form
+    *
     * @param PluginDatainjectionModel $model
     */
    static function showFormInfos(PluginDatainjectionModel $model) {
@@ -150,10 +157,11 @@ class PluginDatainjectionInfo extends CommonDBTM {
                echo "</td>";
             }
             echo "<td class='center'>";
-            $rand = PluginDatainjectionInjectionType::dropdownLinkedTypes($info,
-                                                                          array('primary_type'
-                                                                              => $model->fields['itemtype'])
-                                                                         );
+            $rand = PluginDatainjectionInjectionType::dropdownLinkedTypes(
+                $info,
+                ['primary_type'
+                                                                          => $model->fields['itemtype']]
+            );
             echo "</td>";
             echo "<td class='center'><span id='span_field_$infos_id'></span></td>";
             echo "<td class='center'><span id='span_mandatory_$infos_id'></span></td></tr>";
@@ -167,7 +175,7 @@ class PluginDatainjectionInfo extends CommonDBTM {
             echo "</td></tr>";
 
             Html::openArrowMassives("info_form$rand", true);
-            Html::closeArrowMassives(array('delete' => __('Delete permanently')));
+            Html::closeArrowMassives(['delete' => __('Delete permanently')]);
          }
          echo "</table>";
          Html::closeForm();
@@ -175,11 +183,12 @@ class PluginDatainjectionInfo extends CommonDBTM {
    }
 
 
-   /**
+    /**
     * @param $models_id
     * @param $infos        array
    **/
-   static function manageInfos($models_id, $infos=array()) {
+   static function manageInfos($models_id, $infos = []) {
+
       global $DB;
 
       $info = new self();
@@ -206,18 +215,22 @@ class PluginDatainjectionInfo extends CommonDBTM {
          }
       }
 
-      $info->deleteByCriteria(array('models_id' => $models_id,
-                                    'value'     => PluginDatainjectionInjectionType::NO_VALUE));
+      $info->deleteByCriteria(
+          ['models_id' => $models_id,
+          'value'     => PluginDatainjectionInjectionType::NO_VALUE]
+      );
    }
 
 
-   /**
+    /**
     * @param $model     PluginDatainjectionModel object
    **/
    static function showAdditionalInformationsForm(PluginDatainjectionModel $model) {
 
-      $infos = getAllDatasFromTable('glpi_plugin_datainjection_infos',
-                                    "`models_id` = '". $model->getField('id')."'");
+      $infos = getAllDataFromTable(
+          'glpi_plugin_datainjection_infos',
+          ['models_id' => $model->getField('id')]
+      );
 
       $table     = false;
       $modeltype = PluginDatainjectionModel::getInstance($model->getField('filetype'));
@@ -225,20 +238,23 @@ class PluginDatainjectionInfo extends CommonDBTM {
 
       if (count($infos)
           || $modeltype->haveSample()
-          || $model->fields['comment']) {
-         echo "<table class='tab_cadre_fixe'>";
-         echo "<tr><th colspan='2'>".sprintf(__('%1$s (%2$s)'),
-                                             __('Complementary information', 'datainjection'),
-                                             __('Choose a file', 'datainjection'));
-         echo "</th></tr>\n";
-         $table = true;
+          || $model->fields['comment']
+      ) {
+          echo "<table class='tab_cadre_fixe'>";
+          echo "<tr><th colspan='2'>".sprintf(
+              __('%1$s (%2$s)'),
+              __('Complementary information', 'datainjection'),
+              __('Choose a file', 'datainjection')
+          );
+          echo "</th></tr>\n";
+          $table = true;
       }
       if ($modeltype->haveSample()) {
-         echo "<tr class='tab_bg_1'>";
-         echo "<td colspan='2' class='center'>";
-         echo "<a href='".$model->getFormURL()."?sample=";
-         echo $model->getField('id')."' class='vsubmit'>".__('Download file sample', 'datainjection');
-         echo "</a></td></tr>\n";
+          echo "<tr class='tab_bg_1'>";
+          echo "<td colspan='2' class='center'>";
+          echo "<a href='".$model->getFormURL()."?sample=";
+          echo $model->getField('id')."' class='vsubmit'>".__('Download file sample', 'datainjection');
+          echo "</a></td></tr>\n";
       }
       if ($model->fields['comment']) {
          echo "<tr class='tab_bg_2'>";
@@ -248,48 +264,52 @@ class PluginDatainjectionInfo extends CommonDBTM {
          $info = new PluginDatainjectionInfo();
 
          foreach ($infos as $tmp) {
-            $info->fields = $tmp;
-            echo "<tr class='tab_bg_1'>";
-            self::displayAdditionalInformation($info,
-                                              (isset($_SESSION['datainjection']['infos'])
-                                                ? $_SESSION['datainjection']['infos']
-                                                : array()));
-            echo "</tr>";
+             $info->fields = $tmp;
+             echo "<tr class='tab_bg_1'>";
+             self::displayAdditionalInformation(
+                 $info,
+                 (isset($_SESSION['datainjection']['infos'])
+                                             ? $_SESSION['datainjection']['infos']
+                 : [])
+             );
+             echo "</tr>";
          }
       }
       if ($table) {
          echo "</table><br>";
       }
 
-      $options['models_id'] = $model->getField('id');
-      $options['confirm']   = 'process';
-      PluginDatainjectionClientInjection::showUploadFileForm($options);
+         $options['models_id'] = $model->getField('id');
+         $options['confirm']   = 'process';
+         PluginDatainjectionClientInjection::showUploadFileForm($options);
 
-      //Store models_id in session for future usage
-      $_SESSION['datainjection']['models_id'] = $model->getField('id');
+         //Store models_id in session for future usage
+         $_SESSION['datainjection']['models_id'] = $model->getField('id');
    }
 
 
-   /**
+    /**
     * @param $info               PluginDatainjectionInfo object
     * @param $values    array
     */
-   static function displayAdditionalInformation(PluginDatainjectionInfo $info, $values=array()) {
+   static function displayAdditionalInformation(PluginDatainjectionInfo $info, $values = []) {
 
       $injectionClass
-         = PluginDatainjectionCommonInjectionLib::getInjectionClassInstance($info->fields['itemtype']);
+       = PluginDatainjectionCommonInjectionLib::getInjectionClassInstance($info->fields['itemtype']);
       $option
-         = PluginDatainjectionCommonInjectionLib::findSearchOption($injectionClass->getOptions($info->fields['itemtype']),
-                                                                   $info->fields['value']);
+       = PluginDatainjectionCommonInjectionLib::findSearchOption(
+           $injectionClass->getOptions($info->fields['itemtype']),
+           $info->fields['value']
+       );
       if ($option) {
-         echo "<td>".$option['name']."</td><td>";
-         self::showAdditionalInformation($info, $option, $injectionClass, $values);
-         echo "</td>";
+          echo "<td>".$option['name']."</td><td>";
+          self::showAdditionalInformation($info, $option, $injectionClass, $values);
+          echo "</td>";
       }
    }
 
 
-   /**
+    /**
     * Display command additional informations
     *
     * @param info
@@ -298,8 +318,8 @@ class PluginDatainjectionInfo extends CommonDBTM {
     *
     * @return nothing
    **/
-   static function showAdditionalInformation(PluginDatainjectionInfo $info, $option = array(),
-                                             $injectionClass, $values = array()) {
+   static function showAdditionalInformation(PluginDatainjectionInfo $info, $option,
+                                             $injectionClass, $values = []) {
 
       $name = "info[".$option['linkfield']."]";
 
@@ -313,40 +333,44 @@ class PluginDatainjectionInfo extends CommonDBTM {
          case 'text' :
          case 'decimal' :
             if (empty($value)) {
-               $value = (isset($option['default'])?$option['default']:'');
+                $value = (isset($option['default'])?$option['default']:'');
             }
             echo "<input type='text' name='$name' value='$value'";
             if (isset($option['size'])) {
-               echo " size='".$option['size']."'";
+                echo " size='".$option['size']."'";
             }
             echo ">";
             break;
 
          case 'dropdown' :
             if ($value == '') {
-               $value = 0;
+                $value = 0;
             }
-            Dropdown::show(getItemTypeForTable($option['table']), array('name'  => $name,
-                                                                        'value' => $value));
+            Dropdown::show(
+                getItemTypeForTable($option['table']), ['name'  => $name,
+                                                                      'value' => $value]
+            );
             break;
 
          case 'bool' :
             if ($value == '') {
-               $value = 0;
+                $value = 0;
             }
             Dropdown::showYesNo($name, $value);
             break;
 
          case 'user' :
             if ($value == '') {
-               $value = 0;
+                $value = 0;
             }
-            User::dropdown(array('name'  => $name,
-                                 'value' => $value));
+            User::dropdown(
+                ['name'  => $name,
+                               'value' => $value]
+            );
             break;
 
          case 'date' :
-            Html::showDateField($name, array('value' => $value));
+            Html::showDateField($name, ['value' => $value]);
             break;
 
          case 'multiline_text' :
@@ -357,13 +381,15 @@ class PluginDatainjectionInfo extends CommonDBTM {
             $minvalue = (isset($option['minvalue'])?$option['minvalue']:0);
             $maxvalue = (isset($option['maxvalue'])?$option['maxvalue']:0);
             $step     = (isset($option['step'])?$option['step']:1);
-            $default  = (isset($option['-1'])?array(-1 => $option['-1']):array());
+            $default  = (isset($option['-1'])?[-1 => $option['-1']]:[]);
 
-            Dropdown::showNumber($name, array('value' => $value,
-                                              'min'   => $minvalue,
-                                              'max'   => $maxvalue,
-                                              'step'  => $step,
-                                              'toadd' => $default));
+            Dropdown::showNumber(
+                $name, ['value' => $value,
+                                            'min'   => $minvalue,
+                                            'max'   => $maxvalue,
+                                            'step'  => $step,
+                                            'toadd' => $default]
+            );
             break;
 
          case 'template' :
@@ -375,9 +401,9 @@ class PluginDatainjectionInfo extends CommonDBTM {
             break;
 
          default :
-            if (method_exists($injectionClass,'showAdditionalInformation')) {
-               //If type is not a standard type, must be treated by specific injection class
-               $injectionClass->showAdditionalInformation($info, $option);
+            if (method_exists($injectionClass, 'showAdditionalInformation')) {
+                //If type is not a standard type, must be treated by specific injection class
+                $injectionClass->showAdditionalInformation($info, $option);
             }
       }
 
@@ -387,7 +413,7 @@ class PluginDatainjectionInfo extends CommonDBTM {
    }
 
 
-   /**
+    /**
     * @param $info      PluginDatainjectionInfo object
     * @param $value
    **/
@@ -396,8 +422,10 @@ class PluginDatainjectionInfo extends CommonDBTM {
       $itemtype       = $info->getInfosType();
       $injectionClass = PluginDatainjectionCommonInjectionLib::getInjectionClassInstance($itemtype);
       $options        = $injectionClass->getOptions($itemtype);
-      $option         = PluginDatainjectionCommonInjectionLib::findSearchOption($options,
-                                                                                $info->getValue());
+      $option         = PluginDatainjectionCommonInjectionLib::findSearchOption(
+          $options,
+          $info->getValue()
+      );
 
       if ($option) {
          switch ($option['displaytype']) {
@@ -405,7 +433,7 @@ class PluginDatainjectionInfo extends CommonDBTM {
             case 'text' :
             case 'multiline_text' :
                if ($value != PluginDatainjectionCommonInjectionLib::EMPTY_VALUE) {
-                  return true;
+                   return true;
                }
                return false;
 
@@ -421,20 +449,21 @@ class PluginDatainjectionInfo extends CommonDBTM {
    }
 
 
-   /**
+    /**
     * @param $name
     * @param $table
    **/
    static function dropdownTemplates($name, $table) {
+
       global $DB;
 
-      $values    = array(0 => Dropdown::EMPTY_VALUE);
+      $values    = [0 => Dropdown::EMPTY_VALUE];
 
       $sql = "SELECT `id`, `template_name`
               FROM `".$table."`
               WHERE `is_template`=1 ".
-                    getEntitiesRestrictRequest(' AND ', $table).
-             "ORDER BY `template_name`";
+                  getEntitiesRestrictRequest(' AND ', $table).
+           "ORDER BY `template_name`";
 
       foreach ($DB->request($sql) as $data) {
          $values[$data['id']] = $data['template_name'];
@@ -443,4 +472,3 @@ class PluginDatainjectionInfo extends CommonDBTM {
    }
 
 }
-?>

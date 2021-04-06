@@ -18,14 +18,35 @@ if(!empty($_POST['submit']))
 else {
     $data_ini = date("Y-m-01");
     $data_fin = date("Y-m-d");
-    }
+}
 
 if(!isset($_POST["sel_ent"])) {
-    $id_ent = $_GET["ent"];
+    $id_ent = $_GET["sel_ent"];
 }
 
 else {
     $id_ent = $_POST["sel_ent"];
+}
+
+
+if(!isset($_GET['sel_ent']) || $_GET['sel_ent'] == -1) {
+//seleciona entidade											
+$sql_e = "SELECT value FROM glpi_plugin_dashboard_config WHERE name = 'entity' AND users_id = ".$_SESSION['glpiID']."";
+$result_e = $DB->query($sql_e);
+$sel_ent = $DB->result($result_e,0,'value');
+$ents = $sel_ent;
+}
+
+else {
+
+//if($sel_ent == "" || $sel_ent == -1) {
+	$entities = $_SESSION['glpiactiveentities'];
+	$ents = implode(",",$entities);									
+//}
+/*else {										
+	$id_ent = $sel_ent;
+}*/
+
 }
 
 ?>
@@ -133,21 +154,7 @@ a:hover { color: #000099; }
 				</script>		
 				</td>		
 				<td style="margin-top:2px;">
-		<?php
-		
-		//seleciona entidade											
-		$sql_e = "SELECT value FROM glpi_plugin_dashboard_config WHERE name = 'entity' AND users_id = ".$_SESSION['glpiID']."";
-		$result_e = $DB->query($sql_e);
-		$sel_ent = $DB->result($result_e,0,'value');
-		
-		if($sel_ent == '' || $sel_ent == -1) {
-			$entities = $_SESSION['glpiactiveentities'];
-			$ents = implode(",",$entities);									
-		}
-		else {										
-			$ents = $sel_ent;
-		}
-
+		<?php		
 
 		$sql_ent = "
 		SELECT id, completename AS name
@@ -162,10 +169,10 @@ a:hover { color: #000099; }
 
 		//$DB->data_seek($result_ent, 0) ;
 		while ($row_result = $DB->fetch_assoc($result_ent))
-		    {
-		    	$v_row_result = $row_result['id'];
-		    	$arr_ent[$v_row_result] = $row_result['name'] ;
-		    }
+	    {
+	    	$v_row_result = $row_result['id'];
+	    	$arr_ent[$v_row_result] = $row_result['name'] ;
+	    }
 
 		$name = 'sel_ent';
 		$options = $arr_ent;
@@ -210,14 +217,14 @@ if($con == "1") {
 	}
 	
 	if(!isset($_POST["sel_ent"])) {
-		$id_ent = $_GET["ent"];
+		$id_ent = $_GET["sel_ent"];
 	}
 	
 	else {
 		$id_ent = $_POST["sel_ent"];
 	}
 	
-	if($id_ent == 0) {
+	if($id_ent == "" || $id_ent == -1) {
 		echo '<script language="javascript"> alert(" ' . __('Select a entity','dashboard') . ' "); </script>';
 		echo '<script language="javascript"> location.href="rel_custo_ent.php"; </script>';
 	}
@@ -280,7 +287,7 @@ if($con == "1") {
 	AND glpi_tickets.id = glpi_ticketcosts.`tickets_id`
 	AND glpi_tickets.date ".$datas2."
 	AND glpi_tickets.status IN ".$status."
-	".$entidade."
+	AND glpi_tickets.entities_id IN (".$ents.")
 	GROUP BY id
 	ORDER BY id DESC ";
 	
@@ -298,7 +305,7 @@ if($con == "1") {
 	AND glpi_tickets.is_deleted = 0
 	AND glpi_tickets.date ".$datas2."
 	AND glpi_tickets.status IN ".$status."
-	".$entidade."
+	AND glpi_tickets.entities_id IN (".$ents.")
 	GROUP BY id
 	ORDER BY id DESC ";
 	
@@ -319,7 +326,7 @@ if($con == "1") {
 	AND glpi_tickets.status IN ".$status_open."
 	AND glpi_tickets.is_deleted = 0
 	AND glpi_tickets.id = glpi_ticketcosts.`tickets_id`
-	".$entidade." " ;
+	AND glpi_tickets.entities_id IN (".$ents.") " ;
 	
 	$result_ab = $DB->query($sql_ab) or die ("erro_ab");
 	$data_ab = $DB->fetch_assoc($result_ab);
@@ -360,8 +367,7 @@ if($con == "1") {
 	
 	$result_nome = $DB->query($sql_nome) ;
 	
-	$DB->data_seek($result_cham, 0);
-	
+	$DB->data_seek($result_cham, 0);	
 	while($row = $DB->fetch_assoc($result_nome)) {
 
 	$ent_name = $row['name'] ;
@@ -375,73 +381,58 @@ if($con == "1") {
 			<td colspan='3' style='font-size: 18px; font-weight:bold; vertical-align:middle; width:200px;'><span style='font-size: 18px; color:#000;'>".__('Period', 'dashboard') .": </span> " . conv_data($data_ini2) ." a ". conv_data($data_fin2)."
 			<td style='vertical-align:middle; width: 190px; '>
 				<div class='progress' style='margin-top: 19px;'>
-					<div class='progress-bar ". $cor ." progress-bar-striped active' role='progressbar' aria-valuenow='".$barra."' aria-valuemin='0' aria-valuemax='100' style='width: ".$barra."%;'>
+					<div class='progress-bar ". $cor ." ' role='progressbar' aria-valuenow='".$barra."' aria-valuemin='0' aria-valuemax='100' style='width: ".$barra."%;'>
 			 			".$barra." % ".__('Closed', 'dashboard') ."
 			 		</div>
 				</div>
 			</td>
 		</tr>
-	</table> ";
+	</table>\n ";
 
 
 	//total costs
 	$DB->data_seek($result_cham, 0);
-	while($row = $DB->fetch_assoc($result_cham)){
-			
-	$query_cost = "SELECT (SUM( gtc.`cost_time` ) + SUM( gtc.`cost_fixed` ) + SUM( gtc.`cost_material` )) AS costs
-	FROM glpi_ticketcosts gtc, glpi_tickets gt
-	WHERE gtc.`tickets_id` = gt.id
-	AND gt.is_deleted = 0
-	AND gtc.`tickets_id`  = ".$row['id']."	
-	GROUP BY gtc.`tickets_id` "; 
-	
-	$result_cost = $DB->query($query_cost);
-	$cost = $DB->result($result_cost,0,'costs');
-	
-	$total_cost += $cost; 
-	
+	while($row = $DB->fetch_assoc($result_cham)){			
+		
+		$total_cost += computeCost($row['id']);
+		
 	}
-
-	echo "
-	<table align='right' style='margin-bottom:10px;'>
-		<tr>
-			<td colspan=3 style='vertical-align:bottom;'>
-				<button class='btn btn-primary btn-sm' type='button' name='abertos' value='Abertos' onclick='location.href=\"rel_custo_ent.php?con=1&stat=open&tec=".$id_ent."&date1=".$data_ini2."&date2=".$data_fin2."\"' <i class='icon-white icon-trash'></i> ".__('Opened','dashboard'). " </button>
-				<button class='btn btn-primary btn-sm' type='button' name='fechados' value='Fechados' onclick='location.href=\"rel_custo_ent.php?con=1&stat=close&tec=".$id_ent."&date1=".$data_ini2."&date2=".$data_fin2."\"' <i class='icon-white icon-trash'></i> ".__('Closed','dashboard')." </button>
-				<button class='btn btn-primary btn-sm' type='button' name='todos' value='Todos' onclick='location.href=\"rel_custo_ent.php?con=1&stat=all&tec=".$id_ent."&date1=".$data_ini2."&date2=".$data_fin2."\"' <i class='icon-white icon-trash'></i> ".__('All','dashboard')." </button>
-			</td>
-		</tr>
-	</table>
-
-<table style='font-size: 16px; font-weight:bold; width: 50%;' border=0>
-	<tr>
-		<td><span style='color: #000;'>". __('Total cost').":  </span><b>". number_format($total_cost, 2, ',', ' ') ." </b></td></tr>	 
-	<tr>
-		<td>&nbsp;</td></tr>
-	<tr><td>&nbsp;</td></tr>
-</table>
-
-	<table id='tec' class='display' style='font-size: 13px; font-weight:bold;' cellpadding = 2px >
-		<thead>
+	
+		echo "
+		<table align='right' style='margin-bottom:10px;'>
 			<tr>
-				<th style='text-align:center; cursor:pointer; vertical-align:middle;'> ". __('Tickets','dashboard') ." </th>
-				<th style='text-align:center; cursor:pointer; font-size: 12px; font-weight:bold; vertical-align:middle;'> ".__('Status')." </th>				
-				<th style='text-align:center; cursor:pointer; vertical-align:middle;'> ". __('Title') ."</th>
-				<th style='text-align:center; cursor:pointer; vertical-align:middle;'> ". __('Technician') ."</th>
-				<th style='text-align:center; cursor:pointer; vertical-align:middle;'> ". __('Opened' ,'dashboard') ."</th>
-			   <th style='text-align:center; cursor:pointer; vertical-align:middle;'> ". __('Closed','dashboard') ."</th>
-				<th style='text-align:center; cursor:pointer;'> ". __('Time') ."</th>
-				<th style='text-align:center; cursor:pointer;' class='sum'> ". __('Cost') ."</th>
+				<td colspan=3 style='vertical-align:bottom;'>
+					<button class='btn btn-primary btn-sm' type='button' name='abertos' value='Abertos' onclick='location.href=\"rel_custo_ent.php?con=1&stat=open&sel_ent=".$id_ent."&date1=".$data_ini2."&date2=".$data_fin2."\"' <i class='icon-white icon-trash'></i> ".__('Opened','dashboard'). " </button>
+					<button class='btn btn-primary btn-sm' type='button' name='fechados' value='Fechados' onclick='location.href=\"rel_custo_ent.php?con=1&stat=close&sel_ent=".$id_ent."&date1=".$data_ini2."&date2=".$data_fin2."\"' <i class='icon-white icon-trash'></i> ".__('Closed','dashboard')." </button>
+					<button class='btn btn-primary btn-sm' type='button' name='todos' value='Todos' onclick='location.href=\"rel_custo_ent.php?con=1&stat=all&sel_ent=".$id_ent."&date1=".$data_ini2."&date2=".$data_fin2."\"' <i class='icon-white icon-trash'></i> ".__('All','dashboard')." </button>
+				</td>
 			</tr>
-		</thead>
-		<tfoot>
-			<th colspan='7' class='right' style='background:#fff !important; color:#000 !important;'> ". __('Total cost') .": </th>
-			<th class='right' style='background:#fff !important; color:#000 !important;'></th>
-		</tfoot>
-	<tbody>
-	";
+		</table>
+	
+		<table style='font-size: 16px; font-weight:bold; width: 50%;' border=0>
+			<tr>
+				<td><span style='color: #000;'>". __('Total cost').":  </span><b>". number_format($total_cost, 2, ',', ' ') ." </b></td></tr>	 
+			<tr>
+				<td>&nbsp;</td></tr>
+			<tr><td>&nbsp;</td></tr>
+		</table>
+	
+		<table id='tec' class='display' style='font-size: 13px; font-weight:bold;' cellpadding = 2px >
+			<thead>
+				<tr>
+					<th style='text-align:center; cursor:pointer; vertical-align:middle;'> ". __('Tickets','dashboard') ." </th>
+					<th style='text-align:center; cursor:pointer; font-size: 12px; font-weight:bold; vertical-align:middle;'> ".__('Status')." </th>				
+					<th style='text-align:center; cursor:pointer; vertical-align:middle;'> ". __('Title') ."</th>
+					<th style='text-align:center; cursor:pointer; vertical-align:middle;'> ". __('Technician') ."</th>
+					<th style='text-align:center; cursor:pointer; vertical-align:middle;'> ". __('Opened' ,'dashboard') ."</th>
+				   <th style='text-align:center; cursor:pointer; vertical-align:middle;'> ". __('Closed','dashboard') ."</th>
+					<th style='text-align:center; cursor:pointer;'> ". __('Time') ."</th>
+					<th style='text-align:center; cursor:pointer;' class='sum'> ". __('Cost') ."</th>
+				</tr>
+			</thead>
+		<tbody>\n";
 
-}
+	}
 
 //listar chamados
 $DB->data_seek($result_cham, 0);
@@ -458,18 +449,6 @@ while($row = $DB->fetch_assoc($result_cham)){
 
 	$type = Ticket::getTicketTypeName($row['type']);
 	
-	
-	//costs by ticket
-	$query_cost = "SELECT (SUM( gtc.`cost_time` ) + SUM( gtc.`cost_fixed` ) + SUM( gtc.`cost_material` )) AS costs
-	FROM glpi_ticketcosts gtc, glpi_tickets gt
-	WHERE gtc.`tickets_id` = gt.id
-	AND gt.is_deleted = 0
-	AND gtc.`tickets_id`  = ".$row['id']."	
-	GROUP BY gtc.`tickets_id` "; 
-	
-	$result_cost = $DB->query($query_cost);
-	$cost = $DB->result($result_cost,0,'costs');		
-	
 	//tecnico
     $sql_tec = "SELECT glpi_tickets.id AS id, glpi_users.firstname AS name, glpi_users.realname AS sname
 		FROM `glpi_tickets_users` , glpi_tickets, glpi_users
@@ -480,6 +459,8 @@ while($row = $DB->fetch_assoc($result_cham)){
 
 		$result_tec = $DB->query($sql_tec);
 		$row_tec = $DB->fetch_assoc($result_tec);
+		
+		$comp_cost = computeCost($row['id']);
 
 		echo "
 		<tr style='font-weight:normal;'>
@@ -490,13 +471,21 @@ while($row = $DB->fetch_assoc($result_cham)){
 			<td style='vertical-align:middle; text-align:center;'> ". conv_data_hora($row['date']) ." </td>
 			<td style='vertical-align:middle; text-align:center;'> ". conv_data_hora($row['closedate']) ." </td>
 			<td style='vertical-align:middle; text-align:right;'> ". time_ext($row['time']) ."</td>
-			<td style='vertical-align:middle; text-align:right;'> ". number_format($cost, 2, ',', ' ') ."</td>
-		</tr>";	    
+			<td style='vertical-align:middle; text-align:right;'> ". number_format($comp_cost, 2, ',', ' ') ."</td>
+		</tr>\n";	  
+		
+		$comp_cost2 += computeCost($row['id']);  
 }
 
 echo "</tbody>
+		<tfoot>
+			<th colspan='7' class='right' style='background:#fff !important; color:#000 !important;'> ". __('Total cost') .": </th>
+			<th class='right' style='background:#fff !important; color:#000 !important;'>". number_format($comp_cost2, 2, ',', ' ') ."</th>
+		</tfoot>
 		</table>
-		</div>"; ?>
+		</div>\n"; 
+
+?>
 
 <script type="text/javascript" charset="utf-8">
 
@@ -559,7 +548,7 @@ var table =  $('#tec').DataTable( {
     } );
 
 
-table.columns( '.sum' ).every( function () {
+table.columns( '.sumxx' ).every( function () {
     var sum = this
         .data()
         .reduce( function (a,b) {

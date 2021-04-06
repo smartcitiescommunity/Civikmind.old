@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 include ('../inc/includes.php');
 
 Session::checkRight("config", UPDATE);
@@ -52,7 +48,7 @@ if (isset($_POST["update"])) {
 } else if (isset($_POST["add"])) {
    //If no name has been given to this configuration, then go back to the page without adding
    if ($_POST["name"] != "") {
-      if (($newID = $config_mail->add($_POST))
+      if (($config_mail->add($_POST))
           && $_SESSION['glpibackcreated']) {
          Html::redirect($config_mail->getLinkURL());
       }

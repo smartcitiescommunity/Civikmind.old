@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -57,14 +53,11 @@ class SlaLevel extends LevelAgreementLevel {
 
 
    function cleanDBonPurge() {
-      global $DB;
+      parent::cleanDBonPurge();
 
-      parent::cleanDBOnPurge();
-
-      $sql = "DELETE
-              FROM `glpi_slalevels_tickets`
-              WHERE `".$this->rules_id_field."` = '".$this->fields['id']."'";
-      $DB->query($sql);
+      // SlaLevel_Ticket does not extends CommonDBConnexity
+      $slt = new SlaLevel_Ticket();
+      $slt->deleteByCriteria([$this->rules_id_field => $this->fields['id']]);
    }
 
 
@@ -76,7 +69,7 @@ class SlaLevel extends LevelAgreementLevel {
    /**
     * @param $sla SLA object
     *
-    * @since version 9.1 (before showForSLA)
+    * @since 9.1 (before showForSLA)
    **/
    function showForSLA(SLA $sla) {
       global $DB;
@@ -123,12 +116,14 @@ class SlaLevel extends LevelAgreementLevel {
          echo "</div>";
       }
 
-      $query = "SELECT *
-                FROM `glpi_slalevels`
-                WHERE `slas_id` = '$ID'
-                ORDER BY `execution_time`";
-      $result  = $DB->query($query);
-      $numrows = $DB->numrows($result);
+      $iterator = $DB->request([
+         'FROM'   => self::getTable(),
+         'WHERE'  => [
+            'slas_id'   => $ID
+         ],
+         'ORDER'  => 'execution_time'
+      ]);
+      $numrows = count($iterator);
 
       echo "<div class='spaced'>";
       if ($canedit && $numrows) {
@@ -152,7 +147,7 @@ class SlaLevel extends LevelAgreementLevel {
                                      sprintf(__('%1$s = %2$s'), SLA::getTypeName(1),
                                              $sla->getName()));
 
-      while ($data = $DB->fetch_assoc($result)) {
+      while ($data = $iterator->next()) {
          Session::addToNavigateListItems('SlaLevel', $data["id"]);
 
          echo "<tr class='tab_bg_2'>";
@@ -218,7 +213,7 @@ class SlaLevel extends LevelAgreementLevel {
     * @param $ID              ID of the rule
     * @param $options   array of possible options
     *
-    * @return nothing
+    * @return void
    **/
    function showForm($ID, $options = []) {
 
@@ -274,23 +269,26 @@ class SlaLevel extends LevelAgreementLevel {
     *
     * @param $slas_id   integer  id of the SLA
     *
-    * @since version 9.1 (before getFirst SlaLevel)
+    * @since 9.1 (before getFirst SlaLevel)
     *
     * @return id of the sla level : 0 if not exists
    **/
    static function getFirstSlaLevel($slas_id) {
       global $DB;
 
-      $query = "SELECT `id`
-                FROM `glpi_slalevels`
-                WHERE `slas_id` = '$slas_id'
-                     AND `is_active` = 1
-                ORDER BY `execution_time` ASC LIMIT 1;";
+      $iterator = $DB->request([
+         'SELECT' => 'id',
+         'FROM'   => self::getTable(),
+         'WHERE'  => [
+            'slas_id'   => $slas_id,
+            'is_active' => 1
+         ],
+         'ORDER'  => 'execution_time ASC',
+         'LIMIT'  => 1
+      ]);
 
-      if ($result = $DB->query($query)) {
-         if ($DB->numrows($result)) {
-            return $DB->result($result, 0, 0);
-         }
+      if ($result = $iterator->next()) {
+         return $result['id'];
       }
       return 0;
    }
@@ -307,27 +305,30 @@ class SlaLevel extends LevelAgreementLevel {
    static function getNextSlaLevel($slas_id, $slalevels_id) {
       global $DB;
 
-      $query = "SELECT `execution_time`
-                FROM `glpi_slalevels`
-                WHERE `id` = '$slalevels_id';";
+      $iterator = $DB->request([
+         'SELECT' => 'execution_time',
+         'FROM'   => self::getTable(),
+         'WHERE'  => ['id' => $slalevels_id]
+      ]);
 
-      if ($result = $DB->query($query)) {
-         if ($DB->numrows($result)) {
-            $execution_time = $DB->result($result, 0, 0);
+      if ($result = $iterator->next()) {
+         $execution_time = $result['execution_time'];
 
-            $query = "SELECT `id`
-                      FROM `glpi_slalevels`
-                       WHERE `slas_id` = '$slas_id'
-                             AND `id` <> '$slalevels_id'
-                             AND `execution_time` > '$execution_time'
-                             AND `is_active` = 1
-                      ORDER BY `execution_time` ASC LIMIT 1;";
+         $lvl_iterator = $DB->request([
+            'SELECT' => 'id',
+            'FROM'   => self::getTable(),
+            'WHERE'  => [
+               'slas_id'         => $slas_id,
+               'is_active'       => 1,
+               'id'              => ['<>', $slalevels_id],
+               'execution_time'  => ['>', $execution_time]
+            ],
+            'ORDER'  => 'execution_time ASC',
+            'LIMIT'  => 1
+         ]);
 
-            if ($result = $DB->query($query)) {
-               if ($DB->numrows($result)) {
-                  return $DB->result($result, 0, 0);
-               }
-            }
+         if ($result = $lvl_iterator->next()) {
+            return $result['id'];
          }
       }
       return 0;

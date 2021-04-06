@@ -33,18 +33,21 @@ if (!defined('GLPI_ROOT')) {
 }
 
 class PluginOrderOther extends CommonDBTM {
+
    public static $rightname = 'plugin_order_order';
+
 
    public static function getTypeName($nb = 0) {
       return __("Other kind of items");
    }
 
+
    public static function install(Migration $migration) {
       global $DB;
 
       //Only avaiable since 1.2.0
-      $table = getTableForItemType(__CLASS__);
-      if (!TableExists($table)) {
+      $table = self::getTable();
+      if (!$DB->tableExists($table)) {
          $migration->displayMessage("Installing $table");
 
          $query = "CREATE TABLE IF NOT EXISTS `glpi_plugin_order_others` (
@@ -56,15 +59,18 @@ class PluginOrderOther extends CommonDBTM {
                   KEY `name` (`name`),
                   KEY `entities_id` (`entities_id`),
                   KEY `othertypes_id` (`othertypes_id`)
-               ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;";
+               ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;";
          $DB->query($query) or die ($DB->error());
       }
    }
+
 
    public static function uninstall() {
       global $DB;
 
       //Current table name
-      $DB->query("DROP TABLE IF EXISTS  `".getTableForItemType(__CLASS__)."`") or die ($DB->error());
+      $DB->query("DROP TABLE IF EXISTS `".self::getTable()."`") or die ($DB->error());
    }
+
+
 }

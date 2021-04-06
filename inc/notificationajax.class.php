@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -87,13 +87,13 @@ class NotificationAjax implements NotificationInterface {
       $queue = new QueuedNotification();
 
       if (!$queue->add(Toolbox::addslashes_deep($data))) {
-         Session::addMessageAfterRedirect(__('Error inserting ajax notification to queue'), true, ERROR);
+         Session::addMessageAfterRedirect(__('Error inserting browser notification to queue'), true, ERROR);
          return false;
       } else {
          //TRANS to be written in logs %1$s is the to email / %2$s is the subject of the mail
          Toolbox::logInFile("notification",
                             sprintf(__('%1$s: %2$s'),
-                                    sprintf(__('An ajax notification to %s was added to queue'),
+                                    sprintf(__('A browser notification to %s was added to queue'),
                                             $options['to']),
                                     $options['subject']."\n"));
       }
@@ -158,6 +158,14 @@ class NotificationAjax implements NotificationInterface {
       global $DB;
 
       $now = date('Y-m-d H:i:s');
-      $DB->query("UPDATE glpi_queuednotifications SET sent_time='$now', is_deleted=true WHERE id='$id' AND recipient = '" . Session::getLoginUserID() . "'");
+      $DB->update(
+         'glpi_queuednotifications', [
+            'sent_time'    => $now,
+            'is_deleted'   => 1
+         ], [
+            'id'        => $id,
+            'recipient' => Session::getLoginUserID()
+         ]
+      );
    }
 }

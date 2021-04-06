@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -29,10 +29,6 @@
  * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
  */
-
-/** @file
-* @brief
-*/
 
 include ('../inc/includes.php');
 
@@ -66,10 +62,13 @@ $nbok      = $results['ok'];
 $nbko      = $results['ko'];
 $nbnoright = $results['noright'];
 
+$msg_type = INFO;
 if ($nbok == 0) {
    $message = __('Failed operation');
+   $msg_type = ERROR;
 } else if ($nbnoright || $nbko) {
    $message = __('Operation performed partially successful');
+   $msg_type = WARNING;
 } else {
    $message = __('Operation successful');
 }
@@ -78,7 +77,7 @@ if ($nbnoright || $nbko) {
    $message .= "<br>".sprintf(__('(%1$d authorizations problems, %2$d failures)'),
                               $nbnoright, $nbko);
 }
-Session::addMessageAfterRedirect($message);
+Session::addMessageAfterRedirect($message, false, $msg_type);
 if (isset($results['messages']) && is_array($results['messages']) && count($results['messages'])) {
    foreach ($results['messages'] as $message) {
       Session::addMessageAfterRedirect($message, false, ERROR);

@@ -9,7 +9,7 @@
  -------------------------------------------------------------------------
 
  LICENSE
-      
+
  This file is part of resources.
 
  resources is free software; you can redistribute it and/or modify
@@ -27,28 +27,49 @@
  --------------------------------------------------------------------------
  */
 
-if (!defined('GLPI_ROOT')){
+if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access directly to this file");
 }
 
+/**
+ * Class PluginResourcesResourceInjection
+ */
 class PluginResourcesResourceInjection extends PluginResourcesResource
    implements PluginDatainjectionInjectionInterface {
 
-   static function getTable() {
-   
+   /**
+    * Return the table used to store this object
+    *
+    * @param string $classname Force class (to avoid late_binding on inheritance)
+    *
+    * @return string
+    **/
+   static function getTable($classname = null) {
+
       $parenttype = get_parent_class();
       return $parenttype::getTable();
-      
+
    }
 
+   /**
+    * @return bool
+    */
    function isPrimaryType() {
       return true;
    }
 
+   /**
+    * @return array
+    */
    function connectedTo() {
-      return array();
+      return [];
    }
-   
+
+   /**
+    * @param string $primary_type
+    *
+    * @return array|\the
+    */
    function getOptions($primary_type = '') {
 
       $tab = Search::getOptions(get_parent_class($this));
@@ -58,14 +79,14 @@ class PluginResourcesResourceInjection extends PluginResourcesResource
 
       //$blacklist = PluginDatainjectionCommonInjectionLib::getBlacklistedOptions();
       //Remove some options because some fields cannot be imported
-      $notimportable = array(8,16,18,19,31,80);
+      $notimportable = [8, 16, 18, 19, 31, 32, 33, 34, 80];
       $options['ignore_fields'] = $notimportable;
-      $options['displaytype'] = array("dropdown"       => array(3,11,12,17,21,22,23,24,25),
-                                      "user"           => array(4,10,14),
-                                      "multiline_text" => array(7),
-                                      "date"           => array(5,6,9),
-                                      "bool"           => array(13,15),
-                                      "decimal"        => array(20));
+      $options['displaytype'] = ["dropdown"       => [3, 11, 12, 17, 21, 22, 23, 24, 25, 26],
+                                 "user"           => [4, 10, 14, 27],
+                                 "multiline_text" => [7],
+                                 "date"           => [5, 6, 9],
+                                 "bool"           => [13, 15],
+                                 "decimal"        => [20]];
 
       $tab = PluginDatainjectionCommonInjectionLib::addToSearchOptions($tab, $options, $this);
 
@@ -78,8 +99,8 @@ class PluginResourcesResourceInjection extends PluginResourcesResource
     * @param fields fields to add into glpi
     * @param options options used during creation
     */
-   function deleteObject($values=array(), $options=array()) {
-      $lib = new PluginDatainjectionCommonInjectionLib($this,$values,$options);
+   function deleteObject($values = [], $options = []) {
+      $lib = new PluginDatainjectionCommonInjectionLib($this, $values, $options);
       $lib->deleteObject();
       return $lib->getInjectionResults();
    }
@@ -91,12 +112,11 @@ class PluginResourcesResourceInjection extends PluginResourcesResource
     * @param options options used during creation
     * @return an array of IDs of newly created objects : for example array(Computer=>1, Networkport=>10)
     */
-   function addOrUpdateObject($values=array(), $options=array()) {
-      $lib = new PluginDatainjectionCommonInjectionLib($this,$values,$options);
+   function addOrUpdateObject($values = [], $options = []) {
+      $lib = new PluginDatainjectionCommonInjectionLib($this, $values, $options);
       $lib->processAddOrUpdate();
       return $lib->getInjectionResults();
    }
 
 }
 
-?>

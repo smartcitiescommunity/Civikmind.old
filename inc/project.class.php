@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -41,13 +37,15 @@ if (!defined('GLPI_ROOT')) {
 /**
  * Project Class
  *
- * @since version 0.85
+ * @since 0.85
 **/
-class Project extends CommonDBTM {
+class Project extends CommonDBTM implements ExtraVisibilityCriteria {
+   use Glpi\Features\Kanban;
+   use Glpi\Features\Clonable;
 
    // From CommonDBTM
    public $dohistory                   = true;
-   static protected $forward_entity_to = ['ProjectTask'];
+   static protected $forward_entity_to = ['ProjectCost', 'ProjectTask'];
    static $rightname                   = 'project';
    protected $usenotepad               = true;
 
@@ -56,6 +54,18 @@ class Project extends CommonDBTM {
 
    protected $team                     = [];
 
+   public function getCloneRelations() :array {
+      return [
+         ProjectCost::class,
+         ProjectTask::class,
+         Document_Item::class,
+         ProjectTeam::class,
+         Itil_Project::class,
+         Contract_Item::class,
+         Notepad::class,
+         KnowbaseItem_Item::class
+      ];
+   }
 
    /**
     * Name of the type
@@ -79,7 +89,7 @@ class Project extends CommonDBTM {
    **/
    function canViewItem() {
 
-      if (!Session::haveAccessToEntity($this->getEntityID())) {
+      if (!parent::canViewItem()) {
          return false;
       }
       return (Session::haveRight(self::$rightname, self::READALL)
@@ -107,7 +117,7 @@ class Project extends CommonDBTM {
 
 
    /**
-    * @since version 0.85
+    * @since 0.85
     *
     * @see commonDBTM::getRights()
     **/
@@ -141,6 +151,7 @@ class Project extends CommonDBTM {
                }
                $ong[1] = self::createTabEntry($this->getTypeName(Session::getPluralNumber()), $nb);
                $ong[2] = __('GANTT');
+               $ong[3] = __('Kanban');
                return $ong;
          }
       }
@@ -161,6 +172,10 @@ class Project extends CommonDBTM {
                case 2 :
                   $item->showGantt($item->getID());
                   break;
+
+               case 3 :
+                  $item->showKanban($item->getID());
+                  break;
             }
             break;
       }
@@ -172,11 +187,12 @@ class Project extends CommonDBTM {
 
       $ong = [];
       $this->addDefaultFormTab($ong);
+      $this->addImpactTab($ong, $options);
       $this->addStandardTab('ProjectTask', $ong, $options);
       $this->addStandardTab('ProjectTeam', $ong, $options);
       $this->addStandardTab(__CLASS__, $ong, $options);
       $this->addStandardTab('ProjectCost', $ong, $options);
-      $this->addStandardTab('Change_Project', $ong, $options);
+      $this->addStandardTab('Itil_Project', $ong, $options);
       $this->addStandardTab('Item_Project', $ong, $options);
       $this->addStandardTab('Document_Item', $ong, $options);
       $this->addStandardTab('Contract_Item', $ong, $options);
@@ -193,15 +209,9 @@ class Project extends CommonDBTM {
       // No view to project by right on tasks add it
       if (!static::canView()
           && Session::haveRight('projecttask', ProjectTask::READMY)) {
-         $menu['project']['title']                    = Project::getTypeName(Session::getPluralNumber());
-         $menu['project']['page']                     = ProjectTask::getSearchURL(false);
+         $menu['project']['title'] = Project::getTypeName(Session::getPluralNumber());
+         $menu['project']['page']  = ProjectTask::getSearchURL(false);
 
-         $links = static::getAdditionalMenuLinks();
-         if (count($links)) {
-            $menu['project']['links'] = $links;
-         }
-         $menu['project']['options']['task']['title'] = __('My tasks');
-         $menu['project']['options']['task']['page']  = ProjectTask::getSearchURL(false);
          return $menu;
       }
       return false;
@@ -209,9 +219,15 @@ class Project extends CommonDBTM {
 
 
    static function getAdditionalMenuOptions() {
-
-      return ['task' => ['title' => __('My tasks'),
-                                   'page'  => ProjectTask::getSearchURL(false)]];
+      return [
+         'task' => [
+            'title' => __('My tasks'),
+            'page'  => ProjectTask::getSearchURL(false),
+            'links' => [
+               'search' => ProjectTask::getSearchURL(false),
+            ]
+         ]
+      ];
    }
 
 
@@ -227,9 +243,10 @@ class Project extends CommonDBTM {
          $pic_validate = "<img title=\"".__s('My tasks')."\" alt=\"".__('My tasks')."\" src='".
                            $CFG_GLPI["root_doc"]."/pics/menu_showall.png' class='pointer'>";
 
-         $links[$pic_validate] = '/front/projecttask.php';
+         $links[$pic_validate] = ProjectTask::getSearchURL(false);
 
-         $links['summary'] = '/front/project.form.php?showglobalgantt=1';
+         $links['summary'] = Project::getFormURL(false).'?showglobalgantt=1';
+         $links['summary_kanban'] = Project::getFormURL(false).'?showglobalkanban=1';
       }
       if (count($links)) {
          return $links;
@@ -241,6 +258,21 @@ class Project extends CommonDBTM {
    function post_updateItem($history = 1) {
       global $CFG_GLPI;
 
+      if (in_array('auto_percent_done', $this->updates) && $this->input['auto_percent_done'] == 1) {
+         // Auto-calculate was toggled. Force recalculation of this and parents
+         self::recalculatePercentDone($this->getID());
+      } else {
+         if ($this->fields['projects_id'] > 0) {
+            // Update parent percent_done
+            self::recalculatePercentDone($this->fields['projects_id']);
+         }
+      }
+
+      if (isset($this->input['_old_projects_id'])) {
+         // Recalculate previous parent percent done
+         self::recalculatePercentDone($this->input['_old_projects_id']);
+      }
+
       if (!isset($this->input['_disablenotif']) && $CFG_GLPI["use_notifications"]) {
          // Read again project to be sure that all data are up to date
          $this->getFromDB($this->fields['id']);
@@ -250,38 +282,34 @@ class Project extends CommonDBTM {
 
 
    function post_addItem() {
-      global $DB, $CFG_GLPI;
+      global $CFG_GLPI;
 
-      // Manage add from template
-      if (isset($this->input["_oldID"])) {
-         ProjectCost::cloneProject($this->input["_oldID"], $this->fields['id']);
-
-         // ADD Task
-         ProjectTask::cloneProjectTask($this->input["_oldID"], $this->fields['id']);
-
-         // ADD Documents
-         Document_Item::cloneItem($this->getType(), $this->input["_oldID"], $this->fields['id']);
-
-         // ADD Team
-         ProjectTeam::cloneProjectTeam($this->input["_oldID"], $this->fields['id']);
-
-         // ADD Change
-         Change_Project::cloneChangeProject($this->input["_oldID"], $this->fields['id']);
-
-         // ADD Contract
-         Contract::cloneItem($this->getType(), $this->input["_oldID"], $this->fields['id']);
-
-         // ADD Notepad
-         Notepad::cloneItem($this->getType(), $this->input["_oldID"], $this->fields['id']);
-
-         //Add KB links
-         KnowbaseItem_Item::cloneItem($this->getType(), $this->input["_oldID"], $this->fields['id']);
+      // Update parent percent_done
+      if (isset($this->fields['projects_id']) && $this->fields['projects_id'] > 0) {
+         self::recalculatePercentDone($this->fields['projects_id']);
       }
+
       if (!isset($this->input['_disablenotif']) && $CFG_GLPI["use_notifications"]) {
          // Clean reload of the project
          $this->getFromDB($this->fields['id']);
 
          NotificationEvent::raiseEvent('new', $this);
+      }
+   }
+
+
+   function post_deleteItem() {
+      // Update parent percent_done
+      if ($this->fields['projects_id'] > 0) {
+         self::recalculatePercentDone($this->fields['projects_id']);
+      }
+   }
+
+
+   function post_restoreItem() {
+      // Update parent percent_done
+      if ($this->fields['projects_id'] > 0) {
+         self::recalculatePercentDone($this->fields['projects_id']);
       }
    }
 
@@ -315,24 +343,75 @@ class Project extends CommonDBTM {
 
 
    function cleanDBonPurge() {
-      global $DB;
 
-      $pt = new ProjectTask();
-      $pt->cleanDBonItemDelete(__CLASS__, $this->fields['id']);
-
-      $cp = new Change_Project();
-      $cp->cleanDBonItemDelete(__CLASS__, $this->fields['id']);
-
-      $ip = new Item_Project();
-      $ip->cleanDBonItemDelete(__CLASS__, $this->fields['id']);
-
-      $pt = new ProjectTeam();
-      $pt->cleanDBonItemDelete(__CLASS__, $this->fields['id']);
+      $this->deleteChildrenAndRelationsFromDb(
+         [
+            Item_Project::class,
+            Itil_Project::class,
+            ProjectCost::class,
+            ProjectTask::class,
+            ProjectTeam::class,
+         ]
+      );
 
       parent::cleanDBonPurge();
    }
 
 
+   /**
+    * Return visibility joins to add to DBIterator parameters
+    *
+    * @since 9.4
+    *
+    * @param boolean $forceall force all joins (false by default)
+    *
+    * @return array
+    */
+   static public function getVisibilityCriteria(bool $forceall = false): array {
+      if (Session::haveRight('project', self::READALL)) {
+         return [
+            'LEFT JOIN' => [],
+            'WHERE' => [],
+         ];
+      }
+
+      $join = [];
+      $where = [];
+
+      $join['glpi_projectteams'] = [
+         'ON' => [
+            'glpi_projectteams'  => 'projects_id',
+            'glpi_projects'      => 'id'
+         ]
+      ];
+
+      $teamtable = 'glpi_projectteams';
+      $ors = [
+         'glpi_projects.users_id'   => Session::getLoginUserID(),
+         [
+            "$teamtable.itemtype"   => 'User',
+            "$teamtable.items_id"   => Session::getLoginUserID()
+         ]
+      ];
+      if (count($_SESSION['glpigroups'])) {
+         $ors['glpi_projects.groups_id'] = $_SESSION['glpigroups'];
+         $ors[] = [
+            "$teamtable.itemtype"   => 'Group',
+            "$teamtable.items_id"   => $_SESSION['glpigroups']
+         ];
+      }
+
+      $where[] = [
+         'OR' => $ors,
+      ];
+
+      $criteria = [
+         'LEFT JOIN' => $join,
+         'WHERE'     => $where
+      ];
+
+      return $criteria;
+   }
    /**
     * Is the current user in the team?
     *
@@ -398,7 +477,9 @@ class Project extends CommonDBTM {
    }
 
 
-   function getSearchOptionsNew() {
+   function rawSearchOptions() {
+      global $DB;
+
       $tab = [];
 
       $tab[] = [
@@ -413,7 +494,8 @@ class Project extends CommonDBTM {
          'name'               => __('Name'),
          'datatype'           => 'itemlink',
          'massiveaction'      => false,
-         'forcegroupby'       => true
+         'forcegroupby'       => true,
+         'autocomplete'       => true,
       ];
 
       $tab[] = [
@@ -431,7 +513,8 @@ class Project extends CommonDBTM {
          'field'              => 'code',
          'name'               => __('Code'),
          'massiveaction'      => false,
-         'datatype'           => 'string'
+         'datatype'           => 'string',
+         'autocomplete'       => true,
       ];
 
       $tab[] = [
@@ -468,7 +551,7 @@ class Project extends CommonDBTM {
          'id'                 => '14',
          'table'              => 'glpi_projecttypes',
          'field'              => 'name',
-         'name'               => __('Type'),
+         'name'               => _n('Type', 'Types', 1),
          'datatype'           => 'dropdown'
       ];
 
@@ -477,7 +560,8 @@ class Project extends CommonDBTM {
          'table'              => 'glpi_projectstates',
          'field'              => 'name',
          'name'               => __('State'),
-         'datatype'           => 'dropdown'
+         'datatype'           => 'dropdown',
+         'additionalfields'   => ['color'],
       ];
 
       $tab[] = [
@@ -525,7 +609,7 @@ class Project extends CommonDBTM {
          'field'              => 'completename',
          'linkfield'          => 'groups_id',
          'name'               => __('Manager group'),
-         'condition'          => '`is_manager`',
+         'condition'          => ['is_manager' => 1],
          'datatype'           => 'dropdown'
       ];
 
@@ -601,6 +685,18 @@ class Project extends CommonDBTM {
       ];
 
       $tab[] = [
+         'id'                 => '50',
+         'table'              => $this->getTable(),
+         'field'              => 'template_name',
+         'name'               => __('Template name'),
+         'datatype'           => 'text',
+         'massiveaction'      => false,
+         'nosearch'           => true,
+         'nodisplay'          => true,
+         'autocomplete'       => true,
+      ];
+
+      $tab[] = [
          'id'                 => '121',
          'table'              => $this->getTable(),
          'field'              => 'date_creation',
@@ -613,7 +709,7 @@ class Project extends CommonDBTM {
          'id'                 => '80',
          'table'              => 'glpi_entities',
          'field'              => 'completename',
-         'name'               => __('Entity'),
+         'name'               => Entity::getTypeName(1),
          'datatype'           => 'dropdown'
       ];
 
@@ -624,6 +720,54 @@ class Project extends CommonDBTM {
          'name'               => __('Child entities'),
          'datatype'           => 'bool'
       ];
+
+      $tab[] = [
+         'id'                 => '91',
+         'table'              => ProjectCost::getTable(),
+         'field'              => 'totalcost',
+         'name'               => __('Total cost'),
+         'datatype'           => 'decimal',
+         'forcegroupby'       => true,
+         'usehaving'          => true,
+         'massiveaction'      => false,
+         'joinparams'         => [
+            'jointype'           => 'child',
+            'specific_itemtype'  => 'ProjectCost',
+            'condition'          => 'AND NEWTABLE.`projects_id` = REFTABLE.`id`',
+            'beforejoin'         => [
+               'table'        => $this->getTable(),
+               'joinparams'   => [
+                  'jointype'  => 'child'
+               ],
+            ],
+         ],
+         'computation'        => '(SUM('.$DB->quoteName('TABLE.cost').'))',
+         'nometa'             => true, // cannot GROUP_CONCAT a SUM
+      ];
+
+      $itil_count_types = [
+         'Change'  => _x('quantity', 'Number of changes'),
+         'Problem' => _x('quantity', 'Number of problems'),
+         'Ticket'  => _x('quantity', 'Number of tickets'),
+      ];
+      $index = 92;
+      foreach ($itil_count_types as $itil_type => $label) {
+         $tab[] = [
+            'id'                 => $index,
+            'table'              => Itil_Project::getTable(),
+            'field'              => 'id',
+            'name'               => $label,
+            'datatype'           => 'count',
+            'forcegroupby'       => true,
+            'usehaving'          => true,
+            'massiveaction'      => false,
+            'joinparams'         => [
+               'jointype'           => 'child',
+               'condition'          => "AND NEWTABLE.`itemtype` = '$itil_type'"
+            ]
+         ];
+         $index++;
+      }
 
       $tab[] = [
          'id'                 => 'project_team',
@@ -706,10 +850,251 @@ class Project extends CommonDBTM {
          ]
       ];
 
-      // add objectlock search options
-      $tab = array_merge($tab, ObjectLock::getSearchOptionsToAddNew(get_class($this)));
+      $tab[] = [
+         'id'                 => 'project_task',
+         'name'               => ProjectTask::getTypeName(),
+      ];
 
-      $tab = array_merge($tab, Notepad::getSearchOptionsToAddNew());
+      $tab[] = [
+         'id'                 => '111',
+         'table'              => ProjectTask::getTable(),
+         'field'              => 'name',
+         'name'               => __('Name'),
+         'datatype'           => 'string',
+         'massiveaction'      => false,
+         'forcegroupby'       => true,
+         'splititems'         => true,
+         'joinparams'         => [
+            'jointype'  => 'child'
+         ]
+      ];
+
+      $tab[] = [
+         'id'                 => '112',
+         'table'              => ProjectTask::getTable(),
+         'field'              => 'content',
+         'name'               => __('Description'),
+         'datatype'           => 'text',
+         'massiveaction'      => false,
+         'forcegroupby'       => true,
+         'splititems'         => true,
+         'joinparams'         => [
+            'jointype'  => 'child'
+         ]
+      ];
+
+      $tab[] = [
+         'id'                 => '113',
+         'table'              => ProjectState::getTable(),
+         'field'              => 'name',
+         'name'               => _x('item', 'State'),
+         'datatype'           => 'dropdown',
+         'massiveaction'      => false,
+         'forcegroupby'       => true,
+         'splititems'         => true,
+         'joinparams'         => [
+            'jointype'          => 'item_revert',
+            'specific_itemtype' => 'ProjectState',
+            'beforejoin'        => [
+               'table'      => ProjectTask::getTable(),
+               'joinparams' => [
+                  'jointype' => 'child',
+               ]
+            ]
+         ]
+      ];
+
+      $tab[] = [
+         'id'                 => '114',
+         'table'              => ProjectTaskType::getTable(),
+         'field'              => 'name',
+         'name'               => _n('Type', 'Types', 1),
+         'datatype'           => 'dropdown',
+         'massiveaction'      => false,
+         'forcegroupby'       => true,
+         'splititems'         => true,
+         'joinparams'         => [
+            'jointype'          => 'item_revert',
+            'specific_itemtype' => 'ProjectTaskType',
+            'beforejoin'        => [
+               'table'      => ProjectTask::getTable(),
+               'joinparams' => [
+                  'jointype' => 'child',
+               ]
+            ]
+         ]
+      ];
+
+      $tab[] = [
+         'id'                 => '115',
+         'table'              => ProjectTask::getTable(),
+         'field'              => 'date',
+         'name'               => __('Opening date'),
+         'datatype'           => 'datetime',
+         'massiveaction'      => false,
+         'forcegroupby'       => true,
+         'splititems'         => true,
+         'joinparams'         => [
+            'jointype'  => 'child'
+         ]
+      ];
+
+      $tab[] = [
+         'id'                 => '116',
+         'table'              => ProjectTask::getTable(),
+         'field'              => 'date_mod',
+         'name'               => __('Last update'),
+         'datatype'           => 'datetime',
+         'massiveaction'      => false,
+         'forcegroupby'       => true,
+         'splititems'         => true,
+         'joinparams'         => [
+            'jointype'  => 'child'
+         ]
+      ];
+
+      $tab[] = [
+         'id'                 => '117',
+         'table'              => ProjectTask::getTable(),
+         'field'              => 'percent_done',
+         'name'               => __('Percent done'),
+         'datatype'           => 'number',
+         'unit'               => '%',
+         'min'                => 0,
+         'max'                => 100,
+         'step'               => 5,
+         'massiveaction'      => false,
+         'forcegroupby'       => true,
+         'splititems'         => true,
+         'joinparams'         => [
+            'jointype'  => 'child'
+         ]
+      ];
+
+      $tab[] = [
+         'id'                 => '118',
+         'table'              => ProjectTask::getTable(),
+         'field'              => 'plan_start_date',
+         'name'               => __('Planned start date'),
+         'datatype'           => 'datetime',
+         'massiveaction'      => false,
+         'forcegroupby'       => true,
+         'splititems'         => true,
+         'joinparams'         => [
+            'jointype'  => 'child'
+         ]
+      ];
+
+      $tab[] = [
+         'id'                 => '119',
+         'table'              => ProjectTask::getTable(),
+         'field'              => 'plan_end_date',
+         'name'               => __('Planned end date'),
+         'datatype'           => 'datetime',
+         'massiveaction'      => false,
+         'forcegroupby'       => true,
+         'splititems'         => true,
+         'joinparams'         => [
+            'jointype'  => 'child'
+         ]
+      ];
+
+      $tab[] = [
+         'id'                 => '120',
+         'table'              => ProjectTask::getTable(),
+         'field'              => 'real_start_date',
+         'name'               => __('Real start date'),
+         'datatype'           => 'datetime',
+         'massiveaction'      => false,
+         'forcegroupby'       => true,
+         'splititems'         => true,
+         'joinparams'         => [
+            'jointype'  => 'child'
+         ]
+      ];
+
+      $tab[] = [
+         'id'                 => '122',
+         'table'              => ProjectTask::getTable(),
+         'field'              => 'real_end_date',
+         'name'               => __('Real end date'),
+         'datatype'           => 'datetime',
+         'massiveaction'      => false,
+         'joinparams'         => [
+            'jointype'  => 'child'
+         ]
+      ];
+
+      $tab[] = [
+         'id'                 => '123',
+         'table'              => ProjectTask::getTable(),
+         'field'              => 'planned_duration',
+         'name'               => __('Planned Duration'),
+         'datatype'           => 'timestamp',
+         'min'                => 0,
+         'max'                => 100*HOUR_TIMESTAMP,
+         'step'               => HOUR_TIMESTAMP,
+         'addfirstminutes'    => true,
+         'inhours'            => true,
+         'massiveaction'      => false,
+         'forcegroupby'       => true,
+         'splititems'         => true,
+         'joinparams'         => [
+            'jointype'  => 'child'
+         ]
+      ];
+
+      $tab[] = [
+         'id'                 => '124',
+         'table'              => ProjectTask::getTable(),
+         'field'              => 'effective_duration',
+         'name'               => __('Effective duration'),
+         'datatype'           => 'timestamp',
+         'min'                => 0,
+         'max'                => 100*HOUR_TIMESTAMP,
+         'step'               => HOUR_TIMESTAMP,
+         'addfirstminutes'    => true,
+         'inhours'            => true,
+         'massiveaction'      => false,
+         'forcegroupby'       => true,
+         'splititems'         => true,
+         'joinparams'         => [
+            'jointype'  => 'child'
+         ]
+      ];
+
+      $tab[] = [
+         'id'                 => '125',
+         'table'              => ProjectTask::getTable(),
+         'field'              => 'comment',
+         'name'               => __('Comments'),
+         'datatype'           => 'text',
+         'massiveaction'      => false,
+         'forcegroupby'       => true,
+         'splititems'         => true,
+         'joinparams'         => [
+            'jointype'  => 'child'
+         ]
+      ];
+
+      $tab[] = [
+         'id'                 => '126',
+         'table'              => ProjectTask::getTable(),
+         'field'              => 'is_milestone',
+         'name'               => __('Milestone'),
+         'datatype'           => 'bool',
+         'massiveaction'      => false,
+         'forcegroupby'       => true,
+         'splititems'         => true,
+         'joinparams'         => [
+            'jointype'  => 'child'
+         ]
+      ];
+
+      // add objectlock search options
+      $tab = array_merge($tab, ObjectLock::rawSearchOptionsToAdd(get_class($this)));
+
+      $tab = array_merge($tab, Notepad::rawSearchOptionsToAdd());
 
       return $tab;
    }
@@ -730,11 +1115,11 @@ class Project extends CommonDBTM {
       $items[(empty($mass_id) ? '&nbsp' : Html::getCheckAllAsCheckbox($mass_id))] = '';
       $items[__('ID')]                 = "id";
       $items[__('Status')]             = "glpi_projectstates.name";
-      $items[__('Date')]               = "date";
+      $items[_n('Date', 'Dates', 1)]               = "date";
       $items[__('Last update')]        = "date_mod";
 
       if (count($_SESSION["glpiactiveentities"]) > 1) {
-         $items[_n('Entity', 'Entities', Session::getPluralNumber())] = "glpi_entities.completename";
+         $items[Entity::getTypeName(Session::getPluralNumber())] = "glpi_entities.completename";
       }
 
       $items[__('Priority')]         = "priority";
@@ -743,7 +1128,6 @@ class Project extends CommonDBTM {
       $items[__('Name')]             = "name";
 
       foreach ($items as $key => $val) {
-         $issort = 0;
          $link   = "";
          echo Search::showHeaderItem($output_type, $key, $header_num, $link);
       }
@@ -756,7 +1140,7 @@ class Project extends CommonDBTM {
    /**
     * Display a line for an object
     *
-    * @since version 0.85 (befor in each object with differents parameters)
+    * @since 0.85 (befor in each object with differents parameters)
     *
     * @param $id                 Integer  ID of the object
     * @param $options            array    of options
@@ -767,7 +1151,7 @@ class Project extends CommonDBTM {
     *      followups              : only for Tickets : show followup columns
     */
    static function showShort($id, $options = []) {
-      global $CFG_GLPI, $DB;
+      global $DB;
 
       $p['output_type']            = Search::HTML_OUTPUT;
       $p['row_num']                = 0;
@@ -818,11 +1202,13 @@ class Project extends CommonDBTM {
          $first_col = '';
          $color     = '';
          if ($item->fields["projectstates_id"]) {
-            $query = "SELECT `color`
-                      FROM `glpi_projectstates`
-                      WHERE `id` = '".$item->fields["projectstates_id"]."'";
-            foreach ($DB->request($query) as $color) {
-               $color = $color['color'];
+            $iterator = $DB->request([
+               'SELECT' => 'color',
+               'FROM'   => 'glpi_projectstates',
+               'WHERE'  => ['id' => $item->fields['projectstates_id']]
+            ]);
+            while ($colorrow = $iterator->next()) {
+               $color = $colorrow['color'];
             }
             $first_col = Dropdown::getDropdownName('glpi_projectstates', $item->fields["projectstates_id"]);
          }
@@ -922,6 +1308,20 @@ class Project extends CommonDBTM {
 
 
    function prepareInputForUpdate($input) {
+      if (isset($input['auto_percent_done']) && $input['auto_percent_done']) {
+         unset($input['percent_done']);
+      }
+      if (isset($input['projects_id']) && $input['projects_id'] > 0) {
+         if (self::checkCircularRelation($input['id'], $input['projects_id'])) {
+            Session::addMessageAfterRedirect(__('Circular relation found. Parent not updated.'), false,
+                                          ERROR);
+            unset($input['projects_id']);
+         }
+      }
+      if ($this->fields['projects_id'] > 0 && isset($input['projects_id'])
+          && ($input['projects_id'] != $this->fields['projects_id'])) {
+         $input['_old_projects_id'] = $this->fields['projects_id'];
+      }
       return self::checkPlanAndRealDates($input);
    }
 
@@ -953,22 +1353,23 @@ class Project extends CommonDBTM {
    /**
     * Print the HTML array children of a TreeDropdown
     *
-    * @return Nothing (display)
+    * @return void
     **/
    function showChildren() {
-      global $DB, $CFG_GLPI;
+      global $DB;
 
       $ID   = $this->getID();
       $this->check($ID, READ);
       $rand = mt_rand();
 
-      $query = "SELECT *
-                FROM `".$this->getTable()."`
-                WHERE `".$this->getForeignKeyField()."` = '$ID'
-                AND `is_deleted`=0";
-      if ($result = $DB->query($query)) {
-         $numrows = $DB->numrows($result);
-      }
+      $iterator = $DB->request([
+         'FROM'   => $this->getTable(),
+         'WHERE'  => [
+            $this->getForeignKeyField()   => $ID,
+            'is_deleted'                  => 0
+         ]
+      ]);
+      $numrows = count($iterator);
 
       if ($this->can($ID, UPDATE)) {
          echo "<div class='firstbloc'>";
@@ -994,7 +1395,7 @@ class Project extends CommonDBTM {
                                                  $this->fields["name"]));
 
          $i = 0;
-         while ($data = $DB->fetch_assoc($result)) {
+         while ($data = $iterator->next()) {
             Session::addToNavigateListItems('Project', $data["id"]);
             Project::showShort($data['id'], ['row_num' => $i]);
             $i++;
@@ -1014,11 +1415,9 @@ class Project extends CommonDBTM {
     *     - target for the Form
     *     - withtemplate template or basic computer
     *
-    *@return Nothing (display)
+    *@return void
    **/
    function showForm($ID, $options = []) {
-      global $CFG_GLPI, $DB;
-
       $this->initForm($ID, $options);
       $this->showFormHeader($options);
 
@@ -1031,7 +1430,6 @@ class Project extends CommonDBTM {
          $date = $_SESSION['glpi_currenttime'];
       }
       Html::showDateTimeField("date", ['value'      => $date,
-                                            'timestep'   => 1,
                                             'maybeempty' => false]);
       echo "</td>";
       if ($ID) {
@@ -1074,16 +1472,34 @@ class Project extends CommonDBTM {
       echo "</td>";
       echo "<td>".__('Percent done')."</td>";
       echo "<td>";
-      Dropdown::showNumber("percent_done", ['value' => $this->fields['percent_done'],
-                                                 'min'   => 0,
-                                                 'max'   => 100,
-                                                 'step'  => 5,
-                                                 'unit'  => '%']);
-      echo "</td>";
+      $percent_done_params = [
+         'value' => $this->fields['percent_done'],
+         'min'   => 0,
+         'max'   => 100,
+         'step'  => 5,
+         'unit'  => '%'
+      ];
+      if ($this->fields['auto_percent_done']) {
+         $percent_done_params['specific_tags'] = ['disabled' => 'disabled'];
+      }
+      Dropdown::showNumber("percent_done", $percent_done_params);
+      $auto_percent_done_params = [
+         'type'      => 'checkbox',
+         'name'      => 'auto_percent_done',
+         'title'     => __('Automatically calculate'),
+         'onclick'   => "$(\"select[name='percent_done']\").prop('disabled', !$(\"input[name='auto_percent_done']\").prop('checked'));"
+      ];
+      if ($this->fields['auto_percent_done']) {
+         $auto_percent_done_params['checked'] = 'checked';
+      }
+      Html::showCheckbox($auto_percent_done_params);
+      echo "<span class='very_small_space'>";
+      Html::showToolTip(__('When automatic computation is active, percentage is computed based on the average of all child project and task percent done.'));
+      echo "</span></td>";
       echo "</tr>";
 
       echo "<tr class='tab_bg_1'>";
-      echo "<td>".__('Type')."</td>";
+      echo "<td>"._n('Type', 'Types', 1)."</td>";
       echo "<td>";
       ProjectType::dropdown(['value' => $this->fields["projecttypes_id"]]);
       echo "</td>";
@@ -1096,19 +1512,21 @@ class Project extends CommonDBTM {
       echo "<tr><td colspan='4' class='subheader'>".__('Manager')."</td></tr>";
 
       echo "<tr class='tab_bg_1'>";
-      echo "<td>".__('User')."</td>";
+      echo "<td>".User::getTypeName(1)."</td>";
       echo "<td>";
       User::dropdown(['name'   => 'users_id',
-                           'value'  => $this->fields["users_id"],
+                           'value'  => $ID ? $this->fields["users_id"] : Session::getLoginUserID(),
                            'right'  => 'see_project',
                            'entity' => $this->fields["entities_id"]]);
       echo "</td>";
-      echo "<td>".__('Group')."</td>";
+      echo "<td>".Group::getTypeName(1)."</td>";
       echo "<td>";
-      Group::dropdown(['name'      => 'groups_id',
-                            'value'     => $this->fields['groups_id'],
-                            'entity'    => $this->fields['entities_id'],
-                            'condition' => '`is_manager`']);
+      Group::dropdown([
+         'name'      => 'groups_id',
+         'value'     => $this->fields['groups_id'],
+         'entity'    => $this->fields['entities_id'],
+         'condition' => ['is_manager' => 1]
+      ]);
       echo "</td></tr>\n";
 
       echo "<tr><td colspan='4' class='subheader'>".__('Planning')."</td></tr>";
@@ -1185,7 +1603,7 @@ class Project extends CommonDBTM {
 
 
    /**
-    * @since version 0.85
+    * @since 0.85
     *
     * @param $field
     * @param $name            (default '')
@@ -1214,8 +1632,6 @@ class Project extends CommonDBTM {
     * Show team for a project
    **/
    function showTeam(Project $project) {
-      global $DB, $CFG_GLPI;
-
       $ID      = $project->fields['id'];
       $canedit = $project->can($ID, UPDATE);
 
@@ -1240,7 +1656,7 @@ class Project extends CommonDBTM {
                                                            $project->fields['entities_id'])
                                                : $project->fields['entities_id']),
                          ];
-         $addrand = Dropdown::showSelectItemFromItemtypes($params);
+         Dropdown::showSelectItemFromItemtypes($params);
 
          echo "</td>";
          echo "<td width='20%'>";
@@ -1270,7 +1686,7 @@ class Project extends CommonDBTM {
          $header_bottom .= Html::getCheckAllAsCheckbox('mass'.__CLASS__.$rand);
          $header_end    .= "</th>";
       }
-      $header_end .= "<th>".__('Type')."</th>";
+      $header_end .= "<th>"._n('Type', 'Types', 1)."</th>";
       $header_end .= "<th>"._n('Member', 'Members', Session::getPluralNumber())."</th>";
       $header_end .= "</tr>";
       echo $header_begin.$header_top.$header_end;
@@ -1429,13 +1845,15 @@ class Project extends CommonDBTM {
       } else {
          $todisplay = [];
          // Get all root projects
-         $query = "SELECT *
-                   FROM `glpi_projects`
-                   WHERE `projects_id` = '0'
-                        AND `show_on_global_gantt` = '1'
-                        AND NOT `is_template`
-                         ".getEntitiesRestrictRequest("AND", 'glpi_projects', "", '', true);
-         foreach ($DB->request($query) as $data) {
+         $iterator = $DB->request([
+            'FROM'   => 'glpi_projects',
+            'WHERE'  => [
+               'projects_id'           => 0,
+               'show_on_global_gantt'  => 1,
+               'is_template'           => 0
+            ] + getEntitiesRestrictCriteria('glpi_projects', '', '', true)
+         ]);
+         while ($data = $iterator->next()) {
             $todisplay += static::getDataToDisplayOnGantt($data['id'], false);
          }
          ksort($todisplay);
@@ -1446,7 +1864,7 @@ class Project extends CommonDBTM {
       if (count($todisplay)) {
 
          // Prepare for display
-         foreach ($todisplay as $key => $val) {
+         foreach ($todisplay as $val) {
             if (!empty($val['from']) && !empty($val['to'])) {
                $temp  = [];
                $color = 'ganttRed';
@@ -1540,10 +1958,601 @@ class Project extends CommonDBTM {
       }
    }
 
+   static function getAllForKanban($active = true, $current_id = -1) {
+      global $DB;
+
+      $items = [
+         -1 => __('Global')
+      ];
+      $criteria = [];
+      $joins = [];
+      if ($active) {
+         $criteria += [
+            'is_deleted'   => 0,
+            [
+               'OR' => [
+                  ['is_finished' => 0],
+                  ['is_finished' => 'null'],
+               ]
+            ]
+         ];
+         $joins = [
+            'glpi_projectstates' => [
+               'FKEY' => [
+                  'glpi_projectstates' => 'id',
+                  'glpi_projects'      => 'projectstates_id'
+               ]
+            ]
+         ];
+      }
+      $iterator = $DB->request(array_merge_recursive([
+         'SELECT'   => [
+            'glpi_projects.id',
+            'glpi_projects.name',
+            'glpi_projects.is_deleted',
+            'glpi_projectstates.is_finished'],
+         'DISTINCT' => true,
+         'FROM'     => 'glpi_projects',
+         'LEFT JOIN' => $joins,
+         'WHERE'     => $criteria
+         ], self::getVisibilityCriteria()));
+      while ($data = $iterator->next()) {
+         $items[$data['id']] = $data['name'];
+      }
+
+      if ($current_id > -1 && !isset($items[$current_id])) {
+         // Current Kanban is not in the list yet
+         $iterator = $DB->request([
+            'SELECT'   => [
+               'glpi_projects.id',
+               'glpi_projects.name',
+            ],
+            'FROM'     => 'glpi_projects',
+            'WHERE'     => ['id' => $current_id]
+         ]);
+         if ($iterator->count()) {
+            $data = $iterator->next();
+            $items[$data['id']] = $data['name'];
+         }
+      }
+      return $items;
+   }
+
+   static function getAllKanbanColumns($column_field = null, $column_ids = [], $get_default = false) {
+      if ($column_field === null || $column_field == 'projectstates_id') {
+         $columns = ['projectstates_id' => []];
+         $projectstate = new ProjectState();
+         $restrict = [];
+         if (!empty($column_ids) && !$get_default) {
+            $restrict = ['id' => $column_ids];
+         }
+         $allstates = $projectstate->find($restrict, ['is_finished ASC', 'id']);
+         foreach ($allstates as $state) {
+            $columns['projectstates_id'][$state['id']] = [
+               'name'         => $state['name'],
+               'header_color' => $state['color']
+            ];
+         }
+         return $columns['projectstates_id'];
+      } else {
+         return [];
+      }
+   }
+
+   static function getDataToDisplayOnKanban($ID, $criteria = []) {
+      global $DB;
+
+      $items      = [];
+
+      // Get sub-projects
+      $projectteam = new ProjectTeam();
+      $project = new Project();
+      $project_visibility = self::getVisibilityCriteria();
+      $request = [
+         'SELECT' => [
+            'glpi_projects.*',
+            'glpi_projectstates.is_finished'
+         ],
+         'FROM'   => 'glpi_projects',
+         'LEFT JOIN' => [
+            'glpi_projectstates' => [
+               'FKEY' => [
+                  'glpi_projects'   => 'projectstates_id',
+                  'glpi_projectstates' => 'id'
+               ]
+            ]
+         ] + $project_visibility['LEFT JOIN'],
+         'WHERE'     => $project_visibility['WHERE']
+      ];
+      if ($ID > 0) {
+         $request['WHERE']['glpi_projects.projects_id'] = $ID;
+         $request['WHERE'] += $criteria;
+      }
+
+      $iterator = $DB->request($request);
+      $projects = [];
+      while ($data = $iterator->next()) {
+         $projects[$data['id']] = $data;
+      }
+      $project_ids = array_map(function($e) {
+         return $e['id'];
+      }, array_filter($projects, function($e) use ($ID) {
+         // Filter tasks of closed projects in Global view
+         return ($ID > 0 || !$e['is_finished']);
+      }));
+      $projectteams = count($project_ids) ? $projectteam->find(['projects_id' => $project_ids]) : [];
+
+      // Get sub-tasks
+      $projecttask = new ProjectTask();
+      $projecttaskteam = new ProjectTaskTeam();
+      $project_ids_criteria = [];
+      if ($ID <= 0 && count($project_ids)) {
+         // Global view
+         $project_ids_criteria = ['projects_id' => $project_ids];
+      } else {
+         $project_ids_criteria = ['projects_id' => $ID];
+      }
+      $projecttasks = $projecttask->find($project_ids_criteria + $criteria);
+      $projecttask_ids = array_map(function ($e) {
+         return $e['id'];
+      }, $projecttasks);
+      $projecttaskteams = count($projecttask_ids) ? $projecttaskteam->find(['projecttasks_id' => $projecttask_ids]) : [];
+
+      // Build team member data
+      $supported_teamtypes = [
+         'User' => ['id', 'firstname', 'realname'],
+         'Group' => ['id', 'name'],
+         'Supplier' => ['id', 'name'],
+         'Contact' => ['id', 'name', 'firstname']
+      ];
+      $all_members = [];
+      foreach ($supported_teamtypes as $itemtype => $fields) {
+         $all_ids = array_map(function($e) {
+            return $e['items_id'];
+         }, array_filter(array_merge($projectteams, $projecttaskteams), function($e) use ($itemtype) {
+            return ($e['itemtype'] === $itemtype);
+         }));
+         if (count($all_ids)) {
+            $itemtable = $itemtype::getTable();
+            $all_items = $DB->request([
+               'SELECT'    => $fields,
+               'FROM'      => $itemtable,
+               'WHERE'     => [
+                  "{$itemtable}.id"   => $all_ids
+               ]
+            ]);
+            $all_members[$itemtype] = [];
+            while ($data = $all_items->next()) {
+               $all_members[$itemtype][] = $data;
+            }
+         } else {
+            $all_members[$itemtype] = [];
+         }
+      }
+
+      foreach ($projects as $subproject) {
+         $item = array_merge($subproject, [
+            '_itemtype' => 'Project',
+            '_team'     => [],
+            '_steps'    => ProjectTask::getAllForProject($subproject['id'])
+         ]);
+         if ($ID <= 0 && $subproject['projects_id'] > 0) {
+            if (isset($projects[$subproject['projects_id']])) {
+               $item['_parents_id'] = $projects[$subproject['projects_id']]['id'];
+               $item['_parent_itemtype'] = 'Project';
+               $item['_parent_name'] = $projects[$subproject['projects_id']]['name'];
+            }
+         }
+
+         $project->fields = $subproject;
+         $item['_readonly'] = !Project::canUpdate() || !$project->canUpdateItem();
+
+         $subproject_teams = array_filter($projectteams, function($e) use ($subproject) {
+            return $e['projects_id'] == $subproject['id'];
+         });
+         foreach ($subproject_teams as $teammember) {
+            switch ($teammember['itemtype']) {
+               case 'Group':
+               case 'Supplier':
+                  $matches = array_filter($all_members[$teammember['itemtype']], function($e) use ($teammember) {
+                     return ($e['id'] == $teammember['items_id']);
+                  });
+                  if (count($matches)) {
+                     $item['_team'][] = array_merge($teammember, reset($matches));
+                  }
+                  break;
+               case 'User':
+               case 'Contact':
+                  $contact_matches = array_filter($all_members[$teammember['itemtype']], function($e) use ($teammember) {
+                     return ($e['id'] == $teammember['items_id']);
+                  });
+                  if (count($contact_matches)) {
+                     $match = reset($contact_matches);
+                     // contact -> name, user -> realname
+                     $realname = $match['name'] ?? $match['realname'] ?? "";
+                     $match['name'] = formatUserName($match['id'], '', $realname, $match['firstname']);
+                     $item['_team'][] = array_merge($teammember, $match);
+                  }
+                  break;
+            }
+         }
+         $items[] = $item;
+      }
+
+      foreach ($projecttasks as $subtask) {
+         $item = array_merge($subtask, [
+            '_itemtype' => 'ProjectTask',
+            '_team' => [],
+            '_steps' => ProjectTask::getAllForProjectTask($subtask['id']),
+            'type' => $subtask['projecttasktypes_id']
+         ]);
+         if ($ID <= 0) {
+            $item['_parents_id'] = $projects[$subtask['projects_id']]['id'];
+            $item['_parent_itemtype'] = 'Project';
+            $item['_parent_name'] = $projects[$subtask['projects_id']]['name'];
+         }
+
+         $projecttask->fields = $subtask;
+         $item['_readonly'] = !ProjectTask::canUpdate() || !$projecttask->canUpdateItem();
+
+         $subtask_teams = array_filter($projecttaskteams, function ($e) use ($subtask) {
+            return $e['projecttasks_id'] == $subtask['id'];
+         });
+         foreach ($subtask_teams as $teammember) {
+            switch ($teammember['itemtype']) {
+               case 'Group':
+               case 'Supplier':
+                  $matches = array_filter($all_members[$teammember['itemtype']], function ($e) use ($teammember) {
+                     return ($e['id'] == $teammember['items_id']);
+                  });
+                  if (count($matches)) {
+                     $item['_team'][] = array_merge($teammember, reset($matches));
+                  }
+                  break;
+               case 'User':
+               case 'Contact':
+                  $contact_matches = array_filter($all_members[$teammember['itemtype']], function ($e) use ($teammember) {
+                     return ($e['id'] == $teammember['items_id']);
+                  });
+                  if (count($contact_matches)) {
+                     $match = reset($contact_matches);
+                     if ($teammember['itemtype'] === 'User') {
+                        $match['name'] = formatUserName($match['id'], '', $match['realname'], $match['firstname']);
+                     } else {
+                        $match['name'] = formatUserName($match['id'], '', $match['name'], $match['firstname']);
+                     }
+                     $item['_team'][] = array_merge($teammember, $match);
+                  }
+                  break;
+            }
+         }
+         $items[] = $item;
+      }
+
+      return $items;
+   }
+
+   static function getKanbanColumns($ID, $column_field = null, $column_ids = [], $get_default = false) {
+
+      if ($column_field !== 'projectstates_id') {
+         return [];
+      }
+
+      $columns = [];
+      if (empty($column_ids) || $get_default || in_array(0, $column_ids)) {
+         $columns[0] = [
+               'name'         => __('No status'),
+               '_protected'   => true
+            ];
+      }
+      $criteria = [];
+      if (!empty($column_ids)) {
+         $criteria = [
+            'projectstates_id'   => $column_ids
+         ];
+      }
+      $items      = self::getDataToDisplayOnKanban($ID, $criteria);
+
+      $projecttasktype = new ProjectTaskType();
+      $alltypes = $projecttasktype->find();
+
+      $extracolumns = self::getAllKanbanColumns('projectstates_id', $column_ids, $get_default);
+      foreach ($extracolumns as $column_id => $column) {
+         $columns[$column_id] = $column;
+      }
+
+      foreach ($items as $item) {
+         if (!in_array($item['projectstates_id'], array_keys($columns))) {
+            continue;
+         }
+         $itemtype = $item['_itemtype'];
+         $card = [
+            'id'        => "{$itemtype}-{$item['id']}",
+            'title'     => Html::link($item['name'], $itemtype::getFormURLWithID($item['id']))
+         ];
+
+         $content = "<div class='kanban-plugin-content'>";
+         $plugin_content_pre = Plugin::doHookFunction('pre_kanban_content', [
+            'itemtype' => $itemtype,
+            'items_id' => $item['id'],
+         ]);
+         if (!empty($plugin_content_pre['content'])) {
+            $content .= $plugin_content_pre['content'];
+         }
+         $content .= "</div>";
+         // Core content
+         $content .= "<div class='kanban-core-content'>";
+         if (isset($item['_parents_id'])) {
+            $childref = $itemtype === 'Project' ? __('Subproject') : __('Subtask');
+            $parentname = $item['_parent_name'] ?? $item['_parents_id'];
+
+            $content .= "<div>";
+            $content .= Html::link(sprintf(__('%s of %s'), $childref, $parentname), Project::getFormURLWithID($item['_parents_id']));
+            $content .= "</div>";
+         }
+         $content .= "<div class='flex-break'></div>";
+         if ($itemtype === 'ProjectTask' && $item['projecttasktypes_id'] !== 0) {
+            $typematches = array_filter($alltypes, function($t) use ($item){
+               return $t['id'] === $item['projecttasktypes_id'];
+            });
+            $content .= reset($typematches)['name'] . '&nbsp;';
+         }
+         if (array_key_exists('is_milestone', $item) && $item['is_milestone']) {
+            $content .= "&nbsp;<i class='fas fa-map-signs' title='" . __('Milestone') . "'></i>&nbsp;";
+         }
+         if (isset($item['_steps']) && count($item['_steps'])) {
+            $done = count(array_filter($item['_steps'], function($step) {
+               return $step['percent_done'] == 100;
+            }));
+            $total = count($item['_steps']);
+            $content .= "<div class='flex-break'></div>";
+            $content .= sprintf(__('%s / %s tasks complete'), $done, $total);
+         }
+         // Percent Done
+         $content .= "<div class='flex-break'></div>";
+         $content .= Html::progress(100, $item['percent_done']);
+
+         $content .= "</div>";
+         $content .= "<div class='kanban-plugin-content'>";
+         $plugin_content_post = Plugin::doHookFunction('post_kanban_content', [
+            'itemtype' => $itemtype,
+            'items_id' => $item['id'],
+         ]);
+         if (!empty($plugin_content_post['content'])) {
+            $content .= $plugin_content_post['content'];
+         }
+         $content .= "</div>";
+
+         $card['content'] = $content;
+         $card['_team'] = $item['_team'];
+         $card['_readonly'] = $item['_readonly'];
+         $columns[$item['projectstates_id']]['items'][] = $card;
+      }
+
+      // If no specific columns were asked for, drop empty columns.
+      // If specific columns were asked for, such as when loading a user's Kanban view, we must preserve them.
+      // We always preserve the 'No Status' column.
+      foreach ($columns as $column_id => $column) {
+         if ($column_id !== 0 && !in_array($column_id, $column_ids) &&
+            (!isset($column['items']) || !count($column['items']))) {
+            unset($columns[$column_id]);
+         }
+      }
+      return $columns;
+   }
+
+   public function canModifyGlobalState() {
+      // Only project manager (or managing group) may change the Kanban's state
+      return $this->fields["users_id"] === Session::getLoginUserID() || $this->isInTheManagerGroup();
+   }
+
+   public function forceGlobalState() {
+      // All users must be using the global state unless viewing the global Kanban
+      return $this->getID() > 0;
+   }
+
+   /**
+    * Show Kanban view.
+    * @param int $ID ID of the parent Project or -1 for a global view.
+    * @return bool|void False if the Kanban cannot be shown.
+    */
+   static function showKanban($ID) {
+      $project = new Project();
+      if (($ID <= 0 && !Project::canView()) ||
+         ($ID > 0 && (!$project->getFromDB($ID) || !$project->canView()))) {
+         return false;
+      }
+
+      $supported_itemtypes = [];
+      if (Project::canCreate()) {
+         $supported_itemtypes['Project'] = [
+            'name' => Project::getTypeName(1),
+            'fields' => [
+               'projects_id'  => [
+                  'type'   => 'hidden',
+                  'value'  => $ID
+               ],
+               'name'   => [
+                  'placeholder'  => __('Name')
+               ],
+               'content'   => [
+                  'placeholder'  => __('Content'),
+                  'type'         => 'textarea'
+               ],
+               'users_id'  => [
+                  'type'         => 'hidden',
+                  'value'        => $_SESSION['glpiID']
+               ],
+               'entities_id' => [
+                  'type'   => 'hidden',
+                  'value'  => $ID > 0 ? $project->fields["entities_id"] : $_SESSION['glpiactive_entity'],
+               ],
+               'is_recursive' => [
+                  'type'   => 'hidden',
+                  'value'  => 0
+               ]
+            ]
+         ];
+      }
+
+      if (ProjectTask::canCreate()) {
+         $supported_itemtypes['ProjectTask'] = [
+            'name' => ProjectTask::getTypeName(1),
+            'fields' => [
+               'projects_id'  => [
+                  'type'   => 'hidden',
+                  'value'  => $ID
+               ],
+               'name'   => [
+                  'placeholder'  => __('Name')
+               ],
+               'content'   => [
+                  'placeholder'  => __('Content'),
+                  'type'         => 'textarea'
+               ],
+               'projecttasktemplates_id' => [
+                  'type'   => 'hidden',
+                  'value'  => 0
+               ],
+               'projecttasks_id' => [
+                  'type'   => 'hidden',
+                  'value'  => 0
+               ],
+               'entities_id' => [
+                  'type'   => 'hidden',
+                  'value'  => $ID > 0 ? $project->fields["entities_id"] : $_SESSION['glpiactive_entity'],
+               ],
+               'is_recursive' => [
+                  'type'   => 'hidden',
+                  'value'  => 0
+               ]
+            ]
+         ];
+         if ($ID <= 0) {
+            $supported_itemtypes['ProjectTask']['fields']['projects_id'] = [
+               'type'   => 'raw',
+               'value'  => Project::dropdown(['display' => false, 'width' => '90%'])
+            ];
+         }
+      }
+      $column_field = [
+         'id' => 'projectstates_id',
+         'extra_fields' => [
+            'color'  => [
+               'type'   => 'color'
+            ]
+         ]
+      ];
+      $supported_itemtypes = json_encode($supported_itemtypes, JSON_FORCE_OBJECT);
+      $column_field = json_encode($column_field, JSON_FORCE_OBJECT);
+
+      echo "<div id='kanban' class='kanban'></div>";
+      $darkmode = ($_SESSION['glpipalette'] === 'darker') ? 'true' : 'false';
+      $canadd_item = json_encode($ID > 0 ? $project->canEdit($ID) && $project->can($ID, UPDATE) : self::canCreate() || ProjectTask::canCreate());
+      $canmodify_view = json_encode(($ID == 0 || $project->canModifyGlobalState()));
+      $cancreate_column = json_encode((bool)ProjectState::canCreate());
+      $limit_addcard_columns = $canmodify_view !== 'false' ? '[]' : json_encode([0]);
+      $can_order_item = json_encode((bool)$project->canOrderKanbanCard($ID));
+
+      $js = <<<JAVASCRIPT
+         $(function(){
+            // Create Kanban
+            var kanban = new GLPIKanban({
+               element: "#kanban",
+               allow_add_item: $canadd_item,
+               allow_modify_view: $canmodify_view,
+               allow_create_column: $cancreate_column,
+               limit_addcard_columns: $limit_addcard_columns,
+               allow_order_card: $can_order_item,
+               supported_itemtypes: $supported_itemtypes,
+               dark_theme: {$darkmode},
+               max_team_images: 3,
+               column_field: $column_field,
+               background_refresh_interval: {$_SESSION['glpirefresh_views']},
+               item: {
+                  itemtype: 'Project',
+                  items_id: $ID
+               }
+            });
+            // Create kanban elements and add data
+            kanban.init();
+         });
+JAVASCRIPT;
+      echo Html::scriptBlock($js);
+   }
+
+   public function canOrderKanbanCard($ID) {
+      if ($ID > 0) {
+         $this->getFromDB($ID);
+      }
+      return ($ID <= 0 || $this->canModifyGlobalState());
+   }
+
    /**
     * Display debug information for current object
    **/
    function showDebug() {
       NotificationEvent::debugEvent($this);
+   }
+
+   /**
+    * Update the specified project's percent_done based on the percent_done of subprojects and tasks.
+    * This function indirectly updates the percent done for all parents if they are set to automatically update.
+    * @since 9.5.0
+    * @return boolean False if the specified project is not set to automatically update the percent done.
+    */
+   public static function recalculatePercentDone($ID) {
+      global $DB;
+
+      $project = new self();
+      $project->getFromDB($ID);
+      if (!$project->fields['auto_percent_done']) {
+         return false;
+      }
+
+      $query1 = new \QuerySubQuery([
+         'SELECT' => [
+            'percent_done'
+         ],
+         'FROM'   => self::getTable(),
+         'WHERE'  => [
+            'projects_id'  => $ID,
+            'is_deleted'   => 0
+         ]
+      ]);
+      $query2 = new \QuerySubQuery([
+         'SELECT' => [
+            'percent_done'
+         ],
+         'FROM'   => ProjectTask::getTable(),
+         'WHERE'  => [
+            'projects_id' => $ID
+         ]
+      ]);
+      $union = new QueryUnion([$query1, $query2], false, 'all_items');
+      $iterator = $DB->request([
+         'SELECT' => [
+            new QueryExpression('CAST(AVG('.$DB->quoteName('percent_done').') AS UNSIGNED) AS percent_done')
+         ],
+         'FROM'   => $union
+      ]);
+
+      if ($iterator->count()) {
+         $avg = $iterator->next()['percent_done'];
+         $percent_done = is_null($avg) ? 0 : $avg;
+      } else {
+         $percent_done = 0;
+      }
+
+      $project->update([
+         'id'           => $ID,
+         'percent_done' => $percent_done
+      ]);
+      return true;
+   }
+
+
+   static function getIcon() {
+      return "fas fa-columns";
    }
 }

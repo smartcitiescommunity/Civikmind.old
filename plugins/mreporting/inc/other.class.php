@@ -29,7 +29,7 @@
 
 class PluginMreportingOther Extends PluginMreportingBaseclass {
 
-   function reportHbarLogs($configs = array()) {
+   function reportHbarLogs($configs = []) {
       global $DB;
 
       //Init delay value
@@ -64,7 +64,7 @@ class PluginMreportingOther Extends PluginMreportingBaseclass {
       $query_item            = "$prefix `linked_action` IN (13, 14, 17, 18, 19, 20)";
       $query_other           = "$prefix `id_search_option` IN (16, 19)";
 
-      $datas = array();
+      $datas = [];
 
       $result = $DB->query($query_computer_software);
       $datas['datas'][__('Add/remove software on a computer', 'mreporting')] = $DB->result($result, 0, 'cpt');
@@ -128,15 +128,17 @@ class PluginMreportingOther Extends PluginMreportingBaseclass {
    * @param PluginMreportingConfig $config
    * @return $config
    */
-    function preconfig($funct_name, $classname, PluginMreportingConfig $config) {
+   function preconfig($funct_name, $classname, PluginMreportingConfig $config) {
 
       if ($funct_name != -1 && $classname) {
 
          $ex_func = preg_split('/(?<=\\w)(?=[A-Z])/', $funct_name);
-         if ($ex_func[0] != 'report') return false;
+         if ($ex_func[0] != 'report') {
+            return false;
+         }
          $gtype = strtolower($ex_func[1]);
 
-         switch($gtype) {
+         switch ($gtype) {
             case 'pie':
                $config->fields["name"]=$funct_name;
                $config->fields["classname"]=$classname;

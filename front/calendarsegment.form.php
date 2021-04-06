@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 use Glpi\Event;
 
 include ('../inc/includes.php');
@@ -45,7 +41,7 @@ $item = new CalendarSegment();
 if (isset($_POST["add"])) {
 
    $item->check(-1, CREATE, $_POST);
-   if ($newID = $item->add($_POST)) {
+   if ($item->add($_POST)) {
       Event::log($_POST["calendars_id"], "calendars", 4, "setup",
                  //TRANS: %s is the user login
                  sprintf(__('%s adds a link with an item'), $_SESSION["glpiname"]));

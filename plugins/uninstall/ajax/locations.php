@@ -32,14 +32,14 @@ include ('../../../inc/includes.php');
 header("Content-Type: text/html; charset=UTF-8");
 Html::header_nocache();
 
-if (Session::haveRight(PluginUninstallProfile::$rightname, READ)
+if (Session::haveRight(PluginUninstallUninstall::$rightname, READ)
     && $_POST['templates_id']) {
    $location = PluginUninstallPreference::getLocationByUserByEntity($_POST["users_id"],
                                                                     $_POST["templates_id"],
                                                                     $_POST["entity"]);
-   Location::dropdown(array('value'     => ($location == '' ? 0 : $location),
-                            'comments'  => 1,
-                            'entity'    => $_POST["entity"],
-                            'toadd'     => array(-1 => __('Keep previous location', 'uninstall'),
-                                                 0  => __('Empty location', 'uninstall'))));
+   Location::dropdown(['value'     => ($location == '' ? 0 : $location),
+                       'comments'  => 1,
+                       'entity'    => $_POST["entity"],
+                       'toadd'     => [-1 => __('Keep previous location', 'uninstall'),
+                                       0  => __('Empty location', 'uninstall')]]);
 }

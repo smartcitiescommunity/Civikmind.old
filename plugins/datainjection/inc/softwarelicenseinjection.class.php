@@ -1,6 +1,6 @@
 <?php
 /*
- * @version $Id$
+ * @version $Id: HEADER 14684 2011-06-11 06:32:40Z remi $
  LICENSE
 
  This file is part of the datainjection plugin.
@@ -20,24 +20,25 @@
  --------------------------------------------------------------------------
  @package   datainjection
  @author    the datainjection plugin team
- @copyright Copyright (c) 2010-2013 Datainjection plugin team
+ @copyright Copyright (c) 2010-2017 Datainjection plugin team
  @license   GPLv2+
             http://www.gnu.org/licenses/gpl.txt
- @link      https://forge.indepnet.net/projects/datainjection
+ @link      https://github.com/pluginsGLPI/datainjection
  @link      http://www.glpi-project.org/
  @since     2009
  ---------------------------------------------------------------------- */
 
 if (!defined('GLPI_ROOT')) {
-   die("Sorry. You can't access directly to this file");
+    die("Sorry. You can't access directly to this file");
 }
 
 /// SoftwareLicense class
 class PluginDatainjectionSoftwareLicenseInjection extends SoftwareLicense
-                                                  implements PluginDatainjectionInjectionInterface {
+                                                  implements PluginDatainjectionInjectionInterface
+{
 
 
-   static function getTable() {
+   static function getTable($classname = null) {
 
       $parenttype = get_parent_class();
       return $parenttype::getTable();
@@ -45,19 +46,21 @@ class PluginDatainjectionSoftwareLicenseInjection extends SoftwareLicense
 
 
    function isPrimaryType() {
+
       return true;
    }
 
 
    function connectedTo() {
-      return array('Software');
+
+      return ['Software'];
    }
 
 
-   /**
+    /**
     * @see plugins/datainjection/inc/PluginDatainjectionInjectionInterface::getOptions()
    **/
-   function getOptions($primary_type='') {
+   function getOptions($primary_type = '') {
 
       $tab                 = Search::getOptions(get_parent_class($this));
 
@@ -76,41 +79,45 @@ class PluginDatainjectionSoftwareLicenseInjection extends SoftwareLicense
 
       //Remove some options because some fields cannot be imported
       $blacklist     = PluginDatainjectionCommonInjectionLib::getBlacklistedOptions(get_parent_class($this));
-      $notimportable = array();
+      $notimportable = [];
 
       $options['ignore_fields'] = array_merge($blacklist, $notimportable);
 
       $key = array_search(2, $options['ignore_fields']);
       unset($options['ignore_fields'][$key]);
 
-      $options['displaytype']   = array("dropdown"       => array(5, 6, 7, 110),
-                                        "date"           => array(8),
-                                        "multiline_text" => array(16),
-                                        "software" => array(100));
+      $options['displaytype']   = ["dropdown"       => [5, 6, 7, 110],
+                                      "date"           => [8],
+                                      "multiline_text" => [16],
+                                      "software" => [100]];
 
       return PluginDatainjectionCommonInjectionLib::addToSearchOptions($tab, $options, $this);
    }
 
 
-   /**
+    /**
     * @param $info      array
     * @param $option    array
    **/
-   function showAdditionalInformation($info=array(), $option=array()) {
+   function showAdditionalInformation($info = [], $option = []) {
 
       $name = "info[".$option['linkfield']."]";
 
       switch ($option['displaytype']) {
          case 'computer' :
-            Computer::dropdown(array('name'        => $name,
-                                     'entity'      => $_SESSION['glpiactive_entity'],
-                                     'entity_sons' => false));
+            Computer::dropdown(
+                ['name'        => $name,
+                                   'entity'      => $_SESSION['glpiactive_entity'],
+                                   'entity_sons' => false]
+            );
             break;
 
          case 'software' :
-            Software::dropdown(array('name'        => $name,
-                                     'entity'      => $_SESSION['glpiactive_entity'],
-                                     'entity_sons' => false));
+            Software::dropdown(
+                ['name'        => $name,
+                                   'entity'      => $_SESSION['glpiactive_entity'],
+                                   'entity_sons' => false]
+            );
             break;
 
          default :
@@ -119,10 +126,10 @@ class PluginDatainjectionSoftwareLicenseInjection extends SoftwareLicense
    }
 
 
-   /**
+    /**
     * @see plugins/datainjection/inc/PluginDatainjectionInjectionInterface::addOrUpdateObject()
    **/
-   function addOrUpdateObject($values=array(), $options=array()) {
+   function addOrUpdateObject($values = [], $options = []) {
 
       $lib = new PluginDatainjectionCommonInjectionLib($this, $values, $options);
       $lib->processAddOrUpdate();
@@ -130,10 +137,11 @@ class PluginDatainjectionSoftwareLicenseInjection extends SoftwareLicense
    }
 
 
-   /**
+    /**
     * @param $fields_toinject    array
    **/
-   function getValueForAdditionalMandatoryFields($fields_toinject=array()) {
+   function getValueForAdditionalMandatoryFields($fields_toinject = []) {
+
       global $DB;
 
       if (!isset($fields_toinject['SoftwareLicense']['softwares_id'])) {
@@ -143,32 +151,34 @@ class PluginDatainjectionSoftwareLicenseInjection extends SoftwareLicense
       $query = "SELECT `id`
                 FROM `glpi_softwares`
                 WHERE `name` = '".$fields_toinject['SoftwareLicense']['softwares_id']."'".
-                      getEntitiesRestrictRequest(" AND", "glpi_softwares", "entities_id",
-                                                 $fields_toinject['SoftwareLicense']['entities_id'],
-                                                 true);
+                    getEntitiesRestrictRequest(
+                        " AND", "glpi_softwares", "entities_id",
+                        $fields_toinject['SoftwareLicense']['entities_id'],
+                        true
+                    );
       $result = $DB->query($query);
 
       if ($DB->numrows($result) > 0) {
-         $id = $DB->result($result,0,'id');
-         //Add softwares_id to the array
-         $fields_toinject['SoftwareLicense']['softwares_id'] = $id;
+          $id = $DB->result($result, 0, 'id');
+          //Add softwares_id to the array
+          $fields_toinject['SoftwareLicense']['softwares_id'] = $id;
 
       } else {
-         //Remove software id
-         unset($fields_toinject['SoftwareLicense']['softwares_id']);
+          //Remove software id
+          unset($fields_toinject['SoftwareLicense']['softwares_id']);
       }
 
-      return $fields_toinject;
+       return $fields_toinject;
    }
 
 
-   /**
+    /**
     * @param $primary_type
     * @param $values
    **/
    function addSpecificNeededFields($primary_type, $values) {
 
-      $fields = array();
+      $fields = [];
       if ($primary_type == 'Software') {
          $fields['softwares_id'] = $values[$primary_type]['id'];
       }
@@ -176,11 +186,11 @@ class PluginDatainjectionSoftwareLicenseInjection extends SoftwareLicense
    }
 
 
-   /**
+    /**
     * @param $fields_toinject    array
     * @param $options            array
    **/
-   function checkPresent($fields_toinject=array(), $options=array()) {
+   function checkPresent($fields_toinject = [], $options = []) {
 
       if ($options['itemtype'] != 'SoftwareLicense') {
          return (" AND `softwares_id` = '".$fields_toinject['Software']['id']."'
@@ -190,4 +200,3 @@ class PluginDatainjectionSoftwareLicenseInjection extends SoftwareLicense
    }
 
 }
-?>

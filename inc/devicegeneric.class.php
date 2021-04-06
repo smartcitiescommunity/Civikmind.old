@@ -1,9 +1,8 @@
 <?php
-
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -31,7 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access directly to this file");
 }
@@ -50,19 +48,19 @@ class DeviceGeneric extends CommonDevice {
 
       return array_merge(parent::getAdditionalFields(),
                          [['name'  => 'devicegenerictypes_id',
-                                     'label' => __('Type'),
+                                     'label' => _n('Type', 'Types', 1),
                                      'type'  => 'dropdownValue']]);
    }
 
 
-   function getSearchOptionsNew() {
-      $tab                 = parent::getSearchOptionsNew();
+   function rawSearchOptions() {
+      $tab                 = parent::rawSearchOptions();
 
       $tab[] = [
          'id'                 => '12',
          'table'              => 'glpi_devicegenerictypes',
          'field'              => 'name',
-         'name'               => __('Type'),
+         'name'               => _n('Type', 'Types', 1),
          'datatype'           => 'dropdown'
       ];
 
@@ -70,11 +68,6 @@ class DeviceGeneric extends CommonDevice {
    }
 
 
-   /**
-    * @since version 0.84
-    *
-    * @see CommonDevice::getHTMLTableHeader()
-   **/
    static function getHTMLTableHeader($itemtype, HTMLTableBase $base,
                                       HTMLTableSuperHeader $super = null,
                                       HTMLTableHeader $father = null, array $options = []) {
@@ -93,11 +86,6 @@ class DeviceGeneric extends CommonDevice {
    }
 
 
-   /**
-    * @since version 0.84
-    *
-    * @see CommonDevice::getHTMLTableCellForItem()
-   **/
    function getHTMLTableCellForItem(HTMLTableRow $row = null, CommonDBTM $item = null,
                                     HTMLTableCell $father = null, array $options = []) {
 
@@ -120,7 +108,7 @@ class DeviceGeneric extends CommonDevice {
     *
     * @see CommonDevice::getImportCriteria()
     *
-    * @since version 0.84
+    * @since 0.84
    **/
    function getImportCriteria() {
 

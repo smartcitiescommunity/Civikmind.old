@@ -1,118 +1,160 @@
-2017-11-17 03:24:02 [@F-3542]
-[login] 3: admin inició la sesión desde la IP ::1
-2017-11-17 03:54:59 [@F-3542]
-[login] 3: admin inicio de sesión desde la IP ::1
-2017-11-17 03:56:01 [@F-3542]
-[login] 3: admin inició la sesión desde la IP ::1
-2017-11-17 04:29:56 [@F-3542]
-[login] 3: admin inicio de sesión desde la IP ::1
-2017-11-17 04:32:00 [@F-3542]
-[login] 3: admin inicio de sesión desde la IP ::1
-2017-11-17 04:35:50 [2@F-3542]
-[login] 3: admin inició la sesión desde la IP ::1
-2017-11-17 04:39:52 [@F-3542]
-[login] 3: admin inicio de sesión desde la IP ::1
-2017-11-17 04:42:37 [@F-3542]
-[login] 3: admin inicio de sesión desde la IP ::1
-2017-11-17 05:58:27 [@F-3542]
-[login] 3: admin inicio de sesión desde la IP ::1
-2017-11-17 06:07:30 [@F-3542]
-[login] 3: Fallo en el inicio de sesión de admin desde la IP ::1
-2017-11-17 06:07:51 [@F-3542]
+2021-03-27 18:40:10 [@villa]
 [login] 3: glpi inició la sesión desde la IP ::1
-2017-11-17 06:43:27 [@F-3542]
-[login] 3: Fallo en el inicio de sesión de admin desde la IP ::1
-2017-11-17 06:49:25 [@F-3542]
-[login] 3: Fallo en el inicio de sesión de admin desde la IP ::1
-2017-11-17 06:49:32 [@F-3542]
+2021-03-27 19:39:20 [@villa]
 [login] 3: glpi inició la sesión desde la IP ::1
-2017-11-17 06:56:16 [@F-3542]
-[login] 3: glpi inició la sesión desde la IP ::1
-2017-11-17 06:56:56 [@F-3542]
-[login] 3: admin inició la sesión desde la IP ::1
-2017-11-17 07:00:32 [@F-3542]
-[login] 3: admin inicio de sesión desde la IP ::1
-2017-11-18 19:16:12 [@F-3542]
-[login] 3: admin inicio de sesión desde la IP ::1
-2017-11-18 22:39:32 [@F-3542]
-[login] 3: admin inicio de sesión desde la IP ::1
-2017-11-18 23:58:30 [@F-3542]
-[login] 3: admin inicio de sesión desde la IP ::1
-2017-11-19 00:01:15 [5@F-3542]
-[login] 3: normal inicio de sesión desde la IP ::1
-2017-11-19 00:04:00 [@F-3542]
-[login] 3: admin inicio de sesión desde la IP ::1
-2017-11-21 19:21:02 [@F-3542]
-[login] 3: admin inicio de sesión desde la IP ::1
-2017-11-21 19:57:48 [@F-3542]
-[login] 3: admin inicio de sesión desde la IP ::1
-2017-11-21 20:48:16 [@F-3542]
-[login] 3: admin inicio de sesión desde la IP ::1
-2017-11-22 03:13:29 [@F-3542]
-[login] 3: admin inicio de sesión desde la IP ::1
-2017-11-22 03:19:03 [@F-3542]
-[login] 3: admin inicio de sesión desde la IP ::1
-2017-11-22 06:54:21 [@F-3542]
-[login] 3: admin inicio de sesión desde la IP ::1
-2017-11-22 19:26:21 [@F-3542]
-[login] 3: admin inicio de sesión desde la IP ::1
-2017-11-27 21:17:21 [@F-3542]
-[login] 3: Fallo en el inicio de sesión de admin desde la IP ::1
-2017-11-27 21:17:32 [@F-3542]
-[login] 3: glpi inició la sesión desde la IP ::1
-2017-11-27 21:52:57 [@F-3542]
-[login] 3: Failed login for  from IP ::1
-2017-11-27 21:53:19 [@F-3542]
-[login] 3: Failed login for civikmind from IP ::1
-2017-11-27 21:53:38 [@F-3542]
-[login] 3: Failed login for civikmind from IP ::1
-2017-11-27 21:53:52 [@F-3542]
-[login] 3: Failed login for glpi from IP ::1
-2017-11-27 22:44:26 [@F-3542]
-[login] 3: civikmind inició la sesión desde la IP ::1
-2017-11-27 23:01:37 [@F-3542]
+2021-03-27 20:04:09 [@villa]
 [login] 3: Fallo en el inicio de sesión de  desde la IP ::1
-2017-11-27 23:13:04 [@F-3542]
+2021-03-27 20:04:16 [@villa]
+[login] 3: glpi inició la sesión desde la IP ::1
+2021-03-27 20:23:05 [@villa]
+[login] 3: glpi inició la sesión desde la IP ::1
+2021-03-27 20:32:07 [@villa]
+[login] 3: glpi inició la sesión desde la IP ::1
+2021-03-27 20:34:57 [@villa]
+[login] 3: glpi inició la sesión desde la IP ::1
+2021-03-27 21:00:55 [@villa]
+[login] 3: glpi inició la sesión desde la IP ::1
+2021-03-27 21:01:07 [@villa]
+[login] 3: glpi inició la sesión desde la IP ::1
+2021-03-27 21:01:36 [@villa]
+[login] 3: glpi inició la sesión desde la IP ::1
+2021-03-27 22:51:50 [@villa]
+[login] 3: Fallo en el inicio de sesión de  desde la IP ::1
+2021-03-27 22:51:55 [@villa]
+[login] 3: glpi inició la sesión desde la IP ::1
+2021-03-27 23:38:13 [@villa]
+[login] 3: Fallo en el inicio de sesión de glpi desde la IP ::1
+2021-03-27 23:38:18 [@villa]
+[login] 3: Fallo en el inicio de sesión de glpi desde la IP ::1
+2021-03-27 23:38:23 [@villa]
+[login] 3: Fallo en el inicio de sesión de glpi desde la IP ::1
+2021-03-27 23:46:13 [@villa]
+[login] 3: glpi inició la sesión desde la IP ::1
+2021-03-28 00:50:22 [@villa]
+[login] 3: Fallo en el inicio de sesión de  desde la IP ::1
+2021-03-28 00:50:27 [@villa]
+[login] 3: Fallo en el inicio de sesión de glpi desde la IP ::1
+2021-03-28 02:03:46 [@villa]
+[login] 3: glpi inició la sesión desde la IP ::1
+2021-03-28 02:03:56 [@villa]
+[login] 3: glpi inició la sesión desde la IP ::1
+2021-03-28 02:06:08 [@villa]
+[login] 3: Fallo en el inicio de sesión de  desde la IP ::1
+2021-03-28 02:06:15 [@villa]
+[login] 3: glpi inició la sesión desde la IP ::1
+2021-03-28 02:12:19 [@villa]
+[login] 3: glpi inició la sesión desde la IP ::1
+2021-03-28 02:13:50 [@villa]
+[login] 3: glpi inició la sesión desde la IP ::1
+2021-03-28 02:17:29 [@villa]
+[login] 3: glpi inició la sesión desde la IP ::1
+2021-03-28 02:19:44 [@villa]
+[login] 3: glpi inició la sesión desde la IP ::1
+2021-03-28 02:20:59 [@villa]
+[login] 3: glpi inició la sesión desde la IP ::1
+2021-03-28 02:27:01 [@villa]
+[login] 3: glpi inició la sesión desde la IP ::1
+2021-03-28 02:46:42 [@villa]
+[login] 3: glpi inició la sesión desde la IP ::1
+2021-03-28 02:47:02 [@villa]
+[login] 3: glpi inició la sesión desde la IP ::1
+2021-03-28 02:52:26 [@villa]
+[login] 3: glpi inició la sesión desde la IP ::1
+2021-03-28 03:25:27 [@villa]
+[login] 3: glpi inició la sesión desde la IP ::1
+2021-03-28 03:33:37 [@villa]
+[login] 3: Fallo en el inicio de sesión de glpi desde la IP ::1
+2021-03-28 03:33:50 [@villa]
 [login] 3: civikmind inició la sesión desde la IP ::1
-2017-11-28 01:23:54 [@F-3542]
+2021-03-28 03:39:23 [@villa]
 [login] 3: civikmind inició la sesión desde la IP ::1
-2017-11-28 01:26:03 [@F-3542]
+2021-03-28 04:34:03 [@villa]
 [login] 3: civikmind inició la sesión desde la IP ::1
-2017-11-28 02:01:26 [@F-3542]
+2021-03-28 04:34:19 [@villa]
+[login] 3: ciudadano inició la sesión desde la IP ::1
+2021-03-28 05:07:22 [@villa]
 [login] 3: civikmind inició la sesión desde la IP ::1
-2017-11-28 02:01:36 [@F-3542]
+2021-03-28 06:46:30 [@villa]
 [login] 3: civikmind inició la sesión desde la IP ::1
-2017-11-28 02:12:12 [@F-3542]
+2021-03-28 13:40:35 [@villa]
 [login] 3: civikmind inició la sesión desde la IP ::1
-2017-11-28 02:19:01 [@F-3542]
+2021-03-28 13:43:28 [@villa]
+[login] 3: civikmind inicio de sesión desde la IP ::1
+2021-03-28 15:07:58 [@villa]
 [login] 3: civikmind inició la sesión desde la IP ::1
-2017-11-28 02:39:48 [@F-3542]
+2021-03-28 15:08:11 [@villa]
+[login] 3: civikmind inició la sesión desde la IP ::1
+2021-03-28 15:08:32 [@villa]
+[login] 3: civikmind inició la sesión desde la IP ::1
+2021-03-28 16:53:28 [@villa]
+[login] 3: civikmind inició la sesión desde la IP ::1
+2021-03-28 16:54:39 [@villa]
+[login] 3: civikmind inició la sesión desde la IP ::1
+2021-03-28 17:02:19 [@villa]
+[login] 3: civikmind inició la sesión desde la IP ::1
+2021-03-28 17:43:58 [@villa]
+[login] 3: civikmind inició la sesión desde la IP ::1
+2021-03-28 17:47:59 [@villa]
+[login] 3: civikmind inició la sesión desde la IP ::1
+2021-03-28 17:53:02 [@villa]
+[login] 3: civikmind inició la sesión desde la IP ::1
+2021-03-28 19:14:53 [@villa]
+[login] 3: civikmind inició la sesión desde la IP ::1
+2021-03-28 20:37:56 [@villa]
+[login] 3: civikmind inició la sesión desde la IP ::1
+2021-03-28 20:41:06 [@villa]
+[login] 3: civikmind inició la sesión desde la IP ::1
+2021-03-28 21:09:37 [@villa]
+[login] 3: civikmind inició la sesión desde la IP ::1
+2021-03-28 21:25:22 [@villa]
+[login] 3: publicador inició la sesión desde la IP ::1
+2021-03-28 21:27:21 [@villa]
+[login] 3: civikmind inició la sesión desde la IP ::1
+2021-03-28 21:29:01 [@villa]
+[login] 3: civikmind inició la sesión desde la IP ::1
+2021-03-28 21:51:05 [@villa]
+[login] 3: civikmind inició la sesión desde la IP ::1
+2021-03-29 00:44:49 [@villa]
+[login] 3: civikmind inició la sesión desde la IP ::1
+2021-03-29 06:05:57 [@villa]
 [login] 3: civikmind inicio de sesión desde la IP ::1
-2017-11-28 03:44:00 [@F-3542]
-[login] 3: civikmind inicio de sesión desde la IP ::1
-2017-11-28 05:32:28 [@F-3542]
-[login] 3: civikmind inicio de sesión desde la IP ::1
-2017-11-28 06:19:17 [@F-3542]
-[login] 3: civikmind inicio de sesión desde la IP ::1
-2017-11-28 06:31:47 [@F-3542]
-[login] 3: civikmind inicio de sesión desde la IP ::1
-2017-11-28 06:34:29 [@F-3542]
-[login] 3: normal inicio de sesión desde la IP ::1
-2017-11-28 06:36:03 [@F-3542]
-[login] 3: civikmind inicio de sesión desde la IP ::1
-2017-11-28 06:44:58 [@F-3542]
-[login] 3: normal inicio de sesión desde la IP ::1
-2017-11-28 06:57:59 [@F-3542]
-[login] 3: civikmind inicio de sesión desde la IP ::1
-2017-11-28 06:59:12 [@F-3542]
-[login] 3: civikmind inicio de sesión desde la IP ::1
-2017-11-28 06:59:54 [@F-3542]
-[login] 3: civikmind inicio de sesión desde la IP ::1
-2017-11-28 07:16:53 [@F-3542]
-[login] 3: civikmind inicio de sesión desde la IP ::1
-2017-11-28 07:26:14 [@F-3542]
-[login] 3: civikmind inicio de sesión desde la IP ::1
-2017-11-28 08:08:21 [@F-3542]
-[login] 3: civikmind inicio de sesión desde la IP ::1
-2017-11-28 08:10:20 [@F-3542]
-[login] 3: civikmind inicio de sesión desde la IP ::1
+2021-03-29 06:45:34 [@villa]
+[login] 3: civikmind inicia sesión desde la IP ::1
+2021-03-29 07:21:01 [@villa]
+[login] 3: ciudadano inicia sesión desde la IP ::1
+2021-03-29 07:21:18 [@villa]
+[login] 3: civikmind inicia sesión desde la IP ::1
+2021-03-29 07:22:20 [@villa]
+[login] 3: publicador inicia sesión desde la IP ::1
+2021-03-29 07:27:53 [@villa]
+[login] 3: civikmind inicia sesión desde la IP ::1
+2021-03-29 09:07:10 [@villa]
+[login] 3: civikmind inicia sesión desde la IP ::1
+2021-03-29 12:59:37 [@villa]
+[login] 3: civikmind inicia sesión desde la IP ::1
+2021-03-29 16:20:39 [@villa]
+[login] 3: Inicio de sesión fallido para pruebas desde la IP ::1
+2021-03-29 16:20:46 [@villa]
+[login] 3: civikmind inicia sesión desde la IP ::1
+2021-03-29 19:16:38 [@villa]
+[login] 3: civikmind inicia sesión desde la IP ::1
+2021-03-29 19:24:04 [@villa]
+[login] 3: publicador inicia sesión desde la IP ::1
+2021-03-29 19:24:29 [@villa]
+[login] 3: civikmind inicia sesión desde la IP ::1
+2021-03-29 19:37:39 [@villa]
+[login] 3: civikmind inicia sesión desde la IP ::1
+2021-03-29 19:42:33 [@villa]
+[login] 3: civikmind inicia sesión desde la IP ::1
+2021-03-29 19:42:45 [@villa]
+[login] 3: Inicio de sesión fallido para ciudadano desde la IP ::1
+2021-03-29 19:43:04 [@villa]
+[login] 3: ciudadano inicia sesión desde la IP ::1
+2021-03-29 19:43:16 [@villa]
+[login] 3: ciudadano inicia sesión desde la IP ::1
+2021-03-29 19:44:53 [@villa]
+[login] 3: ciudadano inicia sesión desde la IP ::1
+2021-03-29 19:52:26 [@villa]
+[login] 3: civikmind inicia sesión desde la IP ::1
+2021-03-29 20:21:10 [@villa]
+[login] 3: veedor inicia sesión desde la IP ::1

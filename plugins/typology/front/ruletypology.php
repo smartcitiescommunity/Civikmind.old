@@ -9,7 +9,7 @@
  -------------------------------------------------------------------------
 
  LICENSE
-      
+
  This file is part of typology.
 
  typology is free software; you can redistribute it and/or modify
@@ -32,5 +32,3 @@ include ('../../../inc/includes.php');
 $rulecollection = new PluginTypologyRuleTypologyCollection($_SESSION['glpiactive_entity']);
 
 include (GLPI_ROOT . "/front/rule.common.php");
-
-?>

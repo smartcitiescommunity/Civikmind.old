@@ -9,7 +9,7 @@
  -------------------------------------------------------------------------
 
  LICENSE
-      
+
  This file is part of resources.
 
  resources is free software; you can redistribute it and/or modify
@@ -41,41 +41,84 @@ if (!defined('GLPI_ROOT')) {
 class PluginResourcesRuleChecklist extends Rule {
 
    static $rightname = 'plugin_resources';
-   
+
    // From Rule
-   static public $right='entity_rule_ticket';
    public $can_sort=true;
 
+   /**
+    * Get title used in rule
+    *
+    * @return Title of the rule
+    **/
    function getTitle() {
 
       return PluginResourcesResource::getTypeName(2)." ".PluginResourcesChecklist::getTypeName(1);
    }
-   
+
+   /**
+    * Have I the global right to "view" the Object
+    *
+    * Default is true and check entity if the objet is entity assign
+    *
+    * May be overloaded if needed
+    *
+    * @return booleen
+    **/
    static function canView() {
       return Session::haveRight(self::$rightname, READ);
    }
 
+   /**
+    * Have I the global right to "create" the Object
+    * May be overloaded if needed (ex KnowbaseItem)
+    *
+    * @return booleen
+    **/
    static function canCreate() {
-      return Session::haveRightsOr(self::$rightname, array(CREATE, UPDATE, DELETE));
+      return Session::haveRightsOr(self::$rightname, [CREATE, UPDATE, DELETE]);
    }
-   
+
+   /**
+    * @return bool
+    */
    function maybeRecursive() {
       return true;
    }
 
 
+   /**
+    * @return bool
+    */
    function isEntityAssign() {
       return true;
    }
 
+   /**
+    * Can I change recursive flag to false
+    * check if there is "linked" object in another entity
+    *
+    * May be overloaded if needed
+    *
+    * @return booleen
+    **/
    function canUnrecurs() {
       return true;
    }
-   
+
+   /**
+    * Get maximum number of Actions of the Rule (0 = unlimited)
+    *
+    * @return the maximum number of actions
+    **/
    function maxActionsCount() {
       return count($this->getActions());
    }
-   
+
+   /**
+    * Function used to add specific params before rule processing
+    *
+    * @param $params parameters
+    **/
    function addSpecificParamsForPreview($params) {
 
       if (!isset($params["entities_id"])) {
@@ -83,29 +126,41 @@ class PluginResourcesRuleChecklist extends Rule {
       }
       return $params;
    }
-   
+
+   /**
+    * @return array
+    */
    function getCriterias() {
 
-      $criterias = array();
-      
+      $criterias = [];
+
       $criterias['plugin_resources_contracttypes_id']['name']  = PluginResourcesContractType::getTypeName(1);
       $criterias['plugin_resources_contracttypes_id']['type']  = 'dropdownContractType';
-      
-      $criterias['plugin_resources_contracttypes_id']['allow_condition'] = array(Rule::PATTERN_IS, Rule::PATTERN_IS_NOT);
-      
+
+      $criterias['plugin_resources_contracttypes_id']['allow_condition'] = [Rule::PATTERN_IS, Rule::PATTERN_IS_NOT];
+
       $criterias['checklist_type']['name']  = __('Checklist type', 'resources');
       $criterias['checklist_type']['type']  = 'dropdownChecklistType';
-      
-      $criterias['checklist_type']['allow_condition'] = array(Rule::PATTERN_IS, Rule::PATTERN_IS_NOT);
+
+      $criterias['checklist_type']['allow_condition'] = [Rule::PATTERN_IS, Rule::PATTERN_IS_NOT];
 
       return $criterias;
    }
-   
-   function displayCriteriaSelectPattern($name, $ID, $condition, $value="", $test=false) {
-      
+
+   /**
+    * Display item used to select a pattern for a criteria
+    *
+    * @param $name      criteria name
+    * @param $ID        the given criteria
+    * @param $condition condition used
+    * @param $value     the pattern (default '')
+    * @param $test      Is to test rule ? (false by default)
+    **/
+   function displayCriteriaSelectPattern($name, $ID, $condition, $value = "", $test = false) {
+
       $PluginResourcesChecklist = new PluginResourcesChecklist();
       $PluginResourcesContractType = new PluginResourcesContractType();
-      
+
       $crit    = $this->getCriteria($ID);
       $display = false;
       if (isset($crit['type'])
@@ -122,7 +177,7 @@ class PluginResourcesRuleChecklist extends Rule {
                break;
          }
       }
-      
+
       if ($condition == Rule::PATTERN_EXISTS || $condition == Rule::PATTERN_DOES_NOT_EXISTS) {
          echo "<input type='hidden' name='$name' value='1'>";
          $display=true;
@@ -130,12 +185,12 @@ class PluginResourcesRuleChecklist extends Rule {
 
       if (!$display) {
          $rc = new $this->rulecriteriaclass();
-         Html::autocompletionTextField($rc, "pattern", array('name'  => $name,
+         Html::autocompletionTextField($rc, "pattern", ['name'  => $name,
                                                        'value' => $value,
-                                                       'size'  => 70));
+                                                       'size'  => 70]);
       }
    }
-   
+
    /**
     * Return a value associated with a pattern associated to a criteria to display it
     *
@@ -162,17 +217,19 @@ class PluginResourcesRuleChecklist extends Rule {
       return $pattern;
    }
 
+   /**
+    * @return array
+    */
    function getActions() {
 
-      $actions = array();
-      
+      $actions = [];
+
       $actions['checklists_id']['name']  = __('Checklist action', 'resources');
       $actions['checklists_id']['table'] = 'glpi_plugin_resources_checklistconfigs';
       $actions['checklists_id']['type'] = 'dropdown';
-      $actions['checklists_id']['force_actions'] = array('assign');
-      
+      $actions['checklists_id']['force_actions'] = ['assign'];
+
       return $actions;
    }
 }
 
-?>

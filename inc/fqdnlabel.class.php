@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,9 +30,9 @@
  * ---------------------------------------------------------------------
 */
 
-/** @file
-* @brief Create an abstration layer for any kind of internet label
-*/
+/**
+ * Create an abstration layer for any kind of internet label
+ */
 
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
@@ -55,10 +55,10 @@ abstract class FQDNLabel extends CommonDBChild {
    /**
     * Get the internet name from a label and a domain ID
     *
-    * @param $label   string   the label of the computer or its alias
-    * @param $domain  integer  id of the domain that owns the item
+    * @param string  $label   the label of the computer or its alias
+    * @param integer $domain  id of the domain that owns the item
     *
-    * @return result the full internet name
+    * @return string  result the full internet name
    **/
    static function getInternetNameFromLabelAndDomainID($label, $domain) {
 
@@ -75,7 +75,7 @@ abstract class FQDNLabel extends CommonDBChild {
     * Check a label regarding section 2.1 of RFC 1123 : 63 lengths and no other characters
     * than alphanumerics. Minus ('-') is allowed if it is not at the end or begin of the lable.
     *
-    * @param $label        the label to check
+    * @param string $label  the label to check
    **/
    static function checkFQDNLabel($label) {
 
@@ -151,25 +151,28 @@ abstract class FQDNLabel extends CommonDBChild {
          if ($count == 0) {
             $label = '%'.$label.'%';
          }
-         $relation = "LIKE '$label'";
+         $relation = ['LIKE',  $label];
       } else {
-         $relation = "= '$label'";
+         $relation = $label;
       }
 
       $IDs = [];
       foreach (['NetworkName'  => 'glpi_networknames',
                      'NetworkAlias' => 'glpi_networkaliases'] as $class => $table) {
-         $query = "SELECT `id`
-                   FROM `$table`
-                   WHERE `name` $relation ";
+         $criteria = [
+            'SELECT' => 'id',
+            'FROM'   => $table,
+            'WHERE'  => ['name' => $relation]
+         ];
 
-         if ((is_array($fqdns_id)) && (count($fqdns_id) > 0)) {
-            $query .= " AND `fqdns_id` IN ('". implode('\', \'', $fqdns_id). "')";
-         } else if ((is_int($fqdns_id)) && ($fqdns_id > 0)) {
-            $query .= " AND `fqdns_id` = '$fqdns_id'";
+         if (is_array($fqdns_id) && count($fqdns_id) > 0
+            || is_int($fqdns_id) && $fqdns_id > 0
+         ) {
+            $criteria['WHERE']['fqdns_id'] = $fqdns_id;
          }
 
-         foreach ($DB->request($query) as $element) {
+         $iterator = $DB->request($criteria);
+         while ($element = $iterator->next()) {
             $IDs[$class][] = $element['id'];
          }
       }
@@ -180,11 +183,12 @@ abstract class FQDNLabel extends CommonDBChild {
    /**
     * Look for "computer name" inside all databases
     *
-    * @param $fqdn                     name to search (for instance : forge.indepnet.net)
-    * @param $wildcard_search boolean  true if we search with wildcard (false by default)
+    * @param string  $fqdn             name to search (for instance : forge.indepnet.net)
+    * @param boolean $wildcard_search  true if we search with wildcard (false by default)
     *
-    * @return (array) each value of the array (corresponding to one NetworkPort) is an array of the
-    *                 items from the master item to the NetworkPort
+    * @return array
+    *    each value of the array (corresponding to one NetworkPort) is an array of the
+    *    items from the master item to the NetworkPort
     **/
    static function getItemsByFQDN($fqdn, $wildcard_search = false) {
 
@@ -223,11 +227,11 @@ abstract class FQDNLabel extends CommonDBChild {
    /**
     * Get an Object ID by its name (only if one result is found in the entity)
     *
-    * @param $value  the name
-    * @param $entity the entity to look for
+    * @param string  $value  the name
+    * @param integer $entity the entity to look for
     *
-    * @return an array containing the object ID
-    *         or an empty array is no value of serverals ID where found
+    * @return array  an array containing the object ID
+    *    or an empty array is no value of serverals ID where found
     **/
    static function getUniqueItemByFQDN($value, $entity) {
 

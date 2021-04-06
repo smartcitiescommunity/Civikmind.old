@@ -1,5 +1,8 @@
 <?php
 
+Session::checkLoginUser();
+Session::checkRight("profile", READ);
+
 $totalm = exec('/usr/bin/free -tm | /usr/bin/awk \'{print $1","$2","$3-$6-$7","$4+$6+$7}\' |grep -i mem: |cut -f2 -d,');
 
 $usedm = exec('/usr/bin/free -tm | /usr/bin/awk \'{print $1","$2","$3","$4+$6+$7}\' |grep -i mem: |cut -f3 -d,');
@@ -17,7 +20,6 @@ if($totalm > 1024) {
 
 else {
 	echo $usedm." / ".$totalm. " MB";
-	//$totalu = $totalm ;
 	$titlem = "MEM - $totalm MB";
 
 	$totalmem = $totalm;

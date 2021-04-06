@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -29,10 +29,6 @@
  * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
  */
-
-/** @file
-* @brief
-*/
 
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
@@ -61,9 +57,9 @@ if (!defined('GLPI_ROOT')) {
 /**
  * RSSFeed Class
  *
- * @since version 0.84
+ * @since 0.84
 **/
-class RSSFeed extends CommonDBVisible {
+class RSSFeed extends CommonDBVisible implements ExtraVisibilityCriteria {
 
    // From CommonDBTM
    public $dohistory                   = true;
@@ -90,14 +86,14 @@ class RSSFeed extends CommonDBVisible {
    static function canCreate() {
 
       return (Session::haveRight(self::$rightname, CREATE)
-              || ($_SESSION['glpiactiveprofile']['interface'] != 'helpdesk'));
+              || Session::getCurrentInterface() != 'helpdesk');
    }
 
 
    static function canView() {
 
       return (Session::haveRight('rssfeed_public', READ)
-              || ($_SESSION['glpiactiveprofile']['interface'] != 'helpdesk'));
+              || Session::getCurrentInterface() != 'helpdesk');
    }
 
 
@@ -129,7 +125,7 @@ class RSSFeed extends CommonDBVisible {
     * for personal rss feed
    **/
    static function canUpdate() {
-      return ($_SESSION['glpiactiveprofile']['interface'] != 'helpdesk');
+      return (Session::getCurrentInterface() != 'helpdesk');
    }
 
 
@@ -138,12 +134,12 @@ class RSSFeed extends CommonDBVisible {
     * for personal rss feed
    **/
    static function canPurge() {
-      return ($_SESSION['glpiactiveprofile']['interface'] != 'helpdesk');
+      return (Session::getCurrentInterface() != 'helpdesk');
    }
 
 
    /**
-    * @since version 0.85
+    * @since 0.85
     *
     * @see CommonDBTM::canPurgeItem()
    **/
@@ -176,14 +172,14 @@ class RSSFeed extends CommonDBVisible {
    **/
    function cleanDBonPurge() {
 
-      $class = new RSSFeed_User();
-      $class->cleanDBonItemDelete($this->getType(), $this->fields['id']);
-      $class = new Entity_RSSFeed();
-      $class->cleanDBonItemDelete($this->getType(), $this->fields['id']);
-      $class = new Group_RSSFeed();
-      $class->cleanDBonItemDelete($this->getType(), $this->fields['id']);
-      $class = new Profile_RSSFeed();
-      $class->cleanDBonItemDelete($this->getType(), $this->fields['id']);
+      $this->deleteChildrenAndRelationsFromDb(
+         [
+            Entity_RSSFeed::class,
+            Group_RSSFeed::class,
+            Profile_RSSFeed::class,
+            RSSFeed_User::class,
+         ]
+      );
    }
 
    public function haveVisibilityAccess() {
@@ -202,39 +198,23 @@ class RSSFeed extends CommonDBVisible {
     * @return string joins to add
    **/
    static function addVisibilityJoins($forceall = false) {
+      //not deprecated because used in Search
+      global $DB;
 
-      if (!self::canView()) {
-         return '';
-      }
+      //get and clean criteria
+      $criteria = self::getVisibilityCriteria();
+      unset($criteria['WHERE']);
+      $criteria['FROM'] = self::getTable();
 
-      // Users
-      $join = " LEFT JOIN `glpi_rssfeeds_users`
-                     ON (`glpi_rssfeeds_users`.`rssfeeds_id` = `glpi_rssfeeds`.`id`) ";
-
-      // Groups
-      if ($forceall
-          || (isset($_SESSION["glpigroups"]) && count($_SESSION["glpigroups"]))) {
-         $join .= " LEFT JOIN `glpi_groups_rssfeeds`
-                        ON (`glpi_groups_rssfeeds`.`rssfeeds_id` = `glpi_rssfeeds`.`id`) ";
-      }
-
-      // Profiles
-      if ($forceall
-          || (isset($_SESSION["glpiactiveprofile"])
-              && isset($_SESSION["glpiactiveprofile"]['id']))) {
-         $join .= " LEFT JOIN `glpi_profiles_rssfeeds`
-                        ON (`glpi_profiles_rssfeeds`.`rssfeeds_id` = `glpi_rssfeeds`.`id`) ";
-      }
-
-      // Entities
-      if ($forceall
-          || (isset($_SESSION["glpiactiveentities"]) && count($_SESSION["glpiactiveentities"]))) {
-         $join .= " LEFT JOIN `glpi_entities_rssfeeds`
-                        ON (`glpi_entities_rssfeeds`.`rssfeeds_id` = `glpi_rssfeeds`.`id`) ";
-      }
-
-      return $join;
-
+      $it = new \DBmysqlIterator(null);
+      $it->buildQuery($criteria);
+      $sql = $it->getSql();
+      $sql = str_replace(
+         'SELECT * FROM '.$DB->quoteName(self::getTable()).' ',
+         '',
+         $sql
+      );
+      return $sql;
    }
 
 
@@ -244,43 +224,136 @@ class RSSFeed extends CommonDBVisible {
     * @return string restrict to add
    **/
    static function addVisibilityRestrict() {
+      //not deprecated because used in Search
 
-      $restrict = "`glpi_rssfeeds`.`users_id` = '".Session::getLoginUserID()."' ";
+      //get and clean criteria
+      $criteria = self::getVisibilityCriteria();
+      unset($criteria['LEFT JOIN']);
+      $criteria['FROM'] = self::getTable();
+
+      $it = new \DBmysqlIterator(null);
+      $it->buildQuery($criteria);
+      $sql = $it->getSql();
+      $sql = preg_replace('/.*WHERE /', '', $sql);
+
+      return $sql;
+   }
+
+   /**
+    * Return visibility joins to add to DBIterator parameters
+    *
+    * @since 9.4
+    *
+    * @param boolean $forceall force all joins (false by default)
+    *
+    * @return array
+    */
+   static public function getVisibilityCriteria(bool $forceall = false): array {
+      $where = [self::getTable() . '.users_id' => Session::getLoginUserID()];
+      $join = [];
 
       if (!self::canView()) {
-         return $restrict;
+         return [
+            'LEFT JOIN' => $join,
+            'WHERE'     => $where
+         ];
       }
 
+      //JOINs
       // Users
-      $restrict .= " OR `glpi_rssfeeds_users`.`users_id` = '".Session::getLoginUserID()."' ";
+      $join['glpi_rssfeeds_users'] = [
+         'ON' => [
+            'glpi_rssfeeds_users'   => 'rssfeeds_id',
+            'glpi_rssfeeds'         => 'id'
+         ]
+      ];
+
+      $where = [
+         'OR' => [
+            self::getTable() . '.users_id'   => Session::getLoginUserID(),
+            'glpi_rssfeeds_users.users_id'   => Session::getLoginUserID()
+         ]
+      ];
+      $orwhere = [];
 
       // Groups
+      if ($forceall
+          || (isset($_SESSION["glpigroups"]) && count($_SESSION["glpigroups"]))) {
+         $join['glpi_groups_rssfeeds'] = [
+            'ON' => [
+               'glpi_groups_rssfeeds'  => 'rssfeeds_id',
+               'glpi_rssfeeds'         => 'id'
+            ]
+         ];
+      }
+
       if (isset($_SESSION["glpigroups"]) && count($_SESSION["glpigroups"])) {
-         $restrict .= " OR (`glpi_groups_rssfeeds`.`groups_id`
-                                 IN ('".implode("','", $_SESSION["glpigroups"])."')
-                            AND (`glpi_groups_rssfeeds`.`entities_id` < 0
-                                 ".getEntitiesRestrictRequest(" OR", "glpi_groups_rssfeeds", '', '',
-                                                              true).")) ";
+         $restrict = getEntitiesRestrictCriteria('glpi_groups_rssfeeds', '', '', true);
+         $orwhere[] = [
+            'glpi_groups_rssfeeds.groups_id' => count($_SESSION["glpigroups"])
+                                                      ? $_SESSION["glpigroups"]
+                                                      : [-1],
+            'OR' => [
+               'glpi_groups_rssfeeds.entities_id' => ['<', '0'],
+            ] + $restrict
+         ];
       }
 
       // Profiles
+      if ($forceall
+          || (isset($_SESSION["glpiactiveprofile"])
+              && isset($_SESSION["glpiactiveprofile"]['id']))) {
+         $join['glpi_profiles_rssfeeds'] = [
+            'ON' => [
+               'glpi_profiles_rssfeeds'   => 'rssfeeds_id',
+               'glpi_rssfeeds'            => 'id'
+            ]
+         ];
+      }
+
       if (isset($_SESSION["glpiactiveprofile"]) && isset($_SESSION["glpiactiveprofile"]['id'])) {
-         $restrict .= " OR (`glpi_profiles_rssfeeds`.`profiles_id`
-                                 = '".$_SESSION["glpiactiveprofile"]['id']."'
-                            AND (`glpi_profiles_rssfeeds`.`entities_id` < 0
-                                 ".getEntitiesRestrictRequest(" OR", "glpi_profiles_rssfeeds", '',
-                                                              '', true).")) ";
+         $restrict = getEntitiesRestrictCriteria('glpi_entities_rssfeeds', '', '', true);
+         if (!count($restrict)) {
+            $restrict = [true];
+         }
+         $ors = [
+            'glpi_profiles_rssfeeds.entities_id' => ['<', '0'],
+            $restrict
+         ];
+
+         $orwhere[] = [
+            'glpi_profiles_rssfeeds.profiles_id' => $_SESSION["glpiactiveprofile"]['id'],
+            'OR' => $ors
+         ];
       }
 
       // Entities
-      if (isset($_SESSION["glpiactiveentities"]) && count($_SESSION["glpiactiveentities"])) {
-         // Force complete SQL not summary when access to all entities
-         $restrict .= getEntitiesRestrictRequest("OR", "glpi_entities_rssfeeds", '', '', true, true);
+      if ($forceall
+          || (isset($_SESSION["glpiactiveentities"]) && count($_SESSION["glpiactiveentities"]))) {
+         $join['glpi_entities_rssfeeds'] = [
+            'ON' => [
+               'glpi_entities_rssfeeds'   => 'rssfeeds_id',
+               'glpi_rssfeeds'            => 'id'
+            ]
+         ];
       }
 
-      return '('.$restrict.')';
-   }
+      if (isset($_SESSION["glpiactiveentities"]) && count($_SESSION["glpiactiveentities"])) {
+         // Force complete SQL not summary when access to all entities
+         $restrict = getEntitiesRestrictCriteria('glpi_entities_rssfeeds', '', '', true, true);
+         if (count($restrict)) {
+            $orwhere[] = $restrict;
+         }
+      }
 
+      $where['OR'] = array_merge($where['OR'], $orwhere);
+      $criteria = ['LEFT JOIN' => $join];
+      if (count($where)) {
+         $criteria['WHERE'] = $where;
+      }
+
+      return $criteria;
+   }
 
    /**
     * @param $field
@@ -321,7 +394,7 @@ class RSSFeed extends CommonDBVisible {
    }
 
 
-   function getSearchOptionsNew() {
+   function rawSearchOptions() {
       $tab = [];
 
       $tab[] = [
@@ -336,7 +409,8 @@ class RSSFeed extends CommonDBVisible {
          'name'               => __('Name'),
          'datatype'           => 'itemlink',
          'massiveaction'      => false,
-         'forcegroupby'       => true
+         'forcegroupby'       => true,
+         'autocomplete'       => true,
       ];
 
       $tab[] = [
@@ -436,7 +510,7 @@ class RSSFeed extends CommonDBVisible {
       ];
 
       // add objectlock search options
-      $tab = array_merge($tab, ObjectLock::getSearchOptionsToAddNew(get_class($this)));
+      $tab = array_merge($tab, ObjectLock::rawSearchOptionsToAdd(get_class($this)));
 
       return $tab;
    }
@@ -452,7 +526,7 @@ class RSSFeed extends CommonDBVisible {
          switch ($item->getType()) {
             case 'RSSFeed' :
                $showtab = [1 => __('Content')];
-               if (session::haveRight('rssfeed_public', UPDATE)) {
+               if (Session::haveRight('rssfeed_public', UPDATE)) {
                   if ($_SESSION['glpishow_count_on_tabs']) {
                      $nb = $item->countVisibilities();
                   }
@@ -572,8 +646,6 @@ class RSSFeed extends CommonDBVisible {
     *     - target filename : where to go when done.
     **/
    function showForm($ID, $options = []) {
-      global $CFG_GLPI;
-
       // Test _rss cache directory. I permission trouble : unable to edit
       if (Toolbox::testWriteAccessToDirectory(GLPI_RSS_DIR) > 0) {
          echo "<div class='center'>";
@@ -584,8 +656,6 @@ class RSSFeed extends CommonDBVisible {
       }
 
       $this->initForm($ID, $options);
-
-      $canedit = $this->can($ID, UPDATE);
 
       $this->showFormHeader($options);
 
@@ -722,7 +792,7 @@ class RSSFeed extends CommonDBVisible {
          foreach ($feed->get_items(0, $this->fields['max_items']) as $item) {
             $link = $item->get_permalink();
             echo "<tr class='tab_bg_1'><td>";
-            echo HTML::convDateTime($item->get_date('Y-m-d H:i:s'));
+            echo Html::convDateTime($item->get_date('Y-m-d H:i:s'));
             echo "</td><td>";
             if (!is_null($link)) {
                echo "<a target='_blank' href='$link'>".$item->get_title().'</a>';
@@ -806,8 +876,7 @@ class RSSFeed extends CommonDBVisible {
          if (!empty($CFG_GLPI["proxy_user"])) {
             $prx_opt[CURLOPT_HTTPAUTH]     = CURLAUTH_ANYSAFE;
             $prx_opt[CURLOPT_PROXYUSERPWD] = $CFG_GLPI["proxy_user"].":".
-                                             Toolbox::decrypt($CFG_GLPI["proxy_passwd"],
-                                                              GLPIKEY);
+                                             Toolbox::sodiumDecrypt($CFG_GLPI["proxy_passwd"]);
          }
          $feed->set_curl_options($prx_opt);
       }
@@ -835,27 +904,30 @@ class RSSFeed extends CommonDBVisible {
     *
     * @param $personal boolean   display rssfeeds created by me ? (true by default)
     *
-    * @return Nothing (display function)
+    * @return void
     **/
    static function showListForCentral($personal = true) {
       global $DB, $CFG_GLPI;
 
       $users_id             = Session::getLoginUserID();
-      $today                = date('Y-m-d');
-      $now                  = date('Y-m-d H:i:s');
+
+      $table = self::getTable();
+      $criteria = [
+         'SELECT'   => "$table.*",
+         'DISTINCT' => true,
+         'FROM'     => $table,
+         'ORDER'    => "$table.name"
+      ];
 
       if ($personal) {
 
          /// Personal notes only for central view
-         if ($_SESSION['glpiactiveprofile']['interface'] == 'helpdesk') {
+         if (Session::getCurrentInterface() == 'helpdesk') {
             return false;
          }
 
-         $query = "SELECT `glpi_rssfeeds`.*
-                   FROM `glpi_rssfeeds`
-                   WHERE `glpi_rssfeeds`.`users_id` = '$users_id'
-                         AND `glpi_rssfeeds`.`is_active` = '1'
-                   ORDER BY `glpi_rssfeeds`.`name`";
+         $criteria['WHERE']["$table.users_id"] = $users_id;
+         $criteria['WHERE']["$table.is_active"] = 1;
 
          $titre = "<a href='".$CFG_GLPI["root_doc"]."/front/rssfeed.php'>".
                     _n('Personal RSS feed', 'Personal RSS feeds', Session::getPluralNumber())."</a>";
@@ -866,20 +938,14 @@ class RSSFeed extends CommonDBVisible {
             return false;
          }
 
-         $restrict_user = '1';
+         $criteria = $criteria + self::getVisibilityCriteria();
+
          // Only personal on central so do not keep it
-         if ($_SESSION['glpiactiveprofile']['interface'] == 'central') {
-            $restrict_user = "`glpi_rssfeeds`.`users_id` <> '$users_id'";
+         if (Session::getCurrentInterface() == 'central') {
+            $criteria['WHERE']["$table.users_id"] = ['<>', $users_id];
          }
 
-         $query = "SELECT `glpi_rssfeeds`.*
-                   FROM `glpi_rssfeeds` ".
-                   self::addVisibilityJoins()."
-                   WHERE $restrict_user
-                         AND ".self::addVisibilityRestrict()."
-                   ORDER BY `glpi_rssfeeds`.`name`";
-
-         if ($_SESSION['glpiactiveprofile']['interface'] != 'helpdesk') {
+         if (Session::getCurrentInterface() == 'central') {
             $titre = "<a href=\"".$CFG_GLPI["root_doc"]."/front/rssfeed.php\">".
                        _n('Public RSS feed', 'Public RSS feeds', Session::getPluralNumber())."</a>";
          } else {
@@ -887,20 +953,19 @@ class RSSFeed extends CommonDBVisible {
          }
       }
 
-      $result  = $DB->query($query);
+      $iterator = $DB->request($criteria);
+      $nb = count($iterator);
       $items   = [];
       $rssfeed = new self();
-      if ($nb = $DB->numrows($result)) {
-         while ($data = $DB->fetch_assoc($result)) {
-            if ($rssfeed->getFromDB($data['id'])) {
-               // Force fetching feeds
-               if ($feed = self::getRSSFeed($data['url'], $data['refresh_rate'])) {
-                  // Store feeds in array of feeds
-                  $items = array_merge($items, $feed->get_items(0, $data['max_items']));
-                  $rssfeed->setError(false);
-               } else {
-                  $rssfeed->setError(true);
-               }
+      while ($data = $iterator->next()) {
+         if ($rssfeed->getFromDB($data['id'])) {
+            // Force fetching feeds
+            if ($feed = self::getRSSFeed($data['url'], $data['refresh_rate'])) {
+               // Store feeds in array of feeds
+               $items = array_merge($items, $feed->get_items(0, $data['max_items']));
+               $rssfeed->setError(false);
+            } else {
+               $rssfeed->setError(true);
             }
          }
       }
@@ -911,7 +976,7 @@ class RSSFeed extends CommonDBVisible {
       if (($personal && self::canCreate())
             || (!$personal && Session::haveRight('rssfeed_public', CREATE))) {
          echo "<span class='floatright'>";
-         echo "<a href='".$CFG_GLPI["root_doc"]."/front/rssfeed.form.php'>";
+         echo "<a href='".RSSFeed::getFormURL()."'>";
          echo "<img src='".$CFG_GLPI["root_doc"]."/pics/plus.png' alt='".__s('Add')."' title=\"".
                 __s('Add')."\"></a></span>";
       }
@@ -922,7 +987,7 @@ class RSSFeed extends CommonDBVisible {
          usort($items, ['SimplePie', 'sort_items']);
          foreach ($items as $item) {
             echo "<tr class='tab_bg_1'><td>";
-            echo HTML::convDateTime($item->get_date('Y-m-d H:i:s'));
+            echo Html::convDateTime($item->get_date('Y-m-d H:i:s'));
             echo "</td><td>";
             $link = $item->feed->get_permalink();
             if (empty($link)) {
@@ -957,7 +1022,7 @@ class RSSFeed extends CommonDBVisible {
    }
 
    /**
-    * @since version 0.85
+    * @since 0.85
     *
     * @see commonDBTM::getRights()
    **/
@@ -969,5 +1034,10 @@ class RSSFeed extends CommonDBVisible {
          $values = parent::getRights();
       }
       return $values;
+   }
+
+
+   static function getIcon() {
+      return "fas fa-rss";
    }
 }

@@ -9,7 +9,7 @@
  -------------------------------------------------------------------------
 
  LICENSE
-      
+
  This file is part of resources.
 
  resources is free software; you can redistribute it and/or modify
@@ -40,33 +40,34 @@ $titre = $LANG['plugin_resources']['resourceleavingwithactiveemployment'];
 $report = new PluginReportsAutoReport($titre);
 
 // Columns title (optional), from $LANG
-$report->setColumns( array(new PluginReportsColumnInteger('registration_number', __('Administrative number'),
-                                                   array('sorton' => 'registration_number')),
-                           new PluginReportsColumnLink('resource_id', __('Surname'),'PluginResourcesResource',
-                                                   array('sorton' => 'resource_name')),
+$report->setColumns( [new PluginReportsColumnInteger('registration_number', __('Administrative number'),
+                                                   ['sorton' => 'registration_number']),
+                           new PluginReportsColumnLink('resource_id', __('Surname'), 'PluginResourcesResource',
+                                                   ['sorton' => 'resource_name']),
                            new PluginReportsColumn('firstname', __('First name'),
-                                                   array('sorton' => 'firstname')),
+                                                   ['sorton' => 'firstname']),
                            new PluginReportsColumn('resource_rank', PluginResourcesRank::getTypeName(1),
-                                                   array('sorton' => 'resource_rank')),
+                                                   ['sorton' => 'resource_rank']),
                            new PluginReportsColumn('resources_situation', PluginResourcesResourceSituation::getTypeName(1),
-                                                   array('sorton' => 'resources_situation')),
+                                                   ['sorton' => 'resources_situation']),
                            new PluginReportsColumn('resource_state', PluginResourcesResourceState::getTypeName(1),
-                                                   array('sorton' => 'resource_state')),
+                                                   ['sorton' => 'resource_state']),
                            new PluginReportsColumnDate('date_begin', __('Arrival date', 'resources'),
-                                                   array('sorton' => 'date_begin')),
+                                                   ['sorton' => 'date_begin']),
                            new PluginReportsColumnDate('date_end', __('Departure date', 'resources'),
-                                                   array('sorton' => 'date_end')),
+                                                   ['sorton' => 'date_end']),
                            new PluginReportsColumnLink('employment_id', __('Name')." - "._n('Employment', 'Employments', 1, 'resources'),
-                                                   'PluginResourcesEmployment', array('sorton' => 'employment_name')),
+                                                   'PluginResourcesEmployment', ['sorton' => 'employment_name']),
                            new PluginReportsColumn('employment_profession', _n('Employment', 'Employments', 1, 'resources')." - "._n('Profession', 'Professions', 2, 'resources'),
-                                                   array('sorton' => 'employment_profession')),
+                                                   ['sorton' => 'employment_profession']),
                            new PluginReportsColumn('employment_state', _n('Employment state', 'Employment states', 1, 'resources'),
-                                                   array('sorton' => 'employment_state')),
+                                                   ['sorton' => 'employment_state']),
                            new PluginReportsColumn('employer_name', __('Name')." - "._n('Employer', 'Employers', 1, 'resources'),
-                                                   array('sorton' => 'employer_name')),));
+                                                   ['sorton' => 'employer_name']),]);
 
 // SQL statement
-$condition = getEntitiesRestrictRequest(' AND ',"glpi_plugin_resources_resources",'','',false);
+$dbu = new DbUtils();
+$condition = $dbu->getEntitiesRestrictRequest(' AND ', "glpi_plugin_resources_resources", '', '', false);
 
 //display only leaving resource with active employment
 $query = "SELECT `glpi_users`.`registration_number`,
@@ -107,8 +108,8 @@ $query = "SELECT `glpi_users`.`registration_number`,
           WHERE (`glpi_plugin_resources_resources`.`is_leaving` = 1
              AND `glpi_users`.`is_active` = 1
              AND `glpi_plugin_resources_employments`.`plugin_resources_resources_id` <> 0
-             AND `glpi_plugin_resources_resources`.`is_deleted` = '0'
-             AND `glpi_plugin_resources_resources`.`is_template` = '0'
+             AND `glpi_plugin_resources_resources`.`is_deleted` = 0
+             AND `glpi_plugin_resources_resources`.`is_template` = 0
              AND `glpi_plugin_resources_employmentstates`.`is_active` = 1
              ".$condition." )
              GROUP BY `glpi_plugin_resources_employments`.`id`, `glpi_users`.`id`".
@@ -117,4 +118,3 @@ $query = "SELECT `glpi_users`.`registration_number`,
 
 $report->setSqlRequest($query);
 $report->execute();
-?>

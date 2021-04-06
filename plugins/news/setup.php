@@ -21,10 +21,15 @@
  --------------------------------------------------------------------------
 */
 
-define ('PLUGIN_NEWS_VERSION', '1.3.4');
+define ('PLUGIN_NEWS_VERSION', '1.9.0');
+
+// Minimal GLPI version, inclusive
+define("PLUGIN_NEWS_MIN_GLPI", "9.5");
+// Maximum GLPI version, exclusive
+define("PLUGIN_NEWS_MAX_GLPI", "9.6");
 
 function plugin_init_news() {
-   global $PLUGIN_HOOKS;
+   global $PLUGIN_HOOKS, $CFG_GLPI;
 
    $PLUGIN_HOOKS['csrf_compliant']['news'] = true;
 
@@ -42,13 +47,16 @@ function plugin_init_news() {
          "PluginNewsAlert", "displayOnCentral"
       ];
 
-      $PLUGIN_HOOKS['pre_item_form']['alert'] = ['PluginNewsAlert', 'preItemForm'];
+      $PLUGIN_HOOKS['pre_item_form']['news'] = ['PluginNewsAlert', 'preItemForm'];
 
       if (Session::haveRight('reminder_public', READ)) {
          $PLUGIN_HOOKS['menu_toadd']['news'] = [
             'tools' => 'PluginNewsAlert',
          ];
          $PLUGIN_HOOKS['config_page']['news'] = 'front/alert.php';
+
+         // require tinymce (for glpi >= 9.2)
+         $CFG_GLPI['javascript']['tools']['pluginnewsalert'] = ['tinymce'];
       }
    }
 }
@@ -62,22 +70,9 @@ function plugin_version_news() {
       'homepage'       => 'https://github.com/pluginsGLPI/news',
       'requirements'   => [
          'glpi' => [
-            'min' => '9.2',
-            'dev' => true
+            'min' => PLUGIN_NEWS_MIN_GLPI,
+            'max' => PLUGIN_NEWS_MAX_GLPI,
          ]
       ]
    ];
-}
-
-function plugin_news_check_prerequisites() {
-   $version = rtrim(GLPI_VERSION, '-dev');
-   if (version_compare($version, '9.2', 'lt')) {
-      echo "This version require GLPI 9.2";
-      return false;
-   }
-   return true;
-}
-
-function plugin_news_check_config() {
-   return true;
 }

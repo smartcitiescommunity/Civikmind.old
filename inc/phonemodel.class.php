@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -46,6 +42,11 @@ class PhoneModel extends CommonDropdown {
 
    static function getTypeName($nb = 0) {
       return _n('Phone model', 'Phone models', $nb);
+   }
+
+
+   static function getFieldLabel() {
+      return _n('Model', 'Models', 1);
    }
 
 }

@@ -24,27 +24,25 @@
 function plugin_news_install() {
    global $DB;
 
-   $plugin     = new Plugin();
-   $found      = $plugin->find("name = 'news'");
-   $pluginNews = array_shift($found);
-   $migration  = new Migration($pluginNews['version']);
+   $migration = new Migration(Plugin::getInfo('news', 'version'));
 
    if (! $DB->tableExists('glpi_plugin_news_alerts')) {
       $DB->query("
          CREATE TABLE IF NOT EXISTS `glpi_plugin_news_alerts` (
-         `id`                   INT NOT NULL AUTO_INCREMENT,
-         `date_mod`             DATETIME NOT NULL,
-         `name`                 VARCHAR(255) NOT NULL,
-         `message`              TEXT NOT NULL,
-         `date_start`           DATETIME DEFAULT NULL,
-         `date_end`             DATETIME DEFAULT NULL,
-         `type`                 INT NOT NULL,
-         `is_deleted`           TINYINT(1) NOT NULL DEFAULT 0,
-         `is_displayed_onlogin` TINYINT(1) NOT NULL,
-         `entities_id`          INT NOT NULL,
-         `is_recursive`         TINYINT(1) NOT NULL DEFAULT 1,
+         `id`                       INT NOT NULL AUTO_INCREMENT,
+         `date_mod`                 TIMESTAMP NOT NULL,
+         `name`                     VARCHAR(255) NOT NULL,
+         `message`                  TEXT NOT NULL,
+         `date_start`               TIMESTAMP NULL DEFAULT NULL,
+         `date_end`                 TIMESTAMP NULL DEFAULT NULL,
+         `type`                     INT NOT NULL,
+         `is_deleted`               TINYINT(1) NOT NULL DEFAULT 0,
+         `is_displayed_onlogin`     TINYINT(1) NOT NULL,
+         `is_displayed_oncentral`   TINYINT(1) NOT NULL,
+         `entities_id`              INT NOT NULL,
+         `is_recursive`             TINYINT(1) NOT NULL DEFAULT 1,
          PRIMARY KEY (`id`)
-         ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+         ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
       ");
    }
 
@@ -58,7 +56,7 @@ function plugin_news_install() {
          PRIMARY KEY (`id`),
          UNIQUE KEY `state_for_user`
             (`plugin_news_alerts_id`,`users_id`,`state`)
-         ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+         ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
       ");
    }
 
@@ -72,7 +70,7 @@ function plugin_news_install() {
          PRIMARY KEY (`id`),
          UNIQUE KEY `alert_itemtype_items_id`
             (`plugin_news_alerts_id`, `itemtype`,`items_id`)
-         ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+         ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
       ");
    }
 
@@ -115,7 +113,7 @@ function plugin_news_install() {
    }
 
    // fix is_default default value
-   $alert_fields = $DB->list_fields("glpi_plugin_news_alerts");
+   $alert_fields = $DB->listFields('glpi_plugin_news_alerts');
    if ($alert_fields['is_deleted']['Default'] !== '0') {
       $migration->changeField("glpi_plugin_news_alerts",
                            "is_deleted", "is_deleted",
@@ -125,10 +123,10 @@ function plugin_news_install() {
    // end/start dates can be null
    $migration->changeField("glpi_plugin_news_alerts",
                            "date_end", "date_end",
-                           "DATETIME DEFAULT NULL");
+                           "TIMESTAMP NULL DEFAULT NULL");
    $migration->changeField("glpi_plugin_news_alerts",
                            "date_start", "date_start",
-                           "DATETIME DEFAULT NULL");
+                           "TIMESTAMP NULL DEFAULT NULL");
 
    if ($DB->fieldExists("glpi_plugin_news_alerts", "profiles_id")) {
       // migration of direct profiles into targets table
@@ -144,7 +142,7 @@ function plugin_news_install() {
 
    // install default display preferences
    $dpreferences = new DisplayPreference;
-   $found_dpref = $dpreferences->find("`itemtype` LIKE '%PluginNews%'");
+   $found_dpref = $dpreferences->find(['itemtype' => ['LIKE', '%PluginNews%']]);
    if (count($found_dpref) == 0) {
       $DB->query("INSERT INTO `glpi_displaypreferences`
                      (`itemtype`, `num`, `rank`, `users_id`)
@@ -152,6 +150,11 @@ function plugin_news_install() {
                      ('PluginNewsAlert', 2, 1, 0),
                      ('PluginNewsAlert', 3, 2, 0),
                      ('PluginNewsAlert', 6, 4, 0)");
+   }
+
+   // add displayed on central flag
+   if (!$DB->fieldExists("glpi_plugin_news_alerts", "is_displayed_oncentral")) {
+      $migration->addField("glpi_plugin_news_alerts", "is_displayed_oncentral", 'bool', ['value' => true]);
    }
 
    $migration->migrationOneTable("glpi_plugin_news_alerts");

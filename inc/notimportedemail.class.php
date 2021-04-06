@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,9 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -44,9 +41,11 @@ class NotImportedEmail extends CommonDBTM {
 
    static $rightname = 'config';
 
-   const MATCH_NO_RULE = 0;
-   const USER_UNKNOWN  = 1;
-   const FAILED_INSERT = 2;
+   const MATCH_NO_RULE     = 0;
+   const USER_UNKNOWN      = 1;
+   const FAILED_OPERATION  = 2;
+   const FAILED_INSERT     = self::FAILED_OPERATION;
+   const NOT_ENOUGH_RIGHTS = 3;
 
 
    function getForbiddenStandardMassiveAction() {
@@ -82,7 +81,7 @@ class NotImportedEmail extends CommonDBTM {
 
 
    /**
-    * @since version 0.85
+    * @since 0.85
     *
     * @see CommonDBTM::showMassiveActionsSubForm()
    **/
@@ -100,7 +99,7 @@ class NotImportedEmail extends CommonDBTM {
 
 
    /**
-    * @since version 0.85
+    * @since 0.85
     *
     * @see CommonDBTM::processMassiveActionsForOneItemtype()
    **/
@@ -130,7 +129,7 @@ class NotImportedEmail extends CommonDBTM {
    }
 
 
-   function getSearchOptionsNew() {
+   function rawSearchOptions() {
       $tab = [];
 
       $tab[] = [
@@ -181,7 +180,7 @@ class NotImportedEmail extends CommonDBTM {
          'id'                 => '6',
          'table'              => 'glpi_users',
          'field'              => 'name',
-         'name'               => __('Requester'),
+         'name'               => _n('Requester', 'Requesters', 1),
          'datatype'           => 'dropdown',
          'right'              => 'all'
       ];
@@ -199,7 +198,7 @@ class NotImportedEmail extends CommonDBTM {
          'id'                 => '19',
          'table'              => $this->getTable(),
          'field'              => 'date',
-         'name'               => __('Date'),
+         'name'               => _n('Date', 'Dates', 1),
          'datatype'           => 'datetime',
          'massiveaction'      => false
       ];
@@ -236,14 +235,17 @@ class NotImportedEmail extends CommonDBTM {
    **/
    static function getAllReasons() {
 
-      return [self::MATCH_NO_RULE => __('Unable to affect the email to an entity'),
-                   self::USER_UNKNOWN  => __('Email not found. Impossible import'),
-                   self::FAILED_INSERT => __('Failed operation')];
+      return [
+         self::MATCH_NO_RULE     => __('Unable to affect the email to an entity'),
+         self::USER_UNKNOWN      => __('Email not found. Impossible import'),
+         self::FAILED_OPERATION  => __('Failed operation'),
+         self::NOT_ENOUGH_RIGHTS => __('Not enough rights'),
+      ];
    }
 
 
    /**
-    * @since version 0.84
+    * @since 0.84
     *
     * @param $field
     * @param $values
@@ -268,7 +270,7 @@ class NotImportedEmail extends CommonDBTM {
 
 
    /**
-    * @since version 0.84
+    * @since 0.84
     *
     * @param $field
     * @param $name               (default '')

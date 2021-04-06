@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,17 +30,13 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
 
 /**
  * Template for task
- * @since version 9.2
+ * @since 9.2
 **/
 class ProjectTaskTemplate extends CommonDropdown {
 
@@ -62,9 +58,9 @@ class ProjectTaskTemplate extends CommonDropdown {
                'type'  => 'dropdownValue',
                'list'  => true],
               ['name'  => 'projecttasktypes_id',
-               'label' => __('Type'),
+               'label' => _n('Type', 'Types', 1),
                'type'  => 'dropdownValue'],
-              ['name'  => 'projects_id',
+              ['name'  => 'projecttasks_id',
                'label' => __('As child of'),
                'type'  => 'dropdownValue'],
               ['name'  => 'percent_done',
@@ -93,7 +89,7 @@ class ProjectTaskTemplate extends CommonDropdown {
                'type'  => 'actiontime'],
               ['name'  => 'description',
                'label' => __('Description'),
-               'type'  => 'textarea'],
+               'type'  => 'tinymce'],
               ['name'  => 'comments',
                'label' => __('Comments'),
                'type'  => 'textarea'],
@@ -101,8 +97,8 @@ class ProjectTaskTemplate extends CommonDropdown {
    }
 
 
-   function getSearchOptionsNew() {
-      $tab = parent::getSearchOptionsNew();
+   function rawSearchOptions() {
+      $tab = parent::rawSearchOptions();
 
       $tab[] = [
          'id'       => '4',
@@ -114,7 +110,7 @@ class ProjectTaskTemplate extends CommonDropdown {
 
       $tab[] = [
          'id'       => '5',
-         'name'     => __('Type'),
+         'name'     => _n('Type', 'Types', 1),
          'field'    => 'name',
          'table'    => 'glpi_projecttasktypes',
          'datatype' => 'dropdown',

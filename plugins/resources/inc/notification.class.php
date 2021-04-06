@@ -9,7 +9,7 @@
  -------------------------------------------------------------------------
 
  LICENSE
-      
+
  This file is part of resources.
 
  resources is free software; you can redistribute it and/or modify
@@ -31,30 +31,56 @@ if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access directly to this file");
 }
 
+/**
+ * Class PluginResourcesNotification
+ */
 class PluginResourcesNotification extends CommonDBTM {
 
    static $rightname = 'plugin_resources';
-   
+
+   /**
+    * Return the localized name of the current Type
+    * Should be overloaded in each new class
+    *
+    * @param integer $nb Number of items
+    *
+    * @return string
+    **/
    static function getTypeName($nb = 0) {
 
       return __('Notification history', 'resources');
    }
 
+   /**
+    * Have I the global right to "create" the Object
+    * May be overloaded if needed (ex KnowbaseItem)
+    *
+    * @return booleen
+    **/
    static function canCreate() {
-      return Session::haveRight(self::$rightname, array(CREATE, UPDATE, DELETE));
+      return Session::haveRight(self::$rightname, [CREATE, UPDATE, DELETE]);
    }
 
+   /**
+    * Have I the global right to "view" the Object
+    *
+    * Default is true and check entity if the objet is entity assign
+    *
+    * May be overloaded if needed
+    *
+    * @return booleen
+    **/
    static function canView() {
       return Session::haveRight(self::$rightname, READ);
    }
-   
+
    /**
     * Function list items
-    * 
+    *
     * @param type $ID
     */
-   public function listItems($ID){
-      
+   public function listItems($ID) {
+
       $rand = mt_rand();
 
       // Start
@@ -62,12 +88,13 @@ class PluginResourcesNotification extends CommonDBTM {
       if (isset($_REQUEST["start"])) {
          $start = $_REQUEST["start"];
       }
-      
+
       // Get data
       $data = $this->getItems($ID, $start);
       if (!empty($data)) {
          echo "<div class='center'>";
-         Html::printAjaxPager(self::getTypeName(2), $start, countElementsInTable($this->getTable()));
+         $dbu = new DbUtils();
+         Html::printAjaxPager(self::getTypeName(2), $start, $dbu->countElementsInTable($this->getTable()));
          echo "<table class='tab_cadre_fixehov'>";
          echo "<tr class='tab_bg_1'>";
          echo "<th colspan='3'>".self::getTypeName(1)."</th>";
@@ -78,10 +105,12 @@ class PluginResourcesNotification extends CommonDBTM {
          echo "<th>".__('Type')."</th>";
          echo "</tr>";
 
+         $dbu = new DbUtils();
+
          foreach ($data as $field) {
             echo "<tr class='tab_bg_2'>";
             // User
-            echo "<td>".formatUserName($field['users_id'], $field['name'], $field['realname'], $field['firstname'])."</td>";
+            echo "<td>".$dbu->formatUserName($field['users_id'], $field['name'], $field['realname'], $field['firstname'])."</td>";
             echo "<td>".Html::convDateTime($field['date_mod'])."</td>";
             echo "<td>".self::getStatus($field['type'])."</td>";
             echo "</tr>";
@@ -90,20 +119,20 @@ class PluginResourcesNotification extends CommonDBTM {
          echo "</div>";
       }
    }
-   
+
    /**
     * Function get items for resource
-    * 
+    *
     * @global type $DB
     * @param type $recordmodels_id
     * @param type $start
     * @return type
     */
-   function getItems($resources_id, $start=0){
+   function getItems($resources_id, $start = 0) {
       global $DB;
-      
-      $output = array();
-      
+
+      $output = [];
+
       $query = "SELECT `".$this->getTable()."`.`id`, 
                        `glpi_users`.`realname`,
                        `glpi_users`.`firstname`,
@@ -120,14 +149,14 @@ class PluginResourcesNotification extends CommonDBTM {
 
       $result = $DB->query($query);
       if ($DB->numrows($result)) {
-         while ($data = $DB->fetch_assoc($result)) {
+         while ($data = $DB->fetchAssoc($result)) {
             $output[$data['id']] = $data;
          }
       }
-      
+
       return $output;
    }
-   
+
       /**
     * Function get the Status
     *
@@ -137,7 +166,7 @@ class PluginResourcesNotification extends CommonDBTM {
       $data = self::getAllStatusArray();
       return $data[$value];
    }
-    
+
    /**
     * Get the SNMP Status list
     *
@@ -146,18 +175,21 @@ class PluginResourcesNotification extends CommonDBTM {
    static function getAllStatusArray() {
 
       // To be overridden by class
-      $tab = array('report'  => __('Resource creation', 'resources'),
-                   'other'   => __('Other', 'resources'));
+      $tab = ['report'  => __('Resource creation', 'resources'),
+                   'other'   => __('Other', 'resources')];
 
       return $tab;
    }
-   
-   //if profile deleted
+
+   /**
+    * if profile deleted
+    *
+    * @param \PluginResourcesResource $resource
+    */
    static function purgeNotification(PluginResourcesResource $resource) {
       $temp = new self();
-      $temp->deleteByCriteria(array('plugin_resources_resources_id' => $resource->getField("id")));
+      $temp->deleteByCriteria(['plugin_resources_resources_id' => $resource->getField("id")]);
    }
 
 }
 
-?>

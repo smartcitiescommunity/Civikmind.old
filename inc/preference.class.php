@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -52,7 +48,9 @@ class Preference extends CommonGLPI {
 
       $ong = [];
       $this->addStandardTab('User', $ong, $options);
-      $this->addStandardTab('Config', $ong, $options);
+      if (Session::haveRightsOr('personalization', [READ, UPDATE])) {
+         $this->addStandardTab('Config', $ong, $options);
+      }
       $this->addStandardTab('DisplayPreference', $ong, $options);
 
       $ong['no_all_tab'] = true;

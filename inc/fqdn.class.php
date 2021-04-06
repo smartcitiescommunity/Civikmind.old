@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -28,11 +28,7 @@
  * You should have received a copy of the GNU General Public License
  * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
-*/
-
-/** @file
-* @brief
-*/
+* */
 
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
@@ -70,9 +66,9 @@ class FQDN extends CommonDropdown {
     * Checking suppose that each FQDN is compose of dot separated array of labels and its unique
     * \see (FQDNLabel)
     *
-    * @param $input fields of the record to check
+    * @param array $input fields of the record to check
     *
-    * @return false or fields checks and update (lowercase for the fqdn field)
+    * @return boolean|array  false or fields checked and updated (lowercase for the fqdn field)
    **/
    function prepareInput($input) {
 
@@ -121,7 +117,7 @@ class FQDN extends CommonDropdown {
 
 
    /**
-    * @return the FQDN of the element, or "" if invalid FQDN
+    * @return string the FQDN of the element, or "" if invalid FQDN
    **/
    function getFQDN() {
 
@@ -135,11 +131,12 @@ class FQDN extends CommonDropdown {
    /**
     * Search FQDN id from string FDQDN
     *
-    * @param $fqdn            string   value of the fdqn (for instance : indeptnet.net)
-    * @param $wildcard_search boolean  true if we search with wildcard (false by default)
+    * @param string  $fqdn             value of the fdqn (for instance : indeptnet.net)
+    * @param boolean $wildcard_search  true if we search with wildcard (false by default)
     *
-    * @return if $wildcard_search == false : the id of the fqdn, -1 if not found or several answers
-    *         if $wildcard_search == true : an array of the id of the fqdn
+    * @return integer|integer[]
+    *    if $wildcard_search == false : the id of the fqdn, -1 if not found or several answers
+    *    if $wildcard_search == true : an array of the id of the fqdn
    **/
    static function getFQDNIDByFQDN($fqdn, $wildcard_search = false) {
       global $DB;
@@ -155,17 +152,19 @@ class FQDN extends CommonDropdown {
          if ($count == 0) {
             $fqdn = '%'.$fqdn.'%';
          }
-         $relation = "LIKE '$fqdn'";
+         $relation = ['LIKE', $fqdn];
       } else {
-         $relation = "= '$fqdn'";
+         $relation = $fqdn;
       }
 
-      $query = "SELECT `id`
-                FROM `glpi_fqdns`
-                WHERE `fqdn` $relation ";
+      $iterator = $DB->request([
+         'SELECT' => 'id',
+         'FROM'   => self::getTable(),
+         'WHERE'  => ['fqdn' => $relation]
+      ]);
 
       $fqdns_id_list = [];
-      foreach ($DB->request($query) as $line) {
+      while ($line = $iterator->next()) {
          $fqdns_id_list[] = $line['id'];
       }
 
@@ -181,9 +180,9 @@ class FQDN extends CommonDropdown {
 
 
    /**
-    * @param $ID id of the FQDN
+    * @param integer $ID  id of the FQDN
     *
-    * @return the FQDN of the element, or "" if invalid FQDN
+    * @return string  the FQDN of the element, or "" if invalid FQDN
    **/
    static function getFQDNFromID($ID) {
 
@@ -195,15 +194,16 @@ class FQDN extends CommonDropdown {
    }
 
 
-   function getSearchOptionsNew() {
-      $tab = parent::getSearchOptionsNew();
+   function rawSearchOptions() {
+      $tab = parent::rawSearchOptions();
 
       $tab[] = [
          'id'                 => '11',
          'table'              => $this->getTable(),
          'field'              => 'fqdn',
          'name'               => __('FQDN'),
-         'datatype'           => 'string'
+         'datatype'           => 'string',
+         'autocomplete'       => true,
       ];
 
       return $tab;
@@ -213,9 +213,9 @@ class FQDN extends CommonDropdown {
    /**
     * Check FQDN Validity
     *
-    * @param $fqdn the FQDN to check
+    * @param string $fqdn  the FQDN to check
     *
-    * @return true if the FQDN is valid
+    * @return boolean  true if the FQDN is valid
    **/
    static function checkFQDN($fqdn) {
 

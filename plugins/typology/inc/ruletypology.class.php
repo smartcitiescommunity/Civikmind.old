@@ -9,7 +9,7 @@
  -------------------------------------------------------------------------
 
  LICENSE
-      
+
  This file is part of typology.
 
  typology is free software; you can redistribute it and/or modify
@@ -26,7 +26,7 @@
  along with typology. If not, see <http://www.gnu.org/licenses/>.
  --------------------------------------------------------------------------
  */
- 
+
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access directly to this file");
 }
@@ -44,31 +44,60 @@ class PluginTypologyRuleTypology extends Rule {
    static $rightname = "plugin_typology";
    public $can_sort  = true;
 
+   /**
+    * Get title used in rule
+    *
+    * @return Title of the rule
+    **/
    function getTitle() {
 
       return PluginTypologyTypology::getTypeName(1);
    }
 
+   /**
+    * @return bool
+    */
    function maybeRecursive() {
       return true;
    }
 
+   /**
+    * @return bool
+    */
    function isEntityAssign() {
       return true;
    }
 
+   /**
+    * Can I change recursive flag to false
+    * check if there is "linked" object in another entity
+    *
+    * May be overloaded if needed
+    *
+    * @return booleen
+    **/
    function canUnrecurs() {
       return true;
    }
-   
+
    /*function maxCriteriasCount() {
       return 2;
    }*/
-   
+
+   /**
+    * Get maximum number of Actions of the Rule (0 = unlimited)
+    *
+    * @return the maximum number of actions
+    **/
    function maxActionsCount() {
       return count($this->getActions());
    }
-   
+
+   /**
+    * Function used to add specific params before rule processing
+    *
+    * @param $params parameters
+    **/
    function addSpecificParamsForPreview($params) {
 
       if (!isset($params["entities_id"])) {
@@ -95,21 +124,24 @@ class PluginTypologyRuleTypology extends Rule {
          echo "<input type='hidden' name='entities_id' value='".$_SESSION["glpiactive_entity"]."'>";
       }
    }
-   
+
+   /**
+    * @return array
+    */
    function getCriterias() {
 
-      $criterias = array();
-      
+      $criterias = [];
+
       $criterias['name']['table']     = 'glpi_computers';
       $criterias['name']['field']     = 'name';
       $criterias['name']['name']      = __('Computer\'s name');
-      
+
       $criterias['states_id']['table']     = 'glpi_states';
       $criterias['states_id']['field']     = 'name';
       $criterias['states_id']['name']      = __('Status');
       $criterias['states_id']['linkfield'] = 'states_id';
       $criterias['states_id']['type']      = 'dropdown';
-      
+
       $criterias['computertypes_id']['table']     = 'glpi_computertypes';
       $criterias['computertypes_id']['field']     = 'name';
       $criterias['computertypes_id']['name']      = __('Type');
@@ -122,20 +154,21 @@ class PluginTypologyRuleTypology extends Rule {
       $criterias['operatingsystems_id']['linkfield'] = 'operatingsystems_id';
       $criterias['operatingsystems_id']['type']      = 'dropdown';
 
-
       return $criterias;
    }
-   
 
+
+   /**
+    * @return array
+    */
    function getActions() {
-      $actions = array();
-      
+      $actions = [];
+
       $actions['plugin_typology_typologies_id']['name']  = PluginTypologyTypology::getTypeName(1);
       $actions['plugin_typology_typologies_id']['table']  = "glpi_plugin_typology_typologies";
       $actions['plugin_typology_typologies_id']['type']  = "dropdown";
-      $actions['plugin_typology_typologies_id']['force_actions'] = array('assign');
+      $actions['plugin_typology_typologies_id']['force_actions'] = ['assign'];
 
       return $actions;
    }
 }
-?>

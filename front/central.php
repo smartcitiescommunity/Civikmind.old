@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,20 +30,28 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
-
 include ('../inc/includes.php');
 
-Session::checkCentralAccess();
+if (!(isset($_GET["embed"])
+      && isset($_GET["dashboard"]))) {
+   Session::checkCentralAccess();
+}
+
+// embed (anonymous) dashboard
+if (isset($_GET["embed"]) && isset($_GET["dashboard"])) {
+   $grid      = new Glpi\Dashboard\Grid($_GET["dashboard"]);
+   $dashboard = $grid->getDashboard();
+   Html::popHeader($dashboard->getTitle(), $_SERVER['PHP_SELF'], false, 'central', 'central');
+   echo $grid->embed($_REQUEST);
+   Html::popFooter();
+   exit;
+}
 
 // Change profile system
 if (isset($_POST['newprofile'])) {
    if (isset($_SESSION["glpiprofiles"][$_POST['newprofile']])) {
       Session::changeProfile($_POST['newprofile']);
-      if ($_SESSION["glpiactiveprofile"]["interface"] == "helpdesk") {
+      if (Session::getCurrentInterface() == "helpdesk") {
          if ($_SESSION['glpiactiveprofile']['create_ticket_on_login']) {
             Html::redirect($CFG_GLPI['root_doc'] . "/front/helpdesk.public.php?create_ticket=1");
          } else {

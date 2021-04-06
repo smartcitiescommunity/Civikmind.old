@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -59,7 +55,7 @@ class SolutionTemplate extends CommonDropdown {
    function getAdditionalFields() {
 
       return [['name'  => 'solutiontypes_id',
-                         'label' => __('Solution type'),
+                         'label' => SolutionType::getTypeName(1),
                          'type'  => 'dropdownValue',
                          'list'  => true],
                    ['name'  => 'content',
@@ -68,8 +64,8 @@ class SolutionTemplate extends CommonDropdown {
    }
 
 
-   function getSearchOptionsNew() {
-      $tab = parent::getSearchOptionsNew();
+   function rawSearchOptions() {
+      $tab = parent::rawSearchOptions();
 
       $tab[] = [
          'id'                 => '4',
@@ -82,7 +78,7 @@ class SolutionTemplate extends CommonDropdown {
 
       $tab[] = [
          'id'                 => '3',
-         'name'               => __('Solution type'),
+         'name'               => SolutionType::getTypeName(1),
          'field'              => 'name',
          'table'              => getTableForItemType('SolutionType'),
          'datatype'           => 'dropdown'
@@ -90,25 +86,4 @@ class SolutionTemplate extends CommonDropdown {
 
       return $tab;
    }
-
-
-   /**
-    * @see CommonDropdown::displaySpecificTypeField()
-   **/
-   function displaySpecificTypeField($ID, $field = []) {
-
-      switch ($field['type']) {
-         case 'tinymce' :
-            // Display empty field
-            echo "&nbsp;</td></tr>";
-            // And a new line to have a complete display
-            echo "<tr class='center'><td colspan='5'>";
-            $rand = mt_rand();
-            Html::initEditorSystem($field['name'].$rand);
-            echo "<textarea id='".$field['name']."$rand' name='".$field['name']."' rows='3'>".
-                   $this->fields[$field['name']]."</textarea>";
-            break;
-      }
-   }
-
 }

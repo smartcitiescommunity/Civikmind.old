@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,9 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-* @since version 0.84
-*/
+/**
+ * @since 0.84
+ */
 
 use Glpi\Event;
 
@@ -55,7 +54,7 @@ if (isset($_POST["disconnect"])) {
 } else if (isset($_POST["add"])) {
    if (isset($_POST["items_id"]) && ($_POST["items_id"] > 0)) {
       $conn->check(-1, CREATE, $_POST);
-      if ($newID = $conn->add($_POST)) {
+      if ($conn->add($_POST)) {
          Event::log($_POST["computers_id"], "computers", 5, "inventory",
                     //TRANS: %s is the user login
                     sprintf(__('%s connects an item'), $_SESSION["glpiname"]));

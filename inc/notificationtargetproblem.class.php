@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -46,9 +42,6 @@ class NotificationTargetProblem extends NotificationTargetCommonITILObject {
 
    public $private_profiles = [];
 
-   public $html_tags        = ['##problem.solution.description##'];
-
-
    /**
     * Get events related to tickets
    **/
@@ -57,9 +50,6 @@ class NotificationTargetProblem extends NotificationTargetCommonITILObject {
       $events = ['new'            => __('New problem'),
                       'update'         => __('Update of a problem'),
                       'solved'         => __('Problem solved'),
-                      'add_task'       => __('New task'),
-                      'update_task'    => __('Update of a task'),
-                      'delete_task'    => __('Deletion of a task'),
                       'closed'         => __('Closure of a problem'),
                       'delete'         => __('Deleting a problem')];
 
@@ -70,8 +60,6 @@ class NotificationTargetProblem extends NotificationTargetCommonITILObject {
 
 
    function getDataForObject(CommonDBTM $item, array $options, $simple = false) {
-      global $CFG_GLPI;
-
       // Common ITIL data
       $data = parent::getDataForObject($item, $options, $simple);
 
@@ -81,8 +69,8 @@ class NotificationTargetProblem extends NotificationTargetCommonITILObject {
 
       // Complex mode
       if (!$simple) {
-         $restrict = "`problems_id`='".$item->getField('id')."'";
-         $tickets  = getAllDatasFromTable('glpi_problems_tickets', $restrict);
+         $restrict = ['problems_id' => $item->getField('id')];
+         $tickets  = getAllDataFromTable('glpi_problems_tickets', $restrict);
 
          $data['tickets'] = [];
          if (count($tickets)) {
@@ -110,8 +98,7 @@ class NotificationTargetProblem extends NotificationTargetCommonITILObject {
 
          $data['##problem.numberoftickets##'] = count($data['tickets']);
 
-         $restrict = "`problems_id`='".$item->getField('id')."'";
-         $changes  = getAllDatasFromTable('glpi_changes_problems', $restrict);
+         $changes  = getAllDataFromTable('glpi_changes_problems', $restrict);
 
          $data['changes'] = [];
          if (count($changes)) {
@@ -138,8 +125,7 @@ class NotificationTargetProblem extends NotificationTargetCommonITILObject {
 
          $data['##problem.numberofchanges##'] = count($data['changes']);
 
-         $restrict = "`problems_id` = '".$item->getField('id')."'";
-         $items    = getAllDatasFromTable('glpi_items_problems', $restrict);
+         $items    = getAllDataFromTable('glpi_items_problems', $restrict);
 
          $data['items'] = [];
          if (count($items)) {
@@ -194,7 +180,6 @@ class NotificationTargetProblem extends NotificationTargetCommonITILObject {
          }
 
          $data['##problem.numberofitems##'] = count($data['items']);
-
       }
       return $data;
    }
@@ -210,15 +195,15 @@ class NotificationTargetProblem extends NotificationTargetCommonITILObject {
                     'problem.impacts'           => __('Impacts'),
                     'problem.causes'            => __('Causes'),
                     'problem.symptoms'          => __('Symptoms'),
-                    'item.name'                 => __('Associated item'),
+                    'item.name'                 => _n('Associated item', 'Associated items', 1),
                     'item.serial'               => __('Serial number'),
                     'item.otherserial'          => __('Inventory number'),
-                    'item.location'             => __('Location'),
-                    'item.model'                => __('Model'),
+                    'item.location'             => Location::getTypeName(1),
+                    'item.model'                => _n('Model', 'Models', 1),
                     'item.contact'              => __('Alternate username'),
                     'item.contactnumber'        => __('Alternate username number'),
-                    'item.user'                 => __('User'),
-                    'item.group'                => __('Group'),];
+                    'item.user'                 => User::getTypeName(1),
+                    'item.group'                => Group::getTypeName(1),];
 
       foreach ($tags as $tag => $label) {
          $this->addTagToList(['tag'    => $tag,
@@ -252,16 +237,16 @@ class NotificationTargetProblem extends NotificationTargetCommonITILObject {
       }
 
       //Tags without lang
-      $tags = ['ticket.id'        => sprintf(__('%1$s: %2$s'), __('Ticket'), __('ID')),
-                    'ticket.date'      => sprintf(__('%1$s: %2$s'), __('Ticket'), __('Date')),
-                    'ticket.url'       => sprintf(__('%1$s: %2$s'), __('Ticket'), __('URL')),
-                    'ticket.title'     => sprintf(__('%1$s: %2$s'), __('Ticket'), __('Title')),
-                    'ticket.content'   => sprintf(__('%1$s: %2$s'), __('Ticket'), __('Description')),
-                    'change.id'        => sprintf(__('%1$s: %2$s'), __('Change'), __('ID')),
-                    'change.date'      => sprintf(__('%1$s: %2$s'), __('Change'), __('Date')),
-                    'change.url'       => sprintf(__('%1$s: %2$s'), __('Change'), __('URL')),
-                    'change.title'     => sprintf(__('%1$s: %2$s'), __('Change'), __('Title')),
-                    'change.content'   => sprintf(__('%1$s: %2$s'), __('Change'), __('Description')),
+      $tags = ['ticket.id'        => sprintf(__('%1$s: %2$s'), Ticket::getTypeName(1), __('ID')),
+                    'ticket.date'      => sprintf(__('%1$s: %2$s'), Ticket::getTypeName(1), _n('Date', 'Dates', 1)),
+                    'ticket.url'       => sprintf(__('%1$s: %2$s'), Ticket::getTypeName(1), __('URL')),
+                    'ticket.title'     => sprintf(__('%1$s: %2$s'), Ticket::getTypeName(1), __('Title')),
+                    'ticket.content'   => sprintf(__('%1$s: %2$s'), Ticket::getTypeName(1), __('Description')),
+                    'change.id'        => sprintf(__('%1$s: %2$s'), Change::getTypeName(1), __('ID')),
+                    'change.date'      => sprintf(__('%1$s: %2$s'), Change::getTypeName(1), _n('Date', 'Dates', 1)),
+                    'change.url'       => sprintf(__('%1$s: %2$s'), Change::getTypeName(1), __('URL')),
+                    'change.title'     => sprintf(__('%1$s: %2$s'), Change::getTypeName(1), __('Title')),
+                    'change.content'   => sprintf(__('%1$s: %2$s'), Change::getTypeName(1), __('Description')),
                     ];
 
       foreach ($tags as $tag => $label) {

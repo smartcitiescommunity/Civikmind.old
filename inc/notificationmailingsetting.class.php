@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -29,10 +29,6 @@
  * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
  */
-
-/** @file
-* @brief
-*/
 
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
@@ -120,6 +116,23 @@ class NotificationMailingSetting extends NotificationSetting {
          $out .= " </td></tr>";
 
          $out .= "<tr class='tab_bg_2'>";
+         $out .= "<td><label for='admin_email_noreply'>" . __('No-Reply address') . " <i class='pointer fa fa-info' title='" .
+            __s('Optionnal No-Reply address.') . "\n" . __s('If set, it will be used for notifications that doesn\'t expect a reply.') . "'></i></label></td>";
+         $out .= "<td><input type='text' name='admin_email_noreply' id='admin_email_noreply' size='40' value='" .
+                    $CFG_GLPI["admin_email_noreply"] . "'>";
+         if (!empty($CFG_GLPI['admin_email_noreply'])
+             && !NotificationMailing::isUserAddressValid($CFG_GLPI["admin_email_noreply"])) {
+            $out .= "<br/><span class='red'>&nbsp;".__('Invalid email address')."</span>";
+         }
+         $out .= " </td>";
+         $out .= "<td><label for='admin_email_noreply_name'>" . __('No-Reply name') . " <i class='pointer fa fa-info' title='" .
+            __s('Optionnal No-Reply name.') . "\n" . __s('If not set, main administrator name will be used.'). "'></i></label></td>";
+            $out .= "<td><input type='text' name='admin_email_noreply_name' id='admin_email_noreply_name' size='40' value='" .
+                    $CFG_GLPI["admin_email_noreply_name"] . "'>";
+         $out .= " </td></tr>";
+         $out .= "</tr>";
+
+         $out .= "<tr class='tab_bg_2'>";
 
          $attachrand = mt_rand();
          $out .= "<td><label for='dropdown_attach_ticket_documents_to_mail$attachrand'>" . __('Add documents into ticket notifications') . "</label></td><td>";
@@ -178,6 +191,19 @@ class NotificationMailingSetting extends NotificationSetting {
          $out .= "<td><label for='smtp_max_retries'>" . __('Max. delivery retries') . "</label></td>";
          $out .= "<td><input type='text' name='smtp_max_retries' id='smtp_max_retries' size='5' value='" .
                        $CFG_GLPI["smtp_max_retries"] . "'></td>";
+         $out .= "</tr>";
+
+         $out .= "<tr class='tab_bg_2'>";
+         $out .= "<td><label for='smtp_max_retries'>" . __('Try to deliver again in (minutes)') . "</label></td>";
+         $out .= "<td>";
+         $out .= Dropdown::showNumber('smtp_retry_time', [
+                     'value'    => $CFG_GLPI["smtp_retry_time"],
+                     'min'      => 0,
+                     'max'      => 60,
+                     'step'     => 1,
+                     'display'  => false,
+                 ]);
+         $out .= "</td><td colspan='2'></td>";
 
          $out .= "</table>";
 
@@ -186,7 +212,7 @@ class NotificationMailingSetting extends NotificationSetting {
             $out .= " starthidden";
          }
          $out .= "' id='smtp_config'>";
-         $out .= "<tr class='tab_bg_1'><th colspan='4'>".__('Mail server')."</th></tr>";
+         $out .= "<tr class='tab_bg_1'><th colspan='4'>".AuthMail::getTypeName(1)."</th></tr>";
          $out .= "<tr class='tab_bg_2'>";
          $certrand = mt_rand();
          $out .= "<td><label for='dropdown_smtp_check_certificate$certrand'>" . __("Check certificate") . "</label></td>";
@@ -197,14 +223,14 @@ class NotificationMailingSetting extends NotificationSetting {
             -1,
             ['display' => false, 'rand' => $certrand]
          );
-         $out .= "</td>";
+         $out .= "</td><td colspan='2'></td>";
          $out .= "</tr>";
 
          $out .= "<tr class='tab_bg_2'><td><label for='smtp_host'>" . __('SMTP host') . "</label></td>";
          $out .= "<td><input type='text' name='smtp_host' id='smtp_host' size='40' value='".$CFG_GLPI["smtp_host"]."'>";
          $out.= "</td>";
          //TRANS: SMTP port
-         $out .= "<td><label for='smtp_port'>" . __('Port') . "</label></td>";
+         $out .= "<td><label for='smtp_port'>" . _n('Port', 'Ports', 1) . "</label></td>";
          $out .= "<td><input type='text' name='smtp_port' id='smtp_port' size='5' value='".$CFG_GLPI["smtp_port"]."'>";
          $out .= "</td>";
          $out .= "</tr>";
@@ -215,7 +241,7 @@ class NotificationMailingSetting extends NotificationSetting {
                     $CFG_GLPI["smtp_username"] . "'></td>";
 
          $out .= "<td><label for='smtp_passwd'>" . __('SMTP password (optional)') . "</label></td>";
-         $out .= "<td><input type='password' name='smtp_passwd' id='smtp_passwd' size='40' value='' autocomplete='off'>";
+         $out .= "<td><input type='password' name='smtp_passwd' id='smtp_passwd' size='40' value='' autocomplete='new-password'>";
          $out .= "<br><input type='checkbox' name='_blank_smtp_passwd'i id='_blank_smtp_passwd'>&nbsp;<label for='_blank_smtp_passwd'>".__('Clear') . "</label>";
 
          $out .= "</td></tr>";

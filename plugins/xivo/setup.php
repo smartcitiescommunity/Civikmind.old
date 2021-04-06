@@ -26,10 +26,19 @@
  --------------------------------------------------------------------------
  */
 
-define('PLUGIN_XIVO_VERSION', '0.1.0');
+define('PLUGIN_XIVO_VERSION', '1.0.0');
+
+// Minimal GLPI version, inclusive
+define('PLUGIN_XIVO_MIN_GLPI', '9.5');
+// Maximum GLPI version, exclusive
+define('PLUGIN_XIVO_MAX_GLPI', '9.6');
+
+// disable some feature as they are considered as experimental or deprecated by the editor
+define('PLUGIN_XIVO_ENABLE_PRESENCE', '1');
+define('PLUGIN_XIVO_ENABLE_CALLCENTER', '0');
 
 if (!defined("PLUGINXIVO_DIR")) {
-   define("PLUGINXIVO_DIR", GLPI_ROOT . "/plugins/xivo");
+   define("PLUGINXIVO_DIR", __DIR__);
 }
 
 /**
@@ -50,9 +59,12 @@ function plugin_init_xivo() {
    $plugin = new Plugin();
    if (!$plugin->isInstalled('xivo')
        || !$plugin->isActivated('xivo')
-       || !Session::getLoginUserID() ) {
+       || !Session::getLoginUserID()) {
       return true;
    }
+
+   //get plugin config
+   $xivoconfig = PluginXivoConfig::getConfig();
 
    // config page
    Plugin::registerClass('PluginXivoConfig', ['addtabon' => 'Config']);
@@ -60,17 +72,32 @@ function plugin_init_xivo() {
 
    // additional tabs
    Plugin::registerClass('PluginXivoPhone_Line',
-                         ['addtabon' => 'Phone']);
+                         ['addtabon' => ['Phone', 'Line']]);
 
    // add Line to GLPI types
    Plugin::registerClass('PluginXivoLine',
-                         ['linkuser_types' => 'Line',
-                          'contract_types' => 'Line',
-                          'document_types' => 'Line']);
+                         ['addtabon' => 'Line']);
 
    // css & js
-   $PLUGIN_HOOKS['add_css']['xivo'] = 'xivo.css';
-   $PLUGIN_HOOKS['add_javascript']['xivo'] = 'xivo.js';
+   $PLUGIN_HOOKS['add_css']['xivo'] = [
+      'css/animation.css',
+      'css/main.css'
+   ];
+
+   $PLUGIN_HOOKS['add_javascript']['xivo'] = [
+      'js/common.js',
+   ];
+   if ($xivoconfig['enable_xuc']
+       && ($_SESSION['glpiactiveprofile']['interface'] == "central"
+           || $xivoconfig['enable_xuc_selfservice'])) {
+      $PLUGIN_HOOKS['add_javascript']['xivo'][] = 'js/xivo/callback.js';
+      $PLUGIN_HOOKS['add_javascript']['xivo'][] = 'js/xivo/membership.js';
+      $PLUGIN_HOOKS['add_javascript']['xivo'][] = 'js/xivo/cti.js';
+      $PLUGIN_HOOKS['add_javascript']['xivo'][] = 'js/store2.min.js';
+      $PLUGIN_HOOKS['add_javascript']['xivo'][] = 'js/sessionStorageTabs.js';
+      $PLUGIN_HOOKS['add_javascript']['xivo'][] = 'js/xuc.js';
+      $PLUGIN_HOOKS['add_javascript']['xivo'][] = 'js/app.js.php';
+   }
 
    // standard hooks
    $PLUGIN_HOOKS['item_purge']['xivo'] = [
@@ -80,12 +107,6 @@ function plugin_init_xivo() {
    // display autoinventory in phones
    $PLUGIN_HOOKS['autoinventory_information']['xivo'] = [
       'Phone' =>  ['PluginXivoPhone', 'displayAutoInventory'],
-   ];
-
-   // add menu hook
-   $PLUGIN_HOOKS['menu_toadd']['xivo'] = [
-      // insert into 'plugin menu'
-      'management' => 'PluginXivoLine'
    ];
 }
 
@@ -97,53 +118,21 @@ function plugin_init_xivo() {
  * @return array
  */
 function plugin_version_xivo() {
+
    return [
       'name'           => 'xivo',
       'version'        => PLUGIN_XIVO_VERSION,
       'author'         => '<a href="http://www.teclib.com">Teclib\'</a>',
       'license'        => '',
       'homepage'       => '',
-      'minGlpiVersion' => '9.1'
+      'requirements'   => [
+         'glpi' => [
+            'min' => PLUGIN_XIVO_MIN_GLPI,
+            'max' => PLUGIN_XIVO_MAX_GLPI,
+         ]
+      ]
    ];
 }
-
-/**
- * Check pre-requisites before install
- * OPTIONNAL, but recommanded
- *
- * @return boolean
- */
-function plugin_xivo_check_prerequisites() {
-   // Strict version check (could be less strict, or could allow various version)
-   if (version_compare(GLPI_VERSION, '9.1', 'lt')) {
-      if (method_exists('Plugin', 'messageIncompatible')) {
-         echo Plugin::messageIncompatible('core', '9.1');
-      } else {
-         echo "This plugin requires GLPI >= 9.1";
-      }
-      return false;
-   }
-   return true;
-}
-
-/**
- * Check configuration process
- *
- * @param boolean $verbose Whether to display message on failure. Defaults to false
- *
- * @return boolean
- */
-function plugin_xivo_check_config($verbose = false) {
-   if (true) { // Your configuration check
-      return true;
-   }
-
-   if ($verbose) {
-      _e('Installed / not configured', 'xivo');
-   }
-   return false;
-}
-
 
 function plugin_xivo_recursive_remove_empty($haystack) {
    foreach ($haystack as $key => $value) {
@@ -159,18 +148,4 @@ function plugin_xivo_recursive_remove_empty($haystack) {
    }
 
    return $haystack;
-}
-
-function xivoGetIdByField($itemtype = "", $field = "", $value = "") {
-   global $DB;
-
-   $query = "SELECT `id`
-             FROM `".$itemtype::getTable()."`
-             WHERE `$field` = '".addslashes($value)."'";
-   $result = $DB->query($query);
-
-   if ($DB->numrows($result) == 1) {
-      return $DB->result($result, 0, 'id');
-   }
-   return false;
 }

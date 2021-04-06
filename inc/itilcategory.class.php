@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -49,8 +45,6 @@ class ITILCategory extends CommonTreeDropdown {
 
    static $rightname          = 'itilcategory';
 
-
-
    function getAdditionalFields() {
 
       $tab = [['name'      => $this->getForeignKeyField(),
@@ -65,12 +59,16 @@ class ITILCategory extends CommonTreeDropdown {
                    ['name'      => 'groups_id',
                          'label'     => __('Group in charge of the hardware'),
                          'type'      => 'dropdownValue',
-                         'condition' => '`is_assign`',
+                         'condition' => ['is_assign' => 1],
                          'list'      => true],
                    ['name'      => 'knowbaseitemcategories_id',
                          'label'     => __('Knowledge base'),
                          'type'      => 'dropdownValue',
                          'list'      => true],
+                   ['name'      => 'code',
+                         'label'     => __('Code representing the ticket category'),
+                         'type'      => 'text',
+                         'list'      => false],
                    ['name'      => 'is_helpdeskvisible',
                          'label'     => __('Visible in the simplified interface'),
                          'type'      => 'bool',
@@ -99,6 +97,14 @@ class ITILCategory extends CommonTreeDropdown {
                          'label'     => __('Template for an incident'),
                          'type'      => 'dropdownValue',
                          'list'      => true],
+                   ['name'      => 'changetemplates_id',
+                         'label'     => __('Template for a change'),
+                         'type'      => 'dropdownValue',
+                         'list'      => true],
+                   ['name'      => 'problemtemplates_id',
+                         'label'     => __('Template for a problem'),
+                         'type'      => 'dropdownValue',
+                         'list'      => true],
                   ];
 
       if (!Session::haveRightsOr('problem', [CREATE, UPDATE, DELETE,
@@ -111,8 +117,8 @@ class ITILCategory extends CommonTreeDropdown {
    }
 
 
-   function getSearchOptionsNew() {
-      $tab                       = parent::getSearchOptionsNew();
+   function rawSearchOptions() {
+      $tab                       = parent::rawSearchOptions();
 
       $tab[] = [
          'id'                 => '70',
@@ -127,13 +133,13 @@ class ITILCategory extends CommonTreeDropdown {
          'id'                 => '71',
          'table'              => 'glpi_groups',
          'field'              => 'completename',
-         'name'               => __('Group'),
+         'name'               => Group::getTypeName(1),
          'datatype'           => 'dropdown'
       ];
 
       $tab[] = [
          'id'                 => '72',
-         'table'              => 'glpi_tickettemplates',
+         'table'              => TicketTemplate::getTable(),
          'field'              => 'name',
          'linkfield'          => 'tickettemplates_id_demand',
          'name'               => __('Template for a request'),
@@ -142,10 +148,28 @@ class ITILCategory extends CommonTreeDropdown {
 
       $tab[] = [
          'id'                 => '73',
-         'table'              => 'glpi_tickettemplates',
+         'table'              => TicketTemplate::getTable(),
          'field'              => 'name',
          'linkfield'          => 'tickettemplates_id_incident',
          'name'               => __('Template for an incident'),
+         'datatype'           => 'dropdown'
+      ];
+
+      $tab[] = [
+         'id'                 => '100',
+         'table'              => ChangeTemplate::getTable(),
+         'field'              => 'name',
+         'linkfield'          => 'changetemplates_id',
+         'name'               => __('Template for a change'),
+         'datatype'           => 'dropdown'
+      ];
+
+      $tab[] = [
+         'id'                 => '101',
+         'table'              => ProblemTemplate::getTable(),
+         'field'              => 'name',
+         'linkfield'          => 'problemtemplates_id',
+         'name'               => __('Template for a problem'),
          'datatype'           => 'dropdown'
       ];
 
@@ -236,12 +260,21 @@ class ITILCategory extends CommonTreeDropdown {
          'datatype'           => 'dropdown'
       ];
 
+      $tab[] = [
+         'id'                 => '99',
+         'table'              => $this->getTable(),
+         'field'              => 'code',
+         'name'               => __('Code representing the ticket category'),
+         'massiveaction'      => false,
+         'datatype'           => 'string'
+      ];
+
       return $tab;
    }
 
 
    static function getTypeName($nb = 0) {
-      return _n('Ticket category', 'Ticket categories', $nb);
+      return _n('ITIL category', 'ITIL categories', $nb);
    }
 
 
@@ -259,9 +292,66 @@ class ITILCategory extends CommonTreeDropdown {
       Rule::cleanForItemCriteria($this);
    }
 
+   /**
+    * @since 9.5.0
+    *
+    * @param $value
+   **/
+   static function getITILCategoryIDByCode($value) {
+      return self::getITILCategoryIDByField("code", $value);
+   }
 
    /**
-    * @since version 0.84
+    * @since 9.5.0
+    *
+    * @param string $field
+    * @param mixed  $value must be addslashes
+   **/
+   private static function getITILCategoryIDByField($field, $value) {
+      global $DB;
+
+      $iterator = $DB->request([
+         'SELECT' => 'id',
+         'FROM'   => self::getTable(),
+         'WHERE'  => [$field => $value]
+      ]);
+
+      if (count($iterator) == 1) {
+         $result = $iterator->next();
+         return $result['id'];
+      }
+      return -1;
+   }
+
+   function prepareInputForAdd($input) {
+      $input = parent::prepareInputForAdd($input);
+
+      $input['code'] = isset($input['code']) ? trim($input['code']) : '';
+      if (!empty($input["code"])
+            && ITILCategory::getITILCategoryIDByCode($input["code"]) != -1) {
+         Session::addMessageAfterRedirect(__("Code representing the ticket category is already used"),
+                                          false, ERROR);
+         return false;
+      }
+      return $input;
+   }
+
+
+   function prepareInputForUpdate($input) {
+      $input = parent::prepareInputForUpdate($input);
+
+      $input['code'] = isset($input['code']) ? trim($input['code']) : '';
+      if (!empty($input["code"])
+            && !in_array(ITILCategory::getITILCategoryIDByCode($input["code"]), [$input['id'],-1])) {
+         Session::addMessageAfterRedirect(__("Code representing the ticket category is already used"),
+                                          false, ERROR);
+         return false;
+      }
+      return $input;
+   }
+
+   /**
+    * @since 0.84
     *
     * @param $item         CommonGLPI object
     * @param $withtemplate (default 0)
@@ -269,10 +359,9 @@ class ITILCategory extends CommonTreeDropdown {
    function getTabNameForItem(CommonGLPI $item, $withtemplate = 0) {
 
       if (Session::haveRight(self::$rightname, READ)) {
-         switch ($item->getType()) {
-            case 'TicketTemplate' :
-               $ong[1] = $this->getTypeName(Session::getPluralNumber());
-               return $ong;
+         if ($item instanceof ITILTemplate) {
+            $ong[1] = $this->getTypeName(Session::getPluralNumber());
+            return $ong;
          }
       }
       return parent::getTabNameForItem($item, $withtemplate);
@@ -281,18 +370,18 @@ class ITILCategory extends CommonTreeDropdown {
 
    static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0) {
 
-      if ($item->getType() == 'TicketTemplate') {
-         self::showForTicketTemplate($item, $withtemplate);
+      if ($item instanceof ITILTemplate) {
+         self::showForITILTemplate($item, $withtemplate);
       }
       return parent::displayTabContentForItem($item, $tabnum, $withtemplate);
    }
 
 
    /**
-    * @param $tt           TicketTemplate object
+    * @param $tt           ITILTemplate object
     * @param $withtemplate (default 0)
    **/
-   static function showForTicketTemplate(TicketTemplate $tt, $withtemplate = 0) {
+   static function showForITILTemplate(ITILTemplate $tt, $withtemplate = 0) {
       global $DB, $CFG_GLPI;
 
       $itilcategory = new self();
@@ -302,62 +391,80 @@ class ITILCategory extends CommonTreeDropdown {
           || !$tt->can($ID, READ)) {
          return false;
       }
-      $ttm  = new self();
-      $rand = mt_rand();
 
       echo "<div class='center'>";
 
-      $query = "SELECT `glpi_itilcategories`.*
-                FROM `glpi_itilcategories`
-                WHERE (`tickettemplates_id_incident` = '$ID')
-                       OR (`tickettemplates_id_demand` = '$ID')
-                ORDER BY `name`";
+      $iterator = $DB->request([
+         'FROM'   => 'glpi_itilcategories',
+         'WHERE'  => [
+            'OR' => [
+               'tickettemplates_id_incident' => $ID,
+               'tickettemplates_id_demand'   => $ID,
+               'changetemplates_id'          => $ID,
+               'problemtemplates_id'         => $ID
+            ]
+         ],
+         'ORDER'  => 'name'
+      ]);
 
-      if ($result=$DB->query($query)) {
-         echo "<table class='tab_cadre_fixe'>";
-         echo "<tr><th colspan='3'>";
-         echo "<a href='".Toolbox::getItemTypeSearchURL($itilcategory->getType())."'>";
-         echo self::getTypeName($DB->numrows($result));
-         echo "</a>";
-         echo "</th></tr>";
-         $used_incident = [];
-         $used_demand   = [];
-         if ($DB->numrows($result)) {
-            echo "<th>".__('Name')."</th>";
-            echo "<th>".__('Incident')."</th>";
-            echo "<th>".__('Request')."</th>";
-            echo "</tr>";
+      echo "<table class='tab_cadre_fixe'>";
+      echo "<tr><th colspan='5'>";
+      $itilcategory_type = $itilcategory->getType();
+      echo "<a href='".$itilcategory_type::getSearchURL()."'>";
+      echo self::getTypeName(count($iterator));
+      echo "</a>";
+      echo "</th></tr>";
+      if (count($iterator)) {
+         echo "<th>".__('Name')."</th>";
+         echo "<th>".__('Incident')."</th>";
+         echo "<th>".__('Request')."</th>";
+         echo "<th>".Change::getTypeName(1)."</th>";
+         echo "<th>".Problem::getTypeName(1)."</th>";
+         echo "</tr>";
 
-            while ($data = $DB->fetch_assoc($result)) {
-               echo "<tr class='tab_bg_2'>";
-               $itilcategory->getFromDB($data['id']);
-               echo "<td>".$itilcategory->getLink(['comments' => true])."</td>";
-               if ($data['tickettemplates_id_incident'] == $ID) {
-                  echo "<td class='center'>
-                        <img src='".$CFG_GLPI["root_doc"]."/pics/ok.png' alt=\"".__('OK').
-                         "\" width='14' height='14'>
-                        </td>";
-                  $used_incident[] = $data["id"];
-               } else {
-                  echo "<td>&nbsp;</td>";
-               }
-               if ($data['tickettemplates_id_demand'] == $ID) {
-                  echo "<td class='center'>
-                        <img src='".$CFG_GLPI["root_doc"]."/pics/ok.png' alt=\"".__('OK').
-                         "\" width='14' height='14'>
-                        </td>";
-                  $used_demand[] = $data["id"];
-               } else {
-                  echo "<td>&nbsp;</td>";
-               }
+         while ($data = $iterator->next()) {
+            echo "<tr class='tab_bg_2'>";
+            $itilcategory->getFromDB($data['id']);
+            echo "<td>".$itilcategory->getLink(['comments' => true])."</td>";
+            if ($data['tickettemplates_id_incident'] == $ID) {
+               echo "<td class='center'>
+                     <img src='".$CFG_GLPI["root_doc"]."/pics/ok.png' alt=\"".__('OK').
+                        "\" width='14' height='14'>
+                     </td>";
+            } else {
+               echo "<td>&nbsp;</td>";
             }
-
-         } else {
-            echo "<tr><th colspan='3'>".__('No item found')."</th></tr>";
+            if ($data['tickettemplates_id_demand'] == $ID) {
+               echo "<td class='center'>
+                     <img src='".$CFG_GLPI["root_doc"]."/pics/ok.png' alt=\"".__('OK').
+                        "\" width='14' height='14'>
+                     </td>";
+            } else {
+               echo "<td>&nbsp;</td>";
+            }
+            if ($data['changetemplates_id'] == $ID) {
+               echo "<td class='center'>
+                     <img src='".$CFG_GLPI["root_doc"]."/pics/ok.png' alt=\"".__('OK').
+                        "\" width='14' height='14'>
+                     </td>";
+            } else {
+               echo "<td>&nbsp;</td>";
+            }
+            if ($data['problemtemplates_id'] == $ID) {
+               echo "<td class='center'>
+                     <img src='".$CFG_GLPI["root_doc"]."/pics/ok.png' alt=\"".__('OK').
+                        "\" width='14' height='14'>
+                     </td>";
+            } else {
+               echo "<td>&nbsp;</td>";
+            }
          }
 
-         echo "</table></div>";
+      } else {
+         echo "<tr><th colspan='5'>".__('No item found')."</th></tr>";
       }
+
+      echo "</table></div>";
    }
 
 }

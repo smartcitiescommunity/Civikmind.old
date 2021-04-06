@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,9 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
- * @since version 9.1
-* @brief
-*/
+/**
+ * @since 9.1
+ */
 
 include ('../inc/includes.php');
 header("Content-Type: application/json; charset=UTF-8");
@@ -51,7 +50,7 @@ $revision = new KnowbaseItem_Revision();
 $revision->getFromDB($revid);
 $rev = [
    'name'   => $revision->fields['name'],
-   'answer' => Toolbox::unclean_html_cross_side_scripting_deep($revision->fields['answer'])
+   'answer' => html_entity_decode($revision->fields['answer'])
 ];
 
 echo json_encode($rev);

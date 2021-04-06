@@ -15,6 +15,7 @@ $result_e = $DB->query($sql_e);
 $sel_ent = $DB->result($result_e,0,'value');
 
 if($sel_ent == '' || $sel_ent == -1) {
+	
 	//get user entities
 	$entities = $_SESSION['glpiactiveentities'];
 	$ent = implode(",",$entities);
@@ -26,13 +27,14 @@ else {
 }
 
 
-$slaid = "slas_ttr_id";		
+$slaid = "slas_id_ttr";		
 
 $query3 = "
-SELECT count( glpi_tickets.id ) AS conta, glpi_tickets.".$slaid." AS id, glpi_slms.name
-FROM glpi_tickets, glpi_slms
-WHERE glpi_tickets.".$slaid." = glpi_slms.id
+SELECT count( glpi_tickets.id ) AS conta, glpi_tickets.".$slaid." AS id, glpi_slas.name
+FROM glpi_tickets, glpi_slas
+WHERE glpi_tickets.".$slaid." = glpi_slas.id
 AND glpi_tickets.is_deleted = 0
+AND glpi_olas.type = 0
 AND glpi_tickets.date ".$datas."
 ".$entidade."
 GROUP BY ".$slaid."
@@ -41,11 +43,10 @@ ORDER BY conta DESC ";
 $result3 = $DB->query($query3) or die('erro');
 
 $arr_grf3 = array();
-while ($row_result = $DB->fetch_assoc($result3))		
-	{ 
+while ($row_result = $DB->fetch_assoc($result3)) { 
 	$v_row_result = $row_result['name'];
 	$arr_grf3[$v_row_result] = $row_result['conta'];			
-	} 
+} 
 	
 $grf3 = array_keys($arr_grf3) ;
 $quant3 = array_values($arr_grf3) ;
@@ -102,11 +103,12 @@ if($soma3 != 0) {
                 }
             },
             series: [{
+					 colorByPoint: true,
                 name: '".__('Tickets','dashboard')."',
                 data: [$quant_2],
                 dataLabels: {
                     enabled: true,                    
-                    ///color: '#000099',
+                    //color: '#000099',
                     style: {
                        // fontSize: '13px',
                        // fontFamily: 'Verdana, sans-serif'

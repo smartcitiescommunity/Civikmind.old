@@ -21,7 +21,7 @@ else {
 }
 
 if(!isset($_POST["sel_sla"])) {
-	$id_sla = $_GET["sla"];
+	$id_sla = $_GET["sel_sla"];
 }
 
 else {
@@ -42,24 +42,19 @@ if($sel_ent == '' || $sel_ent == -1) {
 	$ent = implode(",",$entities);
 
 	$entidade = "AND glpi_tickets.entities_id IN (".$ent.") ";
-	$entidade_s = "WHERE entities_id IN (".$ent.") ";
+	$entidade_s = "WHERE entities_id IN (".$ent.")";
+//	$entidade_s = "WHERE entities_id IN (".$ent.") or entities_id IN (select entities_id from glpi_entities where id IN (".$ent.")) ";
 	$entidade_sw = "WHERE entities_id IN (".$ent.") OR is_recursive = 1 ";
-	$entidade1 = "";
 }
+
 else {
 	$entidade = "AND glpi_tickets.entities_id IN (".$sel_ent.") ";
 	$entidade_s = "WHERE entities_id IN (".$sel_ent.") ";
+//	$entidade_s = "WHERE entities_id IN (".$sel_ent.") or entities_id IN (select entities_id from glpi_entities where id IN (".$sel_ent.")) ";
 	$entidade_sw = "WHERE entities_id IN (".$sel_ent.") OR is_recursive = 1 ";
 }
 
-// distinguish between 0.90.x and 9.1 version
-if (GLPI_VERSION >= 9.1){
-	$slaid = "AND glpi_tickets.slas_ttr_id = ".$id_sla."";	
-}
-
-else {
-	$slaid = "AND glpi_tickets.slas_id = ".$id_sla."";
-}	
+$slaid = "AND glpi_tickets.slas_id_ttr = ".$id_sla."";	
 
 ?>
 
@@ -130,7 +125,7 @@ else {
 					<?php echo __('Tickets', 'dashboard') .'  '. __('by SLA', 'dashboard') ?> - <?php echo __('Time to resolve'); ?> 
 				</div>
 				
-			<div id="datas-tec" class="col-md-12 fluid" >
+			<div id="datas-tec" class="col-md-12 col-sm-12 fluid" >
 			<form id="form1" name="form1" class="form_rel" method="post" action="rel_sltsr.php?con=1">
 				<table border="0" cellspacing="0" cellpadding="3" bgcolor="#efefef" >
 					<tr>
@@ -174,11 +169,12 @@ else {
 						// SLA list
 						$sql_loc = "
 						SELECT id, name AS name
-						FROM glpi_slms
+						FROM glpi_slas
 						".$entidade_s."
+						AND type = 0
 						ORDER BY name ASC ";
 			
-						$result_loc = $DB->query($sql_loc);
+						$result_loc = $DB->query($sql_loc);							
 			
 						$arr_sla = array();
 						$arr_sla[0] = "-- ". __('Select a SLA', 'dashboard') . " --" ;
@@ -213,7 +209,8 @@ else {
 <?php
 
 //slas
-$con = $_GET['con'];
+if(isset($_GET['con'])){$con = $_GET['con'];}
+else {$con = '';}
 
 if($con == "1") {
 
@@ -229,7 +226,7 @@ else {
 }
 
 if(!isset($_POST["sel_sla"])) {
-	$id_sla = $_GET["sla"];
+	$id_sla = $_GET["sel_sla"];
 }
 
 else {
@@ -269,8 +266,8 @@ if(isset($_GET['stat'])) {
 }
 
 else {
-		$status = $status_all;
-	}
+	$status = $status_all;
+}
 
 // Chamados
 $sql_cham =
@@ -349,7 +346,7 @@ $abertos = $data_ab;
 // sla name
 $sql_nm = "
 SELECT id , name AS name
-FROM `glpi_slms`
+FROM `glpi_slas`
 WHERE id = ".$id_sla." ";
 
 $result_nm = $DB->query($sql_nm);
@@ -407,7 +404,7 @@ echo "
 		</td>
 		<td style='vertical-align:middle; width: 190px; '>
 			<div class='progress' style='margin-top: 19px;'>
-				<div class='progress-bar ". $cor ." progress-bar-striped active' role='progressbar' aria-valuenow='".$barra."' aria-valuemin='0' aria-valuemax='100' style='width: ".$barra."%;'>
+				<div class='progress-bar ". $cor ." ' role='progressbar' aria-valuenow='".$barra."' aria-valuemin='0' aria-valuemax='100' style='width: ".$barra."%;'>
 	    			".$barra." % ".__('Closed', 'dashboard') ."
 	    		</div>
 			</div>
@@ -418,9 +415,9 @@ echo "
 <table align='right' style='margin-bottom:10px;'>
 	<tr>
 		<td>
-			<button class='btn btn-primary btn-sm' type='button' name='abertos' value='Abertos' onclick='location.href=\"rel_sltsr.php?con=1&stat=open&sla=".$id_sla."&date1=".$data_ini2."&date2=".$data_fin2."\"' <i class='icon-white icon-trash'></i> ".__('Opened', 'dashboard')." </button>
-			<button class='btn btn-primary btn-sm' type='button' name='fechados' value='Fechados' onclick='location.href=\"rel_sltsr.php?con=1&stat=close&sla=".$id_sla."&date1=".$data_ini2."&date2=".$data_fin2."\"' <i class='icon-white icon-trash'></i> ".__('Closed', 'dashboard')." </button>
-			<button class='btn btn-primary btn-sm' type='button' name='todos' value='Todos' onclick='location.href=\"rel_sltsr.php?con=1&stat=all&sla=".$id_sla."&date1=".$data_ini2."&date2=".$data_fin2."\"' <i class='icon-white icon-trash'></i> ".__('All', 'dashboard')." </button>
+			<button class='btn btn-primary btn-sm' type='button' name='abertos' value='Abertos' onclick='location.href=\"rel_sltsr.php?con=1&stat=open&sel_sla=".$id_sla."&date1=".$data_ini2."&date2=".$data_fin2."\"' <i class='icon-white icon-trash'></i> ".__('Opened', 'dashboard')." </button>
+			<button class='btn btn-primary btn-sm' type='button' name='fechados' value='Fechados' onclick='location.href=\"rel_sltsr.php?con=1&stat=close&sel_sla=".$id_sla."&date1=".$data_ini2."&date2=".$data_fin2."\"' <i class='icon-white icon-trash'></i> ".__('Closed', 'dashboard')." </button>
+			<button class='btn btn-primary btn-sm' type='button' name='todos' value='Todos' onclick='location.href=\"rel_sltsr.php?con=1&stat=all&sel_sla=".$id_sla."&date1=".$data_ini2."&date2=".$data_fin2."\"' <i class='icon-white icon-trash'></i> ".__('All', 'dashboard')." </button>
 		</td>
 	</tr>
 	<tr>

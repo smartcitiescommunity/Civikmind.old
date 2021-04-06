@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: computer.class.php 234 2017-10-18 12:40:59Z yllen $
+ * @version $Id: computer.class.php 325 2020-09-03 09:01:30Z yllen $
  -------------------------------------------------------------------------
 
  LICENSE
@@ -22,7 +22,7 @@
 
  @package   behaviors
  @author    Remi Collet, Nelly Mahu-Lasson
- @copyright Copyright (c) 2010-2017 Behaviors plugin team
+ @copyright Copyright (c) 2010-2020 Behaviors plugin team
  @license   AGPL License 3.0 or (at your option) any later version
             http://www.gnu.org/licenses/agpl-3.0-standalone.html
  @link      https://forge.glpi-project.org/projects/behaviors
@@ -34,14 +34,6 @@
 
 class PluginBehaviorsComputer extends PluginBehaviorsCommon {
 
-
-   static function afterAdd(Computer $comp) {
-      // Toolbox::logDebug("PluginBehaviorsComputer::afterAdd(), Computer=", $comp);
-   }
-
-   static function afterUpdate(Computer $comp) {
-      // Toolbox::logDebug("PluginBehaviorsComputer::afterUpdate(), Computer=", $comp);
-   }
 
    static function beforePurge(Computer $comp) {
 

@@ -9,7 +9,7 @@
  -------------------------------------------------------------------------
 
  LICENSE
-      
+
  This file is part of resources.
 
  resources is free software; you can redistribute it and/or modify
@@ -30,22 +30,21 @@
 include ('../../../inc/includes.php');
 
 //central or helpdesk access
-if ($_SESSION['glpiactiveprofile']['interface'] == 'central') {
-   Html::header(PluginResourcesResource::getTypeName(2), '', "admin", "pluginresourcesresource");
+if (Session::getCurrentInterface() == 'central') {
+   Html::header(PluginResourcesMenu::getTypeName(2), '', "admin", "pluginresourcesmenu");
 } else {
-   Html::helpHeader(PluginResourcesResource::getTypeName(2));
+   Html::helpHeader(PluginResourcesMenu::getTypeName(2));
 }
 
 $resource = new PluginResourcesResource();
 if ($resource->canView() || Session::haveRight("config", UPDATE)) {
-   $resource->showMenu();
+   PluginResourcesMenu::showMenu($resource);
 } else {
    Html::displayRightError();
 }
 
-if ($_SESSION['glpiactiveprofile']['interface'] == 'central') {
+if (Session::getCurrentInterface() == 'central') {
    Html::footer();
 } else {
    Html::helpFooter();
 }
-?>

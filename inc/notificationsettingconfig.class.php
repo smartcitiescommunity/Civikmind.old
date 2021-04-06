@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -87,6 +87,7 @@ class NotificationSettingConfig extends CommonDBTM {
       $modes = Notification_NotificationTemplate::getModes();
 
       $out = '';
+      $modes_settings = [];
       if (Session::haveRight("config", UPDATE)) {
          $out .= "<div class='center notifs_setup'>";
          $out .= "<form method='POST' action='{$CFG_GLPI['root_doc']}/front/setup.notification.php'>";
@@ -106,7 +107,7 @@ class NotificationSettingConfig extends CommonDBTM {
          foreach (array_keys($modes) as $mode) {
             $settings_class = Notification_NotificationTemplate::getModeClass($mode, 'setting');
             $settings = new $settings_class();
-            $classes[$mode] = $settings;
+            $modes_settings[$mode] = $settings;
 
             $out .= "<tr>";
             $out .= "<td>" . $settings->getEnableLabel() . "</td>";
@@ -124,7 +125,7 @@ class NotificationSettingConfig extends CommonDBTM {
             $('[name=use_notifications]').on('change', function() {
                var _val = $(this).find('option:selected').val();
                if (_val == '1') {
-                  $('select[name!=use_notifications]').select2('enable', true);
+                  $('select[name!=use_notifications]').prop('disabled', false);
                } else {
                   $('select[name!=use_notifications]').select2('enable', false);
                }
@@ -145,17 +146,17 @@ class NotificationSettingConfig extends CommonDBTM {
 
       if ($notifs_on) {
          $out .= "<table class='tab_cadre'>";
-         $out .= "<tr><th>" . _n('Notification', 'Notifications', 2)."</th></tr>";
+         $out .= "<tr><th>" . _n('Notification', 'Notifications', Session::getPluralNumber())."</th></tr>";
 
          /* Glocal parameters */
          if (Session::haveRight("config", READ)) {
             $out .= "<tr class='tab_bg_1'><td class='center'><a href='notificationtemplate.php'>" .
-                  _n('Notification template', 'Notification templates', 2) ."</a></td> </tr>";
+                  _n('Notification template', 'Notification templates', Session::getPluralNumber()) ."</a></td> </tr>";
          }
 
          if (Session::haveRight("notification", READ) && $notifs_on) {
             $out .= "<tr class='tab_bg_1'><td class='center'>".
-                  "<a href='notification.php'>". _n('Notification', 'Notifications', 2)."</a></td></tr>";
+                  "<a href='notification.php'>". _n('Notification', 'Notifications', Session::getPluralNumber())."</a></td></tr>";
          } else {
             $out .= "<tr class='tab_bg_1'><td class='center'>" .
                __('Unable to configure notifications: please configure at least one followup type using the above configuration.') .
@@ -165,7 +166,7 @@ class NotificationSettingConfig extends CommonDBTM {
          /* Per notification parameters */
          foreach (array_keys($modes) as $mode) {
             if (Session::haveRight("config", UPDATE) && $CFG_GLPI['notifications_' . $mode]) {
-               $settings = $classes[$mode];
+               $settings = $modes_settings[$mode];
                $out .= "<tr class='tab_bg_1'><td class='center'>".
                   "<a href='" . $settings->getFormURL() ."'>". $settings->getTypeName() .
                   "</a></td></tr>";

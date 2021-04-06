@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 include ('../inc/includes.php');
 
 if (!basename($_SERVER['SCRIPT_NAME']) == "helpdesk.faq.php") {
@@ -42,7 +38,7 @@ if (!basename($_SERVER['SCRIPT_NAME']) == "helpdesk.faq.php") {
 
 // Manage tabs
 if (isset($_GET['tab']) && isset($_GET['itemtype'])) {
-   if ($item = getItemForItemtype($_GET['itemtype'])) {
+   if ($item = getItemForItemtype($_UGET['itemtype'])) {
       if (isset($_GET['id']) && !$item->isNewID($_GET['id'])) {
          $item->getFromDB($_GET['id']);
       }
@@ -55,14 +51,14 @@ if (isset($_GET['tab']) && isset($_GET['itemtype'])) {
       $tabs[-1]     = 'All';
       $selected_tab = '';
       $current      = 0;
-      foreach ($tabs as $key => $val) {
+      foreach (array_keys($tabs) as $key) {
          if ($current == $_GET['tab']) {
             $selected_tab = $key;
          }
          $current++;
       }
       if (!empty($selected_tab)) {
-         Session::setActiveTab($_GET['itemtype'], $selected_tab);
+         Session::setActiveTab($_UGET['itemtype'], $selected_tab);
       }
 
    }

@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (strpos($_SERVER['PHP_SELF'], "dropdownRubDocument.php")) {
    $AJAX_INCLUDE = 1;
    include ('../inc/includes.php');
@@ -49,19 +45,16 @@ if (isset($_POST["rubdoc"])) {
 
    // Clean used array
    if (isset($_POST['used']) && is_array($_POST['used']) && (count($_POST['used']) > 0)) {
-      $used_qry = '';
-      foreach ($_POST['used'] as $current_used) {
-         if ($used_qry !== '') {
-            $used_qry .= ', ';
-         }
-         $used_qry .= intval($current_used);
-      }
-      $query = "SELECT `id`
-                FROM `glpi_documents`
-                WHERE `id` IN (".$used_qry.")
-                      AND `documentcategories_id` = '".intval($_POST["rubdoc"])."'";
+      $iterator = $DB->request([
+         'SELECT' => ['id'],
+         'FROM'   => 'glpi_documents',
+         'WHERE'  => [
+            'id'                    => $_POST['used'],
+            'documentcategories_id' => (int)$_POST['rubdoc']
+         ]
+      ]);
 
-      foreach ($DB->request($query) AS $data) {
+      while ($data = $iterator->next()) {
          $used[$data['id']] = $data['id'];
       }
    }
@@ -74,12 +67,14 @@ if (isset($_POST["rubdoc"])) {
       $_POST['entity'] = $_SESSION['glpiactive_entity'];
    }
 
-   Dropdown::show('Document',
-                  ['name'      => $_POST['myname'],
-                        'used'      => $used,
-                        'width'     => '50%',
-                        'entity'    => intval($_POST['entity']),
-                        'rand'      => intval($_POST['rand']),
-                        'condition' => "glpi_documents.documentcategories_id='".intval($_POST["rubdoc"])."'"]);
-
+   Dropdown::show(
+      'Document', [
+         'name'      => $_POST['myname'],
+         'used'      => $used,
+         'width'     => '50%',
+         'entity'    => intval($_POST['entity']),
+         'rand'      => intval($_POST['rand']),
+         'condition' => ['glpi_documents.documentcategories_id' => (int)$_POST["rubdoc"]]
+      ]
+   );
 }

@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,17 +30,13 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
 
 
 /**
- * @since version 0.84
+ * @since 0.84
  *
  * The base entity for the table. The entity is the base of kind of cell (header or not). It
  * provides facilities to manage the cells such as attributs or specific content (mixing of strings
@@ -58,11 +54,12 @@ abstract class HTMLTableEntity {
    /**
     * Constructor of an entity
     *
-    * @param $content The content of a cell, header, ... Can simply be a string. But it can also
-    *                 be a call to a specific function during the rendering of the table in case
-    *                 of direct display function (for instance: Dropdown::showNumber). A function
-    *                 call is an array containing two elements : 'function', the name the function
-    *                 and 'parameters', an array of the parameters given to the function.
+    * @param string $content
+    *    The content of a cell, header, ... Can simply be a string. But it can also
+    *    be a call to a specific function during the rendering of the table in case
+    *    of direct display function (for instance: Dropdown::showNumber). A function
+    *    call is an array containing two elements : 'function', the name the function
+    *    and 'parameters', an array of the parameters given to the function.
    **/
    function __construct($content) {
       $this->content = $content;
@@ -163,12 +160,7 @@ abstract class HTMLTableEntity {
 
    function displayContent() {
 
-      if (is_string($this->content)) {
-         // Manage __RAND__ to be computed on display
-         $content = $this->content;
-         $content = str_replace('__RAND__', mt_rand(), $content);
-         echo $content;
-      } else if (is_array($this->content)) {
+      if (is_array($this->content)) {
          foreach ($this->content as $content) {
             if (is_string($content)) {
                // Manage __RAND__ to be computed on display
@@ -183,6 +175,11 @@ abstract class HTMLTableEntity {
                call_user_func_array ($content['function'], $parameters);
             }
          }
+      } else {
+          // Manage __RAND__ to be computed on display
+          $content = $this->content;
+          $content = str_replace('__RAND__', mt_rand(), $content);
+          echo $content;
       }
    }
 }

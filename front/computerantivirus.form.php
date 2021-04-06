@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 use Glpi\Event;
 
 include ('../inc/includes.php');
@@ -51,7 +47,7 @@ $antivirus = new ComputerAntivirus();
 if (isset($_POST["add"])) {
    $antivirus->check(-1, CREATE, $_POST);
 
-   if ($newID = $antivirus->add($_POST)) {
+   if ($antivirus->add($_POST)) {
       Event::log($_POST['computers_id'], "computers", 4, "inventory",
                  //TRANS: %s is the user login
                  sprintf(__('%s adds an antivirus'), $_SESSION["glpiname"]));

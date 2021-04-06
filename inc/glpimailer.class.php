@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,9 +30,8 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\SMTP;
 
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
@@ -41,7 +40,7 @@ if (!defined('GLPI_ROOT')) {
 
 /** GLPIPhpMailer class
  *
- * @since version 0.85
+ * @since 0.85
 **/
 class GLPIMailer extends PHPMailer {
 
@@ -66,15 +65,16 @@ class GLPIMailer extends PHPMailer {
          if ($CFG_GLPI['smtp_username'] != '') {
             $this->SMTPAuth = true;
             $this->Username = $CFG_GLPI['smtp_username'];
-            $this->Password = Toolbox::decrypt($CFG_GLPI['smtp_passwd'], GLPIKEY);
+            $this->Password = Toolbox::sodiumDecrypt($CFG_GLPI['smtp_passwd']);
          }
 
          if ($CFG_GLPI['smtp_mode'] == MAIL_SMTPSSL) {
             $this->SMTPSecure = "ssl";
-         }
-
-         if ($CFG_GLPI['smtp_mode'] == MAIL_SMTPTLS) {
+         } else if ($CFG_GLPI['smtp_mode'] == MAIL_SMTPTLS) {
             $this->SMTPSecure = "tls";
+         } else {
+            // Don't automatically enable encryption if the GLPI config doesn't specify it
+            $this->SMTPAutoTLS = false;
          }
 
          if (!$CFG_GLPI['smtp_check_certificate']) {
@@ -98,4 +98,22 @@ class GLPIMailer extends PHPMailer {
       }
    }
 
+   public static function validateAddress($address, $patternselect = "pcre8") {
+      $isValid = parent::validateAddress($address, $patternselect);
+      if (!$isValid && Toolbox::endsWith($address, '@localhost')) {
+         //since phpmailer6, @localhost address are no longer valid...
+         $isValid = parent::ValidateAddress($address . '.me');
+      }
+      return $isValid;
+   }
+
+   public function setLanguage($langcode = 'en', $lang_path = '') {
+      if ($lang_path == '') {
+         $local_path = dirname(Config::getLibraryDir('PHPMailer\PHPMailer\PHPMailer'))  . '/language/';
+         if (is_dir($local_path)) {
+            $lang_path = $local_path;
+         }
+      }
+      parent::setLanguage($langcode, $lang_path);
+   }
 }

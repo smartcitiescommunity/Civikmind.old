@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -29,11 +29,6 @@
  * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
  */
-
-/** @file
-* @brief
-*/
-
 
 include ('../inc/includes.php');
 
@@ -87,49 +82,77 @@ $valeurgraphtot      = [];
 
 /** Display an infocom report
  *
- * @param $itemtype  item type
- * @param $begin     begin date
- * @param $end       end date
+ * @param string $itemtype  item type
+ * @param string $begin     begin date
+ * @param string $end       end date
 **/
 function display_infocoms_report($itemtype, $begin, $end) {
    global $DB, $valeurtot, $valeurnettetot, $valeurnettegraphtot, $valeurgraphtot, $CFG_GLPI, $stat, $chart_opts;
 
    $itemtable = getTableForItemType($itemtype);
-   $query = "SELECT `glpi_infocoms`.*,
-                    `$itemtable`.`name` AS name,
-                    `$itemtable`.`ticket_tco`,
-                    `glpi_entities`.`completename` AS entname,
-                    `glpi_entities`.`id` AS entID
-             FROM `glpi_infocoms`
-             INNER JOIN `$itemtable` ON (`$itemtable`.`id` = `glpi_infocoms`.`items_id`
-                                         AND `glpi_infocoms`.`itemtype` = '$itemtype')
-             LEFT JOIN `glpi_entities` ON (`$itemtable`.`entities_id` = `glpi_entities`.`id`)
-             WHERE `$itemtable`.`is_template` = '0' ".
-                   getEntitiesRestrictRequest("AND", $itemtable);
+   $criteria = [
+      'SELECT'       => [
+         'glpi_infocoms.*',
+         "$itemtable.name AS name",
+         "$itemtable.ticket_tco",
+         'glpi_entities.completename AS entname',
+         'glpi_entities.id AS entID'
+
+      ],
+      'FROM'         => 'glpi_infocoms',
+      'INNER JOIN'   => [
+         $itemtable  => [
+            'ON'  => [
+               'glpi_infocoms'   => 'items_id',
+               $itemtable        => 'id', [
+                  'AND' => [
+                     'glpi_infocoms.itemtype'   => $itemtype
+                  ]
+               ]
+            ]
+         ]
+      ],
+      'LEFT JOIN'    => [
+         'glpi_entities'   => [
+            'ON'  => [
+               'glpi_entities'   => 'id',
+               $itemtable        => 'entities_id'
+            ]
+         ]
+      ],
+      'WHERE'        => ["$itemtable.is_template" => 0] + getEntitiesRestrictCriteria($itemtable),
+      'ORDERBY'      => ['entname ASC', 'buy_date', 'use_date']
+   ];
 
    if (!empty($begin)) {
-      $query .= " AND (`glpi_infocoms`.`buy_date` >= '$begin'
-                       OR `glpi_infocoms`.`use_date` >= '$begin') ";
+      $criteria['WHERE'][] = [
+         'OR'  => [
+            'glpi_infocoms.buy_date'   => ['>=', $begin],
+            'glpi_infocoms.use_date'   => ['>=', $begin]
+         ]
+      ];
    }
 
    if (!empty($end)) {
-      $query .= " AND (`glpi_infocoms`.`buy_date` <= '$end'
-                       OR `glpi_infocoms`.`use_date` <= '$end') ";
+      $criteria['WHERE'][] = [
+         'OR'  => [
+            'glpi_infocoms.buy_date'   => ['<=', $end],
+            'glpi_infocoms.use_date'   => ['<=', $end]
+         ]
+      ];
    }
 
-   $query .= " ORDER BY entname ASC, `buy_date`, `use_date`";
-
    $display_entity = Session::isMultiEntitiesMode();
+   $iterator = $DB->request($criteria);
 
-   $result = $DB->query($query);
-   if (($DB->numrows($result) > 0)
+   if (count($iterator)
        && ($item = getItemForItemtype($itemtype))) {
 
       echo "<h2>".$item->getTypeName(1)."</h2>";
 
       echo "<table class='tab_cadre'><tr><th>".__('Name')."</th>";
       if ($display_entity) {
-         echo "<th>".__('Entity')."</th>";
+         echo "<th>".Entity::getTypeName(1)."</th>";
       }
 
       echo "<th>"._x('price', 'Value')."</th><th>".__('ANV')."</th>";
@@ -141,7 +164,7 @@ function display_infocoms_report($itemtype, $begin, $end) {
       $valeurnettegraph   = [];
       $valeurgraph        = [];
 
-      while ($line=$DB->fetch_assoc($result)) {
+      while ($line = $iterator->next()) {
          if (isset($line["is_global"]) && $line["is_global"]
              && $item->getFromDB($line["items_id"])) {
             $line["value"] *= Computer_Item::countForItem($item);

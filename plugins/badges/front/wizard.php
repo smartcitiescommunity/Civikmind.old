@@ -9,7 +9,7 @@
  -------------------------------------------------------------------------
 
  LICENSE
-      
+
  This file is part of badges.
 
  badges is free software; you can redistribute it and/or modify
@@ -27,20 +27,19 @@
  --------------------------------------------------------------------------
  */
 
-include ('../../../inc/includes.php');
+include('../../../inc/includes.php');
 
-if ($_SESSION['glpiactiveprofile']['interface'] == 'central') {
-   Html::header(PluginBadgesWizard::getTypeName(2), '', "assets","pluginbadgesmenu");
+if (Session::getCurrentInterface() == 'central') {
+   Html::header(PluginBadgesWizard::getTypeName(2), '', "assets", "pluginbadgesmenu");
 } else {
-   Html::helpHeader(PluginBadgesWizard::getTypeName(2), '', "assets","pluginbadgesmenu");
+   Html::helpHeader(PluginBadgesWizard::getTypeName(2));
 }
 
 $wizard = new PluginBadgesWizard();
 $wizard->showMenu();
 
-if ($_SESSION['glpiactiveprofile']['interface'] == 'central') {
+if (Session::getCurrentInterface() == 'central') {
    Html::footer();
 } else {
    Html::helpFooter();
 }
-?>

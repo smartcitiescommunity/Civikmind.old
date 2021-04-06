@@ -9,7 +9,7 @@
  -------------------------------------------------------------------------
 
  LICENSE
-      
+
  This file is part of resources.
 
  resources is free software; you can redistribute it and/or modify
@@ -31,8 +31,16 @@ if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access directly to this file");
 }
 
+/**
+ * Class PluginResourcesTicketCategory
+ */
 class PluginResourcesTicketCategory extends CommonDBTM {
 
+   /**
+    * @param $category
+    *
+    * @return bool
+    */
    function getFromDBbyCategory($category) {
       global $DB;
 
@@ -42,7 +50,7 @@ class PluginResourcesTicketCategory extends CommonDBTM {
          if ($DB->numrows($result) != 1) {
             return false;
          }
-         $this->fields = $DB->fetch_assoc($result);
+         $this->fields = $DB->fetchAssoc($result);
          if (is_array($this->fields) && count($this->fields)) {
             return true;
          } else {
@@ -52,47 +60,47 @@ class PluginResourcesTicketCategory extends CommonDBTM {
       return false;
    }
 
+   /**
+    * @param $category
+    */
    function addTicketCategory($category) {
 
       if ($this->getFromDBbyCategory($category)) {
 
-         $this->update(array(
+         $this->update([
              'id' => $this->fields['id'],
-             'ticketcategories_id' => $category));
+             'ticketcategories_id' => $category]);
       } else {
 
-         $this->add(array(
+         $this->add([
              'id' => 1,
-             'ticketcategories_id' => $category));
+             'ticketcategories_id' => $category]);
       }
    }
 
+   /**
+    * @param $target
+    */
    function showForm($target) {
-      global $CFG_GLPI;
 
-      $categories = getAllDatasFromTable($this->getTable());
+      $dbu = new DbUtils();
+      $categories = $dbu->getAllDataFromTable($this->getTable());
       if (!empty($categories)) {
          echo "<div align='center'>";
-         $rand = mt_rand();
-         echo "<form method='post' name='massiveaction_form_ticket$rand' 
-                                    id='massiveaction_form_ticket$rand' action='".$target."'>";
+         echo "<form method='post' action='".$target."'>";
          echo "<table class='tab_cadre_fixe' cellpadding='5'>";
          echo "<tr>";
-         echo "<th></th><th>".__('Category of created tickets', 'resources')."</th>";
+         echo "<th colspan='2'>".__('Category of created tickets', 'resources')."</th>";
          echo "</tr>";
-         foreach ($categories as $categorie) {
-            $ID = $categorie["id"];
-            echo "<tr class='tab_bg_1'>";
-            echo "<td class='center' width='10'>";
-            echo "<input type='hidden' name='id' value='$ID'>";
-            echo "<input type='checkbox' name='item[$ID]' value='1'>";
-            echo "</td>";
-            echo "<td>".Dropdown::getDropdownName("glpi_itilcategories", $categorie["ticketcategories_id"])."</td>";
-            echo "</tr>";
-         }
-
-         Html::openArrowMassives("massiveaction_form_ticket$rand", true);
-         Html::closeArrowMassives(array('delete_ticket' => __s('Delete permanently')));
+         $categorie = reset($categories);
+         $ID        = $categorie["id"];
+         echo "<tr class='tab_bg_1'>";
+         echo "<td>" . Dropdown::getDropdownName("glpi_itilcategories", $categorie["ticketcategories_id"]) . "</td>";
+         echo "<td class='center'>";
+         echo "<input type='hidden' name='id' value='$ID'>";
+         echo "<input type='submit' class='submit' name='delete_ticket' value='" . __('Delete permanently') . "'>";
+         echo "</td>";
+         echo "</tr>";
 
          echo "</table>";
          Html::closeForm();
@@ -102,7 +110,7 @@ class PluginResourcesTicketCategory extends CommonDBTM {
          echo "<table class='tab_cadre_fixe' cellpadding='5'><tr ><th colspan='2'>";
          echo __('Category of created tickets', 'resources')."</th></tr>";
          echo "<tr class='tab_bg_1'><td>";
-         Dropdown::show('ITILCategory', array('name' => "ticketcategories_id"));
+         Dropdown::show('ITILCategory', ['name' => "ticketcategories_id"]);
          echo "</td>";
          echo "<td>";
          echo "<div align='center'>";
@@ -117,4 +125,3 @@ class PluginResourcesTicketCategory extends CommonDBTM {
 
 }
 
-?>

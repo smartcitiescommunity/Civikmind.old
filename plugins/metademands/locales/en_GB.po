@@ -1,0 +1,538 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Metademands Development Team
+# This file is distributed under the same license as the GLPI - Metademands plugin package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: GLPI - Metademands plugin 2.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-07-20 11:52+0200\n"
+"PO-Revision-Date: 2020-07-20 12:03+0200\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: en_GB\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"X-Generator: Poedit 2.3\n"
+
+#: setup.php:148 inc/metademand.class.php:75 inc/profile.class.php:175
+msgid "Meta-Demand"
+msgid_plural "Meta-Demands"
+msgstr[0] "Meta-Demand"
+msgstr[1] "Meta-Demands"
+
+#: front/wizard.form.php:155
+msgid "Mandatory fields of the metademand ticket must be configured"
+msgstr "Mandatory fields of the metademand ticket must be configured"
+
+#: front/wizard.form.php:193 front/wizard.form.php:195
+#: front/wizard.form.php:208 front/wizard.form.php:210
+#: front/wizard.form.php:264 front/wizard.form.php:266
+#: front/wizard.form.php:279 front/wizard.form.php:281
+#: front/wizard.form.php:297 front/wizard.form.php:300
+msgid "Create a demand"
+msgstr "Create a demand"
+
+#: inc/config.class.php:77
+msgid "Configuration of the meta-demand plugin"
+msgstr "Configuration of the meta-demand plugin"
+
+#: inc/config.class.php:81
+msgid "Enable the update / add of simple ticket to metademand"
+msgstr "Enable the update / add of simple ticket to metademand"
+
+#: inc/config.class.php:88
+msgid "Enable application and environment"
+msgstr "Enable application and environment"
+
+#: inc/config.class.php:97
+msgid "Parent ticket tag"
+msgstr "Parent ticket tag"
+
+#: inc/config.class.php:104
+msgid "Son ticket tag"
+msgstr "Son ticket tag"
+
+#: inc/config.class.php:113
+msgid "Show requester informations"
+msgstr "Show requester informations"
+
+#: inc/config.class.php:120
+msgid "Create PDF"
+msgstr "Create PDF"
+
+#: inc/config.class.php:130
+msgid "Enable family field"
+msgstr "Enable family field"
+
+#: inc/config.class.php:137
+msgid "Childs tickets get parent content"
+msgstr "Childs tickets get parent content"
+
+#: inc/config.class.php:146
+msgid "Enable display metademands via icons"
+msgstr "Enable display metademands via icons"
+
+#: inc/field.class.php:62 inc/ticket_field.class.php:55
+msgid "Wizard creation"
+msgstr "Wizard creation"
+
+#: inc/field.class.php:171
+msgid "Add a field"
+msgstr "Add a field"
+
+#: inc/field.class.php:200 inc/field.class.php:1525 inc/field.class.php:1613
+msgid "Additional label"
+msgstr "Additional label"
+
+#: inc/field.class.php:207
+msgid "Takes the whole row"
+msgstr "Takes the whole row"
+
+#: inc/field.class.php:222 inc/field.class.php:428 inc/field.class.php:1588
+msgid "Block"
+msgstr "Block"
+
+#: inc/field.class.php:260
+msgid "Display field after"
+msgstr "Display field after"
+
+#: inc/field.class.php:276 inc/field.class.php:424 inc/field.class.php:1527
+#: inc/task.class.php:271
+msgid "Object"
+msgstr "Object"
+
+#: inc/field.class.php:414
+msgid "Form fields"
+msgstr "Form fields"
+
+#: inc/field.class.php:426 inc/field.class.php:780 inc/field.class.php:891
+#: inc/field.class.php:963 inc/field.class.php:998
+msgid "Link a task to the field"
+msgstr "Link a task to the field"
+
+#: inc/field.class.php:427 inc/field.class.php:741 inc/field.class.php:774
+#: inc/field.class.php:953 inc/field.class.php:990
+msgid "Value to check"
+msgstr "Value to check"
+
+#: inc/field.class.php:429 inc/field.class.php:1597
+msgid "Order"
+msgstr "Order"
+
+#: inc/field.class.php:480 inc/field.class.php:744 inc/field.class.php:956
+#: inc/field.class.php:992
+msgid "Not null value"
+msgstr "Not null value"
+
+#: inc/field.class.php:570
+msgid "Dropdown"
+msgstr "Dropdown"
+
+#: inc/field.class.php:572
+msgid "Dropdown multiple"
+msgstr "Dropdown multiple"
+
+#: inc/field.class.php:574
+msgid "Text"
+msgstr "Text"
+
+#: inc/field.class.php:576
+msgid "Checkbox"
+msgstr "Checkbox"
+
+#: inc/field.class.php:578
+msgid "Textarea"
+msgstr "Textarea"
+
+#: inc/field.class.php:580
+msgid "Date"
+msgstr "Date"
+
+#: inc/field.class.php:582
+msgid "Date interval"
+msgstr "Date interval"
+
+#: inc/field.class.php:584
+msgid "Yes / No"
+msgstr "Yes / No"
+
+#: inc/field.class.php:588
+msgid "Add a title"
+msgstr "Add a title"
+
+#: inc/field.class.php:590
+msgid "Radio button"
+msgstr "Radio button"
+
+#: inc/field.class.php:592
+msgid "Father's field"
+msgstr "Father's field"
+
+#: inc/field.class.php:596
+msgid "Number"
+msgstr "Number"
+
+#: inc/field.class.php:674
+msgid "Human resource"
+msgid_plural "Human resources"
+msgstr[0] "Human resource"
+msgstr[1] "Human resources"
+
+#: inc/field.class.php:734
+msgid "Options"
+msgstr "Options"
+
+#: inc/field.class.php:750 inc/field.class.php:761 inc/field.class.php:797
+#: inc/field.class.php:819 inc/field.class.php:870 inc/field.class.php:932
+#: inc/field.class.php:1006
+msgid "Display if this selected field is filled"
+msgstr "Display if this selected field is filled"
+
+#: inc/field.class.php:751 inc/field.class.php:762 inc/field.class.php:798
+#: inc/field.class.php:820 inc/field.class.php:871 inc/field.class.php:933
+#: inc/field.class.php:980 inc/field.class.php:1007
+msgid "If the selected field is filled, this field will be displayed"
+msgstr "If the selected field is filled, this field will be displayed"
+
+#: inc/field.class.php:781 inc/field.class.php:892 inc/field.class.php:964
+#: inc/field.class.php:999
+msgid "If the value selected equals the value to check, the task is created"
+msgstr "If the value selected equals the value to check, the task is created"
+
+#: inc/field.class.php:788 inc/field.class.php:899 inc/field.class.php:971
+msgid "Link a field to the field"
+msgstr "Link a field to the field"
+
+#: inc/field.class.php:789 inc/field.class.php:900 inc/field.class.php:972
+msgid ""
+"If the value selected equals the value to check, the field becomes mandatory"
+msgstr ""
+"If the value selected equals the value to check, the field becomes mandatory"
+
+#: inc/field.class.php:807
+msgid "Day greater or equal to now"
+msgstr "Day greater or equal to now"
+
+#: inc/field.class.php:839
+msgid "Minimum"
+msgstr "Minimum"
+
+#: inc/field.class.php:849
+msgid "Maximum"
+msgstr "Maximum"
+
+#: inc/field.class.php:859
+msgid "Step"
+msgstr "Step"
+
+#: inc/field.class.php:979
+msgid "Display if"
+msgstr "Display if"
+
+#: inc/field.class.php:1073
+msgid "Custom values"
+msgstr "Custom values"
+
+#: inc/field.class.php:1098 inc/field.class.php:1127 inc/field.class.php:1164
+#: inc/field.class.php:1190 inc/field.class.php:1206 inc/field.class.php:1306
+msgid "Default value"
+msgid_plural "Default values"
+msgstr[0] "Default value"
+msgstr[1] "Default values"
+
+#: inc/field.class.php:1231
+msgid "Button Type"
+msgstr "Button Type"
+
+#: inc/field.class.php:1238
+msgid "*use field \"Additional label\" for the button title"
+msgstr "*use field \"Additional label\" for the button title"
+
+#: inc/group.class.php:55
+msgid "Groups rights"
+msgstr "Groups rights"
+
+#: inc/group.class.php:158
+msgid "Add a group"
+msgstr "Add a group"
+
+#: inc/group.class.php:201
+msgid "Groups allowed to enter a demand"
+msgstr "Groups allowed to enter a demand"
+
+#: inc/itilapplication.class.php:54 inc/ticket_itilapplication.class.php:46
+msgid "Application"
+msgid_plural "Applications"
+msgstr[0] "Application"
+msgstr[1] "Applications"
+
+#: inc/itilapplication.class.php:137 inc/itilapplication.class.php:260
+msgid "Criticity"
+msgstr "Criticity"
+
+#: inc/itilapplication.class.php:211
+msgid "Critical"
+msgstr "Critical"
+
+#: inc/itilapplication.class.php:212
+msgid "Major"
+msgstr "Major"
+
+#: inc/itilapplication.class.php:213
+msgid "Minor"
+msgstr "Minor"
+
+#: inc/itilenvironment.class.php:48 inc/ticket_itilenvironment.class.php:46
+msgid "Environment"
+msgid_plural "Environments"
+msgstr[0] "Environment"
+msgstr[1] "Environments"
+
+#: inc/itilenvironment.class.php:154 inc/itilenvironment.class.php:188
+msgid "Is out of production"
+msgstr "Is out of production"
+
+#: inc/menu.class.php:67 inc/menu.class.php:68
+msgid "Enter a demand"
+msgstr "Enter a demand"
+
+#: inc/menu.class.php:72
+msgid "No metademands available"
+msgstr "No metademands available"
+
+#: inc/menu.class.php:79 inc/menu.class.php:80 inc/metademand.class.php:2076
+#: inc/metademand.class.php:2100
+msgid "Configure demands"
+msgstr "Configure demands"
+
+#: inc/metademand.class.php:210 inc/metademand.class.php:232
+#: inc/task.class.php:621 inc/tickettask.class.php:573
+msgid "The category is related to a demand. Thank you to select another"
+msgstr "The category is related to a demand. Thank you to select another"
+
+#: inc/metademand.class.php:364
+msgid "Tasks level cannot be changed as unresolved related tickets exist"
+msgstr "Tasks level cannot be changed as unresolved related tickets exist"
+
+#: inc/metademand.class.php:419
+msgid "Example"
+msgstr "Example"
+
+#: inc/metademand.class.php:441
+msgid "field add on demand"
+msgstr "field add on demand"
+
+#: inc/metademand.class.php:443
+msgid "field update on demand"
+msgstr "field update on demand"
+
+#: inc/metademand.class.php:445
+msgid "field delete on demand"
+msgstr "field delete on demand"
+
+#: inc/metademand.class.php:1057
+msgid "Demand add failed"
+msgstr "Demand add failed"
+
+#: inc/metademand.class.php:1060
+#, php-format
+msgid "Demand \"%s\" added with success"
+msgstr "Demand \"%s\" added with success"
+
+#: inc/metademand.class.php:1062
+#, php-format
+msgid "Ticket \"%s\" updated to metademand with success"
+msgstr "Ticket \"%s\" updated to metademand with success"
+
+#: inc/metademand.class.php:1399
+msgid "Child Ticket"
+msgstr "Child Ticket"
+
+#: inc/metademand.class.php:1408
+msgid "Parent tickets"
+msgstr "Parent tickets"
+
+#: inc/metademand.class.php:1541
+msgid "Demand followup"
+msgstr "Demand followup"
+
+#: inc/metademand.class.php:1555
+msgid "Existent tickets"
+msgstr "Existent tickets"
+
+#: inc/metademand.class.php:1562 inc/metademand.class.php:1692
+msgid "Due date"
+msgstr "Due date"
+
+#: inc/metademand.class.php:1685
+msgid "Next tickets"
+msgstr "Next tickets"
+
+#: inc/metademand.class.php:1762
+msgid "Coming"
+msgstr "Coming"
+
+#: inc/metademandpdf.class.php:212
+msgid "Created on"
+msgstr "Created on"
+
+#: inc/metademand_resource.class.php:50
+msgid "Link with a metademand"
+msgid_plural "Link with metademands"
+msgstr[0] "Link with a metademand"
+msgstr[1] "Link with metademands"
+
+#: inc/metademand_resource.class.php:170
+msgid "Meta-demands linked"
+msgstr "Meta-demands linked"
+
+#: inc/metademandtask.class.php:50 inc/task.class.php:55
+#: inc/ticket_metademand.class.php:52 inc/ticket_task.class.php:52
+#: inc/tickettask.class.php:51
+msgid "Task creation"
+msgstr "Task creation"
+
+#: inc/metademandtask.class.php:85
+msgid "This demand is already used in"
+msgstr "This demand is already used in"
+
+#: inc/profile.class.php:45
+msgid "Right management"
+msgid_plural "Rights management"
+msgstr[0] "Right management"
+msgstr[1] "Rights management"
+
+#: inc/profile.class.php:138 inc/profile.class.php:182
+msgid "Right to update the requester of a meta-demand"
+msgstr "Right to update the requester of a meta-demand"
+
+#: inc/servicecatalog.class.php:57
+msgid "Create a"
+msgstr "Create a"
+
+#: inc/servicecatalog.class.php:57
+msgid "advanced request"
+msgstr "advanced request"
+
+#: inc/servicecatalog.class.php:97
+msgid "Select the advanced request"
+msgstr "Select the advanced request"
+
+#: inc/servicecatalog.class.php:219 inc/wizard.class.php:502
+msgid "No advanced request found"
+msgstr "No advanced request found"
+
+#: inc/task.class.php:156
+msgid "Add a task"
+msgstr "Add a task"
+
+#: inc/task.class.php:160
+msgid "Task type"
+msgstr "Task type"
+
+#: inc/task.class.php:186
+msgid "You don't have the ticket creation right"
+msgstr "You don't have the ticket creation right"
+
+#: inc/task.class.php:315
+msgid "Tasks"
+msgstr "Tasks"
+
+#: inc/task.class.php:329
+msgid "Level"
+msgstr "Level"
+
+#: inc/task.class.php:414 inc/task.class.php:419
+msgid "Root"
+msgstr "Root"
+
+#: inc/ticket.class.php:52
+msgid "Linked ticket"
+msgstr "Linked ticket"
+
+#: inc/ticket.class.php:233
+msgid ""
+"The demand cannot be resolved or closed until all child tickets are not "
+"resolved"
+msgstr ""
+"The demand cannot be resolved or closed until all child tickets are not "
+"resolved"
+
+#: inc/ticket.class.php:803 inc/ticket.class.php:843 inc/ticket.class.php:906
+#: inc/wizard.class.php:452
+msgid "Family"
+msgstr "Family"
+
+#: inc/ticketfield.class.php:60
+msgid "Ticket field"
+msgid_plural "Ticket fields"
+msgstr[0] "Ticket field"
+msgstr[1] "Ticket fields"
+
+#: inc/ticketfield.class.php:150 inc/ticketfield.class.php:158
+msgid "Synchronise with ticket template"
+msgstr "Synchronise with ticket template"
+
+#: inc/ticketfield.class.php:307
+msgid "Predefined value in template"
+msgstr "Predefined value in template"
+
+#: inc/tickettask.class.php:156
+msgid "Create after the task"
+msgstr "Create after the task"
+
+#: inc/tickettask.class.php:172
+msgid "Actors"
+msgstr "Actors"
+
+#: inc/wizard.class.php:46
+msgid "Wizard overview"
+msgstr "Wizard overview"
+
+#: inc/wizard.class.php:169
+msgid "Demand choice"
+msgstr "Demand choice"
+
+#: inc/wizard.class.php:211
+msgid "You don't have the right to update tickets"
+msgstr "You don't have the right to update tickets"
+
+#: inc/wizard.class.php:219
+msgid "You don't have the right to create meta-demand"
+msgstr "You don't have the right to create meta-demand"
+
+#: inc/wizard.class.php:230
+msgid "General informations"
+msgstr "General informations"
+
+#: inc/wizard.class.php:323
+msgid "Add documents on the demand"
+msgstr "Add documents on the demand"
+
+#: inc/wizard.class.php:332
+msgid "Added document"
+msgstr "Added document"
+
+#: inc/wizard.class.php:337
+msgctxt "button"
+msgid "Finish"
+msgstr "Finish"
+
+#: inc/wizard.class.php:353
+#, php-format
+msgid "Step %d - Ticket type choice"
+msgstr "Step %d - Ticket type choice"
+
+#: inc/wizard.class.php:1287
+#, php-format
+msgid "Date %s cannot be less than today's date"
+msgstr "Date %s cannot be less than today's date"
+
+#: inc/wizard.class.php:1296
+#, php-format
+msgid "Date %1$s cannot be greater than date %2$s"
+msgstr "Date %1$s cannot be greater than date %2$s"

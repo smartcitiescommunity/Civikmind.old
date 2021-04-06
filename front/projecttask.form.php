@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,9 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-* @since version 0.85
-*/
+/**
+ * @since 0.85
+ */
 
 use Glpi\Event;
 
@@ -54,7 +53,7 @@ $task = new ProjectTask();
 
 if (isset($_POST["add"])) {
    $task->check(-1, CREATE, $_POST);
-   $newID = $task->add($_POST);
+   $task->add($_POST);
 
    Event::log($task->fields['projects_id'], 'project', 4, "maintain",
               //TRANS: %s is the user login
@@ -72,7 +71,7 @@ if (isset($_POST["add"])) {
    Event::log($task->fields['projects_id'], 'project', 4, "maintain",
               //TRANS: %s is the user login
               sprintf(__('%s purges a task'), $_SESSION["glpiname"]));
-   Html::redirect(Project::getFormURL()."?id=".$task->fields['projects_id']);
+   Html::redirect(Project::getFormURLWithID($task->fields['projects_id']));
 
 } else if (isset($_POST["update"])) {
    $task->check($_POST["id"], UPDATE);
@@ -84,8 +83,8 @@ if (isset($_POST["add"])) {
    Html::back();
 
 } else if (isset($_GET['_in_modal'])) {
-   Html::popHeader(Budget::getTypeName(1), $_SERVER['PHP_SELF']);
-   $project->showForm($_GET["id"], ['withtemplate' => $_GET["withtemplate"]]);
+   Html::popHeader(ProjectTask::getTypeName(1), $_SERVER['PHP_SELF']);
+   $task->showForm($_GET["id"], ['withtemplate' => $_GET["withtemplate"]]);
    Html::popFooter();
 
 } else {

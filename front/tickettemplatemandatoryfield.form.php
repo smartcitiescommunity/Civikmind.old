@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,28 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
-use Glpi\Event;
-
-include ('../inc/includes.php');
-
-Session ::checkRight('tickettemplate', UPDATE);
-
-$item = new TicketTemplateMandatoryField();
-
-if (isset($_POST["add"])) {
-   $item->check(-1, UPDATE, $_POST);
-
-   if ($item->add($_POST)) {
-      Event::log($_POST["tickettemplates_id"], "tickettemplate", 4, "maintain",
-                  //TRANS: %s is the user login
-                  sprintf(__('%s adds mandatory field'), $_SESSION["glpiname"]));
-   }
-   Html::back();
-
-}
-
-Html::displayErrorAndDie("lost");
+$itiltype = 'Ticket';
+$fieldtype = 'Mandatory';
+include __DIR__ . '/itiltemplatefield.form.php';

@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 class RuleDictionnaryManufacturer extends RuleDictionnaryDropdown {
 
    /**
@@ -56,7 +52,7 @@ class RuleDictionnaryManufacturer extends RuleDictionnaryDropdown {
       }
 
       $criterias['name']['field'] = 'name';
-      $criterias['name']['name']  = __('Manufacturer');
+      $criterias['name']['name']  = Manufacturer::getTypeName(1);
       $criterias['name']['table'] = 'glpi_manufacturers';
 
       return $criterias;
@@ -69,7 +65,7 @@ class RuleDictionnaryManufacturer extends RuleDictionnaryDropdown {
    function getActions() {
 
       $actions                          = [];
-      $actions['name']['name']          = __('Manufacturer');
+      $actions['name']['name']          = Manufacturer::getTypeName(1);
       $actions['name']['force_actions'] = ['append_regex_result', 'assign','regex_result'];
 
       return $actions;

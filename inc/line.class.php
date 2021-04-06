@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -31,14 +31,14 @@
  */
 
 /**
- * @since version 9.2
+ * @since 9.2
  */
 
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
 
-class Line extends CommonDropdown {
+class Line extends CommonDBTM {
    // From CommonDBTM
    public $dohistory                   = true;
 
@@ -54,20 +54,18 @@ class Line extends CommonDropdown {
    /**
     * @see CommonDBTM::useDeletedToLockIfDynamic()
     *
-    * @since version 0.84
+    * @since 0.84
     **/
    function useDeletedToLockIfDynamic() {
       return false;
    }
 
 
-   /**
-    * @see CommonGLPI::defineTabs()
-    **/
    function defineTabs($options = []) {
 
       $ong = [];
       $this->addDefaultFormTab($ong);
+      $this->addImpactTab($ong, $options);
       $this->addStandardTab('Infocom', $ong, $options);
       $this->addStandardTab('Contract_Item', $ong, $options);
       $this->addStandardTab('Document_Item', $ong, $options);
@@ -85,7 +83,7 @@ class Line extends CommonDropdown {
     *     - target for the Form
     *     - withtemplate : template or basic item
     *
-    * @return Nothing (display)
+    * @return void
     **/
    function showForm($ID, $options = []) {
 
@@ -107,17 +105,17 @@ class Line extends CommonDropdown {
       echo "<td>";
       State::dropdown(['value'     => $this->fields["states_id"],
             'entity'    => $this->fields["entities_id"],
-            'condition' => "`is_visible_line`"]);
+            'condition' => ['is_visible_line' => 1]]);
       echo "</td></tr>";
 
       echo "<tr class='tab_bg_1'>";
-      echo "<td>".__('Location')."</td>";
+      echo "<td>".Location::getTypeName(1)."</td>";
       echo "<td>";
       Location::dropdown(['value'  => $this->fields["locations_id"],
             'entity' => $this->fields["entities_id"]]);
       echo "</td>";
 
-      echo "<td>".__('Line type')."</td>";
+      echo "<td>".LineType::getTypeName(1)."</td>";
       echo "<td>";
       LineType::dropdown(['value'  => $this->fields["linetypes_id"],
             'entity' => $this->fields["entities_id"]]);
@@ -136,7 +134,7 @@ class Line extends CommonDropdown {
 
       echo "<tr class='tab_bg_1'>";
       $randDropdown = mt_rand();
-      echo "<td><label for='dropdown_users_id$randDropdown'>".__('User')."</label></td>";
+      echo "<td><label for='dropdown_users_id$randDropdown'>".User::getTypeName(1)."</label></td>";
       echo "<td>";
       User::dropdown(['value'  => $this->fields["users_id"],
             'entity' => $this->fields["entities_id"],
@@ -153,7 +151,7 @@ class Line extends CommonDropdown {
 
       echo "<tr class='tab_bg_1'>";
       $randDropdown = mt_rand();
-      echo "<td><label for='dropdown_users_id$randDropdown'>".__('Group')."</label></td>";
+      echo "<td><label for='dropdown_users_id$randDropdown'>".Group::getTypeName(1)."</label></td>";
       echo "<td>";
       Group::dropdown(['value'  => $this->fields["groups_id"],
             'entity' => $this->fields["entities_id"],
@@ -163,7 +161,7 @@ class Line extends CommonDropdown {
 
       echo "<tr class='tab_bg_1'>";
       $randDropdown = mt_rand();
-      echo "<td><label for='dropdown_users_id$randDropdown'>".__('Line operator')."</label></td>";
+      echo "<td><label for='dropdown_users_id$randDropdown'>".LineOperator::getTypeName(1)."</label></td>";
       echo "<td>";
       LineOperator::dropdown(['value'  => $this->fields["lineoperators_id"],
             'entity' => $this->fields["entities_id"],
@@ -176,10 +174,44 @@ class Line extends CommonDropdown {
    }
 
 
-   function getSearchOptionsNew() {
-      $tab = parent::getSearchOptionsNew();
+   function rawSearchOptions() {
+      $tab = parent::rawSearchOptions();
 
-      $tab = array_merge($tab, Location::getSearchOptionsToAddNew());
+      $tab = array_merge($tab, Location::rawSearchOptionsToAdd());
+
+      $tab[] = [
+            'id'                 => '2',
+            'table'              => $this->getTable(),
+            'field'              => 'id',
+            'name'               => __('ID'),
+            'massiveaction'      => false,
+            'datatype'           => 'number'
+      ];
+
+      $tab[] = [
+            'id'                 => '4',
+            'table'              => 'glpi_linetypes',
+            'field'              => 'name',
+            'name'               => LineType::getTypeName(1),
+            'datatype'           => 'dropdown',
+      ];
+
+      $tab[] = [
+            'id'                 => '16',
+            'table'              => $this->getTable(),
+            'field'              => 'comment',
+            'name'               => __('Comments'),
+            'datatype'           => 'text'
+      ];
+
+      $tab[] = [
+            'id'                 => '19',
+            'table'              => $this->getTable(),
+            'field'              => 'date_mod',
+            'name'               => __('Last update'),
+            'datatype'           => 'datetime',
+            'massiveaction'      => false
+      ];
 
       $tab[] = [
             'id'                 => '31',
@@ -187,14 +219,14 @@ class Line extends CommonDropdown {
             'field'              => 'completename',
             'name'               => __('Status'),
             'datatype'           => 'dropdown',
-            'condition'          => '`is_visible_line`'
+            'condition'          => ['is_visible_line' => 1]
       ];
 
       $tab[] = [
             'id'                 => '70',
             'table'              => 'glpi_users',
             'field'              => 'name',
-            'name'               => __('User'),
+            'name'               => User::getTypeName(1),
             'datatype'           => 'dropdown',
             'right'              => 'all'
       ];
@@ -203,16 +235,34 @@ class Line extends CommonDropdown {
             'id'                 => '71',
             'table'              => 'glpi_groups',
             'field'              => 'completename',
-            'name'               => __('Group'),
-            'condition'          => '`is_itemgroup`',
+            'name'               => Group::getTypeName(1),
+            'condition'          => ['is_itemgroup' => 1],
             'datatype'           => 'dropdown'
+      ];
+
+      $tab[] = [
+            'id'                 => '80',
+            'table'              => 'glpi_entities',
+            'field'              => 'completename',
+            'name'               => Entity::getTypeName(1),
+            'massiveaction'      => false,
+            'datatype'           => 'dropdown'
+      ];
+
+      $tab[] = [
+            'id'                 => '121',
+            'table'              => $this->getTable(),
+            'field'              => 'date_creation',
+            'name'               => __('Creation date'),
+            'datatype'           => 'datetime',
+            'massiveaction'      => false
       ];
 
       $tab[] = [
             'id'                 => '184',
             'table'              => 'glpi_lineoperators',
             'field'              => 'name',
-            'name'               => __('Line operator'),
+            'name'               => LineOperator::getTypeName(1),
             'massiveaction'      => true,
             'datatype'           => 'dropdown'
       ];
@@ -222,7 +272,8 @@ class Line extends CommonDropdown {
             'table'              => $this->getTable(),
             'field'              => 'caller_num',
             'name'               => __('Caller number'),
-            'datatype'           => 'string'
+            'datatype'           => 'string',
+            'autocomplete'       => true,
       ];
 
       $tab[] = [
@@ -230,10 +281,15 @@ class Line extends CommonDropdown {
             'table'              => $this->getTable(),
             'field'              => 'caller_name',
             'name'               => __('Caller name'),
-            'datatype'           => 'string'
+            'datatype'           => 'string',
+            'autocomplete'       => true,
       ];
 
       return $tab;
    }
 
+
+   static function getIcon() {
+      return "fas fa-phone";
+   }
 }

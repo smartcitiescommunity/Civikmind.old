@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,16 +30,12 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
 
 /// Class Entity_Reminder
-/// @since version 0.83
+/// @since 0.83
 class Entity_Reminder extends CommonDBRelation {
 
    // From CommonDBRelation
@@ -55,19 +51,22 @@ class Entity_Reminder extends CommonDBRelation {
    /**
     * Get entities for a reminder
     *
-    * @param $reminders_id ID of the reminder
+    * @param Reminder $reminder Reminder instance
     *
     * @return array of entities linked to a reminder
    **/
-   static function getEntities($reminders_id) {
+   static function getEntities($reminder) {
       global $DB;
 
       $ent   = [];
-      $query = "SELECT `glpi_entities_reminders`.*
-                FROM `glpi_entities_reminders`
-                WHERE `reminders_id` = '$reminders_id'";
+      $iterator = $DB->request([
+         'FROM'   => self::getTable(),
+         'WHERE'  => [
+            'reminders_id' => $reminder->fields['id']
+         ]
+      ]);
 
-      foreach ($DB->request($query) as $data) {
+      while ($data = $iterator->next()) {
          $ent[$data['entities_id']][] = $data;
       }
       return $ent;

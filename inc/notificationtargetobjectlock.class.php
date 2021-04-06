@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,8 @@
  * ---------------------------------------------------------------------
  */
 
-
-/** @file
- * @brief
- * @since version 9.1
+/**
+ * @since 9.1
  */
 
 if (!defined('GLPI_ROOT')) {
@@ -45,7 +43,7 @@ if (!defined('GLPI_ROOT')) {
  *
  * Notifications for ObjectLock
  *
- * @since version 9.1
+ * @since 9.1
 **/
 class NotificationTargetObjectLock extends NotificationTarget {
 
@@ -141,8 +139,10 @@ class NotificationTargetObjectLock extends NotificationTarget {
       if (isset( $_SESSION['glpiID']) && ($_SESSION['glpiID'] > 0)
           && isset($_SESSION['glpilock_directunlock_notification'])
           && ($_SESSION['glpilock_directunlock_notification'] > 0)
-          && $mails->getFromDBByQuery(" WHERE users_id = ".$_SESSION['glpiID']."
-                                              AND is_default = 1 " )) {
+          && $mails->getFromDBByCrit([
+             'users_id'    => $_SESSION['glpiID'],
+             'is_default'  => 1
+          ])) {
 
             $ret = ['email' => $mails->fields['email'],
                     'name'  => formatUserName(0, $_SESSION["glpiname"], $_SESSION["glpirealname"],
@@ -159,5 +159,4 @@ class NotificationTargetObjectLock extends NotificationTarget {
 
       return $this->getSender();
    }
-
 }

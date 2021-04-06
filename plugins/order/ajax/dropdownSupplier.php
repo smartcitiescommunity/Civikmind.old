@@ -47,9 +47,9 @@ if (isset($_POST["suppliers_id"])) {
    $result = $DB->query($query);
    $number = $DB->numrows($result);
 
-   $values = array(0 => Dropdown::EMPTY_VALUE);
+   $values = [0 => Dropdown::EMPTY_VALUE];
    if ($number) {
-      while ($data = $DB->fetch_assoc($result)) {
+      while ($data = $DB->fetchAssoc($result)) {
          $values[$data['id']] = formatUserName('', '', $data['name'], $data['firstname']);
       }
    }

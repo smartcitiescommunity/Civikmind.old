@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,9 +30,10 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
+/**
+ * Following variables have to be defined before inclusion of this file:
+ * @var RuleCollection $rulecollection
+ */
 
 use Glpi\Event;
 
@@ -46,7 +47,6 @@ $rulecollection->checkGlobal(READ);
 if (!isset($_GET["id"])) {
    $_GET["id"] = "";
 }
-$rulecriteria = new RuleCriteria(get_class($rule));
 $ruleaction   = new RuleAction(get_class($rule));
 
 if (isset($_POST["add_action"])) {
@@ -86,5 +86,8 @@ if (isset($_POST["add_action"])) {
 Html::header(Rule::getTypeName(Session::getPluralNumber()), $_SERVER['PHP_SELF'], 'admin',
              $rulecollection->menu_type, $rulecollection->menu_option);
 
-$rule->display(['id' => $_GET["id"]]);
+$rule->display([
+   'id'           => $_GET["id"],
+   'formoptions'  => " data-track-changes='true'"
+]);
 Html::footer();

@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -29,10 +29,6 @@
  * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
  */
-
-/** @file
-* @brief
-*/
 
 use Glpi\Event;
 
@@ -103,11 +99,14 @@ if (isset($_POST["add"])) {
    Event::log($_POST["id"], "printers", 4, "inventory",
               //TRANS: %s is the user login
               sprintf(__('%s sets unitary management'), $_SESSION["glpiname"]));
-   Html::redirect($CFG_GLPI["root_doc"]."/front/printer.form.php?id=".$_POST["id"]);
+   Html::redirect($print->getFormURLWithID($_POST["id"]));
 
 } else {
    Html::header(Printer::getTypeName(Session::getPluralNumber()), $_SERVER['PHP_SELF'], "assets", "printer");
-   $print->display(['id'           => $_GET["id"],
-                         'withtemplate' => $_GET["withtemplate"]]);
+   $print->display([
+      'id'           => $_GET["id"],
+      'withtemplate' => $_GET["withtemplate"],
+      'formoptions'  => "data-track-changes=true"
+   ]);
    Html::footer();
 }

@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 $AJAX_INCLUDE = 1;
 
 include ('../inc/includes.php');
@@ -44,13 +40,13 @@ Session::checkLoginUser();
 
 $rand = mt_rand();
 
-Html::initEditorSystem("solution$rand");
+Html::initEditorSystem("content$rand");
 
 if (isset($_POST['value']) && ($_POST['value'] > 0)) {
    $template = new SolutionTemplate();
 
    if ($template->getFromDB($_POST['value'])) {
-      echo "<textarea id='solution$rand' name='solution' rows='12' cols='80'>";
+      echo "<textarea id='content$rand' name='content' rows='12' cols='80'>";
       echo $template->getField('content');
       echo "</textarea>\n";
       echo "<script type='text/javascript'>".
@@ -60,5 +56,5 @@ if (isset($_POST['value']) && ($_POST['value'] > 0)) {
    }
 
 } else {
-      echo "<textarea id='solution$rand' name='solution' rows='12' cols='80'></textarea>";
+      echo "<textarea id='content$rand' name='content' rows='12' cols='80'></textarea>";
 }

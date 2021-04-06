@@ -5,14 +5,14 @@
 # Translators:
 # Alexey Petukhov <lexx015@gmail.com>, 2015
 # Mr.GreyWolf, 2017
-# Nikolay <techobsl@yandex.ru>, 2017
+# Nikolai Petrov <techobsl@yandex.ru>, 2017
 msgid ""
 msgstr ""
 "Project-Id-Version: GLPI Plugin - Fields\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-12-13 14:22+0100\n"
-"PO-Revision-Date: 2017-03-02 18:51+0000\n"
-"Last-Translator: Nikolay <techobsl@yandex.ru>\n"
+"POT-Creation-Date: 2021-03-09 14:29+0000\n"
+"PO-Revision-Date: 2020-10-27 14:43+0000\n"
+"Last-Translator: Cédric Anne\n"
 "Language-Team: Russian (Russia) (http://www.transifex.com/teclib/glpi-plugin-plugin-fields/language/ru_RU/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -20,153 +20,183 @@ msgstr ""
 "Language: ru_RU\n"
 "Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);\n"
 
-#: front/container.php:4 front/container.form.php:35 inc/menu.class.php:6
-#: setup.php:161
-msgid "Additionnal fields"
-msgstr "Дополнительные поля"
-
 #: hook.php:58
 msgid "MySQL tables installation"
 msgstr "Установка таблиц MySQL "
 
-#: hook.php:103
+#: hook.php:106
 msgid "The plugin can't be uninstalled when the plugin is disabled"
 msgstr "Плагин не может быть удален пока плагин выключен"
 
-#: hook.php:112
+#: hook.php:115
 msgid "MySQL tables uninstallation"
 msgstr "Удаление таблиц MySQL"
 
-#: inc/dropdown.class.php:17
+#: front/container.form.php:35 front/container.php:4 inc/menu.class.php:6
+#: setup.php:187
+msgid "Additionnal fields"
+msgstr "Дополнительные поля"
+
+#: inc/dropdown.class.php:19
 msgid "Updating generated dropdown files"
 msgstr "Обновление автоматически раскрывающегося списка файлов"
 
-#: inc/labeltranslation.class.php:137
+#: inc/labeltranslation.class.php:147
 msgid "Language"
 msgstr "Язык"
 
-#: inc/labeltranslation.class.php:138
+#: inc/labeltranslation.class.php:148
 msgid "Label"
 msgstr "Метка"
 
-#: inc/field.class.php:70
-msgid "Field"
-msgstr "Поле"
-
-#: inc/field.class.php:246
-msgid "Fields"
-msgstr "Поля"
-
-#: inc/field.class.php:296
-msgid "Add a new field"
-msgstr "Добавить новое поле"
-
-#: inc/field.class.php:300
-msgid "No field for this block"
-msgstr "Нет поля для этого блока"
-
-#: inc/field.class.php:312 inc/field.class.php:414
-msgid "Read only"
-msgstr "Только чтение"
-
-#: inc/field.class.php:396
-msgid "Configure"
-msgstr "Настройка"
-
-#: inc/field.class.php:396
-msgid "Configure fields values"
-msgstr "Настрить поля значений"
-
-#: inc/field.class.php:840
-msgid "show"
-msgstr "показать"
-
-#: inc/field.class.php:985
-msgid "Header"
-msgstr "Заголовок"
-
-#: inc/field.class.php:986
-msgid "Text (single line)"
-msgstr "Тест (одна строка)"
-
-#: inc/field.class.php:987
-msgid "Text (multiples lines)"
-msgstr "Текст (многострочный)"
-
-#: inc/field.class.php:988
-msgid "Number"
-msgstr "Номер"
-
-#: inc/field.class.php:989
-msgid "URL"
-msgstr "URL"
-
-#: inc/field.class.php:990
-msgid "Dropdown"
-msgstr "Выпадающий список"
-
-#: inc/field.class.php:991
-msgid "Yes/No"
-msgstr "Да/Нет"
-
-#: inc/field.class.php:992
-msgid "Date"
-msgstr "Дата"
-
-#: inc/field.class.php:993
-msgid "Date & time"
-msgstr "Дата и время"
-
-#: inc/container.class.php:8
+#: inc/container.class.php:16
 msgid "Regenerate container files"
 msgstr "Восстановить файлы контейнера"
 
-#: inc/container.class.php:69
+#: inc/container.class.php:17 inc/container.class.php:589
+msgid "Export to YAML"
+msgstr ""
+
+#: inc/container.class.php:93
+msgid "Fix container names"
+msgstr ""
+
+#: inc/container.class.php:181
 msgid "Updating generated containers files"
 msgstr "Обновление созданных файлов контейнеров"
 
-#: inc/container.class.php:229
+#: inc/container.class.php:377
 msgid "You cannot add block without associated element type"
 msgstr "Вы не можете добавить блок без связанного типа элемента"
 
-#: inc/container.class.php:244
+#: inc/container.class.php:394
 msgid ""
 "You cannot add several blocks with type 'Insertion in the form' on same "
 "object"
 msgstr "Вы не можете добавить несколько блоков с типом 'Вставить в виде'  в один и тот же объект"
 
-#: inc/container.class.php:265
+#: inc/container.class.php:409
+msgid ""
+"You cannot add several blocks with type 'Insertion in the form of a specific"
+" tab' on same object tab"
+msgstr ""
+
+#: inc/container.class.php:425
+msgid ""
+"Container name is too long for database (digits in name are replaced by "
+"characters, try to remove them)"
+msgstr ""
+
+#: inc/container.class.php:439
 msgid "You cannot add several blocs with identical name on same object"
 msgstr "Вы не можете добавить несколько блоков с одинаковыми именами на один и тот же объект"
 
-#: inc/container.class.php:410
+#: inc/container.class.php:582
 msgid "Block"
 msgstr "Блок"
 
-#: inc/container.class.php:482
+#: inc/container.class.php:661
 msgid "Tab"
 msgstr "Вкладка"
 
-#: inc/container.class.php:621
+#: inc/container.class.php:876
 msgid "Add tab"
 msgstr "Добавить вкладку"
 
-#: inc/container.class.php:622
+#: inc/container.class.php:877
 msgid "Insertion in the form (before save button)"
 msgstr "Добавить в виде (до кнопки сохранения)"
 
-#: inc/container.class.php:623
+#: inc/container.class.php:878
 msgid "Insertion in the form of a specific tab (before save button)"
 msgstr "Добавить в виде конкретной вкладки (до кнопки сохранения)"
 
-#: inc/container.class.php:956
+#: inc/container.class.php:1240
 msgid "Some mandatory fields are empty"
 msgstr "Некоторые обязательные поля пусты"
 
-#: inc/container.class.php:961
+#: inc/container.class.php:1245
 msgid "Some numeric fields contains non numeric values"
 msgstr "Некоторые числовые поля содержат не только цифры"
 
-#: inc/container.class.php:966
+#: inc/container.class.php:1250
 msgid "Some URL fields contains invalid links"
 msgstr "Некоторый URL полей содержат недействительные ссылки"
+
+#: inc/toolbox.class.php:90
+msgid "Fix fields names"
+msgstr ""
+
+#: inc/field.class.php:79
+msgid "Field"
+msgstr "Поле"
+
+#: inc/field.class.php:90 inc/field.class.php:115
+msgid ""
+"Field name is too long for database (digits in name are replaced by "
+"characters, try to remove them)"
+msgstr ""
+
+#: inc/field.class.php:272
+msgid "Fields"
+msgstr "Поля"
+
+#: inc/field.class.php:326
+msgid "Add a new field"
+msgstr "Добавить новое поле"
+
+#: inc/field.class.php:330
+msgid "No field for this block"
+msgstr "Нет поля для этого блока"
+
+#: inc/field.class.php:342 inc/field.class.php:455
+msgid "Read only"
+msgstr "Только чтение"
+
+#: inc/field.class.php:432
+msgid "Configure"
+msgstr "Настройка"
+
+#: inc/field.class.php:432
+msgid "Configure fields values"
+msgstr "Настрить поля значений"
+
+#: inc/field.class.php:753
+msgid "show"
+msgstr "показать"
+
+#: inc/field.class.php:916
+msgid "Header"
+msgstr "Заголовок"
+
+#: inc/field.class.php:917
+msgid "Text (single line)"
+msgstr "Тест (одна строка)"
+
+#: inc/field.class.php:918
+msgid "Text (multiples lines)"
+msgstr "Текст (многострочный)"
+
+#: inc/field.class.php:919
+msgid "Number"
+msgstr "Номер"
+
+#: inc/field.class.php:920
+msgid "URL"
+msgstr "URL"
+
+#: inc/field.class.php:921
+msgid "Dropdown"
+msgstr "Выпадающий список"
+
+#: inc/field.class.php:922
+msgid "Yes/No"
+msgstr "Да/Нет"
+
+#: inc/field.class.php:923
+msgid "Date"
+msgstr "Дата"
+
+#: inc/field.class.php:924
+msgid "Date & time"
+msgstr "Дата и время"

@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 include ('../inc/includes.php');
 
 if (!$CFG_GLPI["use_anonymous_helpdesk"]) {
@@ -50,12 +46,13 @@ echo "<html lang=\"{$CFG_GLPI["languages"][$_SESSION['glpilanguage']][3]}\">";
     <title>GLPI</title>
 
 <?php
-// Appel CSS
-echo "<link rel='stylesheet' href='".$CFG_GLPI["root_doc"]."/css/styles.css' type='text/css' ".
-      "media='screen' >";
-// Appel javascript
-echo "<script type='text/javascript' src='".$CFG_GLPI["root_doc"]."/script.js'></script>";
-
+echo Html::scss('css/styles');
+if (isset($_SESSION['glpihighcontrast_css']) && $_SESSION['glpihighcontrast_css']) {
+   echo Html::scss('css/highcontrast');
+}
+$theme = isset($_SESSION['glpipalette']) ? $_SESSION['glpipalette'] : 'auror';
+echo Html::scss('css/palettes/' . $theme);
+echo Html::script($CFG_GLPI["root_doc"].'/script.js');
 ?>
 
 </head>
@@ -92,30 +89,35 @@ if (isset($_POST["send"])) {
    echo " <tr class='tab_bg3'>";
    echo " <td class='center b' width='30%'>".__('Alternate username')."</td>";
    echo " <td class='center b' width='20%'>".__('Hardware type')."</td>";
-   echo " <td class='center b' width='30%'>"._n('Associated element', 'Associated elements', 2)."</td>";
+   echo " <td class='center b' width='30%'>"._n('Associated element', 'Associated elements', Session::getPluralNumber())."</td>";
    echo " <td class='center b' width='5%'>".__('ID')."</td>";
    echo " <td class='center b' width='10%'>".__('Serial number')."</td>";
    echo " <td class='center b' width='10%'>".__('Inventory number')."</td>";
    echo " </tr>";
 
-   $types = ['Computer'         => __('Computer'),
-                  'NetworkEquipment' => __('Network device'),
-                  'Printer'          => __('Printer'),
-                  'Monitor'          => __('Monitor'),
-                  'Peripheral'       => __('Device')];
+   $types = ['Computer'         => Computer::getTypeName(1),
+                  'NetworkEquipment' => NetworkEquipment::getTypeName(1),
+                  'Printer'          => Printer::getTypeName(1),
+                  'Monitor'          => Monitor::getTypeName(1),
+                  'Peripheral'       => Peripheral::getTypeName(1)];
    foreach ($types as $type => $label) {
-      $query = "SELECT `name`, `id`, `contact`, `serial`, `otherserial`
-                FROM `".getTableForItemType($type)."`
-                WHERE `is_template` = '0'
-                      AND `is_deleted` = '0'
-                      AND (`contact` LIKE '%".$_POST["NomContact"]."%'
-                           OR `name` LIKE '%".$_POST["NomContact"]."%'
-                           OR `serial` LIKE '%".$_POST["NomContact"]."%'
-                           OR `otherserial` LIKE '%".$_POST["NomContact"]."%')
-                ORDER BY `name`";
-      $result = $DB->query($query);
+      $iterator = $DB->request([
+         'SELECT' => ['name', 'id', 'contact', 'serial', 'otherserial'],
+         'FROM'   => getTableForItemType($type),
+         'WHERE'  => [
+            'is_template'  => 0,
+            'is_deleted'   => 0,
+            'OR'           => [
+               'contact'      => ['LIKE', '%' . $_POST['NomContact'] . '%'],
+               'name'         => ['LIKE', '%' . $_POST['NomContact'] . '%'],
+               'serial'       => ['LIKE', '%' . $_POST['NomContact'] . '%'],
+               'otherserial'  => ['LIKE', '%' . $_POST['NomContact'] . '%'],
+            ]
+         ],
+         'ORDER'           => ['name']
+      ]);
 
-      while ($ligne = $DB->fetch_assoc($result)) {
+      while ($ligne = $iterator->next()) {
          $Comp_num = $ligne['id'];
          $Contact  = $ligne['contact'];
          $Computer = $ligne['name'];
@@ -133,15 +135,18 @@ if (isset($_POST["send"])) {
       }
    }
 
-   $query = "SELECT `name`, `id`
-             FROM `glpi_softwares`
-             WHERE `is_template` = '0'
-                   AND `is_deleted` = '0'
-                   AND (`name` LIKE '%".$_POST["NomContact"]."%' )
-             ORDER BY `name`";
-   $result = $DB->query($query);
+   $iterator = $DB->request([
+      'SELECT' => ['name', 'id'],
+      'FROM'   => 'glpi_softwares',
+      'WHERE'  => [
+         'is_template'  => 0,
+         'is_deleted'   => 0,
+         'name'         => ['LIKE', "%{$_POST['NomContact']}%"]
+      ],
+      'ORDER'  => ['name']
+   ]);
 
-   while ($ligne = $DB->fetch_assoc($result)) {
+   while ($ligne = $iterator->next()) {
       $Comp_num = $ligne['id'];
       $Computer = $ligne['name'];
       echo " <tr class='tab_find' onClick=\"fillidfield('Software',".$Comp_num.")\">";

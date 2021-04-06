@@ -67,13 +67,12 @@ class PluginUninstallPreference extends CommonDBTM {
             echo "<td>";
             $value = (isset($this->fields["locations_id"]) ? $this->fields["locations_id"] : 0);
 
-            Location::dropdown(array('name'      => "id[$pref_ID][locations_id]",
-                                     'value'     => ($value == '' ? 0 : $value),
-                                     'comments'  => 1,
-                                     'entity'    => $entity,
-                                     'toadd'     => array(-1 => __('Keep previous location',
-                                                                   'uninstall'),
-                                                          0  => __('Empty location', 'uninstall'))));
+            Location::dropdown(['name'      => "id[$pref_ID][locations_id]",
+                                'value'     => ($value == '' ? 0 : $value),
+                                'comments'  => 1,
+                                'entity'    => $entity,
+                                'toadd'     => [-1 => __('Keep previous location', 'uninstall'),
+                                                0  => __('Empty location', 'uninstall')]]);
 
             echo "<input type='hidden' name='id[".$pref_ID."][id]' value='" . $pref_ID . "'>";
             echo "</td></tr>";
@@ -124,7 +123,7 @@ class PluginUninstallPreference extends CommonDBTM {
     * @param $models_id
     * @param $except_entity   (default -1)
    **/
-   static function deleteUserPreferenceForModel($models_id, $except_entity=-1) {
+   static function deleteUserPreferenceForModel($models_id, $except_entity = -1) {
       global $DB;
 
       $query = "DELETE FROM `".getTableForItemType(__CLASS__)."`
@@ -142,7 +141,7 @@ class PluginUninstallPreference extends CommonDBTM {
    **/
    static function deleteUserPreferences($users_id) {
       $preference = new self();
-      $preference->deleteByCriteria(array('users_id' => $users_id));
+      $preference->deleteByCriteria(['users_id' => $users_id]);
    }
 
 
@@ -206,19 +205,19 @@ class PluginUninstallPreference extends CommonDBTM {
    }
 
 
-   function getTabNameForItem(CommonGLPI $item, $withtemplate=0) {
+   function getTabNameForItem(CommonGLPI $item, $withtemplate = 0) {
 
-      if ($item->getType() == 'Preference' && Session::haveRight(PluginUninstallProfile::$rightname, READ)) {
+      if ($item->getType() == 'Preference' && Session::haveRight('uninstall:profile', READ)) {
          return PluginUninstallUninstall::getTypeName();
       }
       return '';
    }
 
 
-   static function displayTabContentForItem(CommonGLPI $item, $tabnum=1, $withtemplate=0) {
+   static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0) {
       global $CFG_GLPI;
 
-      if ($item->getType() == 'Preference' && Session::haveRight(PluginUninstallProfile::$rightname, READ)) {
+      if ($item->getType() == 'Preference' && Session::haveRight('uninstall:profile', READ)) {
          $pref = new self();
          $pref->showFormUserPreferences();
       }
@@ -258,7 +257,7 @@ class PluginUninstallPreference extends CommonDBTM {
                      `templates_id` int(11) DEFAULT '0',
                      `locations_id` int(11) DEFAULT '0',
                      PRIMARY KEY (`id`)
-                     ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;";
+                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;";
          $DB->queryOrDie($query, $DB->error());
       }
       return true;

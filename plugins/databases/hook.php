@@ -9,7 +9,7 @@
  -------------------------------------------------------------------------
 
  LICENSE
-      
+
  This file is part of databases.
 
  databases is free software; you can redistribute it and/or modify
@@ -33,50 +33,54 @@
 function plugin_databases_install() {
    global $DB;
 
-   include_once(GLPI_ROOT . "/plugins/databases/inc/profile.class.php");
+   include_once(PLUGIN_DATABASES_DIR . "/inc/profile.class.php");
 
    $update = false;
    if (!$DB->tableExists("glpi_plugin_sgbd") && !$DB->tableExists("glpi_plugin_databases_databases")) {
 
-      $DB->runFile(GLPI_ROOT . "/plugins/databases/sql/empty-1.7.0.sql");
+      $DB->runFile(PLUGIN_DATABASES_DIR . "/sql/empty-2.3.2.sql");
 
    } else if ($DB->tableExists("glpi_plugin_sgbd") && !$DB->tableExists("glpi_plugin_sgbd_instances")) {
 
       $update = true;
-      $DB->runFile(GLPI_ROOT . "/plugins/databases/sql/update-1.1.sql");
-      $DB->runFile(GLPI_ROOT . "/plugins/databases/sql/update-1.2.0.sql");
-      $DB->runFile(GLPI_ROOT . "/plugins/databases/sql/update-1.2.1.sql");
-      $DB->runFile(GLPI_ROOT . "/plugins/databases/sql/update-1.3.0.sql");
+      $DB->runFile(PLUGIN_DATABASES_DIR . "/sql/update-1.1.sql");
+      $DB->runFile(PLUGIN_DATABASES_DIR . "/sql/update-1.2.0.sql");
+      $DB->runFile(PLUGIN_DATABASES_DIR . "/sql/update-1.2.1.sql");
+      $DB->runFile(PLUGIN_DATABASES_DIR . "/sql/update-1.3.0.sql");
 
    } else if ($DB->tableExists("glpi_plugin_sgbd") && !$DB->tableExists("glpi_dropdown_plugin_sgbd_category")) {
 
       $update = true;
-      $DB->runFile(GLPI_ROOT . "/plugins/databases/sql/update-1.2.0.sql");
-      $DB->runFile(GLPI_ROOT . "/plugins/databases/sql/update-1.2.1.sql");
-      $DB->runFile(GLPI_ROOT . "/plugins/databases/sql/update-1.3.0.sql");
+      $DB->runFile(PLUGIN_DATABASES_DIR . "/sql/update-1.2.0.sql");
+      $DB->runFile(PLUGIN_DATABASES_DIR . "/sql/update-1.2.1.sql");
+      $DB->runFile(PLUGIN_DATABASES_DIR . "/sql/update-1.3.0.sql");
 
    } else if ($DB->tableExists("glpi_plugin_sgbd") && !$DB->fieldExists("glpi_plugin_sgbd", "helpdesk_visible")) {
 
       $update = true;
-      $DB->runFile(GLPI_ROOT . "/plugins/databases/sql/update-1.2.1.sql");
-      $DB->runFile(GLPI_ROOT . "/plugins/databases/sql/update-1.3.0.sql");
+      $DB->runFile(PLUGIN_DATABASES_DIR . "/sql/update-1.2.1.sql");
+      $DB->runFile(PLUGIN_DATABASES_DIR . "/sql/update-1.3.0.sql");
 
    } else if (!$DB->tableExists("glpi_plugin_databases_databases")) {
 
       $update = true;
-      $DB->runFile(GLPI_ROOT . "/plugins/databases/sql/update-1.3.0.sql");
+      $DB->runFile(PLUGIN_DATABASES_DIR . "/sql/update-1.3.0.sql");
 
    }
    //from 1.3 version
    if ($DB->tableExists("glpi_plugin_databases_databases")
-       && !$DB->fieldExists("glpi_plugin_databases_databases", "users_id_tech")) {
-      $DB->runFile(GLPI_ROOT . "/plugins/databases/sql/update-1.5.0.sql");
+       && !$DB->fieldExists("glpi_plugin_databases_databases", "users_id_tech")
+       && !$DB->fieldExists("glpi_plugin_databases_databases", "users_id")) {
+      $DB->runFile(PLUGIN_DATABASES_DIR . "/sql/update-1.5.0.sql");
    }
-
+   if ($DB->tableExists("glpi_plugin_databases_databases")
+      && !$DB->fieldExists("glpi_plugin_databases_databases", "users_id")) {
+      $DB->runFile(PLUGIN_DATABASES_DIR . "/sql/update-2.2.2.sql");
+   }
 
    if ($DB->tableExists("glpi_plugin_databases_profiles")) {
 
-      $notepad_tables = array('glpi_plugin_databases_databases');
+      $notepad_tables = ['glpi_plugin_databases_databases'];
 
       foreach ($notepad_tables as $t) {
          // Migrate data
@@ -104,7 +108,7 @@ function plugin_databases_install() {
       $result_ = $DB->query($query_);
       if ($DB->numrows($result_) > 0) {
 
-         while ($data = $DB->fetch_array($result_)) {
+         while ($data = $DB->fetchArray($result_)) {
             $query = "UPDATE `glpi_plugin_databases_profiles`
                   SET `profiles_id` = '" . $data["id"] . "'
                   WHERE `id` = '" . $data["id"] . "';";
@@ -121,7 +125,7 @@ function plugin_databases_install() {
       $result = $DB->query($query);
       $number = $DB->numrows($result);
       if ($number) {
-         while ($data = $DB->fetch_array($result)) {
+         while ($data = $DB->fetchArray($result)) {
             $query = "UPDATE `glpi_plugin_databases_instances`
                   SET `entities_id` = '" . $data["entities_id"] . "'
                   AND `is_recursive` = '" . $data["is_recursive"] . "'
@@ -137,14 +141,14 @@ function plugin_databases_install() {
       }
 
       Plugin::migrateItemType(
-         array(2400 => 'PluginDatabasesDatabase'),
-         array("glpi_savedsearches", "glpi_savedsearches_users", "glpi_displaypreferences",
-               "glpi_documents_items", "glpi_infocoms", "glpi_logs", "glpi_items_tickets"),
-         array("glpi_plugin_databases_databases_items"));
+         [2400 => 'PluginDatabasesDatabase'],
+         ["glpi_savedsearches", "glpi_savedsearches_users", "glpi_displaypreferences",
+          "glpi_documents_items", "glpi_infocoms", "glpi_logs", "glpi_items_tickets"],
+         ["glpi_plugin_databases_databases_items"]);
 
       Plugin::migrateItemType(
-         array(1200 => "PluginAppliancesAppliance", 1300 => "PluginWebapplicationsWebapplication"),
-         array("glpi_plugin_databases_databases_items"));
+         [1200 => "PluginAppliancesAppliance", 1300 => "PluginWebapplicationsWebapplication"],
+         ["glpi_plugin_databases_databases_items"]);
    }
 
    PluginDatabasesProfile::initProfile();
@@ -161,55 +165,64 @@ function plugin_databases_install() {
 function plugin_databases_uninstall() {
    global $DB;
 
-   include_once(GLPI_ROOT . "/plugins/databases/inc/profile.class.php");
-   include_once(GLPI_ROOT . "/plugins/databases/inc/menu.class.php");
+   include_once(PLUGIN_DATABASES_DIR . "/inc/profile.class.php");
+   include_once(PLUGIN_DATABASES_DIR . "/inc/menu.class.php");
 
-   $tables = array("glpi_plugin_databases_databases",
-                   "glpi_plugin_databases_databasetypes",
-                   "glpi_plugin_databases_databasecategories",
-                   "glpi_plugin_databases_servertypes",
-                   "glpi_plugin_databases_scripttypes",
-                   "glpi_plugin_databases_instances",
-                   "glpi_plugin_databases_scripts",
-                   "glpi_plugin_databases_databases_items");
+   $tables = ["glpi_plugin_databases_databases",
+              "glpi_plugin_databases_databasetypes",
+              "glpi_plugin_databases_databasecategories",
+              "glpi_plugin_databases_servertypes",
+              "glpi_plugin_databases_scripttypes",
+              "glpi_plugin_databases_instances",
+              "glpi_plugin_databases_scripts",
+              "glpi_plugin_databases_databases_items"];
 
-   foreach ($tables as $table)
+   foreach ($tables as $table) {
       $DB->query("DROP TABLE IF EXISTS `$table`;");
+   }
 
    //old versions
-   $tables = array("glpi_plugin_sgbd",
-                   "glpi_dropdown_plugin_sgbd_type",
-                   "glpi_dropdown_plugin_sgbd_server_type",
-                   "glpi_plugin_sgbd_device",
-                   "glpi_plugin_sgbd_profiles",
-                   "glpi_dropdown_plugin_sgbd_script_type",
-                   "glpi_plugin_sgbd_instances",
-                   "glpi_plugin_sgbd_scripts",
-                   "glpi_dropdown_plugin_sgbd_category",
-                   "glpi_plugin_databases_profiles");
+   $tables = ["glpi_plugin_sgbd",
+              "glpi_dropdown_plugin_sgbd_type",
+              "glpi_dropdown_plugin_sgbd_server_type",
+              "glpi_plugin_sgbd_device",
+              "glpi_plugin_sgbd_profiles",
+              "glpi_dropdown_plugin_sgbd_script_type",
+              "glpi_plugin_sgbd_instances",
+              "glpi_plugin_sgbd_scripts",
+              "glpi_dropdown_plugin_sgbd_category",
+              "glpi_plugin_databases_profiles"];
 
-   foreach ($tables as $table)
+   foreach ($tables as $table) {
       $DB->query("DROP TABLE IF EXISTS `$table`;");
+   }
 
-   $tables_glpi = array("glpi_displaypreferences",
-                        "glpi_documents_items",
-                        "glpi_savedsearches",
-                        "glpi_logs",
-                        "glpi_items_tickets",
-                        "glpi_notepads",
-                        "glpi_dropdowntranslations");
+   $tables_glpi = ["glpi_displaypreferences",
+                   "glpi_documents_items",
+                   "glpi_savedsearches",
+                   "glpi_logs",
+                   "glpi_items_tickets",
+                   "glpi_notepads",
+                   "glpi_dropdowntranslations",
+                   "glpi_impactitems"];
 
-   foreach ($tables_glpi as $table_glpi)
+   foreach ($tables_glpi as $table_glpi) {
       $DB->query("DELETE FROM `$table_glpi` WHERE `itemtype` LIKE 'PluginDatabases%' ;");
+   }
+
+   $DB->query("DELETE
+                  FROM `glpi_impactrelations`
+                  WHERE `itemtype_source` IN ('PluginDatabasesDatabase')
+                    OR `itemtype_impacted` IN ('PluginDatabasesDatabase')");
 
    if (class_exists('PluginDatainjectionModel')) {
-      PluginDatainjectionModel::clean(array('itemtype' => 'PluginDatabasesDatabase'));
+      PluginDatainjectionModel::clean(['itemtype' => 'PluginDatabasesDatabase']);
    }
 
    //Delete rights associated with the plugin
    $profileRight = new ProfileRight();
    foreach (PluginDatabasesProfile::getAllRights() as $right) {
-      $profileRight->deleteByCriteria(array('name' => $right['field']));
+      $profileRight->deleteByCriteria(['name' => $right['field']]);
    }
    PluginDatabasesMenu::removeRightsFromSession();
    PluginDatabasesProfile::removeRightsFromSession();
@@ -220,12 +233,12 @@ function plugin_databases_uninstall() {
 function plugin_databases_postinit() {
    global $PLUGIN_HOOKS;
 
-   $PLUGIN_HOOKS['item_purge']['databases'] = array();
+   $PLUGIN_HOOKS['item_purge']['databases'] = [];
 
    foreach (PluginDatabasesDatabase::getTypes(true) as $type) {
 
       $PLUGIN_HOOKS['item_purge']['databases'][$type]
-         = array('PluginDatabasesDatabase_Item', 'cleanForItem');
+         = ['PluginDatabasesDatabase_Item', 'cleanForItem'];
 
       CommonGLPI::registerStandardTab($type, 'PluginDatabasesDatabase_Item');
    }
@@ -285,7 +298,7 @@ function plugin_databases_AssignToTicketDropdown($data) {
 
       $result = $DB->query($sql);
       $elements = array();
-      while ($res = $DB->fetch_array($result)) {
+      while ($res = $DB->fetchArray($result)) {
          $itemtype = $res['itemtype'];
          $item = new $itemtype;
          $item->getFromDB($res['items_id']);
@@ -367,38 +380,39 @@ function plugin_databases_AssignToTicketGiveItem($data) {
 function plugin_databases_getDatabaseRelations() {
 
    $plugin = new Plugin();
-   if ($plugin->isActivated("databases"))
-      return array("glpi_entities"                            => array(
+   if ($plugin->isActivated("databases")) {
+      return ["glpi_entities"                            => [
          "glpi_plugin_databases_databases"          => "entities_id",
          "glpi_plugin_databases_databasetypes"      => "entities_id",
          "glpi_plugin_databases_databasecategories" => "entities_id",
          "glpi_plugin_databases_instances"          => "entities_id",
-         "glpi_plugin_databases_scripts"            => "entities_id"),
-                   "glpi_plugin_databases_databasecategories" => array(
-                      "glpi_plugin_databases_databases" => "plugin_databases_databasecategories_id"),
-                   "glpi_plugin_databases_databasetypes"      => array(
-                      "glpi_plugin_databases_databases" => "plugin_databases_databasetypes_id"),
-                   "glpi_users"                               => array(
-                      "glpi_plugin_databases_databases" => "users_id_tech"),
-                   "glpi_groups"                              => array(
-                      "glpi_plugin_databases_databases" => "groups_id_tech"),
-                   "glpi_plugin_databases_servertypes"        => array(
-                      "glpi_plugin_databases_databases" => "plugin_databases_servertypes_id"),
-                   "glpi_suppliers"                           => array(
-                      "glpi_plugin_databases_databases" => "suppliers_id"),
-                   "glpi_manufacturers"                       => array(
-                      "glpi_plugin_databases_databases" => "manufacturers_id"),
-                   "glpi_locations"                           => array(
-                      "glpi_plugin_databases_databases" => "locations_id"),
-                   "glpi_plugin_databases_databases"          => array(
-                      "glpi_plugin_databases_instances"       => "plugin_databases_databases_id",
-                      "glpi_plugin_databases_scripts"         => "plugin_databases_databases_id",
-                      "glpi_plugin_databases_databases_items" => "plugin_databases_databases_id"),
-                   "glpi_plugin_databases_scripttypes"        => array(
-                      "glpi_plugin_databases_scripts" => "plugin_databases_scripttypes_id"),
-      );
-   else
-      return array();
+         "glpi_plugin_databases_scripts"            => "entities_id"],
+              "glpi_plugin_databases_databasecategories" => [
+                 "glpi_plugin_databases_databases" => "plugin_databases_databasecategories_id"],
+              "glpi_plugin_databases_databasetypes"      => [
+                 "glpi_plugin_databases_databases" => "plugin_databases_databasetypes_id"],
+              "glpi_users"                               => [
+                 "glpi_plugin_databases_databases" => "users_id"],
+              "glpi_groups"                              => [
+                 "glpi_plugin_databases_databases" => "groups_id"],
+              "glpi_plugin_databases_servertypes"        => [
+                 "glpi_plugin_databases_databases" => "plugin_databases_servertypes_id"],
+              "glpi_suppliers"                           => [
+                 "glpi_plugin_databases_databases" => "suppliers_id"],
+              "glpi_manufacturers"                       => [
+                 "glpi_plugin_databases_databases" => "manufacturers_id"],
+              "glpi_locations"                           => [
+                 "glpi_plugin_databases_databases" => "locations_id"],
+              "glpi_plugin_databases_databases"          => [
+                 "glpi_plugin_databases_instances"       => "plugin_databases_databases_id",
+                 "glpi_plugin_databases_scripts"         => "plugin_databases_databases_id",
+                 "glpi_plugin_databases_databases_items" => "plugin_databases_databases_id"],
+              "glpi_plugin_databases_scripttypes"        => [
+                 "glpi_plugin_databases_scripts" => "plugin_databases_scripttypes_id"],
+      ];
+   } else {
+      return [];
+   }
 }
 
 // Define Dropdown tables to be manage in GLPI :
@@ -408,13 +422,14 @@ function plugin_databases_getDatabaseRelations() {
 function plugin_databases_getDropdown() {
 
    $plugin = new Plugin();
-   if ($plugin->isActivated("databases"))
-      return array("PluginDatabasesDatabaseType"     => PluginDatabasesDatabaseType::getTypeName(2),
-                   "PluginDatabasesDatabaseCategory" => PluginDatabasesDatabaseCategory::getTypeName(2),
-                   "PluginDatabasesServerType"       => PluginDatabasesServerType::getTypeName(2),
-                   "PluginDatabasesScriptType"       => PluginDatabasesScriptType::getTypeName(2));
-   else
-      return array();
+   if ($plugin->isActivated("databases")) {
+      return ["PluginDatabasesDatabaseType"     => PluginDatabasesDatabaseType::getTypeName(2),
+              "PluginDatabasesDatabaseCategory" => PluginDatabasesDatabaseCategory::getTypeName(2),
+              "PluginDatabasesServerType"       => PluginDatabasesServerType::getTypeName(2),
+              "PluginDatabasesScriptType"       => PluginDatabasesScriptType::getTypeName(2)];
+   } else {
+      return [];
+   }
 }
 
 ////// SEARCH FUNCTIONS ///////() {
@@ -426,7 +441,7 @@ function plugin_databases_getDropdown() {
  */
 function plugin_databases_getAddSearchOptions($itemtype) {
 
-   $sopt = array();
+   $sopt = [];
 
    if (in_array($itemtype, PluginDatabasesDatabase::getTypes(true))) {
       if (Session::haveRight("plugin_databases", READ)) {
@@ -438,18 +453,17 @@ function plugin_databases_getAddSearchOptions($itemtype) {
          $sopt[2410]['datatype']      = 'itemlink';
          $sopt[2410]['massiveaction'] = false;
          $sopt[2410]['itemlink_type'] = 'PluginDatabasesDatabase';
-         $sopt[2410]['joinparams']    = array('beforejoin'
-                                              => array('table'      => 'glpi_plugin_databases_databases_items',
-                                                       'joinparams' => array('jointype' => 'itemtype_item')));
-
+         $sopt[2410]['joinparams']    = ['beforejoin'
+                                         => ['table'      => 'glpi_plugin_databases_databases_items',
+                                             'joinparams' => ['jointype' => 'itemtype_item']]];
 
          $sopt[2411]['table']         = 'glpi_plugin_databases_databasecategories';
          $sopt[2411]['field']         = 'name';
          $sopt[2411]['name']          = PluginDatabasesDatabase::getTypeName(2) . " - " . PluginDatabasesDatabaseCategory::getTypeName(1);
          $sopt[2411]['forcegroupby']  = true;
-         $sopt[2411]['joinparams']    = array('beforejoin' => array(
-            array('table'      => 'glpi_plugin_databases_databases',
-                  'joinparams' => $sopt[2410]['joinparams'])));
+         $sopt[2411]['joinparams']    = ['beforejoin' => [
+            ['table'      => 'glpi_plugin_databases_databases',
+             'joinparams' => $sopt[2410]['joinparams']]]];
          $sopt[2411]['datatype']      = 'dropdown';
          $sopt[2411]['massiveaction'] = false;
 
@@ -457,9 +471,9 @@ function plugin_databases_getAddSearchOptions($itemtype) {
          $sopt[2412]['field']         = 'name';
          $sopt[2412]['name']          = PluginDatabasesDatabase::getTypeName(2) . " - " . PluginDatabasesServerType::getTypeName(1);
          $sopt[2412]['forcegroupby']  = true;
-         $sopt[2412]['joinparams']    = array('beforejoin' => array(
-            array('table'      => 'glpi_plugin_databases_databases',
-                  'joinparams' => $sopt[2410]['joinparams'])));
+         $sopt[2412]['joinparams']    = ['beforejoin' => [
+            ['table'      => 'glpi_plugin_databases_databases',
+             'joinparams' => $sopt[2410]['joinparams']]]];
          $sopt[2412]['datatype']      = 'dropdown';
          $sopt[2412]['massiveaction'] = false;
 
@@ -467,9 +481,9 @@ function plugin_databases_getAddSearchOptions($itemtype) {
          $sopt[2413]['field']         = 'name';
          $sopt[2413]['name']          = PluginDatabasesDatabase::getTypeName(2) . " - " . PluginDatabasesDatabaseType::getTypeName(1);
          $sopt[2413]['forcegroupby']  = true;
-         $sopt[2413]['joinparams']    = array('beforejoin' => array(
-            array('table'      => 'glpi_plugin_databases_databases',
-                  'joinparams' => $sopt[2410]['joinparams'])));
+         $sopt[2413]['joinparams']    = ['beforejoin' => [
+            ['table'      => 'glpi_plugin_databases_databases',
+             'joinparams' => $sopt[2410]['joinparams']]]];
          $sopt[2413]['datatype']      = 'dropdown';
          $sopt[2413]['massiveaction'] = false;
       }
@@ -503,6 +517,7 @@ function plugin_databases_giveItem($type, $ID, $data, $num) {
    $searchopt =& Search::getOptions($type);
    $table     = $searchopt[$ID]["table"];
    $field     = $searchopt[$ID]["field"];
+   $dbu       = new DbUtils();
 
    switch ($table . '.' . $field) {
       case "glpi_plugin_databases_databases_items.items_id" :
@@ -525,7 +540,7 @@ function plugin_databases_giveItem($type, $ID, $data, $num) {
                }
                $item = new $itemtype();
                if ($item->canView()) {
-                  $table_item = getTableForItemType($itemtype);
+                  $table_item = $dbu->getTableForItemType($itemtype);
 
                   $query = "SELECT `" . $table_item . "`.*, `glpi_plugin_databases_databases_items`.`id` AS items_id, `glpi_entities`.`id` AS entity "
                            . " FROM `glpi_plugin_databases_databases_items`, `" . $table_item
@@ -533,25 +548,28 @@ function plugin_databases_giveItem($type, $ID, $data, $num) {
                            . " WHERE `" . $table_item . "`.`id` = `glpi_plugin_databases_databases_items`.`items_id`
                   AND `glpi_plugin_databases_databases_items`.`itemtype` = '$itemtype'
                   AND `glpi_plugin_databases_databases_items`.`plugin_databases_databases_id` = '" . $databases . "' "
-                           . getEntitiesRestrictRequest(" AND ", $table_item, '', '', $item->maybeRecursive());
+                           . $dbu->getEntitiesRestrictRequest(" AND ", $table_item, '', '', $item->maybeRecursive());
 
                   if ($item->maybeTemplate()) {
                      $query .= " AND `" . $table_item . "`.`is_template` = '0'";
                   }
                   $query .= " ORDER BY `glpi_entities`.`completename`, `" . $table_item . "`.`$column`";
 
-                  if ($result_linked = $DB->query($query))
+                  if ($result_linked = $DB->query($query)) {
                      if ($DB->numrows($result_linked)) {
                         $item = new $itemtype();
-                        while ($data = $DB->fetch_assoc($result_linked)) {
+                        while ($data = $DB->fetchAssoc($result_linked)) {
                            if ($item->getFromDB($data['id'])) {
                               $out .= $item::getTypeName(1) . " - " . $item->getLink() . "<br>";
                            }
                         }
-                     } else
+                     } else {
                         $out .= ' ';
-               } else
+                     }
+                  }
+               } else {
                   $out .= ' ';
+               }
             }
          }
          return $out;
@@ -559,13 +577,12 @@ function plugin_databases_giveItem($type, $ID, $data, $num) {
 
       case 'glpi_plugin_databases_databases.name':
          if ($type == 'Ticket') {
-            $databases_id = array();
             if ($data['raw']["ITEM_$num"] != '') {
                $databases_id = explode('$$$$', $data['raw']["ITEM_$num"]);
             } else {
                $databases_id = explode('$$$$', $data['raw']["ITEM_" . $num . "_2"]);
             }
-            $ret        = array();
+            $ret        = [];
             $paDatabase = new PluginDatabasesDatabase();
             foreach ($databases_id as $ap_id) {
                $paDatabase->getFromDB($ap_id);
@@ -587,12 +604,14 @@ function plugin_databases_giveItem($type, $ID, $data, $num) {
  * @return array
  */
 function plugin_databases_MassiveActions($type) {
-
-   if (in_array($type, PluginDatabasesDatabase::getTypes(true))) {
-      return array('PluginDatabasesDatabase' . MassiveAction::CLASS_ACTION_SEPARATOR . 'plugin_databases__add_item' =>
-                      __('Associate to the database', 'databases'));
+   $plugin = new Plugin();
+   if ($plugin->isActivated('databases')) {
+      if (in_array($type, PluginDatabasesDatabase::getTypes(true))) {
+         return ['PluginDatabasesDatabase' . MassiveAction::CLASS_ACTION_SEPARATOR . 'plugin_databases__add_item' =>
+                    __('Associate to the database', 'databases')];
+      }
    }
-   return array();
+   return [];
 }
 
 /*

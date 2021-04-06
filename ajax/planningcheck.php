@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,9 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-* @since version 0.83
-*/
+/**
+ * @since 0.83
+ */
 
 // Direct access to file
 if (strpos($_SERVER['PHP_SELF'], "planningcheck.php")) {
@@ -47,10 +46,9 @@ Session::checkLoginUser();
 
 if (isset($_POST['users_id']) && ($_POST['users_id'] > 0)) {
       $rand = mt_rand();
-      echo " <a href='#' onClick=\"".Html::jsGetElementbyID('planningcheck'.$rand).".dialog('open');return false;\">";
-      echo "<img src='".$CFG_GLPI["root_doc"]."/pics/reservation-3.png'
-             title=\"".__s('Availability')."\" alt=\"".__s('Availability')."\"
-             class='calendrier'>";
+      echo "<a href='#' title=\"".__s('Availability')."\" onClick=\"".Html::jsGetElementbyID('planningcheck'.$rand).".dialog('open'); return false;\">";
+      echo "<i class='far fa-calendar-alt'></i>";
+      echo "<span class='sr-only'>".__('Availability')."</span>";
       echo "</a>";
       Ajax::createIframeModalWindow('planningcheck'.$rand,
                                     $CFG_GLPI["root_doc"].

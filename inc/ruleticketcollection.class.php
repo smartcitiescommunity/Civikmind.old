@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,9 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -54,7 +51,7 @@ class RuleTicketCollection extends RuleCollection {
 
 
    /**
-    * @since version 0.84
+    * @since 0.84
     **/
    static function canView() {
       return Session::haveRightsOr(self::$rightname, [READ, RuleTicket::PARENT]);
@@ -121,6 +118,10 @@ class RuleTicketCollection extends RuleCollection {
                $input['_groups_id_of_requester'][$g['id']] = $g['id'];
             }
          }
+      }
+
+      if (isset($input['itilcategories_id'])) {
+         $input['itilcategories_id_cn'] = $input['itilcategories_id'];
       }
       return $input;
    }

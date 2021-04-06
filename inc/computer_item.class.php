@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -54,11 +50,6 @@ class Computer_Item extends CommonDBRelation{
    static public $checkItem_2_Rights  = self::HAVE_VIEW_RIGHT_ON_ITEM;
 
 
-
-   /**
-    * @since version 0.84
-    *
-   **/
    function getForbiddenStandardMassiveAction() {
 
       $forbidden   = parent::getForbiddenStandardMassiveAction();
@@ -68,40 +59,9 @@ class Computer_Item extends CommonDBRelation{
 
 
    /**
-    * Count connection for an item
-    *
-    * @param $item   CommonDBTM object
-    *
-    * @return integer: count
-   **/
-   static function countForItem(CommonDBTM $item) {
-
-      return countElementsInTable('glpi_computers_items',
-                                  ['itemtype'   => $item->getType(),
-                                   'items_id'   => $item->getField('id'),
-                                   'is_deleted' => 0 ]);
-   }
-
-
-   /**
-    * Count connection for a Computer
-    *
-    * @param $comp   Computer object
-    *
-    * @return integer: count
-   **/
-   static function countForComputer(Computer $comp) {
-
-      return countElementsInTable('glpi_computers_items',
-                                  ['computers_id' => $comp->getField('id'),
-                                   'is_deleted'   => 0 ]);
-   }
-
-
-   /**
     * Count connection for a Computer and an itemtype
     *
-    * @since version 0.84
+    * @since 0.84
     *
     * @param $comp   Computer object
     * @param $item   CommonDBTM object
@@ -117,19 +77,8 @@ class Computer_Item extends CommonDBRelation{
    }
 
 
-   /**
-    * Prepare input datas for adding the relation
-    *
-    * Overloaded to check is Disconnect needed (during OCS sync)
-    * and to manage autoupdate feature
-    *
-    * @param $input array of datas used to add the item
-    *
-    * @return the modified $input array
-    *
-   **/
    function prepareInputForAdd($input) {
-      global $DB, $CFG_GLPI;
+      global $CFG_GLPI;
 
       $item = static::getItemFromArray(static::$itemtype_2, static::$items_id_2, $input);
       if (!($item instanceof CommonDBTM)
@@ -139,7 +88,7 @@ class Computer_Item extends CommonDBRelation{
       }
 
       $comp = static::getItemFromArray(static::$itemtype_1, static::$items_id_1, $input);
-      if (!($item instanceof CommonDBTM)
+      if (!($comp instanceof Computer)
           || (self::countForAll($comp, $item) >0)) {
          // no duplicates
          return false;
@@ -212,12 +161,6 @@ class Computer_Item extends CommonDBRelation{
    }
 
 
-   /**
-    * Actions done when item is deleted from the database
-    * Overloaded to manage autoupdate feature
-    *
-    *@return nothing
-   **/
    function cleanDBonPurge() {
       global $CFG_GLPI;
 
@@ -270,11 +213,6 @@ class Computer_Item extends CommonDBRelation{
    }
 
 
-   /**
-    * @since version 0.85
-    *
-    * @see CommonDBTM::getMassiveActionsForItemtype()
-   **/
    static function getMassiveActionsForItemtype(array &$actions, $itemtype, $is_deleted = 0,
                                                 CommonDBTM $checkitem = null) {
 
@@ -282,20 +220,15 @@ class Computer_Item extends CommonDBRelation{
       $specificities = self::getRelationMassiveActionsSpecificities();
 
       if (in_array($itemtype, $specificities['itemtypes'])) {
-         $actions[$action_prefix.'add']    = _x('button', 'Connect');
+         $actions[$action_prefix.'add']    = "<i class='ma-icon fas fa-plug'></i>".
+                                             _x('button', 'Connect');
          $actions[$action_prefix.'remove'] = _x('button', 'Disconnect');
       }
       parent::getMassiveActionsForItemtype($actions, $itemtype, $is_deleted, $checkitem);
    }
 
 
-   /**
-    * @since version 0.85
-    *
-    * @see CommonDBRelation::getRelationMassiveActionsSpecificities()
-   **/
    static function getRelationMassiveActionsSpecificities() {
-      global $CFG_GLPI;
 
       $specificities              = parent::getRelationMassiveActionsSpecificities();
 
@@ -325,15 +258,18 @@ class Computer_Item extends CommonDBRelation{
       global $DB;
 
       if ($item->getField('id')) {
-         $query = "SELECT `id`
-                   FROM `glpi_computers_items`
-                   WHERE `itemtype` = '".$item->getType()."'
-                         AND `items_id` = '".$item->getField('id')."'";
-         $result = $DB->query($query);
+         $iterator = $DB->request([
+            'SELECT' => ['id'],
+            'FROM'   => $this->getTable(),
+            'WHERE'  => [
+               'itemtype'  => $item->getType(),
+               'items_id'  => $item->getID()
+            ]
+         ]);
 
-         if ($DB->numrows($result) > 0) {
+         if (count($iterator) > 0) {
             $ok = true;
-            while ($data = $DB->fetch_assoc($result)) {
+            while ($data = $iterator->next()) {
                if ($this->can($data["id"], UPDATE)) {
                   $ok &= $this->delete($data);
                }
@@ -349,13 +285,13 @@ class Computer_Item extends CommonDBRelation{
     *
     * Print the form for computers or templates connections to printers, screens or peripherals
     *
-    * @param $comp                     Computer object
-    * @param $withtemplate    boolean  Template or basic item (default 0)
+    * @param Computer $comp         Computer object
+    * @param boolean  $withtemplate Template or basic item (default 0)
     *
-    * @return Nothing (call to classes members)
+    * @return void
    **/
    static function showForComputer(Computer $comp, $withtemplate = 0) {
-      global $DB, $CFG_GLPI;
+      global $CFG_GLPI;
 
       $ID      = $comp->fields['id'];
       $canedit = $comp->canEdit($ID);
@@ -366,28 +302,12 @@ class Computer_Item extends CommonDBRelation{
       foreach ($CFG_GLPI["directconnect_types"] as $itemtype) {
          $item = new $itemtype();
          if ($item->canView()) {
-            $query = "SELECT `glpi_computers_items`.`id` AS assoc_id,
-                      `glpi_computers_items`.`computers_id` AS assoc_computers_id,
-                      `glpi_computers_items`.`itemtype` AS assoc_itemtype,
-                      `glpi_computers_items`.`items_id` AS assoc_items_id,
-                      `glpi_computers_items`.`is_dynamic` AS assoc_is_dynamic,
-                      ".getTableForItemType($itemtype).".*
-                      FROM `glpi_computers_items`
-                      LEFT JOIN `".getTableForItemType($itemtype)."`
-                        ON (`".getTableForItemType($itemtype)."`.`id`
-                              = `glpi_computers_items`.`items_id`)
-                      WHERE `computers_id` = '$ID'
-                            AND `itemtype` = '".$itemtype."'
-                            AND `glpi_computers_items`.`is_deleted` = '0'";
-            if ($item->maybetemplate()) {
-               $query.= " AND NOT `".getTableForItemType($itemtype)."`.`is_template` ";
-            }
+            $iterator = self::getTypeItems($ID, $itemtype);
 
-            if ($result = $DB->query($query)) {
-               while ($data = $DB->fetch_assoc($result)) {
-                  $datas[]           = $data;
-                  $used[$itemtype][] = $data['assoc_items_id'];
-               }
+            while ($data = $iterator->next()) {
+               $data['assoc_itemtype'] = $itemtype;
+               $datas[]           = $data;
+               $used[$itemtype][] = $data['id'];
             }
          }
       }
@@ -443,12 +363,12 @@ class Computer_Item extends CommonDBRelation{
             $header_bottom .=  "</th>";
          }
 
-         $header_end .= "<th>".__('Type')."</th>";
+         $header_end .= "<th>"._n('Type', 'Types', 1)."</th>";
          $header_end .= "<th>".__('Name')."</th>";
          if (Plugin::haveImport()) {
             $header_end .= "<th>".__('Automatic inventory')."</th>";
          }
-         $header_end .= "<th>".__('Entity')."</th>";
+         $header_end .= "<th>".Entity::getTypeName(1)."</th>";
          $header_end .= "<th>".__('Serial number')."</th>";
          $header_end .= "<th>".__('Inventory number')."</th>";
          $header_end .= "</tr>";
@@ -460,29 +380,30 @@ class Computer_Item extends CommonDBRelation{
             if ($_SESSION["glpiis_ids_visible"] || empty($data["name"])) {
                $linkname = sprintf(__('%1$s (%2$s)'), $linkname, $data["id"]);
             }
-            $link = Toolbox::getItemTypeFormURL($itemtype);
-            $name = "<a href=\"".$link."?id=".$data["id"]."\">".$linkname."</a>";
+            $link = $itemtype::getFormURLWithID($data["id"]);
+            $name = "<a href=\"".$link."\">".$linkname."</a>";
 
             echo "<tr class='tab_bg_1'>";
 
             if ($canedit) {
                echo "<td width='10'>";
-               Html::showMassiveActionCheckBox(__CLASS__, $data["assoc_id"]);
+               Html::showMassiveActionCheckBox(__CLASS__, $data["linkid"]);
                echo "</td>";
             }
-            echo "<td class='center'>".$data['assoc_itemtype']::getTypeName(1)."</td>";
+            echo "<td>".$data['assoc_itemtype']::getTypeName(1)."</td>";
             echo "<td ".
                   ((isset($data['is_deleted']) && $data['is_deleted'])?"class='tab_bg_2_2'":"").
                  ">".$name."</td>";
             if (Plugin::haveImport()) {
-               echo "<td>".Dropdown::getYesNo($data['assoc_is_dynamic'])."</td>";
+               $dynamic_field = static::getTable() . '_is_dynamic';
+               echo "<td>".Dropdown::getYesNo($data[$dynamic_field])."</td>";
             }
-            echo "<td class='center'>".Dropdown::getDropdownName("glpi_entities",
+            echo "<td>".Dropdown::getDropdownName("glpi_entities",
                                                                $data['entities_id']);
             echo "</td>";
-            echo "<td class='center'>".
+            echo "<td>".
                    (isset($data["serial"])? "".$data["serial"]."" :"-")."</td>";
-            echo "<td class='center'>".
+            echo "<td>".
                    (isset($data["otherserial"])? "".$data["otherserial"]."" :"-")."</td>";
             echo "</tr>";
          }
@@ -505,7 +426,7 @@ class Computer_Item extends CommonDBRelation{
     * @param $item                     CommonDBTM object: the Monitor/Phone/Peripheral/Printer
     * @param $withtemplate    integer  withtemplate param (default 0)
     *
-    * @return nothing (print out a table)
+    * @return void
    **/
    static function showForItem(CommonDBTM $item, $withtemplate = 0) {
       // Prints a direct connection to a computer
@@ -515,7 +436,7 @@ class Computer_Item extends CommonDBRelation{
       $ID     = $item->getField('id');
 
       if (!$item->can($ID, READ)) {
-         return false;
+         return;
       }
       $canedit = $item->canEdit($ID);
       $rand    = mt_rand();
@@ -525,11 +446,19 @@ class Computer_Item extends CommonDBRelation{
 
       $used    = [];
       $compids = [];
-      $crit    = ['FIELDS'     => ['id', 'computers_id', 'is_dynamic'],
-                       'itemtype'   => $item->getType(),
-                       'items_id'   => $ID,
-                       'is_deleted' => 0];
-      foreach ($DB->request('glpi_computers_items', $crit) as $data) {
+      $dynamic = [];
+      $result = $DB->request(
+         [
+            'SELECT' => ['id', 'computers_id', 'is_dynamic'],
+            'FROM'   => self::getTable(),
+            'WHERE'  => [
+               'itemtype'   => $item->getType(),
+               'items_id'   => $ID,
+               'is_deleted' => 0,
+            ]
+         ]
+      );
+      foreach ($result as $data) {
          $compids[$data['id']] = $data['computers_id'];
          $dynamic[$data['id']] = $data['is_dynamic'];
          $used['Computer'][]   = $data['computers_id'];
@@ -594,7 +523,7 @@ class Computer_Item extends CommonDBRelation{
          if (Plugin::haveImport()) {
             $header_end .= "<th>".__('Automatic inventory')."</th>";
          }
-         $header_end .= "<th>".__('Entity')."</th>";
+         $header_end .= "<th>".Entity::getTypeName(1)."</th>";
          $header_end .= "<th>".__('Serial number')."</th>";
          $header_end .= "<th>".__('Inventory number')."</th>";
          $header_end .= "</tr>";
@@ -654,24 +583,27 @@ class Computer_Item extends CommonDBRelation{
          $item->update($input);
 
          // Get connect_wire for this connection
-         $query = "SELECT `glpi_computers_items`.`id`
-                   FROM `glpi_computers_items`
-                   WHERE `glpi_computers_items`.`items_id` = '".$item->fields['id']."'
-                         AND `glpi_computers_items`.`itemtype` = '".$item->getType()."'";
-         $result = $DB->query($query);
+         $iterator = $DB->request([
+            'SELECT' => ['id'],
+            'FROM'   => self::getTable(),
+            'WHERE'  => [
+               'items_id'  => $item->getID(),
+               'itemtype'  => $item->getType()
+            ]
+         ]);
 
-         if ($data = $DB->fetch_assoc($result)) {
-            // First one, keep the existing one
-
-            // The others = clone the existing object
-            unset($input['id']);
-            $conn = new self();
-            while ($data = $DB->fetch_assoc($result)) {
+         $first = true;
+         while ($data = $iterator->next()) {
+            if ($first) {
+               $first = false;
+               unset($input['id']);
+               $conn = new self();
+            } else {
                $temp = clone $item;
                unset($temp->fields['id']);
                if ($newID=$temp->add($temp->fields)) {
                   $conn->update(['id'       => $data['id'],
-                                      'items_id' => $newID]);
+                                 'items_id' => $newID]);
                }
             }
          }
@@ -682,15 +614,15 @@ class Computer_Item extends CommonDBRelation{
    /**
    * Make a select box for connections
    *
-   * @since version 0.84
+   * @since 0.84
    *
-   * @param $fromtype               from where the connection is
-   * @param $myname                 select name
-   * @param $entity_restrict        Restrict to a defined entity (default = -1)
-   * @param $onlyglobal             display only global devices (used for templates) (default 0)
-   * @param $used             array Already used items ID: not to display in dropdown
+   * @param string            $fromtype        from where the connection is
+   * @param string            $myname          select name
+   * @param integer|integer[] $entity_restrict Restrict to a defined entity (default = -1)
+   * @param boolean           $onlyglobal      display only global devices (used for templates) (default 0)
+   * @param integer[]         $used            Already used items ID: not to display in dropdown
    *
-   * @return nothing (print out an HTML select box)
+   * @return integer Random generated number used for select box ID (select box HTML is printed)
    */
    static function dropdownAllConnect($fromtype, $myname, $entity_restrict = -1,
                                       $onlyglobal = 0, $used = []) {
@@ -713,7 +645,7 @@ class Computer_Item extends CommonDBRelation{
                          'used'            => $used];
 
          if ($onlyglobal) {
-            $params['condition'] = "`is_global` = '1'";
+            $params['condition'] = ['is_global' => 1];
          }
          Ajax::updateItemOnSelectEvent("dropdown_itemtype$rand", "show_$myname$rand",
                                        $CFG_GLPI["root_doc"]."/ajax/dropdownConnect.php", $params);
@@ -728,14 +660,14 @@ class Computer_Item extends CommonDBRelation{
    /**
    * Make a select box for connections
    *
-   * @param $itemtype               type to connect
-   * @param $fromtype               from where the connection is
-   * @param $myname                 select name
-   * @param $entity_restrict        Restrict to a defined entity (default = -1)
-   * @param $onlyglobal             display only global devices (used for templates) (default 0)
-   * @param $used             array Already used items ID: not to display in dropdown
+   * @param string            $itemtype        type to connect
+   * @param string            $fromtype        from where the connection is
+   * @param string            $myname          select name
+   * @param integer|integer[] $entity_restrict Restrict to a defined entity (default = -1)
+   * @param boolean           $onlyglobal      display only global devices (used for templates) (default 0)
+   * @param integer[]         $used            Already used items ID: not to display in dropdown
    *
-   * @return nothing (print out an HTML select box)
+   * @return integer Random generated number used for select box ID (select box HTML is printed)
    */
    static function dropdownConnect($itemtype, $fromtype, $myname, $entity_restrict = -1,
                                    $onlyglobal = 0, $used = []) {
@@ -744,11 +676,16 @@ class Computer_Item extends CommonDBRelation{
       $rand     = mt_rand();
 
       $field_id = Html::cleanId("dropdown_".$myname.$rand);
-      $param    = ['entity_restrict' => $entity_restrict,
-                        'fromtype'        => $fromtype,
-                        'itemtype'        => $itemtype,
-                        'onlyglobal'      => $onlyglobal,
-                        'used'            => $used];
+      $param    = [
+         'entity_restrict' => $entity_restrict,
+         'fromtype'        => $fromtype,
+         'itemtype'        => $itemtype,
+         'onlyglobal'      => $onlyglobal,
+         'used'            => $used,
+         '_idor_token'     => Session::getNewIDORToken($itemtype, [
+            'entity_restrict' => $entity_restrict,
+         ]),
+      ];
 
       echo Html::jsAjaxDropdown($myname, $field_id,
                                 $CFG_GLPI['root_doc']."/ajax/getDropdownConnect.php",
@@ -758,9 +695,6 @@ class Computer_Item extends CommonDBRelation{
    }
 
 
-   /**
-    * @see CommonGLPI::getTabNameForItem()
-   **/
    function getTabNameForItem(CommonGLPI $item, $withtemplate = 0) {
 
       // can exists for Template
@@ -786,7 +720,7 @@ class Computer_Item extends CommonDBRelation{
                    || Peripheral::canView()
                    || Monitor::canView()) {
                   if ($_SESSION['glpishow_count_on_tabs']) {
-                     $nb = self::countForComputer($item);
+                     $nb = self::countForMainItem($item);
                   }
                   return self::createTabEntry(_n('Connection', 'Connections', Session::getPluralNumber()),
                                               $nb);
@@ -798,11 +732,6 @@ class Computer_Item extends CommonDBRelation{
    }
 
 
-   /**
-    * @param $item         CommonGLPI object
-    * @param $tabnum       (default 1)
-    * @param $withtemplate (default 0)
-    */
    static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0) {
 
       switch ($item->getType()) {
@@ -823,24 +752,26 @@ class Computer_Item extends CommonDBRelation{
    /**
     * Duplicate connected items to computer from an item template to its clone
     *
-    * @since version 0.84
+    * @deprecated 9.5
+    * @since 0.84
     *
-    * @param $oldid        ID of the item to clone
-    * @param $newid        ID of the item cloned
+    * @param integer $oldid ID of the item to clone
+    * @param integer $newid ID of the item cloned
    **/
    static function cloneComputer($oldid, $newid) {
       global $DB;
 
-      $query  = "SELECT *
-                 FROM `glpi_computers_items`
-                 WHERE `computers_id` = '".$oldid."';";
-      $result = $DB->query($query);
+      Toolbox::deprecated('Use clone');
+      $iterator = $DB->request([
+         'FROM'   => self::getTable(),
+         'WHERE'  => ['computers_id' => $oldid]
+      ]);
 
-      foreach ($DB->request($query) as $data) {
+      while ($data = $iterator->next()) {
          $conn = new Computer_Item();
          $conn->add(['computers_id' => $newid,
-                          'itemtype'     => $data["itemtype"],
-                          'items_id'     => $data["items_id"]]);
+                     'itemtype'     => $data["itemtype"],
+                     'items_id'     => $data["items_id"]]);
       }
    }
 
@@ -848,26 +779,30 @@ class Computer_Item extends CommonDBRelation{
    /**
     * Duplicate connected items to item from an item template to its clone
     *
-    * @since version 0.83.3
+    * @deprecated 9.5
+    * @since 0.83.3
     *
-    * @param $itemtype     type of the item to clone
-    * @param $oldid        ID of the item to clone
-    * @param $newid        ID of the item cloned
+    * @param string  $itemtype type of the item to clone
+    * @param integer $oldid    ID of the item to clone
+    * @param integer $newid    ID of the item cloned
    **/
    static function cloneItem($itemtype, $oldid, $newid) {
       global $DB;
 
-      $query  = "SELECT *
-                 FROM `glpi_computers_items`
-                 WHERE `itemtype` = '$itemtype'
-                       AND `items_id` = '".$oldid."'";
-      $result = $DB->query($query);
+      Toolbox::deprecated('Use clone');
+      $iterator = $DB->request([
+         'FROM'   => self::getTable(),
+         'WHERE'  => [
+            'itemtype'  => $itemtype,
+            'items_id'  => $oldid
+         ]
+      ]);
 
-      foreach ($DB->request($query) as $data) {
+      while ($data = $iterator->next()) {
          $conn = new self();
          $conn->add(['computers_id' => $data["computers_id"],
-                          'itemtype'     => $data["itemtype"],
-                          'items_id'     => $newid]);
+                     'itemtype'     => $data["itemtype"],
+                     'items_id'     => $newid]);
       }
    }
 
@@ -875,31 +810,58 @@ class Computer_Item extends CommonDBRelation{
    /**
     * @since 9.1.7
     *
-    * @param  $item        item linked to the computer to check
-    * $param  $entities
+    * @param CommonDBTM $item     item linked to the computer to check
+    * @param integer[]  $entities entities to check
     *
     * @return boolean
    **/
-   static function canUnrecursSpecif($item, $entities) {
+   static function canUnrecursSpecif(CommonDBTM $item, $entities) {
       global $DB;
 
       // RELATION : computers -> items
-      $sql = "SELECT `itemtype`, GROUP_CONCAT(DISTINCT `items_id`) AS ids, `computers_id`
-              FROM `glpi_computers_items`
-              WHERE `glpi_computers_items`.`itemtype` = '".$item->getType()."'
-                    AND `glpi_computers_items`.`items_id` = ".$item->fields['id']."
-              GROUP BY `itemtype`";
-      $res = $DB->query($sql);
+      $iterator = $DB->request([
+         'SELECT' => [
+            'itemtype',
+            new \QueryExpression('GROUP_CONCAT(DISTINCT '.$DB->quoteName('items_id').') AS ids'),
+            'computers_id'
+         ],
+         'FROM'   => self::getTable(),
+         'WHERE'  => [
+            'itemtype'  => $item->getType(),
+            'items_id'  => $item->fields['id']
+         ],
+         'GROUP'  => 'itemtype'
+      ]);
 
-      if ($res) {
-         while ($data = $DB->fetch_assoc($res)) {
-            if (countElementsInTable("glpi_computers", "`id` IN (".$data["computers_id"].")
-                                                        AND `entities_id` NOT IN $entities") > 0) {
-               return false;
-            }
+      while ($data = $iterator->next()) {
+         if (countElementsInTable("glpi_computers",
+                                    ['id' => $data["computers_id"],
+                                    'NOT' => ['entities_id' => $entities]]) > 0) {
+            return false;
          }
       }
       return true;
    }
 
+
+   protected static function getListForItemParams(CommonDBTM $item, $noent = false) {
+      $params = parent::getListForItemParams($item, $noent);
+      $params['WHERE'][self::getTable() . '.is_deleted'] = 0;
+      return $params;
+   }
+
+   /**
+    * Get SELECT param for getTypeItemsQueryParams
+    *
+    * @param CommonDBTM $item
+    *
+    * @return array
+    */
+   public static function getTypeItemsQueryParams_Select(CommonDBTM $item): array {
+      $table = static::getTable();
+      $select = parent::getTypeItemsQueryParams_Select($item);
+      $select[] = "$table.is_dynamic AS {$table}_is_dynamic";
+
+      return $select;
+   }
 }

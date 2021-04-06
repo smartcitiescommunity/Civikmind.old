@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,9 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -79,7 +76,7 @@ class RuleMailCollector extends Rule {
       $criterias['mailcollector']['type']             = 'dropdown';
 
       $criterias['_users_id_requester']['field']      = 'name';
-      $criterias['_users_id_requester']['name']       = __('Requester');
+      $criterias['_users_id_requester']['name']       = _n('Requester', 'Requesters', 1);
       $criterias['_users_id_requester']['table']      = 'glpi_users';
       $criterias['_users_id_requester']['type']       = 'dropdown';
 
@@ -125,14 +122,14 @@ class RuleMailCollector extends Rule {
       $criterias['received']['table']                 = '';
       $criterias['received']['type']                  = 'text';
 
-      $criterias['GROUPS']['table']                   = 'glpi_groups';
-      $criterias['GROUPS']['field']                   = 'completename';
-      $criterias['GROUPS']['name']                    = sprintf(__('%1$s: %2$s'), __('User'),
-                                                                __('Group'));
-      $criterias['GROUPS']['linkfield']               = '';
-      $criterias['GROUPS']['type']                    = 'dropdown';
-      $criterias['GROUPS']['virtual']                 = true;
-      $criterias['GROUPS']['id']                      = 'groups';
+      $criterias['_groups_id_requester']['table']     = 'glpi_groups';
+      $criterias['_groups_id_requester']['field']     = 'completename';
+      $criterias['_groups_id_requester']['name']      = sprintf(__('%1$s: %2$s'), User::getTypeName(1),
+                                                                Group::getTypeName(1));
+      $criterias['_groups_id_requester']['linkfield'] = '';
+      $criterias['_groups_id_requester']['type']      = 'dropdown';
+      $criterias['_groups_id_requester']['virtual']   = true;
+      $criterias['_groups_id_requester']['id']        = 'groups';
 
       $criterias['KNOWN_DOMAIN']['field']             = 'name';
       $criterias['KNOWN_DOMAIN']['name']              = __('Known mail domain');
@@ -179,7 +176,7 @@ class RuleMailCollector extends Rule {
 
       $actions                                              = [];
 
-      $actions['entities_id']['name']                       = __('Entity');
+      $actions['entities_id']['name']                       = Entity::getTypeName(1);
       $actions['entities_id']['type']                       = 'dropdown';
       $actions['entities_id']['table']                      = 'glpi_entities';
 
@@ -209,10 +206,7 @@ class RuleMailCollector extends Rule {
    }
 
 
-   /**
-    * @see Rule::executeActions()
-   **/
-   function executeActions($output, $params) {
+   function executeActions($output, $params, array $input = []) {
 
       if (count($this->actions)) {
 
@@ -321,7 +315,7 @@ class RuleMailCollector extends Rule {
                default:
                   //Allow plugins actions
                   $executeaction = clone $this;
-                  $output = $executeaction->executePluginsActions($action, $output, $params);
+                  $output = $executeaction->executePluginsActions($action, $output, $params, $input);
                break;
             }
          }

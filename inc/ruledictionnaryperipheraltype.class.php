@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 class RuleDictionnaryPeripheralType extends RuleDictionnaryDropdown {
 
 
@@ -57,7 +53,7 @@ class RuleDictionnaryPeripheralType extends RuleDictionnaryDropdown {
       }
 
       $criterias['name']['field'] = 'name';
-      $criterias['name']['name']  = __('Type');
+      $criterias['name']['name']  = _n('Type', 'Types', 1);
       $criterias['name']['table'] = 'glpi_peripheraltypes';
 
       return $criterias;
@@ -70,7 +66,7 @@ class RuleDictionnaryPeripheralType extends RuleDictionnaryDropdown {
    function getActions() {
 
       $actions                          = [];
-      $actions['name']['name']          = __('Type');
+      $actions['name']['name']          = _n('Type', 'Types', 1);
       $actions['name']['force_actions'] = ['append_regex_result', 'assign', 'regex_result'];
 
       return $actions;

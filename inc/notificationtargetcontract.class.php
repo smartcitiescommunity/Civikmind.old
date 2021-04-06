@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -29,10 +29,6 @@
  * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
  */
-
-/** @file
-* @brief
-*/
 
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
@@ -71,6 +67,13 @@ class NotificationTargetContract extends NotificationTarget {
                                                                   $contract['contracttypes_id']);
          } else {
             $tmp['##contract.type##'] = "";
+         }
+
+         if ($contract['states_id']) {
+            $tmp['##contract.states##'] = Dropdown::getDropdownName('glpi_states',
+               $contract['states_id']);
+         } else {
+            $tmp['##contract.states##'] = "";
          }
 
          switch ($event) {
@@ -155,8 +158,9 @@ class NotificationTargetContract extends NotificationTarget {
                     'contract.number'       => _x('phone', 'Number'),
                     'contract.items.number' => _x('quantity', 'Number of items'),
                     'contract.items'        => __('Device list'),
-                    'contract.type'         => __('Type'),
-                    'contract.entity'       => __('Entity'),
+                    'contract.type'         => _n('Type', 'Types', 1),
+                    'contract.entity'       => Entity::getTypeName(1),
+                    'contract.states'       => __('Status'),
                     'contract.time'         => sprintf(__('%1$s / %2$s'),
                                                   __('Contract expired since the'),
                                                   __('Contract with notice since the'))];

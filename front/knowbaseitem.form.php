@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -29,10 +29,6 @@
  * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
  */
-
-/** @file
-* @brief
-*/
 
 use Glpi\Event;
 
@@ -61,7 +57,7 @@ if (isset($_POST["add"])) {
    Event::log($newID, "knowbaseitem", 5, "tools",
               sprintf(__('%1$s adds the item %2$s'), $_SESSION["glpiname"], $newID));
    if (isset($_POST['_in_modal']) && $_POST['_in_modal']) {
-      Html::redirect($CFG_GLPI["root_doc"]."/front/knowbaseitem.form.php?id=$newID&_in_modal=1");
+      Html::redirect($kb->getFormURLWithID($newID)."&_in_modal=1");
    } else {
       Html::redirect($CFG_GLPI["root_doc"]."/front/knowbaseitem.php");
    }
@@ -74,7 +70,7 @@ if (isset($_POST["add"])) {
    Event::log($_POST["id"], "knowbaseitem", 5, "tools",
               //TRANS: %s is the user login
               sprintf(__('%s updates an item'), $_SESSION["glpiname"]));
-   Html::redirect($CFG_GLPI["root_doc"]."/front/knowbaseitem.form.php?id=".$_POST['id']);
+   Html::redirect($kb->getFormURLWithID($_POST['id']));
 
 } else if (isset($_POST["purge"])) {
    // effacer un item dans la base de connaissances
@@ -140,11 +136,14 @@ if (isset($_POST["add"])) {
          ERROR
       );
    }
-   Html::redirect($CFG_GLPI["root_doc"]."/front/knowbaseitem.form.php?id=".$_GET['id']);
+   Html::redirect($kb->getFormURLWithID($_GET['id']));
 } else if (isset($_GET["id"])) {
+   if (!Session::getLoginUserID()) {
+      Html::redirect("helpdesk.faq.php?id=".$_GET['id']);
+   }
+
    if (isset($_GET["_in_modal"])) {
       Html::popHeader(__('Knowledge base'), $_SERVER['PHP_SELF']);
-      $kb = new KnowbaseItem();
       if ($_GET['id']) {
          $kb->check($_GET["id"], READ);
          $kb->showFull();
@@ -153,23 +152,13 @@ if (isset($_POST["add"])) {
       }
       Html::popFooter();
    } else {
-      // modifier un item dans la base de connaissance
+      // check we can read the article
       $kb->check($_GET["id"], READ);
 
-      if (Session::getLoginUserID()) {
-         if ($_SESSION["glpiactiveprofile"]["interface"] == "central") {
-            Html::header(KnowbaseItem::getTypeName(1), $_SERVER['PHP_SELF'], "tools", "knowbaseitem");
-         } else {
-            Html::helpHeader(__('FAQ'), $_SERVER['PHP_SELF']);
-         }
-         Html::helpHeader(__('FAQ'), $_SERVER['PHP_SELF'], $_SESSION["glpiname"]);
+      if (Session::getCurrentInterface() == "central") {
+         Html::header(KnowbaseItem::getTypeName(1), $_SERVER['PHP_SELF'], "tools", "knowbaseitem");
       } else {
-         $_SESSION["glpilanguage"] = $CFG_GLPI['language'];
-         // Anonymous FAQ
-         Html::simpleHeader(__('FAQ'),
-                            [__('Authentication')
-                                            => $CFG_GLPI['root_doc'].'/',
-                                  __('FAQ') => $CFG_GLPI['root_doc'].'/front/helpdesk.faq.php']);
+         Html::helpHeader(__('FAQ'), $_SERVER['PHP_SELF']);
       }
 
       $available_options = ['item_itemtype', 'item_items_id', 'id'];
@@ -181,12 +170,8 @@ if (isset($_POST["add"])) {
       }
       $kb->display($options);
 
-      if (Session::getLoginUserID()) {
-         if ($_SESSION["glpiactiveprofile"]["interface"] == "central") {
-            Html::footer();
-         } else {
-            Html::helpFooter();
-         }
+      if (Session::getCurrentInterface() == "central") {
+         Html::footer();
       } else {
          Html::helpFooter();
       }

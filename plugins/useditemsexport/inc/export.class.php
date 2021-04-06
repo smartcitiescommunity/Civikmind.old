@@ -1,34 +1,26 @@
 <?php
-/*
- * @version $Id$
- -------------------------------------------------------------------------
- GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2015-2016 Teclib'.
-
- http://glpi-project.org
-
- based on GLPI - Gestionnaire Libre de Parc Informatique
- Copyright (C) 2003-2014 by the INDEPNET Development Team.
-
- -------------------------------------------------------------------------
-
- LICENSE
-
- This file is part of GLPI.
-
- GLPI is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- GLPI is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with GLPI. If not, see <http://www.gnu.org/licenses/>.
- --------------------------------------------------------------------------
+/**
+ * --------------------------------------------------------------------------
+ * LICENSE
+ *
+ * This file is part of useditemsexport.
+ *
+ * useditemsexport is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * useditemsexport is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * --------------------------------------------------------------------------
+ * @author    François Legastelois
+ * @copyright Copyright © 2015 - 2018 Teclib'
+ * @license   AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+ * @link      https://github.com/pluginsGLPI/useditemsexport
+ * @link      https://pluginsglpi.github.io/useditemsexport/
+ * -------------------------------------------------------------------------
  */
 
 if (!defined('GLPI_ROOT')) {
@@ -39,7 +31,7 @@ $autoload = dirname(__DIR__) . '/vendor/autoload.php';
 if (file_exists($autoload)) {
    require_once $autoload;
 } else {
-  _e('Run "composer install --no-dev" in the plugin tree', 'useditemsexport');
+   echo __('Run "composer install --no-dev" in the plugin tree', 'useditemsexport');
    die();
 }
 
@@ -55,7 +47,7 @@ class PluginUseditemsexportExport extends CommonDBTM {
    /**
     * @see CommonGLPI::getTabNameForItem()
    **/
-   function getTabNameForItem(CommonGLPI $item, $withtemplate=0) {
+   function getTabNameForItem(CommonGLPI $item, $withtemplate = 0) {
 
       if ($item->getType()=='User') {
          if ($_SESSION['glpishow_count_on_tabs']) {
@@ -69,12 +61,12 @@ class PluginUseditemsexportExport extends CommonDBTM {
    /**
     * @see CommonGLPI::displayTabContentForItem()
    **/
-   static function displayTabContentForItem(CommonGLPI $item, $tabnum=1, $withtemplate=0) {
+   static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0) {
       global $CFG_GLPI;
 
       if ($item->getType()=='User') {
-         if (Session::haveRightsOr('plugin_useditemsexport_export', array(READ, CREATE, PURGE))) {
-            
+         if (Session::haveRightsOr('plugin_useditemsexport_export', [READ, CREATE, PURGE])) {
+
             $PluginUseditemsexportExport = new self();
             $PluginUseditemsexportExport->showForUser($item);
 
@@ -91,8 +83,7 @@ class PluginUseditemsexportExport extends CommonDBTM {
     * @param $item    CommonDBTM object
    **/
    public static function countForItem(CommonDBTM $item) {
-      return countElementsInTable(getTableForItemType(__CLASS__), 
-                                    "`users_id` = '".$item->getID()."'");
+      return countElementsInTable(getTableForItemType(__CLASS__), ['users_id' => $item->getID()]);
    }
 
    /**
@@ -105,7 +96,7 @@ class PluginUseditemsexportExport extends CommonDBTM {
    static function getAllForUser($users_id) {
       global $DB;
 
-      $exports = array();
+      $exports = [];
 
       // Get default one
       foreach ($DB->request(getTableForItemType(__CLASS__), "`users_id` = '$users_id'") as $data) {
@@ -120,7 +111,7 @@ class PluginUseditemsexportExport extends CommonDBTM {
     * @param array $options
     * @return nothing
     */
-   function showForUser($item, $options = array()) {
+   function showForUser($item, $options = []) {
       global $DB, $CFG_GLPI;
 
       $users_id = $item->getField('id');
@@ -135,11 +126,11 @@ class PluginUseditemsexportExport extends CommonDBTM {
 
          echo "<div class='center'>";
          echo "<form method='post' name='useditemsexport_form$rand' id='useditemsexport_form$rand'
-                  action=\"" . $CFG_GLPI["root_doc"] . "/plugins/useditemsexport/front/export.form.php\">";
+                  action=\"" . Plugin::getWebDir('useditemsexport') . "/front/export.form.php\">";
 
          echo "<table class='tab_cadre_fixehov'>";
             echo "<tr class='tab_bg_2'><th colspan='2'>".__('Generate new export', 'useditemsexport');
-               echo "&nbsp;&nbsp<input type='submit' name='generate' value=\""._sx('button', 'Create')."\" class='submit'>";
+               echo "&nbsp;&nbsp<input type='submit' name='generate' value=\"".__('Create')."\" class='submit'>";
                echo "<input type='hidden' name='users_id' value='$users_id'>";
             echo "</th></tr>";
          echo "</table>";
@@ -150,15 +141,15 @@ class PluginUseditemsexportExport extends CommonDBTM {
 
       echo "<div class='center'>";
 
-      if ($canpurge) {
+      if ($canpurge && count($exports) > 0) {
          $rand = mt_rand();
-
-         echo "<form method='post' name='useditemsexport_form$rand' id='useditemsexport_form$rand'
-                  action=\"" . $CFG_GLPI["root_doc"] . "/plugins/useditemsexport/front/export.form.php\">";
+         Html::openMassiveActionsForm('mass' . __CLASS__ . $rand);
+         $massiveactionparams = ['item' => $item, 'container' => 'mass'.__CLASS__.$rand];
+         Html::showMassiveActions($massiveactionparams);
       }
 
       echo "<table class='tab_cadre_fixehov'>";
-      echo "<tr><th colspan='" . ($canpurge ? 5 : 4) . "'>" 
+      echo "<tr><th colspan='" . ($canpurge ? 5 : 4) . "'>"
                      . __('Used items export generated', 'useditemsexport') . "</th></tr><tr>";
 
       if (count($exports) == 0) {
@@ -169,8 +160,9 @@ class PluginUseditemsexportExport extends CommonDBTM {
          echo "</tr>";
 
       } else {
+
          if ($canpurge) {
-            echo "<th>&nbsp;</th>";
+            echo "<th width='10'>" . Html::getCheckAllAsCheckbox('mass' . __CLASS__ . $rand) . "</th>";
          }
          echo "<th>" . __('Reference number of export', 'useditemsexport') . "</th>";
          echo "<th>" . __('Date of export', 'useditemsexport') . "</th>";
@@ -181,11 +173,11 @@ class PluginUseditemsexportExport extends CommonDBTM {
          foreach ($exports as $data) {
             echo "<tr class='tab_bg_1'>";
 
-               if ($canpurge) {
-                  echo "<td width='10'>";
-                  echo "<input type='checkbox' name='useditemsexport[" . $data["id"] . "]' value='1' />";
-                  echo "</td>";
-               }
+            if ($canpurge) {
+               echo "<td width='10'>";
+               Html::showMassiveActionCheckBox(__CLASS__, $data["id"]);
+               echo "</td>";
+            }
 
                echo "<td class='center'>";
                echo $data["refnumber"];
@@ -211,18 +203,14 @@ class PluginUseditemsexportExport extends CommonDBTM {
 
       }
 
-      if ($canpurge && count($exports) > 0)   {
+      echo "</table>";
+      if ($canpurge && count($exports) > 0) {
+         $massiveactionparams['ontop'] = false;
+         Html::showMassiveActions($massiveactionparams);
+         Html::closeForm();
 
-            echo "</table>";
-            Html::openArrowMassives("useditemsexport_form$rand", true);
-            Html::closeArrowMassives(array('purgeitem' => __('Purge')));
-            Html::closeForm();
-            echo "</div>";
-
-      } else {
-
-         echo "</table></div>";
       }
+      echo "</div>";
 
    }
 
@@ -259,11 +247,11 @@ class PluginUseditemsexportExport extends CommonDBTM {
          $entity_address.= __('Phone') . ' : ' . $entity->fields["phonenumber"] . '<br />';
       }
 
-      // Get User informations
+      // Get User information
       $User = new User();
       $User->getFromDB($users_id);
 
-      // Get Author informations
+      // Get Author information
       $Author = new User();
       $Author->getFromDB(Session::getLoginUserID());
 
@@ -298,13 +286,16 @@ class PluginUseditemsexportExport extends CommonDBTM {
          <br><br><br><br><br>
          <table>
             <tr>
-               <th style="width: 33%;">
+              <th style="width: 25%;">
                   <?php echo __('Serial number'); ?>
                </th>
-               <th style="width: 33%;">
+               <th style="width: 25%;">
+                  <?php echo __('Inventory number'); ?>
+               </th>
+               <th style="width: 25%;">
                   <?php echo __('Name'); ?>
                </th>
-               <th style="width: 33%;">
+               <th style="width: 25%;">
                   <?php echo __('Type'); ?>
                </th>
             </tr>
@@ -317,20 +308,29 @@ class PluginUseditemsexportExport extends CommonDBTM {
                $item = getItemForItemtype($itemtype);
 
                foreach ($used_items as $item_datas) {
-            
-            ?>
+
+                  ?>
             <tr>
-               <td style="width: 33%;">
-                  <?php echo $item_datas['serial']; ?>
+               <td style="width: 25%;">
+                  <?php
+                  if (isset($item_datas['serial'])) {
+                     echo $item_datas['serial'];
+                  } ?>
                </td>
-               <td style="width: 33%;">
+               <td style="width: 25%;">
+                  <?php
+                  if (isset($item_datas['otherserial'])) {
+                     echo $item_datas['otherserial'];
+                  } ?>
+               </td>
+               <td style="width: 25%;">
                   <?php echo $item_datas['name']; ?>
                </td>
-               <td style="width: 33%;">
+               <td style="width: 25%;">
                   <?php echo $item->getTypeName(1); ?>
                </td>
             </tr>
-            <?php
+                  <?php
 
                }
             }
@@ -341,10 +341,10 @@ class PluginUseditemsexportExport extends CommonDBTM {
          <table style="border-collapse: collapse;">
             <tr>
                <td style="width: 50%; border-bottom: 1px solid #000000;">
-                  <strong><?php echo $Author->getRawName(); ?> :</strong>
+                  <strong><?php echo $Author->getFriendlyName(); ?> :</strong>
                </td>
                <td style="width: 50%; border-bottom: 1px solid #000000">
-                  <strong><?php echo $User->getRawName(); ?> :</strong>
+                  <strong><?php echo $User->getFriendlyName(); ?> :</strong>
                </td>
             </tr>
             <tr>
@@ -362,15 +362,15 @@ class PluginUseditemsexportExport extends CommonDBTM {
             </div>
          </page_footer>
       </page>
-      <?php 
+      <?php
 
       $content = ob_get_clean();
-      
+
       // Generate PDF with HTML2PDF lib
-      $pdf = new HTML2PDF($useditemsexport_config['orientation'], 
-                          $useditemsexport_config['format'], 
-                          $useditemsexport_config['language'], 
-                          true, 
+      $pdf = new HTML2PDF($useditemsexport_config['orientation'],
+                          $useditemsexport_config['format'],
+                          $useditemsexport_config['language'],
+                          true,
                           'UTF-8'
       );
 
@@ -386,7 +386,7 @@ class PluginUseditemsexportExport extends CommonDBTM {
       // Add log for last generated PDF
       $export = new self();
 
-      $input = array();
+      $input = [];
       $input['users_id']     = $users_id;
       $input['date_mod']     = date("Y-m-d H:i:s");
       $input['num']          = $num;
@@ -394,7 +394,7 @@ class PluginUseditemsexportExport extends CommonDBTM {
       $input['authors_id']   = Session::getLoginUserID();
       $input['documents_id'] = $documents_id;
 
-      if($export->add($input)) {
+      if ($export->add($input)) {
          return true;
       }
 
@@ -410,7 +410,7 @@ class PluginUseditemsexportExport extends CommonDBTM {
 
       $doc = new Document();
 
-      $input                          = array();
+      $input                          = [];
       $input["entities_id"]           = $_SESSION['glpiactive_entity'];
       $input["name"]                  = __('Used-Items-Export', 'useditemsexport').'-'.$refnumber;
       $input["upload_file"]           = $refnumber.'.pdf';
@@ -433,7 +433,7 @@ class PluginUseditemsexportExport extends CommonDBTM {
    static function getNextNum() {
       global $DB;
 
-      $query = "SELECT MAX(num) as num 
+      $query = "SELECT MAX(num) as num
                   FROM " . self::getTable();
 
       $result = $DB->query($query);
@@ -456,7 +456,7 @@ class PluginUseditemsexportExport extends CommonDBTM {
    static function getNextRefnumber() {
       global $DB;
 
-      if($nextNum = self::getNextNum()) {
+      if ($nextNum = self::getNextNum()) {
          $nextRefnumber = str_pad($nextNum, 4, "0", STR_PAD_LEFT);
          $date = new DateTime();
          return $nextRefnumber . '-' . $date->format('Y');
@@ -473,7 +473,7 @@ class PluginUseditemsexportExport extends CommonDBTM {
    static function getAllUsedItemsForUser($ID) {
       global $DB, $CFG_GLPI;
 
-      $items = array();
+      $items = [];
 
       foreach ($CFG_GLPI['linkuser_types'] as $itemtype) {
          if (!($item = getItemForItemtype($itemtype))) {
@@ -496,11 +496,35 @@ class PluginUseditemsexportExport extends CommonDBTM {
             $type_name = $item->getTypeName();
 
             if ($DB->numrows($result) > 0) {
-               while ($data = $DB->fetch_assoc($result)) {
+               while ($data = $DB->fetchAssoc($result)) {
                   $items[$itemtype][] = $data;
                }
             }
          }
+      }
+
+      // Consumables
+      $consumables = $DB->request(
+         [
+            'SELECT' => ['name', 'otherserial'],
+            'FROM'   => ConsumableItem::getTable(),
+            'WHERE'  => [
+               'id' => new QuerySubQuery(
+                  [
+                     'SELECT' => 'consumableitems_id',
+                     'FROM'   => Consumable::getTable(),
+                     'WHERE'  => [
+                        'itemtype' => User::class,
+                        'items_id' => $ID
+                     ],
+                  ]
+               )
+            ],
+         ]
+      );
+
+      foreach ($consumables as $data) {
+         $items['ConsumableItem'][] = $data;
       }
 
       return $items;
@@ -516,11 +540,11 @@ class PluginUseditemsexportExport extends CommonDBTM {
       // Clean Document GLPi
       $doc = new Document();
       $doc->getFromDB($this->fields['documents_id']);
-      $doc->delete(array('id' => $this->fields['documents_id']), true);
+      $doc->delete(['id' => $this->fields['documents_id']], true);
    }
 
    /**
-    * Install all necessary table for the plugin
+    * Install all necessary tables for the plugin
     *
     * @return boolean True if success
     */
@@ -529,25 +553,25 @@ class PluginUseditemsexportExport extends CommonDBTM {
 
       $table = getTableForItemType(__CLASS__);
 
-      if (!TableExists($table)) {
+      if (!$DB->tableExists($table)) {
          $migration->displayMessage("Installing $table");
 
          $query = "CREATE TABLE IF NOT EXISTS `$table` (
                   `id` INT(11) NOT NULL AUTO_INCREMENT,
                   `users_id` INT(11) NOT NULL DEFAULT '0',
-                  `date_mod` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00',
+                  `date_mod` TIMESTAMP NULL DEFAULT NULL,
                   `num` SMALLINT(2) NOT NULL DEFAULT 0,
                   `refnumber` VARCHAR(9) NOT NULL DEFAULT '0000-0000',
                   `authors_id` INT(11) NOT NULL DEFAULT '0',
                   `documents_id` INT(11) NOT NULL DEFAULT '0',
                PRIMARY KEY  (`id`)
-            ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;";
+            ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;";
             $DB->query($query) or die ($DB->error());
       }
    }
 
    /**
-    * Uninstall previously installed table of the plugin
+    * Uninstall previously installed tables of the plugin
     *
     * @return boolean True if success
     */

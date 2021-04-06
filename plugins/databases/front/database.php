@@ -9,7 +9,7 @@
  -------------------------------------------------------------------------
 
  LICENSE
-      
+
  This file is part of databases.
 
  databases is free software; you can redistribute it and/or modify
@@ -29,10 +29,10 @@
 
 include('../../../inc/includes.php');
 
+
 $plugin = new Plugin();
 if ($plugin->isActivated("environment")) {
-   Html::header(PluginDatabasesDatabase::getTypeName(2)
-      , '', "assets", "pluginenvironmentdisplay", "databases");
+   Html::header(PluginDatabasesDatabase::getTypeName(2), '', "assets", "pluginenvironmentdisplay", "databases");
 } else {
    Html::header(PluginDatabasesDatabase::getTypeName(2), '', "assets", "plugindatabasesmenu");
 }

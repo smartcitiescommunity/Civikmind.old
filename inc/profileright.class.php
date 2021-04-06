@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -41,7 +37,7 @@ if (!defined('GLPI_ROOT')) {
 /**
  * Profile class
  *
- * @since version 0.85
+ * @since 0.85
 **/
 class ProfileRight extends CommonDBChild {
 
@@ -51,27 +47,40 @@ class ProfileRight extends CommonDBChild {
    public $dohistory       = true;
 
 
-
+   /**
+    * Get possible rights
+    *
+    * @return array
+    */
    static function getAllPossibleRights() {
-      global $DB;
+      global $DB, $GLPI_CACHE;
 
-      if (!isset($_SESSION['glpi_all_possible_rights'])
-          ||(count($_SESSION['glpi_all_possible_rights']) == 0)) {
+      $rights = [];
 
-         $_SESSION['glpi_all_possible_rights'] = [];
-         $rights = [];
+      if (!$GLPI_CACHE->has('all_possible_rights')
+          || count($GLPI_CACHE->get('all_possible_rights')) == 0) {
+
          $iterator = $DB->request([
-            'SELECT DISTINCT' => ['name'],
+            'SELECT'          => 'name',
+            'DISTINCT'        => true,
             'FROM'            => self::getTable()
          ]);
          while ($right = $iterator->next()) {
             // By default, all rights are NULL ...
-            $_SESSION['glpi_all_possible_rights'][$right['name']] = '';
+            $rights[$right['name']] = '';
          }
+         $GLPI_CACHE->set('all_possible_rights', $rights);
+      } else {
+         $rights = $GLPI_CACHE->get('all_possible_rights');
       }
-      return $_SESSION['glpi_all_possible_rights'];
+      return $rights;
    }
 
+
+   static function cleanAllPossibleRights() {
+      global $GLPI_CACHE;
+      $GLPI_CACHE->delete('all_possible_rights');
+   }
 
    /**
     * @param $profiles_id
@@ -79,6 +88,11 @@ class ProfileRight extends CommonDBChild {
    **/
    static function getProfileRights($profiles_id, array $rights = []) {
       global $DB;
+
+      if (!version_compare(Config::getCurrentDBVersion(), '0.84', '>=')) {
+         //table does not exists.
+         return [];
+      }
 
       $query = [
          'FROM'   => 'glpi_profilerights',
@@ -102,21 +116,26 @@ class ProfileRight extends CommonDBChild {
     * @return boolean
    **/
    static function addProfileRights(array $rights) {
-      global $DB;
+      global $DB, $GLPI_CACHE;
 
       $ok = true;
-      $_SESSION['glpi_all_possible_rights'] = [];
+      $GLPI_CACHE->set('all_possible_rights', []);
 
-      $query = "SELECT `id`
-                FROM `glpi_profiles`";
+      $iterator = $DB->request([
+          'SELECT'   => ['id'],
+          'FROM'     => Profile::getTable()
+      ]);
 
-      foreach ($DB->request($query) as $profile) {
+      while ($profile = $iterator->next()) {
          $profiles_id = $profile['id'];
          foreach ($rights as $name) {
-            $query = "INSERT INTO `glpi_profilerights`
-                             (`profiles_id`, `name`)
-                      VALUES ('$profiles_id', '$name')";
-            if (!$DB->query($query)) {
+            $res = $DB->insert(
+               self::getTable(), [
+                  'profiles_id'  => $profiles_id,
+                  'name'         => $name
+               ]
+            );
+            if (!$res) {
                $ok = false;
             }
          }
@@ -131,14 +150,17 @@ class ProfileRight extends CommonDBChild {
     * @return boolean
    **/
    static function deleteProfileRights(array $rights) {
-      global $DB;
+      global $DB, $GLPI_CACHE;
 
-      $_SESSION['glpi_all_possible_rights'] = [];
-      $ok                                   = true;
+      $GLPI_CACHE->set('all_possible_rights', []);
+      $ok = true;
       foreach ($rights as $name) {
-         $query = "DELETE FROM `glpi_profilerights`
-                   WHERE `name` = '$name'";
-         if (!$DB->query($query)) {
+         $result = $DB->delete(
+            self::getTable(), [
+               'name' => $name
+            ]
+         );
+         if (!$result) {
             $ok = false;
          }
       }
@@ -162,11 +184,15 @@ class ProfileRight extends CommonDBChild {
          $profiles[] = $data['profiles_id'];
       }
       if (count($profiles)) {
-         $query = "UPDATE `glpi_profilerights`
-                   SET `rights` = `rights` | " . $value ."
-                   WHERE `name` = '$right'
-                         AND `profiles_id` IN ('".implode("', '", $profiles)."')";
-         if (!$DB->query($query)) {
+         $result = $DB->update(
+            'glpi_profilerights', [
+               'rights' => new \QueryExpression($DB->quoteName('rights') . ' | ' . (int)$value)
+            ], [
+               'name'         => $right,
+               'profiles_id'  => $profiles
+            ]
+         );
+         if (!$result) {
             $ok = false;
          }
       }
@@ -175,7 +201,7 @@ class ProfileRight extends CommonDBChild {
 
 
    /**
-    * @since version 0.85
+    * @since 0.85
     *
     * @param $newright      string   new right name
     * @param $initialright  string   right name to check
@@ -183,26 +209,32 @@ class ProfileRight extends CommonDBChild {
     *
     * @return boolean
    **/
-   static function updateProfileRightsAsOtherRights($newright, $initialright, $condition = '') {
+   static function updateProfileRightsAsOtherRights($newright, $initialright, array $condition = []) {
       global $DB;
 
       $profiles = [];
       $ok       = true;
-      if (empty($condition)) {
-         $condition = "`name` = '$initialright'";
-      } else {
-         $condition = "`name` = '$initialright' AND $condition";
-      }
-      foreach ($DB->request('glpi_profilerights', $condition) as $data) {
+
+      $criteria = [
+         'FROM'   => self::getTable(),
+         'WHERE'  => ['name' => $initialright] + $condition
+      ];
+      $iterator = $DB->request($criteria);
+
+      while ($data = $iterator->next()) {
          $profiles[$data['profiles_id']] = $data['rights'];
       }
       if (count($profiles)) {
          foreach ($profiles as $key => $val) {
-            $query = "UPDATE `glpi_profilerights`
-                      SET `rights` = '$val'
-                      WHERE `name` = '$newright'
-                           AND `profiles_id` = '$key'";
-            if (!$DB->query($query)) {
+            $res = $DB->update(
+               self::getTable(), [
+                  'rights' => $val
+               ], [
+                  'profiles_id'  => $key,
+                  'name'         => $newright
+               ]
+            );
+            if (!$res) {
                $ok = false;
             }
          }
@@ -216,18 +248,39 @@ class ProfileRight extends CommonDBChild {
    static function fillProfileRights($profiles_id) {
       global $DB;
 
-      $query = "SELECT DISTINCT POSSIBLE.`name` AS NAME
-                FROM `glpi_profilerights` AS POSSIBLE
-                WHERE NOT EXISTS (SELECT *
-                                  FROM `glpi_profilerights` AS CURRENT
-                                  WHERE CURRENT.`profiles_id` = '$profiles_id'
-                                        AND CURRENT.`NAME` = POSSIBLE.`NAME`)";
+      $subq =new \QuerySubQuery([
+         'FROM'   => 'glpi_profilerights AS CURRENT',
+         'WHERE'  => [
+            'CURRENT.profiles_id'   => $profiles_id,
+            'CURRENT.NAME'          => new \QueryExpression('POSSIBLE.NAME')
+         ]
+      ]);
 
-      foreach ($DB->request($query) as $right) {
-         $query = "INSERT INTO `glpi_profilerights`
-                          (`profiles_id`, `name`)
-                   VALUES ('$profiles_id', '".$right['NAME']."')";
-         $DB->query($query);
+      $expr = 'NOT EXISTS ' . $subq->getQuery();
+      $iterator = $DB->request([
+         'SELECT'          => 'POSSIBLE.name AS NAME',
+         'DISTINCT'        => true,
+         'FROM'            => 'glpi_profilerights AS POSSIBLE',
+         'WHERE'           => [
+            new \QueryExpression($expr)
+         ]
+      ]);
+
+      if ($iterator->count() === 0) {
+         return;
+      }
+
+      $query = $DB->buildInsert(
+         self::getTable(),
+         [
+            'profiles_id' => new QueryParam(),
+            'name'        => new QueryParam(),
+         ]
+      );
+      $stmt = $DB->prepare($query);
+      while ($right = $iterator->next()) {
+         $stmt->bind_param('ss', $profiles_id, $right['NAME']);
+         $stmt->execute();
       }
    }
 
@@ -243,17 +296,17 @@ class ProfileRight extends CommonDBChild {
       $me = new self();
       foreach ($rights as $name => $right) {
          if (isset($right)) {
-            if ($me->getFromDBByQuery("WHERE `profiles_id` = '$profiles_id'
-                                             AND `name` = '$name'")) {
+            if ($me->getFromDBByCrit(['profiles_id'   => $profiles_id,
+                                      'name'          => $name])) {
 
                $input = ['id'          => $me->getID(),
-                              'rights'      => $right];
+                         'rights'      => $right];
                $me->update($input);
 
             } else {
                $input = ['profiles_id' => $profiles_id,
-                              'name'        => $name,
-                              'rights'      => $right];
+                         'name'        => $name,
+                         'rights'      => $right];
                $me->add($input);
             }
          }
@@ -284,7 +337,7 @@ class ProfileRight extends CommonDBChild {
 
 
    /**
-    * @since version 085
+    * @since 085
     *
     * @param $field
     * @param $values
@@ -315,7 +368,7 @@ class ProfileRight extends CommonDBChild {
 
 
    /**
-    * @since version 0.85
+    * @since 0.85
     *
     * @see CommonDBTM::getLogTypeID()
    **/

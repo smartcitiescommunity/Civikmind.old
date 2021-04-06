@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -29,10 +29,6 @@
  * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
  */
-
-/** @file
-* @brief
-*/
 
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
@@ -63,12 +59,16 @@ class FieldUnicity extends CommonDropdown {
 
 
    /**
-    * @since version 0.85
+    * @since 0.85
    **/
    static function canPurge() {
       return static::canUpdate();
    }
 
+
+   function displayHeader() {
+      Html::header(FieldUnicity::getTypeName(Session::getPluralNumber()), $_SERVER['PHP_SELF'], "config", "fieldunicity");
+   }
 
    function getAdditionalFields() {
 
@@ -76,7 +76,7 @@ class FieldUnicity extends CommonDropdown {
                          'label' => __('Active'),
                          'type'  => 'bool'],
                    ['name'  => 'itemtype',
-                         'label' => __('Type'),
+                         'label' => _n('Type', 'Types', 1),
                          'type'  => 'unicity_itemtype'],
                    ['name'  => 'fields',
                          'label' => __('Unique fields'),
@@ -149,10 +149,10 @@ class FieldUnicity extends CommonDropdown {
    /**
     * Display a dropdown which contains all the available itemtypes
     *
-    * @param ID      the field unicity item id
-    * @param value   the selected value (default 0)
+    * @param integer $ID     The field unicity item id
+    * @param integer $value  The selected value (default 0)
     *
-    * @return nothing
+    * @return void
    **/
    function showItemtype($ID, $value = 0) {
       global $CFG_GLPI;
@@ -165,6 +165,7 @@ class FieldUnicity extends CommonDropdown {
          echo "<input type='hidden' name='itemtype' value='".$this->fields['itemtype']."'>";
 
       } else {
+         $options = [];
          //Add criteria : display dropdown
          foreach ($CFG_GLPI['unicity_types'] as $itemtype) {
             if ($item = getItemForItemtype($itemtype)) {
@@ -189,31 +190,32 @@ class FieldUnicity extends CommonDropdown {
    /**
     * Return criteria unicity for an itemtype, in an entity
     *
-    * @param itemtype      the itemtype for which unicity must be checked
-    * @param entities_id   the entity for which configuration must be retrivied (default 0)
-    * @param $check_active (true by default)
+    * @param string  itemtype       the itemtype for which unicity must be checked
+    * @param integer entities_id    the entity for which configuration must be retrivied
+    * @param boolean $check_active
     *
-    * @return an array of fields to check, or an empty array if no
+    * @return array an array of fields to check, or an empty array if no
    **/
    public static function getUnicityFieldsConfig($itemtype, $entities_id = 0, $check_active = true) {
       global $DB;
 
       //Get the first active configuration for this itemtype
-      $query = "SELECT *
-                FROM `glpi_fieldunicities`
-                WHERE `itemtype` = '$itemtype' ".
-                      getEntitiesRestrictRequest("AND", 'glpi_fieldunicities', "", $entities_id,
-                                                 true);
+      $request = [
+         'FROM'   => 'glpi_fieldunicities',
+         'WHERE'  => [
+            'itemtype'  => $itemtype
+         ] + getEntitiesRestrictCriteria('glpi_fieldunicities', '', $entities_id, true),
+         'ORDER'  => ['entities_id DESC']
+      ];
 
       if ($check_active) {
-         $query .= " AND `is_active` = '1' ";
+         $request['WHERE']['is_active'] = 1;
       }
-
-      $query .= "ORDER BY `entities_id` DESC";
+      $iterator = $DB->request($request);
 
       $current_entity = false;
       $return         = [];
-      foreach ($DB->request($query) as $data) {
+      while ($data = $iterator->next()) {
          //First row processed
          if (!$current_entity) {
             $current_entity = $data['entities_id'];
@@ -231,13 +233,11 @@ class FieldUnicity extends CommonDropdown {
    /**
     * Display a list of available fields for unicity checks
     *
-    * @param $unicity an instance of CommonDBTM class
+    * @param CommonDBTM $unicity
     *
-    * @return nothing
+    * @return void
    **/
    static function selectCriterias(CommonDBTM $unicity) {
-      global $DB;
-
       echo "<span id='span_fields'>";
 
       if (!isset($unicity->fields['itemtype']) || !$unicity->fields['itemtype']) {
@@ -260,17 +260,19 @@ class FieldUnicity extends CommonDropdown {
 
    /** Dropdown fields for a specific itemtype
     *
-    * @since version 0.84
+    * @since 0.84
     *
-    * @param $itemtype          itemtype
-    * @param $options   array    of options
+    * @param string $itemtype
+    * @param array  $options
    **/
    static function dropdownFields($itemtype, $options = []) {
       global $DB;
 
-      $p['name']    = 'fields';
-      $p['display'] = true;
-      $p['values']  = [];
+      $p = [
+         'name'    => 'fields',
+         'display' => true,
+         'values'  => [],
+      ];
 
       if (is_array($options) && count($options)) {
          foreach ($options as $key => $val) {
@@ -285,7 +287,7 @@ class FieldUnicity extends CommonDropdown {
 
          //Construct list
          $values = [];
-         foreach ($DB->list_fields(getTableForItemType($itemtype)) as $field) {
+         foreach ($DB->listFields(getTableForItemType($itemtype)) as $field) {
             $searchOption = $target->getSearchOptionByField('field', $field['Field']);
             if (!empty($searchOption)
                 && !in_array($field['Type'], $blacklisted_types)
@@ -302,7 +304,7 @@ class FieldUnicity extends CommonDropdown {
    }
 
 
-   function getSearchOptionsNew() {
+   function rawSearchOptions() {
       $tab = [];
 
       $tab[] = [
@@ -342,7 +344,7 @@ class FieldUnicity extends CommonDropdown {
          'id'                 => '4',
          'table'              => $this->getTable(),
          'field'              => 'itemtype',
-         'name'               => __('Type'),
+         'name'               => _n('Type', 'Types', 1),
          'massiveaction'      => false,
          'datatype'           => 'itemtypename',
          'itemtype_list'      => 'unicity_types'
@@ -393,7 +395,7 @@ class FieldUnicity extends CommonDropdown {
          'id'                 => '80',
          'table'              => 'glpi_entities',
          'field'              => 'completename',
-         'name'               => __('Entity'),
+         'name'               => Entity::getTypeName(1),
          'datatype'           => 'dropdown'
       ];
 
@@ -402,7 +404,7 @@ class FieldUnicity extends CommonDropdown {
 
 
    /**
-    * @since version 0.84
+    * @since 0.84
     *
     * @param $field
     * @param $values
@@ -438,7 +440,7 @@ class FieldUnicity extends CommonDropdown {
 
 
    /**
-    * @since version 0.84
+    * @since 0.84
     *
     * @param $field
     * @param $name               (default '')
@@ -446,8 +448,6 @@ class FieldUnicity extends CommonDropdown {
     * @param $options      array
    **/
    static function getSpecificValueToSelect($field, $name = '', $values = '', array $options = []) {
-      global $DB;
-
       if (!is_array($values)) {
          $values = [$field => $values];
       }
@@ -469,9 +469,9 @@ class FieldUnicity extends CommonDropdown {
    /**
     * Perform checks to be sure that an itemtype and at least a field are selected
     *
-    * @param input the values to insert in DB
+    * @param array $input  the values to insert in DB
     *
-    * @return input the values to insert, but modified
+    * @return array the input values to insert, but modified
    **/
    static function checkBeforeInsert($input) {
 
@@ -508,22 +508,23 @@ class FieldUnicity extends CommonDropdown {
     *
     * @param itemtype
     *
-    * @return nothing
+    * @return void
    **/
    static function deleteForItemtype($itemtype) {
       global $DB;
 
-      $query = "DELETE
-                FROM `glpi_fieldunicities`
-                WHERE `itemtype` LIKE '%Plugin$itemtype%'";
-      $DB->query($query);
+      $DB->delete(
+         self::getTable(), [
+            'itemtype'  => ['LIKE', "%Plugin$itemtype%"]
+         ]
+      );
    }
 
 
    /**
     * List doubles
     *
-    * @param $unicity an instance of FieldUnicity class
+    * @param FieldUnicity $unicity
    **/
    static function showDoubles(FieldUnicity $unicity) {
       global $DB;
@@ -547,32 +548,38 @@ class FieldUnicity extends CommonDropdown {
          if ($unicity->fields['is_recursive']) {
             $entities = getSonsOf('glpi_entities', $unicity->fields['entities_id']);
          }
-         $fields_string = implode(',', $fields);
 
+         $where = [];
          if ($item->maybeTemplate()) {
-            $where_template = " AND `".$item->getTable()."`.`is_template` = '0'";
-         } else {
-            $where_template = "";
+            $where[$item->getTable() . '.is_template'] = 0;
          }
 
-         $where_fields_string = "";
          foreach ($where_fields as $where_field) {
             if (getTableNameForForeignKeyField($where_field)) {
-               $where_fields_string.= " AND `$where_field` IS NOT NULL AND `$where_field` <> '0'";
+               $where = $where + [
+                  'NOT'          => [$where_field => null],
+                  $where_field   => ['<>', 0]
+               ];
             } else {
-               $where_fields_string.= " AND `$where_field` IS NOT NULL AND `$where_field` <> ''";
+               $where = $where + [
+                  'NOT'          => [$where_field => null],
+                  $where_field   => ['<>', '']
+               ];
             }
          }
-         $query = "SELECT $fields_string,
-                          COUNT(*) AS cpt
-                   FROM `".$item->getTable()."`
-                   WHERE `".$item->getTable()."`.`entities_id` IN (".implode(',', $entities).")
-                         $where_template
-                         $where_fields_string
-                   GROUP BY $fields_string
-                   ORDER BY cpt DESC";
+
+         $iterator = $DB->request([
+            'SELECT'    => $fields,
+            'COUNT'     => 'cpt',
+            'FROM'      => $item->getTable(),
+            'WHERE'     => [
+               $item->getTable() . '.entities_id'  => $entities
+            ] + $where,
+            'GROUPBY'   => $fields,
+            'ORDERBY'   => 'cpt DESC'
+         ]);
          $results = [];
-         foreach ($DB->request($query) as $data) {
+         while ($data = $iterator->next()) {
             if ($data['cpt'] > 1) {
                $results[] = $data;
 
@@ -630,4 +637,8 @@ class FieldUnicity extends CommonDropdown {
       NotificationEvent::debugEvent($this, $params);
    }
 
+
+   static function getIcon() {
+      return "fas fa-fingerprint";
+   }
 }

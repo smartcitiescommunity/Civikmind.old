@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 include ('../inc/includes.php');
 
 Session::checkRight("user", User::IMPORTEXTAUTHUSERS);
@@ -44,7 +40,7 @@ if (isset($_SESSION["ldap_sortorder"])) {
    unset($_SESSION["ldap_sortorder"]);
 }
 
-AuthLdap::manageValuesInSession([], true);
+AuthLDAP::manageValuesInSession([], true);
 echo "<div class='center'><table class='tab_cadre'>";
 echo "<tr><th>".__('Bulk import users from a LDAP directory')."</th></tr>";
 

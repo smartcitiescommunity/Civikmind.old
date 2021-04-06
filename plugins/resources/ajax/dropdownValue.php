@@ -9,7 +9,7 @@
  -------------------------------------------------------------------------
 
  LICENSE
-      
+
  This file is part of resources.
 
  resources is free software; you can redistribute it and/or modify
@@ -28,7 +28,7 @@
  */
 
 // Direct access to file
-if (strpos($_SERVER['PHP_SELF'],"dropdownValue.php")) {
+if (strpos($_SERVER['PHP_SELF'], "dropdownValue.php")) {
    include ('../../../inc/includes.php');
    header("Content-Type: text/html; charset=UTF-8");
    Html::header_nocache();
@@ -40,8 +40,10 @@ if (!defined('GLPI_ROOT')) {
 
 Session::checkLoginUser();
 
+$dbu = new DbUtils();
+
 // Security
-if (!($item = getItemForItemtype($_GET['itemtype']))) {
+if (!($item = $dbu->getItemForItemtype($_GET['itemtype']))) {
    exit();
 }
 
@@ -93,10 +95,10 @@ if (!isset($_GET["limit"])) {
 $where = "WHERE 1 ";
 
 if ($item->maybeDeleted()) {
-   $where .= " AND `is_deleted` = '0' ";
+   $where .= " AND `is_deleted` = 0 ";
 }
 if ($item->maybeTemplate()) {
-   $where .= " AND `is_template` = '0' ";
+   $where .= " AND `is_template` = 0 ";
 }
 
 $NBMAX = $CFG_GLPI["dropdown_max"];
@@ -117,7 +119,7 @@ if (isset($_GET['used'])) {
    }
 
    if (count($used)) {
-      $where .= ",'".implode("','",$used)."'";
+      $where .= ",'".implode("','", $used)."'";
    }
 }
 
@@ -128,7 +130,7 @@ if (isset($_GET['toadd'])) {
       $toadd = Toolbox::decodeArrayFromInput($_GET['toadd']);
    }
 } else {
-   $toadd = array();
+   $toadd = [];
 }
 
 $where .= ") ";
@@ -156,7 +158,7 @@ if ($item instanceof CommonTreeDropdown) {
       }
 
       if (isset($_GET["entity_restrict"]) && !($_GET["entity_restrict"]<0)) {
-         $where .= getEntitiesRestrictRequest(" AND ", $table, '', $_GET["entity_restrict"],
+         $where .= $dbu->getEntitiesRestrictRequest(" AND ", $table, '', $_GET["entity_restrict"],
                                               $recur);
 
          if (is_array($_GET["entity_restrict"]) && count($_GET["entity_restrict"])>1) {
@@ -164,7 +166,7 @@ if ($item instanceof CommonTreeDropdown) {
          }
 
       } else {
-         $where .= getEntitiesRestrictRequest(" AND ", $table, '', '', $recur);
+         $where .= $dbu->getEntitiesRestrictRequest(" AND ", $table, '', '', $recur);
 
          if (count($_SESSION['glpiactiveentities'])>1) {
             $multi = true;
@@ -255,12 +257,12 @@ if ($item instanceof CommonTreeDropdown) {
          }
       }
 
-      $last_level_displayed = array();
+      $last_level_displayed = [];
 
       if ($DB->numrows($result)) {
          $prev = -1;
 
-         while ($data =$DB->fetch_array($result)) {
+         while ($data =$DB->fetchArray($result)) {
             $ID     = $data['id'];
             $level  = $data['level'];
             $output = $data['name'];
@@ -280,7 +282,7 @@ if ($item instanceof CommonTreeDropdown) {
                $prev = $data["entities_id"];
                echo "<optgroup label=\"". Dropdown::getDropdownName("glpi_entities", $prev) ."\">";
                // Reset last level displayed :
-               $last_level_displayed = array();
+               $last_level_displayed = [];
             }
 
             $class = " class='tree' ";
@@ -319,7 +321,7 @@ if ($item instanceof CommonTreeDropdown) {
                            }
                            $output2 = $item->getName();
                            if (Toolbox::strlen($output2)>$_GET["limit"]) {
-                              $output2 = Toolbox::substr($output2, 0 ,$_GET["limit"])."&hellip;";
+                              $output2 = Toolbox::substr($output2, 0, $_GET["limit"])."&hellip;";
                            }
 
                            $class2 = " class='tree' ";
@@ -389,7 +391,7 @@ if ($item instanceof CommonTreeDropdown) {
       $multi = $item->maybeRecursive();
 
       if (isset($_GET["entity_restrict"]) && !($_GET["entity_restrict"]<0)) {
-         $where .= getEntitiesRestrictRequest("AND", $table, "entities_id",
+         $where .= $dbu->getEntitiesRestrictRequest("AND", $table, "entities_id",
                                               $_GET["entity_restrict"], $multi);
 
          if (is_array($_GET["entity_restrict"]) && count($_GET["entity_restrict"])>1) {
@@ -397,7 +399,7 @@ if ($item instanceof CommonTreeDropdown) {
          }
 
       } else {
-         $where .= getEntitiesRestrictRequest("AND", $table, '', '', $multi);
+         $where .= $dbu->getEntitiesRestrictRequest("AND", $table, '', '', $multi);
 
          if (count($_SESSION['glpiactiveentities'])>1) {
             $multi = true;
@@ -454,7 +456,7 @@ if ($item instanceof CommonTreeDropdown) {
          }
       }
 
-      $output = Dropdown::getDropdownName($table,$_GET['value']);
+      $output = Dropdown::getDropdownName($table, $_GET['value']);
 
       if (strlen($output)!=0 && $output!="&nbsp;") {
          if ($_SESSION["glpiis_ids_visible"]) {
@@ -466,7 +468,7 @@ if ($item instanceof CommonTreeDropdown) {
       if ($DB->numrows($result)) {
          $prev = -1;
 
-         while ($data =$DB->fetch_array($result)) {
+         while ($data =$DB->fetchArray($result)) {
             $output = $data[$field];
 
             if ($displaywith) {
@@ -507,8 +509,8 @@ if ($item instanceof CommonTreeDropdown) {
 }
 
 if (isset($_GET["comment"]) && $_GET["comment"]) {
-   $paramscomment = array('value' => '__VALUE__',
-                          'table' => $table);
+   $paramscomment = ['value' => '__VALUE__',
+                          'table' => $table];
 
    Ajax::updateItemOnSelectEvent("dropdown_".$_GET["myname"].$_GET["rand"],
                                  "comment_".$_GET["myname"].$_GET["rand"],
@@ -517,17 +519,17 @@ if (isset($_GET["comment"]) && $_GET["comment"]) {
 
 if (isset($_GET["action"]) && $_GET["action"]) {
 
-   
+
    $sort = false;
-   if(isset($_GET['sort']) && !empty($_GET['sort'])){
+   if (isset($_GET['sort']) && !empty($_GET['sort'])) {
       $sort = $_GET['sort'];
    }
-      
-   $params=array($_GET['myname'] => '__VALUE__',
+
+   $params=[$_GET['myname'] => '__VALUE__',
                        'entity_restrict' => $_GET['entity_restrict'],
                        'rand' => $_GET['rand'],
-                       'sort' => $sort);
-                       
+                       'sort' => $sort];
+
    Ajax::updateItemOnSelectEvent("dropdown_".$_GET["myname"].$_GET["rand"], $_GET['span'],
                                      $_GET['action'],
                                      $params);
@@ -535,4 +537,3 @@ if (isset($_GET["action"]) && $_GET["action"]) {
 }
 
 Ajax::commonDropdownUpdateItem($_GET);
-?>

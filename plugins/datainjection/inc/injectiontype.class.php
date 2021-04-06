@@ -1,6 +1,6 @@
 <?php
 /*
- * @version $Id$
+ * @version $Id: HEADER 14684 2011-06-11 06:32:40Z remi $
  LICENSE
 
  This file is part of the datainjection plugin.
@@ -20,39 +20,41 @@
  --------------------------------------------------------------------------
  @package   datainjection
  @author    the datainjection plugin team
- @copyright Copyright (c) 2010-2013 Datainjection plugin team
+ @copyright Copyright (c) 2010-2017 Datainjection plugin team
  @license   GPLv2+
             http://www.gnu.org/licenses/gpl.txt
- @link      https://forge.indepnet.net/projects/datainjection
+ @link      https://github.com/pluginsGLPI/datainjection
  @link      http://www.glpi-project.org/
  @since     2009
  ---------------------------------------------------------------------- */
 
 class PluginDatainjectionInjectionType {
 
-   const NO_VALUE = 'none';
+    const NO_VALUE = 'none';
 
 
-   /**
+    /**
     * Return all injectable types
     *
     * @param $only_primary    return only primary types (false by default)
     *
     * @return an array which contains array(itemtype => itemtype name)
    **/
-   static function getItemtypes($only_primary=false) {
+   static function getItemtypes($only_primary = false) {
+
       global $INJECTABLE_TYPES;
 
       getTypesToInject();
 
       $plugin = new Plugin();
-      $values = array();
+      $values = [];
       foreach ($INJECTABLE_TYPES as $type => $from) {
          $injectionclass = new $type();
 
          if (class_exists($type)
              && (!$only_primary
-                 || ($only_primary && $injectionclass->isPrimaryType()))) {
+             || ($only_primary && $injectionclass->isPrimaryType()))
+         ) {
             $instance = new $type();
             //If user has no right to create an object of this type, do not display type in the list
             if (!$instance->canCreate()) {
@@ -64,7 +66,7 @@ class PluginDatainjectionInjectionType {
                $plugin->getFromDBbyDir($from);
                $name = $plugin->getName().': ';
             }
-            $name.= call_user_func(array($type, 'getTypeName'));
+            $name.= call_user_func([$type, 'getTypeName']);
             $values[$typename] = $name;
          }
       }
@@ -73,7 +75,7 @@ class PluginDatainjectionInjectionType {
    }
 
 
-   /**
+    /**
     * Display a list of all importable types using datainjection plugin
     *
     * @param $value           the selected value (default '')
@@ -81,27 +83,34 @@ class PluginDatainjectionInjectionType {
     *
     * @return nothing
    **/
-   static function dropdown($value='', $only_primary=false) {
+   static function dropdown($value = '', $only_primary = false) {
 
-       return Dropdown::showFromArray('itemtype', self::getItemtypes($only_primary),
-                                      array('value' => $value));
+      return Dropdown::showFromArray(
+          'itemtype', self::getItemtypes($only_primary),
+          ['value' => $value]
+      );
    }
 
 
-   /**
+    /**
     * Get all types linked with a primary type
     *
     * @param $mapping_or_info
     * @param $options            array
    **/
-   static function dropdownLinkedTypes($mapping_or_info, $options=array()) {
+   static function dropdownLinkedTypes($mapping_or_info, $options = []) {
+
       global $INJECTABLE_TYPES, $CFG_GLPI;
 
       getTypesToInject(); // populate $INJECTABLE_TYPES
 
       $p['primary_type']    = '';
       $p['itemtype']        = self::NO_VALUE;
-      $p['mapping_or_info'] = json_encode($mapping_or_info->fields);
+      // Use hex code for all special chars to prevent problems when adding/stripping slashes
+      $p['mapping_or_info'] = json_encode(
+         $mapping_or_info->fields,
+         JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP
+      );
       $p['called_by']       = get_class($mapping_or_info);
       $p['fields_update']   = true;
       foreach ($options as $key => $value) {
@@ -109,10 +118,11 @@ class PluginDatainjectionInjectionType {
       }
 
       $mappings_id = $mapping_or_info->fields['id'];
-      $values      = array();
+      $values      = [];
 
       if (($p['itemtype'] == self::NO_VALUE)
-          && ($mapping_or_info->fields['itemtype'] != self::NO_VALUE)) {
+          && ($mapping_or_info->fields['itemtype'] != self::NO_VALUE)
+      ) {
 
          $p['itemtype'] = $mapping_or_info->fields['itemtype'];
       }
@@ -129,17 +139,20 @@ class PluginDatainjectionInjectionType {
          $connected_to   = $injectionClass->connectedTo();
          if (in_array($p['primary_type'], $connected_to)) {
             $typename          = getItemTypeForTable($injectionClass->getTable());
-            $values[$typename] = call_user_func(array($type, 'getTypeName'));
+            $values[$typename] = call_user_func([$type, 'getTypeName']);
          }
       }
       asort($values);
 
-      $rand = Dropdown::showFromArray("data[".$mappings_id."][itemtype]",
-                                      $values, array('value' => $p['itemtype']));
+      $rand = Dropdown::showFromArray(
+          "data[".$mappings_id."][itemtype]",
+          $values, ['value' => $p['itemtype']]
+      );
 
       $p['itemtype'] = '__VALUE__';
-      $url_field     = $CFG_GLPI["root_doc"]."/plugins/datainjection/ajax/dropdownChooseField.php";
-      $url_mandatory = $CFG_GLPI["root_doc"]."/plugins/datainjection/ajax/dropdownMandatory.php";
+      $di_base_url   = Plugin::getWebDir('datainjection');
+      $url_field     = "$di_base_url/ajax/dropdownChooseField.php";
+      $url_mandatory = "$di_base_url/ajax/dropdownMandatory.php";
       $toobserve     = "dropdown_data[".$mapping_or_info->getID()."][itemtype]$rand";
       $toupdate      = "span_field_".$mappings_id;
       Ajax::updateItem($toupdate, $url_field, $p, $toobserve);
@@ -148,16 +161,17 @@ class PluginDatainjectionInjectionType {
    }
 
 
-   /**
+    /**
     * @param $options   array
    **/
-   static function dropdownFields($options = array()) {
+   static function dropdownFields($options = []) {
+
       global $CFG_GLPI;
 
-      $used                 = array();
+      $used                 = [];
       $p['itemtype']        = self::NO_VALUE;
       $p['primary_type']    = '';
-      $p['mapping_or_info'] = array();
+      $p['mapping_or_info'] = [];
       $p['called_by']       = '';
       $p['need_decode']     = true;
       $p['fields_update']   = true;
@@ -167,13 +181,15 @@ class PluginDatainjectionInjectionType {
       }
 
       if ($p['need_decode']) {
-         $mapping_or_info = json_decode(Toolbox::stripslashes_deep($options['mapping_or_info']),
-                                        true);
+         $mapping_or_info = json_decode(
+             Toolbox::stripslashes_deep($options['mapping_or_info']),
+             true
+         );
       } else {
          $mapping_or_info = $options['mapping_or_info'];
       }
 
-      $fields = array();
+      $fields = [];
       $fields[self::NO_VALUE] = __('-------Choose a field-------', 'datainjection');
 
       //By default field has no default value
@@ -191,13 +207,15 @@ class PluginDatainjectionInjectionType {
             //and if a linkfield is defined (meaning that the field can be updated)
             if (is_array($option)
                 && isset($option['injectable'])
-                && ($option['injectable'] == PluginDatainjectionCommonInjectionLib::FIELD_INJECTABLE)) {
+                && ($option['injectable'] == PluginDatainjectionCommonInjectionLib::FIELD_INJECTABLE)
+            ) {
 
                $fields[$option['linkfield']] = $option['name'];
 
                if (($mapping_value == self::NO_VALUE)
                    && ($p['called_by'] == 'PluginDatainjectionMapping')
-                   && self::isEqual($option, $mapping_or_info)) {
+                   && self::isEqual($option, $mapping_or_info)
+               ) {
 
                   $mapping_value = $option['linkfield'];
                }
@@ -207,19 +225,25 @@ class PluginDatainjectionInjectionType {
       }
       asort($fields);
 
-      $rand = Dropdown::showFromArray("data[".$mapping_or_info['id']."][value]", $fields,
-                                      array('value' => $mapping_value,
-                                            'used'  => $used));
+      $rand = Dropdown::showFromArray(
+          "data[".$mapping_or_info['id']."][value]", $fields,
+          ['value' => $mapping_value,
+          'used'  => $used]
+      );
 
-      $url = $CFG_GLPI["root_doc"]."/plugins/datainjection/ajax/dropdownMandatory.php";
-      Ajax::updateItem("span_mandatory_".$mapping_or_info['id'], $url, $p,
-                     "dropdown_data[".$mapping_or_info['id']."][value]$rand");
-      Ajax::updateItemOnSelectEvent("dropdown_data[".$mapping_or_info['id']."][value]$rand",
-                                  "span_mandatory_".$mapping_or_info['id'], $url, $p);
+      $url = Plugin::getWebDir('datainjection')."/ajax/dropdownMandatory.php";
+      Ajax::updateItem(
+          "span_mandatory_".$mapping_or_info['id'], $url, $p,
+          "dropdown_data[".$mapping_or_info['id']."][value]$rand"
+      );
+      Ajax::updateItemOnSelectEvent(
+          "dropdown_data[".$mapping_or_info['id']."][value]$rand",
+          "span_mandatory_".$mapping_or_info['id'], $url, $p
+      );
    }
 
 
-   /**
+    /**
     * Incidates if the name given corresponds to the current searchOption
     *
     * @param $option    array the current searchOption (field definition)
@@ -227,7 +251,7 @@ class PluginDatainjectionInjectionType {
     *
     * @return boolean the value matches the searchOption or not
    **/
-   static function isEqual($option=array(), $mapping) {
+   static function isEqual($option, $mapping) {
 
       $name = strtolower($mapping['name']);
       if (self::testBasicEqual(strtolower($mapping['name']), $option)) {
@@ -235,7 +259,7 @@ class PluginDatainjectionInjectionType {
       }
 
       //Manage mappings begining with N° or n°
-      $new_name = preg_replace("/[n|N]°/",__('Lifelong'),$name);
+      $new_name = preg_replace("/[n|N]°/", __('Lifelong'), $name);
       if (self::testBasicEqual(strtolower($new_name), $option)) {
          return true;
       }
@@ -249,34 +273,37 @@ class PluginDatainjectionInjectionType {
    }
 
 
-   /**
+    /**
     * @param $name
     * @param $option    array
    **/
-   static function testBasicEqual($name, $option=array()) {
+   static function testBasicEqual($name, $option = []) {
 
-            //Basic tests
+          //Basic tests
       if ((strtolower($option['field']) == $name)
           || (strtolower($option['name']) == $name)
-          || (strtolower($option['linkfield']) == $name)) {
+          || (strtolower($option['linkfield']) == $name)
+      ) {
          return true;
       }
       return false;
    }
 
 
-   /**
+    /**
     * @param $options   array
    **/
-   static function showMandatoryCheckbox($options=array()) {
+   static function showMandatoryCheckbox($options = []) {
 
-      //json adds more \ char than needed : when $options['mapping_or_info']['name'] contains a '
-      //json_decode fails to decode it !
-      $options['mapping_or_info'] = str_replace("\\","", $options['mapping_or_info']);
+      // Received data has been slashed.
+      $options = Toolbox::stripslashes_deep($options);
 
       if ($options['need_decode']) {
-         $mapping_or_info = json_decode(Toolbox::stripslashes_deep($options['mapping_or_info']),
-                                        true);
+         // JSON data has been slashed twice, stripslashes has to be done a second time.
+         $mapping_or_info = json_decode(
+            Toolbox::stripslashes_deep($options['mapping_or_info']),
+            true
+         );
       } else {
          $mapping_or_info = $options['mapping_or_info'];
       }
@@ -288,21 +315,23 @@ class PluginDatainjectionInjectionType {
       }
 
       if (($options['called_by'] == 'PluginDatainjectionInfo')
-          || ($options['primary_type'] == $options['itemtype'])) {
+          || ($options['primary_type'] == $options['itemtype'])
+      ) {
          echo "<input type='checkbox' name='data[".$mapping_or_info['id']."][is_mandatory]' $checked>";
       }
    }
 
 
-   /**
+    /**
     * @param $options   array
    **/
-   static function getUsedMappingsOrInfos($options=array()) {
+   static function getUsedMappingsOrInfos($options = []) {
+
       global $DB;
 
       $p['itemtype']        = self::NO_VALUE;
       $p['primary_type']    = '';
-      $p['mapping_or_info'] = array();
+      $p['mapping_or_info'] = [];
       $p['called_by']       = '';
       $p['need_decode']     = true;
 
@@ -311,17 +340,19 @@ class PluginDatainjectionInjectionType {
       }
 
       if ($p['need_decode']) {
-         $mapping_or_info = json_decode(Toolbox::stripslashes_deep($options['mapping_or_info']),
-                                        true);
+         $mapping_or_info = json_decode(
+             Toolbox::stripslashes_deep($options['mapping_or_info']),
+             true
+         );
       } else {
          $mapping_or_info = $options['mapping_or_info'];
       }
 
-      $used  = array();
+      $used  = [];
       $table = (($p['called_by'] == 'PluginDatainjectionMapping') ?"glpi_plugin_datainjection_mappings"
-                                                                :"glpi_plugin_datainjection_infos");
+                                                              :"glpi_plugin_datainjection_infos");
 
-      $datas = getAllDatasFromTable($table, "`models_id` = '".$mapping_or_info['models_id']."'");
+      $datas = getAllDataFromTable($table, ['models_id' => $mapping_or_info['models_id']]);
 
       $injectionClass = PluginDatainjectionCommonInjectionLib::getInjectionClassInstance($p['itemtype']);
       $options        = $injectionClass->getOptions();
@@ -333,7 +364,8 @@ class PluginDatainjectionInjectionType {
                    && ($option['table'] == getItemTypeForTable($data['itemtype']))
                    && ($option['linkfield'] == $data['value'])
                    && ($option['displaytype'] != 'multiline_text')
-                   && ($mapping_or_info['value'] != $data['value'])) {
+                   && ($mapping_or_info['value'] != $data['value'])
+               ) {
 
                   $used[$option['linkfield']] = $option['linkfield'];
                   break;
@@ -346,4 +378,3 @@ class PluginDatainjectionInjectionType {
    }
 
 }
-?>

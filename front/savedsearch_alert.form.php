@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,6 +30,8 @@
  * ---------------------------------------------------------------------
  */
 
+use Glpi\Event;
+
 include ('../inc/includes.php');
 
 Session::checkCentralAccess();
@@ -45,7 +47,7 @@ $alert = new SavedSearch_Alert();
 if (isset($_POST["add"])) {
    $alert->check(-1, CREATE, $_POST);
 
-   if ($newID = $alert->add($_POST)) {
+   if ($alert->add($_POST)) {
       Event::log($_POST['savedsearches_id'], "savedsearches", 4, "inventory",
                  //TRANS: %s is the user login
                  sprintf(__('%s adds an alert'), $_SESSION["glpiname"]));

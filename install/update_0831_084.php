@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -29,10 +29,6 @@
  * along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  * ---------------------------------------------------------------------
  */
-
-/** @file
-* @brief
-*/
 
 /**
  * Update from 0.83.1 to 0.84
@@ -187,7 +183,7 @@ function update0831to084() {
 
    if ($result=$DB->query($query)) {
       if ($DB->numrows($result)) {
-         while ($data = $DB->fetch_assoc($result)) {
+         while ($data = $DB->fetchAssoc($result)) {
             $subject = $data['subject'];
             $text    = $data['content_text'];
             $html    = $data['content_html'];
@@ -267,7 +263,7 @@ function update0831to084() {
       $migration->changeField('glpi_entities', 'id', 'id', 'integer');
       $migration->migrationOneTable('glpi_entities');
       // pour que la procedure soit re-entrante
-      if (countElementsInTable("glpi_entities", "id=0") < 1) {
+      if (countElementsInTable("glpi_entities", ['id' => 0]) < 1) {
          // Create root entity
          $query = "INSERT INTO `glpi_entities`
                           (`id`, `name`, `completename`, `entities_id`, `level`)
@@ -276,7 +272,7 @@ function update0831to084() {
 
          $DB->queryOrDie($query, '0.84 insert root entity into glpi_entities');
       }
-      //       $newID = $DB->insert_id();
+      //       $newID = $DB->insertId();
       //       $query = "UPDATE `glpi_entities`
       //                 SET `id` = '0'
       //                 WHERE `id` = '$newID'";
@@ -410,8 +406,8 @@ function update0831to084() {
 
    // Check if notifications already exists
    if (countElementsInTable('glpi_notifications',
-                            "`itemtype` = 'Ticket'
-                              AND `event` = 'validation_answer'")==0) {
+                            ['itemtype' => 'Ticket',
+                             'event'    => 'validation_answer'])==0) {
       // No notifications duplicate all
 
       $query = "SELECT *
@@ -430,7 +426,7 @@ function update0831to084() {
                            '".addslashes($notif['comment'])."', '".$notif['is_recursive']."',
                            '".$notif['is_active']."', NOW());";
          $DB->queryOrDie($query, "0.84 insert validation_answer notification");
-         $newID  = $DB->insert_id();
+         $newID  = $DB->insertId();
          $query2 = "SELECT *
                     FROM `glpi_notificationtargets`
                     WHERE `notifications_id` = '".$notif['id']."'";
@@ -451,7 +447,7 @@ function update0831to084() {
    foreach ($from_to as $from => $to) {
       // Check if notifications already exists
       if (countElementsInTable('glpi_notifications',
-                               "`itemtype` = 'Contract' AND `event` = '$to'")==0) {
+                               ['itemtype' => 'Contract', 'event' => $to])==0) {
          // No notifications duplicate all
 
          $query = "SELECT *
@@ -469,7 +465,7 @@ function update0831to084() {
                               '".addslashes($notif['comment'])."', '".$notif['is_recursive']."',
                               '".$notif['is_active']."', NOW());";
             $DB->queryOrDie($query, "0.84 insert contract ".$to." notification");
-            $newID  = $DB->insert_id();
+            $newID  = $DB->insertId();
             $query2 = "SELECT *
                        FROM `glpi_notificationtargets`
                        WHERE `notifications_id` = '".$notif['id']."'";
@@ -720,7 +716,7 @@ function update0831to084() {
                           (`name`, `itemtype`, `date_mod`)
                    VALUES ('Planning recall', 'PlanningRecall', NOW())";
          $DB->queryOrDie($query, "0.84 add planning recall notification");
-         $notid = $DB->insert_id();
+         $notid = $DB->insertId();
 
          $query = "INSERT INTO `glpi_notificationtemplatetranslations`
                           (`notificationtemplates_id`, `language`, `subject`,
@@ -748,7 +744,7 @@ function update0831to084() {
                    VALUES ('Planning recall', 0, 'PlanningRecall', 'planningrecall', 'mail',
                              $notid, '', 1, 1, NOW())";
          $DB->queryOrDie($query, "0.84 add planning recall notification");
-         $notifid = $DB->insert_id();
+         $notifid = $DB->insertId();
 
          $query = "INSERT INTO `glpi_notificationtargets`
                           (`id`, `notifications_id`, `type`, `items_id`)
@@ -758,7 +754,7 @@ function update0831to084() {
    }
 
    if (!countElementsInTable('glpi_crontasks',
-                             "`itemtype`='PlanningRecall' AND `name`='planningrecall'")) {
+                             ['itemtype' => 'PlanningRecall', 'name' => 'planningrecall'])) {
       $query = "INSERT INTO `glpi_crontasks`
                        (`itemtype`, `name`, `frequency`, `param`, `state`, `mode`, `allowmode`,
                         `hourmin`, `hourmax`, `logs_lifetime`, `lastrun`, `lastcode`, `comment`)
@@ -1108,7 +1104,7 @@ function update0831to084() {
 
    // Add delete ticket notification
    if (countElementsInTable("glpi_notifications",
-                            "`itemtype` = 'Ticket' AND `event` = 'delete'") == 0) {
+                            ['itemtype' => 'Ticket', 'event' => 'delete']) == 0) {
       // Get first template for tickets :
       $notid = 0;
       $query = "SELECT MIN(id) AS id
@@ -1132,7 +1128,7 @@ function update0831to084() {
                        VALUES ('".$notif_names[$type]."', 0, 'Ticket', '$type', 'mail',
                                $notid, '', 1, 1, NOW())";
             $DB->queryOrDie($query, "0.83 add problem $type notification");
-            $notifid = $DB->insert_id();
+            $notifid = $DB->insertId();
 
             foreach ($targets as $target) {
                $query = "INSERT INTO `glpi_notificationtargets`
@@ -1248,7 +1244,7 @@ function update0831to084() {
 
    if ($result = $DB->query($query)) {
       if ($DB->numrows($result) > 0) {
-         while ($data = $DB->fetch_assoc($result)) {
+         while ($data = $DB->fetchAssoc($result)) {
             // Update manufacturer
             $query = "UPDATE `glpi_ruleactions`
                       SET `value` = '".$data['newvalue']."'
@@ -1537,7 +1533,7 @@ function update0831to084() {
 
       if ($result = $DB->query($query)) {
          if ($DB->numrows($result)>0) {
-            while ($data = $DB->fetch_assoc($result)) {
+            while ($data = $DB->fetchAssoc($result)) {
                $query = "SELECT MAX(`rank`)
                          FROM `glpi_displaypreferences`
                          WHERE `users_id` = '".$data['users_id']."'
@@ -1612,7 +1608,7 @@ function createNetworkNameFromItem($itemtype, $items_id, $main_items_id, $main_i
 
    // Using gethostbyaddr() allows us to define its reald internet name according to its IP.
    //   But each gethostbyaddr() may reach several milliseconds. With very large number of
-   //   Networkports or NetworkeEquipment, the migration may take several minutes or hours ...
+   //   NetworkPorts or NetworkeEquipment, the migration may take several minutes or hours ...
    //$computerName = gethostbyaddr($IP);
    $computerName = $IP;
    if ($computerName != $IP) {
@@ -1625,7 +1621,7 @@ function createNetworkNameFromItem($itemtype, $items_id, $main_items_id, $main_i
       $result = $DB->query($query);
 
       if ($DB->numrows($result) == 1) {
-         $data     = $DB->fetch_assoc($result);
+         $data     = $DB->fetchAssoc($result);
          $domainID = $data['id'];
       }
 
@@ -1725,7 +1721,7 @@ function updateNetworkPortInstantiation($port, $fields, $setNetworkCard) {
 
          if ($DB->numrows($result) > 0) {
             $set_first = ($DB->numrows($result) == 1);
-            while ($link = $DB->fetch_assoc($result)) {
+            while ($link = $DB->fetchAssoc($result)) {
                if ($set_first || ($link['name'] == $portInformation['name'])) {
                   $input['items_devicenetworkcards_id'] = $link['link_id'];
                   break;
@@ -1745,7 +1741,7 @@ function updateNetworkPortInstantiation($port, $fields, $setNetworkCard) {
 function addNetworkPortMigrationError($networkports_id, $motive) {
    global $DB;
 
-   if (countElementsInTable("glpi_networkportmigrations", "`id` = '$networkports_id'") == 0) {
+   if (countElementsInTable("glpi_networkportmigrations", ['id' => $networkports_id]) == 0) {
       $query = "INSERT INTO `glpi_networkportmigrations`
                        (SELECT *" . str_repeat(', 0', count(NetworkPortMigration::getMotives())) ."
                         FROM `origin_glpi_networkports`
@@ -2419,7 +2415,7 @@ function updateNetworkFramework(&$ADDTODISPLAYPREF) {
 
    if ($network_result = $DB->query($query)) {
       unset($query);
-      while ($ipnetwork_row = $DB->fetch_assoc($network_result)) {
+      while ($ipnetwork_row = $DB->fetchAssoc($network_result)) {
          $ipnetworks_id = $ipnetwork_row['id'];
          $netmask       = floatval($ipnetwork_row['netmask_3']);
          $address       = floatval($ipnetwork_row['address_3']) & $netmask;
@@ -2432,7 +2428,7 @@ function updateNetworkFramework(&$ADDTODISPLAYPREF) {
 
          if ($ipaddress_result = $DB->query($query)) {
             unset($query);
-            while ($link = $DB->fetch_assoc($ipaddress_result)) {
+            while ($link = $DB->fetchAssoc($ipaddress_result)) {
                $query = "INSERT INTO `glpi_ipaddresses_ipnetworks`
                                 (`ipaddresses_id`, `ipnetworks_id`)
                          VALUES ('".$link['id']."', '$ipnetworks_id')";

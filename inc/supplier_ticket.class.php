@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
 }
@@ -41,7 +37,7 @@ if (!defined('GLPI_ROOT')) {
 /**
  * Class Supplier_Ticket
  *
- * @since version 0.84
+ * @since 0.84
 **/
 class Supplier_Ticket extends CommonITILActor {
 
@@ -56,22 +52,41 @@ class Supplier_Ticket extends CommonITILActor {
     * @param $items_id
     * @param $email
     *
-    * @since version 0.85
+    * @since 0.85
    **/
    function isSupplierEmail($items_id, $email) {
       global $DB;
 
-      $query = "SELECT *
-                FROM `".$this->getTable()."`
-                LEFT JOIN `glpi_suppliers`
-                      ON (`".$this->getTable()."`.`suppliers_id` = `glpi_suppliers`.`id`)
-                WHERE `".$this->getTable()."`.`tickets_id` = '".$items_id."'
-                      AND `glpi_suppliers`.`email` = '$email'";
+      $iterator = $DB->request([
+         'FROM'      => $this->getTable(),
+         'LEFT JOIN' => [
+            'glpi_suppliers'  => [
+               'ON' => [
+                  $this->getTable() => 'suppliers_id',
+                  'glpi_suppliers'  => 'id'
+               ]
+            ]
+         ],
+         'WHERE'     => [
+            $this->getTable() . '.tickets_id'   => $items_id,
+            'glpi_suppliers.email'              => $email
+         ]
+      ]);
 
-      foreach ($DB->request($query) as $data) {
+      while ($data = $iterator->next()) {
          return true;
       }
       return false;
    }
 
+   function post_addItem() {
+
+      switch ($this->input['type']) { // Values from CommonITILObject::getSearchOptionsActors()
+         case CommonITILActor::ASSIGN:
+            $this->_force_log_option = 6;
+            break;
+      }
+      parent::post_addItem();
+      unset($this->_force_log_option);
+   }
 }

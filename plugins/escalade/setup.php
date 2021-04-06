@@ -26,7 +26,12 @@
  --------------------------------------------------------------------------
  */
 
-define ('PLUGIN_ESCALADE_VERSION', '2.2.1');
+define ('PLUGIN_ESCALADE_VERSION', '2.6.1');
+
+// Minimal GLPI version, inclusive
+define("PLUGIN_ESCALADE_MIN_GLPI", "9.5");
+// Maximum GLPI version, exclusive
+define("PLUGIN_ESCALADE_MAX_GLPI", "9.6");
 
 /**
  * Init hooks of the plugin.
@@ -40,7 +45,7 @@ function plugin_init_escalade() {
    $PLUGIN_HOOKS['csrf_compliant']['escalade'] = true;
 
    $plugin = new Plugin();
-   if (isset($_SESSION['glpiID'])
+   if ((isset($_SESSION['glpiID']) || isCommandLine())
       && $plugin->isInstalled('escalade')
       && $plugin->isActivated('escalade')) {
 
@@ -63,18 +68,29 @@ function plugin_init_escalade() {
             }
 
             // on ticket page (in edition)
+            if ((strpos($_SERVER['REQUEST_URI'], "ticket.form.php") !== false
+               || strpos($_SERVER['REQUEST_URI'], "problem.form.php") !== false
+               || strpos($_SERVER['REQUEST_URI'], "change.form.php") !== false) && isset($_GET['id'])) {
+
+               if (!$escalade_config['remove_delete_requester_user_btn']
+                  || !$escalade_config['remove_delete_watcher_user_btn']
+                  || !$escalade_config['remove_delete_assign_user_btn']
+                  || !$escalade_config['remove_delete_requester_group_btn']
+                  || !$escalade_config['remove_delete_watcher_group_btn']
+                  || !$escalade_config['remove_delete_assign_group_btn']
+                  || !$escalade_config['remove_delete_assign_supplier_btn']) {
+                  //remove btn feature
+                  $PLUGIN_HOOKS['add_javascript']['escalade'][] = 'js/remove_btn.js.php';
+               }
+            }
+
+            // on ticket page (in edition)
             if (strpos($_SERVER['REQUEST_URI'], "ticket.form.php") !== false
                 && isset($_GET['id'])) {
 
                //history and climb feature
                if ($escalade_config['show_history']) {
                   $PLUGIN_HOOKS['add_javascript']['escalade'][] = 'js/escalade.js.php';
-               }
-
-               //remove btn feature
-               if (!$escalade_config['remove_delete_assign_group_btn']
-                  || !$escalade_config['remove_delete_assign_group_btn']) {
-                  $PLUGIN_HOOKS['add_javascript']['escalade'][] = 'js/remove_btn.js.php';
                }
 
                //clone ticket feature
@@ -130,6 +146,11 @@ function plugin_init_escalade() {
          = ['PluginEscaladeNotification', 'addTargets'];
       $PLUGIN_HOOKS['item_action_targets']['escalade']['NotificationTargetPlanningRecall']
          = ['PluginEscaladeNotification', 'getActionTargets'];
+
+      // Add additional events for Ticket notifications
+      $PLUGIN_HOOKS['item_get_events']['escalade'] = [
+         'NotificationTargetTicket' =>  ['PluginEscaladeNotification', 'getEvents']
+      ];
    }
 }
 
@@ -141,42 +162,17 @@ function plugin_init_escalade() {
  */
 function plugin_version_escalade() {
    return [
-         'name'           => __("Escalation", "escalade"),
-         'version'        => PLUGIN_ESCALADE_VERSION,
-         'author'         => "<a href='http://www.teclib.com'>Teclib'</a>",
-         'homepage'       => "https://github.com/pluginsGLPI/escalade",
-         'license'        => 'GPLv2+',
-         'requirements'   => [
-            'glpi' => [
-               'min' => '9.2',
-               'dev' => true
-            ]
+      'name'           => __("Escalation", "escalade"),
+      'version'        => PLUGIN_ESCALADE_VERSION,
+      'author'         => "<a href='http://www.teclib.com'>Teclib'</a>",
+      'homepage'       => "https://github.com/pluginsGLPI/escalade",
+      'license'        => 'GPLv2+',
+      'requirements'   => [
+         'glpi' => [
+            'min' => PLUGIN_ESCALADE_MIN_GLPI,
+            'max' => PLUGIN_ESCALADE_MAX_GLPI,
          ]
-      ];
+      ]
+   ];
 }
 
-/**
- * Check pre-requisites before install
- * OPTIONNAL, but recommanded
- *
- * @return boolean
- */
-function plugin_escalade_check_prerequisites() {
-   $version = rtrim(GLPI_VERSION, '-dev');
-   if (!method_exists('Plugins', 'checkGlpiVersion') && version_compare($version, '9.2', 'lt')) {
-      echo "This plugin requires GLPI >= 9.2";
-      return false;
-   }
-   return true;
-}
-
-/**
- * Check configuration process
- *
- * @param boolean $verbose Whether to display message on failure. Defaults to false
- *
- * @return boolean
- */
-function plugin_escalade_check_config($verbose=false) {
-   return true;
-}

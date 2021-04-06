@@ -1,8 +1,8 @@
 <?php
 /**
- * ---------------------------------------------------------------------
+ * ---------------------------------------------------------------------Civikmind
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,15 +30,11 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 include ('../inc/includes.php');
 
 Session::checkLoginUser();
 
-if ($_SESSION["glpiactiveprofile"]["interface"] == "helpdesk") {
+if (Session::getCurrentInterface() == "helpdesk") {
    Html::helpHeader(Ticket::getTypeName(Session::getPluralNumber()), '', $_SESSION["glpiname"]);
 } else {
    Html::header(Ticket::getTypeName(Session::getPluralNumber()), '', "helpdesk", "ticket");
@@ -46,9 +42,14 @@ if ($_SESSION["glpiactiveprofile"]["interface"] == "helpdesk") {
 
 echo Html::manageRefreshPage();
 
+if ($default = Glpi\Dashboard\Grid::getDefaultDashboardForMenu('mini_ticket', true)) {
+   $dashboard = new Glpi\Dashboard\Grid($default, 33, 2, 'mini_core');
+   $dashboard->show(true);
+}
+
 Search::show('Ticket');
 
-if ($_SESSION["glpiactiveprofile"]["interface"] == "helpdesk") {
+if (Session::getCurrentInterface() == "helpdesk") {
    Html::helpFooter();
 } else {
    Html::footer();

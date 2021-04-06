@@ -1,6 +1,6 @@
 <?php
 /**
- * @version $Id: document_item.class.php 203 2017-03-02 18:29:31Z yllen $
+ * @version $Id: document_item.class.php 325 2020-09-03 09:01:30Z yllen $
  -------------------------------------------------------------------------
 
  LICENSE
@@ -22,7 +22,7 @@
 
  @package   behaviors
  @author    David Durieux, Nelly Mahu-Lasson
- @copyright Copyright (c) 2010-2017 Behaviors plugin team
+ @copyright Copyright (c) 2010-2020 Behaviors plugin team
  @license   AGPL License 3.0 or (at your option) any later version
             http://www.gnu.org/licenses/agpl-3.0-standalone.html
  @link      https://forge.glpi-project.org/projects/behaviors
@@ -42,10 +42,11 @@ class PluginBehaviorsDocument_Item {
       if ($config->getField('add_notif')) {
          Plugin::loadLang('behaviors');
 
-         $target->events['plugin_behaviors_document_itemnew']  = __('Add document to ticket',
-                                                                    'behaviors');
-         $target->events['plugin_behaviors_document_itemdel']  = __('Delete document to ticket',
-                                                                    'behaviors');
+         $target->events['plugin_behaviors_document_itemnew']
+            = sprintf(__('%1$s - %2$s'), __('Behaviors'), __('Add document to ticket', 'behaviors'));
+
+         $target->events['plugin_behaviors_document_itemdel']
+            = sprintf(__('%1$s - %2$s'), __('Behaviors'), __('Delete document to ticket', 'behaviors'));
       }
    }
 

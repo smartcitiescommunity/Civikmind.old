@@ -1,4 +1,30 @@
 <?php
+/*
+ -------------------------------------------------------------------------
+ xivo plugin for GLPI
+ Copyright (C) 2017 by the xivo Development Team.
+
+ https://github.com/pluginsGLPI/xivo
+ -------------------------------------------------------------------------
+
+ LICENSE
+
+ This file is part of xivo.
+
+ xivo is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
+
+ xivo is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with xivo. If not, see <http://www.gnu.org/licenses/>.
+ --------------------------------------------------------------------------
+ */
 
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access this file directly");
@@ -32,9 +58,9 @@ class PluginXivoPhone extends CommonDBTM {
       $contact_num      = '';
       if ($number_line) {
          $last_line   = end($device['lines']);
-         if (isset($last_line['caller_id_name'])) {
-            $contact     = $last_line['caller_id_name'];
-            $contact_num = $last_line['caller_id_num'];
+         if (isset($last_line['caller_name'])) {
+            $contact     = $last_line['caller_name'];
+            $contact_num = $last_line['caller_num'];
          }
       }
 
@@ -57,7 +83,7 @@ class PluginXivoPhone extends CommonDBTM {
       $input_xivophone = [
          'phones_id'         => $phones_id,
          'xivo_id'           => $device['id'],
-         'template'          => $device['template_id'],
+         'template'          => $device['template_id'] !== null ? $device['template_id'] : "",
          'date_mod'          => $_SESSION["glpi_currenttime"],
       ];
 
@@ -85,9 +111,10 @@ class PluginXivoPhone extends CommonDBTM {
          $phone->update($input);
 
          // add line in object table (to store xivo id)
-         $current_id = xivoGetIdByField(__CLASS__, 'xivo_id', $device['id']);
-         if ($current_id) {
-            $input_xivophone['id'] = $current_id;
+         if ($xivophone->getFromDBByCrit([
+            'xivo_id' => $device['id']
+         ])) {
+            $input_xivophone['id'] = $xivophone->getID();
             $xivophone->update($input_xivophone);
          } else {
             $input_xivophone['phones_id']   = $phones_id;
@@ -109,7 +136,7 @@ class PluginXivoPhone extends CommonDBTM {
             'NetworkName__ipaddresses'    => ['-1' => $device['ip']],
             '_create_children'            => true
          ];
-         if (count($found_netports) == 0){
+         if (count($found_netports) == 0) {
             $networkport->add($net_input);
          } else {
             $netport = end($found_netports);
@@ -139,23 +166,54 @@ class PluginXivoPhone extends CommonDBTM {
     * @return array              the netport tree
     */
    static function getFullNetworkPort($phones_id = 0) {
-      $networkport_inst = new NetworkPort();
-      $networkname_inst = new NetworkName();
-      $ipaddress_inst   = new IPAddress();
-      $found_networkports = $networkport_inst->find("`itemtype` = 'Phone'
-                                                     AND `items_id` = '$phones_id'");
 
-      foreach($found_networkports as $networkports_id => &$networkport) {
-         $found_networknames = $networkname_inst->find("`itemtype` = 'NetworkPort'
-                                                        AND `items_id` = '$networkports_id'");
+      global $DB;
 
-         foreach($found_networknames as $networknames_id => &$networkname) {
-            $found_ipaddresses = $ipaddress_inst->find("`itemtype` = 'NetworkName'
-                                                         AND `items_id` = '$networknames_id'");
+      $networports_iterator = $DB->request(
+         [
+            'FROM'  => NetworkPort::getTable(),
+            'WHERE' => [
+               'itemtype' => 'Phone',
+               'items_id' => $phones_id,
+            ]
+         ]
+      );
 
-            $networkname['ipaddresses'] = array_values($found_ipaddresses);
+      $found_networkports = [];
+
+      foreach ($networports_iterator as $networkport) {
+         $networknames_iterator = $DB->request(
+            [
+               'FROM'  => NetworkName::getTable(),
+               'WHERE' => [
+                  'itemtype' => 'NetworkPort',
+                  'items_id' => $networkport['id'],
+               ]
+            ]
+         );
+
+         $networkport['networknames'] = [];
+
+         foreach ($networknames_iterator as $networkname) {
+
+            $ipaddresses_iterator = $DB->request(
+               [
+                  'FROM'  => IPAddress::getTable(),
+                  'WHERE' => [
+                     'itemtype' => 'NetworkName',
+                     'items_id' => $networkname['id'],
+                  ]
+               ]
+            );
+
+            $networkname['ipaddresses'] = [];
+            foreach ($ipaddresses_iterator as $ipaddress) {
+               $networkname['ipaddresses'][] = $ipaddress;
+            }
             $networkport['networknames'][] = $networkname;
          }
+
+         $found_networkports[$networkport['id']] = $networkport;
       }
 
       return $found_networkports;
@@ -178,10 +236,10 @@ class PluginXivoPhone extends CommonDBTM {
       $device['lines'] = $apiclient->getSingleDeviceLines($xivo_id);
 
       // import lines
-      foreach($device['lines'] as &$line) {
+      foreach ($device['lines'] as &$line) {
          // add or update assets
-         $plugin_xivo_lines_id         = PluginXivoLine::importSingle($line);
-         $line['plugin_xivo_lines_id'] = $plugin_xivo_lines_id;
+         $lines_id         = PluginXivoLine::importSingle($line);
+         $line['lines_id'] = $lines_id;
       }
 
       // import phone
@@ -243,11 +301,9 @@ class PluginXivoPhone extends CommonDBTM {
     */
    static function displayAutoInventory(Phone $phone) {
       $xivophone     = new self;
-      $xivophones_id = xivoGetIdByField(__CLASS__, 'phones_id', $phone->getID());
-      if ($xivophones_id) {
-         $xivophone->getFromDB($xivophones_id);
-         $form_url      = self::getFormURL();
-
+      if ($xivophone->getFromDBByCrit([
+         'phones_id' => $phone->getID()
+      ])) {
          echo "<h1 class='xivo_title'>".__('XIVO informations', 'xivo')."</h1>";
          echo "</td></tr>";
 
@@ -265,6 +321,7 @@ class PluginXivoPhone extends CommonDBTM {
 
          echo "<tr class='tab_bg_1'>";
          echo "<td>";
+         $form_url = self::getFormURL();
          echo Html::link(__("Force synchronization"),
                          "$form_url?forcesync&xivo_id=".$xivophone->fields['xivo_id'],
                          ['class' => 'vsubmit']);
@@ -285,7 +342,7 @@ class PluginXivoPhone extends CommonDBTM {
       global $DB;
 
       $table = self::getTable();
-      if (!TableExists($table)) {
+      if (!$DB->tableExists($table)) {
          $migration->displayMessage(sprintf(__("Installing %s"), $table));
 
          $query = "CREATE TABLE `$table` (
@@ -297,7 +354,7 @@ class PluginXivoPhone extends CommonDBTM {
                   PRIMARY KEY     (`id`),
                   KEY `phones_id` (`phones_id`),
                   KEY `xivo_id`   (`xivo_id`)
-               ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;";
+               ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;";
             $DB->query($query) or die ($DB->error());
       }
 

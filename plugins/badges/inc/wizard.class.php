@@ -9,7 +9,7 @@
  -------------------------------------------------------------------------
 
  LICENSE
-      
+
  This file is part of badges.
 
  badges is free software; you can redistribute it and/or modify
@@ -33,65 +33,73 @@ if (!defined('GLPI_ROOT')) {
 
 /**
  * Class PluginBadgesMenu
- * 
+ *
  * This class shows the plugin main page
- * 
+ *
  * @package    Badges
  * @author     Ludovic Dupont
  */
 class PluginBadgesWizard extends CommonDBTM {
-   
+
    static $rightname = "plugin_badges";
 
-   static function getTypeName($nb=0) {
+   /**
+    * @param int $nb
+    *
+    * @return string|translated
+    */
+   static function getTypeName($nb = 0) {
       return __('Badges wizard', 'badges');
    }
-   
+
    /**
     * Show config menu
     */
    function showMenu() {
       global $CFG_GLPI;
-      
+
       if (!$this->canView()) {
          return false;
       }
-      
+
       echo "<div align='center'>";
-      echo "<table class='tab_cadre' cellpadding='5' height='150'>";
+      echo "<table class='tab_cadre' cellpadding='5'>";
       echo "<tr>";
-      echo "<th colspan='5'>".__("Access badge request", "badges")."</th>";
+      echo "<th colspan='5'>" . __("Access badge request", "badges") . "</th>";
       echo "</tr>";
       echo "<tr class='tab_bg_1' style='background-color:white;'>";
 
       // Badge request
       echo "<td class='center badges_menu_item'>";
       echo "<a  class='badges_menu_a' href=\"./wizard.form.php?action=badgerequest\">";
-      echo "<img class='badges_menu_img' src='".$CFG_GLPI["root_doc"]."/plugins/badges/pics/badgerequest.png' alt=\"".__("Access badge request", "badges")."\">";
-      echo "<br>".__("Access badge request", "badges")."<br>(".__("For a limited time", "badges").")</a>";
+      echo "<i class='fas fa-id-badge fa-6x'></i>";
+      echo "<br><br>" . __("Access badge request", "badges") . "<br>(" . __("For a limited time", "badges") . ")</a>";
       echo "</td>";
-      
+
       // Badge return
       echo "<td class='center badges_menu_item'>";
       echo "<a  class='badges_menu_a' href=\"./wizard.form.php?action=badgereturn\">";
-      echo "<img class='badges_menu_img' src='".$CFG_GLPI["root_doc"]."/plugins/badges/pics/badgereturn.png' alt=\"".__("Access badge return", "badges")."\">";
-      echo "<br>".__("Access badge return", "badges")."</a>";
+      echo "<i class='fas fa-arrow-alt-circle-left fa-6x'></i>";
+      echo "<br><br>" . __("Access badge return", "badges") . "</a>";
       echo "</td>";
 
       echo "</tr>";
       echo "</table></div>";
+      return;
    }
-   
+
    /**
     * Show wizard form of the current step
+    *
+    * @param $step
     */
    function showWizard($step) {
 
       echo "<div class='badges_wizard'>";
       echo "<form name='wizard_form' id='badges_wizardForm'
                   method='post'>";
-      
-      switch($step){
+
+      switch ($step) {
          case 'badgerequest':
             $badgerequest = new PluginBadgesRequest();
             $badgerequest->showBadgeRequest();
@@ -101,10 +109,9 @@ class PluginBadgesWizard extends CommonDBTM {
             $badgereturn->showBadgeReturn();
             break;
       }
-      
+
       Html::closeForm();
       echo "</div>";
    }
-   
+
 }
-?>

@@ -9,7 +9,7 @@
  -------------------------------------------------------------------------
 
  LICENSE
-      
+
  This file is part of databases.
 
  databases is free software; you can redistribute it and/or modify
@@ -27,27 +27,37 @@
  --------------------------------------------------------------------------
  */
 
+define('PLUGIN_DATABASES_VERSION', '2.3.2');
+
+if (!defined("PLUGIN_DATABASES_DIR")) {
+   define("PLUGIN_DATABASES_DIR", Plugin::getPhpDir("databases"));
+   define("PLUGIN_DATABASES_DIR_NOFULL", Plugin::getPhpDir("databases",false));
+}
 // Init the hooks of the plugins -Needed
 function plugin_init_databases() {
-   global $PLUGIN_HOOKS;
+   global $PLUGIN_HOOKS, $CFG_GLPI;
 
    $PLUGIN_HOOKS['csrf_compliant']['databases']   = true;
-   $PLUGIN_HOOKS['change_profile']['databases']   = array('PluginDatabasesProfile', 'initProfile');
+   $PLUGIN_HOOKS['change_profile']['databases']   = ['PluginDatabasesProfile', 'initProfile'];
    $PLUGIN_HOOKS['assign_to_ticket']['databases'] = true;
 
    //$PLUGIN_HOOKS['assign_to_ticket_dropdown']['databases'] = true;
    //$PLUGIN_HOOKS['assign_to_ticket_itemtype']['databases'] = array('PluginDatabasesDatabase_Item');
 
-   Plugin::registerClass('PluginDatabasesDatabase', array(
+   Plugin::registerClass('PluginDatabasesDatabase', [
+      'linkgroup_types'        => true,
       'linkgroup_tech_types'   => true,
       'linkuser_tech_types'    => true,
       'document_types'         => true,
       'ticket_types'           => true,
       'helpdesk_visible_types' => true,
       'addtabon'               => 'Supplier'
-   ));
+   ]);
+
+   $CFG_GLPI['impact_asset_types']['PluginDatabasesDatabase'] = "plugins/databases/databases.png";
+
    Plugin::registerClass('PluginDatabasesProfile',
-                         array('addtabon' => 'Profile'));
+                         ['addtabon' => 'Profile']);
 
    //Plugin::registerClass('PluginDatabasesDatabase_Item',
    //                      array('ticket_types' => true));
@@ -63,7 +73,7 @@ function plugin_init_databases() {
           && Session::haveRight("plugin_databases", READ)
       ) {
 
-         $PLUGIN_HOOKS['menu_toadd']['databases'] = array('assets' => 'PluginDatabasesMenu');
+         $PLUGIN_HOOKS['menu_toadd']['databases'] = ['assets' => 'PluginDatabasesMenu'];
       }
 
       if (Session::haveRight("plugin_databases", UPDATE)) {
@@ -88,16 +98,20 @@ function plugin_init_databases() {
  */
 function plugin_version_databases() {
 
-   return array(
-      'name'           => _n('Database', 'Databases', 2, 'databases'),
-      'version'        => '2.0.0',
-      'author'         => "<a href='http://infotel.com/services/expertise-technique/glpi/'>Infotel</a>",
-      'oldname'        => 'sgbd',
-      'license'        => 'GPLv2+',
-      'homepage'       => 'https://github.com/InfotelGLPI/databases',
-      'minGlpiVersion' => '9.2',
-   );
-
+   return [
+      'name'         => _n('Database', 'Databases', 2, 'databases'),
+      'version'      => PLUGIN_DATABASES_VERSION,
+      'author'       => "<a href='http://blogglpi.infotel.com'>Infotel</a>",
+      'oldname'      => 'sgbd',
+      'license'      => 'GPLv2+',
+      'homepage'     => 'https://github.com/InfotelGLPI/databases',
+      'requirements' => [
+         'glpi' => [
+            'min' => '9.5',
+            'dev' => false
+         ]
+      ]
+   ];
 }
 
 // Optional : check prerequisites before install : may print errors or add to message after redirect
@@ -105,8 +119,11 @@ function plugin_version_databases() {
  * @return bool
  */
 function plugin_databases_check_prerequisites() {
-   if (version_compare(GLPI_VERSION, '9.2', 'lt') || version_compare(GLPI_VERSION, '9.3', 'ge')) {
-      echo __('This plugin requires GLPI >= 9.2');
+   if (version_compare(GLPI_VERSION, '9.5', 'lt')
+       || version_compare(GLPI_VERSION, '9.6', 'ge')) {
+      if (method_exists('Plugin', 'messageIncompatible')) {
+         echo Plugin::messageIncompatible('core', '9.5');
+      }
       return false;
    }
    return true;

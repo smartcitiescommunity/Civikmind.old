@@ -9,7 +9,7 @@
  -------------------------------------------------------------------------
 
  LICENSE
-      
+
  This file is part of resources.
 
  resources is free software; you can redistribute it and/or modify
@@ -26,50 +26,78 @@
  along with resources. If not, see <http://www.gnu.org/licenses/>.
  --------------------------------------------------------------------------
  */
- 
+
 if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access directly to this file");
 }
 
+/**
+ * Class PluginResourcesResourceSituation
+ */
 class PluginResourcesResourceSituation extends CommonDropdown {
-   
+
    var $can_be_translated  = true;
-   
-   static function getTypeName($nb=0) {
+
+   /**
+    * @since 0.85
+    *
+    * @param $nb
+    **/
+   static function getTypeName($nb = 0) {
 
       return _n('Public status', 'Public statuses', $nb, 'resources');
    }
 
+   /**
+    * Have I the global right to "create" the Object
+    * May be overloaded if needed (ex KnowbaseItem)
+    *
+    * @return booleen
+    **/
    static function canCreate() {
-      if (Session::haveRight('dropdown',UPDATE)
-         && Session::haveRight('plugin_resources_dropdown_public', UPDATE)){
+      if (Session::haveRight('dropdown', UPDATE)
+         && Session::haveRight('plugin_resources_dropdown_public', UPDATE)) {
          return true;
       }
       return false;
    }
 
+   /**
+    * Have I the global right to "view" the Object
+    *
+    * Default is true and check entity if the objet is entity assign
+    *
+    * May be overloaded if needed
+    *
+    * @return booleen
+    **/
    static function canView() {
-      if (Session::haveRight('plugin_resources_dropdown_public', READ)){
+      if (Session::haveRight('plugin_resources_dropdown_public', READ)) {
          return true;
       }
       return false;
    }
 
+   /**
+    * Return Additional Fields for this type
+    *
+    * @return array
+    **/
    function getAdditionalFields() {
-   
-      return array(array('name'  => 'code',
+
+      return [['name'  => 'code',
                          'label' => __('Code', 'resources'),
                          'type'  => 'text',
-                         'list'  => true),
-                  array('name'  => 'short_name',
+                         'list'  => true],
+                  ['name'  => 'short_name',
                         'label' => __('Short name', 'resources'),
                         'type'  => 'text',
-                        'list'  => true),
-                  array('name'  => 'is_contract_linked',
+                        'list'  => true],
+                  ['name'  => 'is_contract_linked',
                         'label' => __('Is linked to a contract', 'resources'),
                         'type'  => 'bool',
-                        'list'  => true),
-                  );
+                        'list'  => true],
+                  ];
    }
 
    /**
@@ -92,12 +120,12 @@ class PluginResourcesResourceSituation extends CommonDropdown {
 
          if ($result=$DB->query($query)) {
             if ($DB->numrows($result)) {
-               $data = $DB->fetch_assoc($result);
+               $data = $DB->fetchAssoc($result);
                $data = Toolbox::addslashes_deep($data);
                $input['name'] = $data['name'];
                $input['entities_id']  = $entity;
                $temp = new self();
-               $newID    = $temp->getID($input);
+               $newID    = $temp->getID();
 
                if ($newID<0) {
                   $newID = $temp->import($input);
@@ -110,22 +138,32 @@ class PluginResourcesResourceSituation extends CommonDropdown {
       return 0;
    }
 
-   function getSearchOptions() {
+   /**
+    * @return array
+    */
+   function rawSearchOptions() {
 
-      $tab = parent::getSearchOptions();
+      $tab = parent::rawSearchOptions();
 
-      $tab[14]['table']         = $this->getTable();
-      $tab[14]['field']         = 'code';
-      $tab[14]['name']          = __('Code', 'resources');
-
-      $tab[16]['table']         = $this->getTable();
-      $tab[16]['field']         = 'short_name';
-      $tab[16]['name']          = __('Short name', 'resources');
-
-      $tab[17]['table']         = $this->getTable();
-      $tab[17]['field']         = 'is_contract_linked';
-      $tab[17]['name']          = __('Is linked to a contract', 'resources');
-      $tab[17]['datatype']      = 'bool';
+      $tab[] = [
+         'id'    => '14',
+         'table' => $this->getTable(),
+         'field' => 'code',
+         'name'  => __('Code', 'resources')
+      ];
+      $tab[] = [
+         'id'    => '18',
+         'table' => $this->getTable(),
+         'field' => 'short_name',
+         'name'  => __('Short name', 'resources')
+      ];
+      $tab[] = [
+         'id'       => '17',
+         'table'    => $this->getTable(),
+         'field'    => 'is_contract_linked',
+         'name'     => __('Short name', 'resources'),
+         'datatype' => 'bool'
+      ];
 
       return $tab;
    }
@@ -134,4 +172,3 @@ class PluginResourcesResourceSituation extends CommonDropdown {
 
 }
 
-?>

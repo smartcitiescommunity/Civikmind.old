@@ -25,14 +25,14 @@ else {
 	$entidade = "AND glpi_tickets.entities_id IN (".$sel_ent.")";
 }
 
-
-$slaid = "slas_tto_id";		
+$slaid = "slas_id_tto";		
 
 $query3 = "
 SELECT count( glpi_tickets.id ) AS conta, glpi_tickets.".$slaid." AS id, glpi_slms.name
 FROM glpi_tickets, glpi_slms
 WHERE glpi_tickets.".$slaid." = glpi_slms.id
 AND glpi_tickets.is_deleted = 0
+AND glpi_olas.type = 1
 AND glpi_tickets.date ".$datas."
 ".$entidade."
 GROUP BY ".$slaid."
@@ -44,12 +44,11 @@ $arr_grf3 = array();
 while ($row_result = $DB->fetch_assoc($result3)) { 
 	$v_row_result = $row_result['name'];
 	$arr_grf3[$v_row_result] = $row_result['conta'];			
-	} 
+} 
 	
 $grf3 = array_keys($arr_grf3) ;
 $quant3 = array_values($arr_grf3) ;
 $soma3 = array_sum($arr_grf3);
-
 
 $grf_3 = json_encode($grf3);
 $quant_2 = implode(',',$quant3);
@@ -101,11 +100,12 @@ if($soma3 != 0) {
                 }
             },
             series: [{
+            	 colorByPoint: true,
                 name: '".__('Tickets','dashboard')."',
                 data: [$quant_2],
                 dataLabels: {
                     enabled: true,                    
-                    ///color: '#000099',
+                    //color: '#000099',
                     style: {
                        // fontSize: '13px',
                        // fontFamily: 'Verdana, sans-serif'

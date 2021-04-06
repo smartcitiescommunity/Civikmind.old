@@ -18,7 +18,7 @@ if(!empty($_POST['submit']))
 else {	
 	$data_ini = date("Y-01-01");
 	$data_fin = date("Y-m-d");	
-	}  
+}  
 
 # entity
 $sql_e = "SELECT value FROM glpi_plugin_dashboard_config WHERE name = 'entity' AND users_id = ".$_SESSION['glpiID']."";
@@ -157,7 +157,8 @@ else {
 			<?php 
 			
 			//SLAs			
-			$con = $_GET['con'];
+			if(isset($_GET['con'])){$con = $_GET['con'];}
+			else {$con = '';}
 			
 			if($con == "1") {
 			
@@ -201,18 +202,19 @@ else {
 			
 			else {
 				$status = $status_all;
-				}
+			}
 
 
-	$slaid = "AND glpi_tickets.slas_ttr_id = ";
-	$sla_comp = "AND glpi_tickets.slas_ttr_id = glpi_slas.id";	
+$slaid = "AND glpi_tickets.slas_id_ttr = ";
+$sla_comp = "AND glpi_tickets.slas_id_ttr = glpi_slas.id";	
 	
 $sql_sla = 
-"SELECT COUNT(glpi_tickets.id) AS total, glpi_slms.name AS sla_name, glpi_tickets.date AS date, glpi_tickets.solvedate as solvedate, 
+"SELECT COUNT(glpi_tickets.id) AS total, glpi_slas.name AS sla_name, glpi_tickets.date AS date, glpi_tickets.solvedate as solvedate, 
 glpi_tickets.status, glpi_tickets.time_to_resolve AS duedate, sla_waiting_duration AS slawait, glpi_tickets.type,
-FROM_UNIXTIME( UNIX_TIMESTAMP( `glpi_tickets`.`solvedate` ) , '%Y-%m' ) AS date_unix, AVG( glpi_tickets.solve_delay_stat ) AS time, glpi_slms.id AS sla_id
-FROM glpi_tickets, glpi_slms
+FROM_UNIXTIME( UNIX_TIMESTAMP( `glpi_tickets`.`solvedate` ) , '%Y-%m' ) AS date_unix, AVG( glpi_tickets.solve_delay_stat ) AS time, glpi_slas.id AS sla_id
+FROM glpi_tickets, glpi_slas
 WHERE glpi_tickets.is_deleted = 0
+AND glpi_slas.type = 0
 AND glpi_tickets.date ".$datas2."
 ".$entidade."
 
@@ -320,8 +322,10 @@ echo "
 					else {
 					
 						//porcentagem
-						$perc = round(($solve_sla*100)/$chamados,2);
-						$barra = 100 - $perc;
+						if($chamados != 0) {
+							$perc = round(($solve_sla*100)/$chamados,2);
+							$barra = 100 - $perc;
+						}
 						
 						// cor barra
 						if($barra == 100) { $cor = "progress-bar-success"; }
@@ -336,14 +340,14 @@ echo "
 						
 				echo "	
 				<tr>
-					<td style='vertical-align:middle; text-align:left;'><a href='rel_sltsr.php?con=1&sla=". $row['sla_id'] ."&date1=".$data_ini2."&date2=".$data_fin2."' target='_blank' >".$row['sla_name']." </a></td>
+					<td style='vertical-align:middle; text-align:left;'><a href='rel_sltsr.php?con=1&sel_sla=". $row['sla_id'] ."&date1=".$data_ini2."&date2=".$data_fin2."' target='_blank' >".$row['sla_name']." </a></td>
 					<td style='vertical-align:middle; text-align:center;'> ". $chamados ." </td>
 					<td style='vertical-align:middle; text-align:center;'> ". $abertos ." </td>
 					<td style='vertical-align:middle; text-align:center;'> ". $solucionados ." </td>
 					<td style='vertical-align:middle; text-align:center;'> ". $fechados ." </td>						
 					<td style='vertical-align:middle; text-align:center;'> 
 						<div class='progress' style='margin-top: 5px; margin-bottom: 5px;'>
-							<div class='progress-bar ". $cor ." progress-bar-striped active' role='progressbar' aria-valuenow='".$barra."' aria-valuemin='0' aria-valuemax='100' style='width: ".$barra."%;'>
+							<div class='progress-bar ". $cor ." ' role='progressbar' aria-valuenow='".$barra."' aria-valuemin='0' aria-valuemax='100' style='width: ".$barra."%;'>
 					 			".$barra." % 	
 					 		</div>		
 						</div>			

@@ -2,7 +2,7 @@
 /**
  * ---------------------------------------------------------------------
  * GLPI - Gestionnaire Libre de Parc Informatique
- * Copyright (C) 2015-2017 Teclib' and contributors.
+ * Copyright (C) 2015-2021 Teclib' and contributors.
  *
  * http://glpi-project.org
  *
@@ -30,10 +30,6 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file
-* @brief
-*/
-
 include ('../inc/includes.php');
 
 // Change profile system
@@ -41,7 +37,7 @@ if (isset($_POST['newprofile'])) {
    if (isset($_SESSION["glpiprofiles"][$_POST['newprofile']])) {
       Session::changeProfile($_POST['newprofile']);
 
-      if ($_SESSION["glpiactiveprofile"]["interface"] == "central") {
+      if (Session::getCurrentInterface() == "central") {
          Html::redirect($CFG_GLPI['root_doc']."/front/central.php");
       } else {
          Html::redirect($_SERVER['PHP_SELF']);
@@ -75,7 +71,7 @@ if (!Session::haveRight('ticket', CREATE)
     && !Session::haveRight('reminder_public', READ)
     && !Session::haveRight("rssfeed_public", READ)) {
 
-   if (Session::haveRight('followup', TicketFollowup::SEEPUBLIC)
+   if (Session::haveRight('followup', ITILFollowup::SEEPUBLIC)
        || Session::haveRight('task', TicketTask::SEEPUBLIC)
        || Session::haveRightsOr('ticketvalidation', [TicketValidation::VALIDATEREQUEST,
                                                           TicketValidation::VALIDATEINCIDENT])) {
@@ -99,7 +95,34 @@ if (isset($_GET['create_ticket'])) {
 
 } else {
    Html::helpHeader(__('Home'), $_SERVER['PHP_SELF'], $_SESSION["glpiname"]);
-   echo "<table class='tab_cadre_postonly'><tr class='noHover'>";
+   echo "<table class='tab_cadre_postonly'>";
+
+   $user = new User();
+   $user->getFromDB(Session::getLoginUserID());
+   if ($user->fields['authtype'] == Auth::DB_GLPI && $user->shouldChangePassword()) {
+      $expiration_msg = sprintf(
+         __('Your password will expire on %s.'),
+         Html::convDateTime(date('Y-m-d H:i:s', $user->getPasswordExpirationTime()))
+      );
+      echo '<tr>';
+      echo '<th colspan="2">';
+      echo '<div class="warning">';
+      echo '<i class="fa fa-exclamation-triangle fa-5x"></i>';
+      echo '<ul>';
+      echo '<li>';
+      echo $expiration_msg . ' ';
+      echo '<a href="' . $CFG_GLPI['root_doc'] . '/front/updatepassword.php">';
+      echo __('Update my password');
+      echo '</a>';
+      echo '</li>';
+      echo '</ul>';
+      echo '<div class="sep"></div>';
+      echo '</div>';
+      echo '</th>';
+      echo '</tr>';
+   }
+
+   echo "<tr class='noHover'>";
    echo "<td class='top' width='50%'><br>";
    echo "<table class='central'>";
    Plugin::doHook('display_central');
