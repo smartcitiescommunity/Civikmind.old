@@ -1,3 +1,7 @@
+DEPRECIADO
+
+#  Ver nueva versión https://github.com/smartcitiescommunity/Civikmind
+
 <img align="left" src="pics/scc.jpg?raw=true"/>
 
 | **`SLES`** <img src="https://cdn.rawgit.com/smartcitiescommunity/Civikmind/e1070b30/pics/linux.svg"> | **`RHEL`** <img src="https://cdn.rawgit.com/smartcitiescommunity/Civikmind/e1070b30/pics/linux.svg"> | **`UBUNTU`** <img src="https://cdn.rawgit.com/smartcitiescommunity/Civikmind/e1070b30/pics/linux.svg"> | **`Windows`** <img src="https://cdn.rawgit.com/smartcitiescommunity/Civikmind/e1070b30/pics/windows.svg"> | **`MacOS`** <img src="https://cdn.rawgit.com/smartcitiescommunity/Civikmind/84d8b4da/pics/mac.svg"> | **`Estado`** | **`Appliance`** | **`Idioma`** | **`Tutorial`** |
